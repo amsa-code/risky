@@ -1,5 +1,8 @@
 package au.gov.amsa.stream.sharer;
 
+import static rx.Observable.just;
+import static rx.Observable.range;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,15 +36,11 @@ public class Lines {
 	 */
 	public static Observable<String> from(final String host, final int port,
 			long quietTimeoutMs, long reconnectDelayMs) {
-		return Observable
-		// if the server closes the stream we want to just connect again
-				.range(1, Integer.MAX_VALUE)
-				// delay connect by one second so that if server closes stream
-				// on every connect we won't be in a mad loop of failing
-				// connections
-				.delay(reconnectDelayMs, TimeUnit.MILLISECONDS,
-						Schedulers.immediate())
-				// log
+		// delay connect by delayMs so that if server closes
+		// stream on every connect we won't be in a mad loop of
+		// failing connections
+		return triggersWithDelay(reconnectDelayMs)
+		// log
 				.lift(Logging.<Integer> logger().onNextPrefix("n=").log())
 				// connect to server and read lines from its input stream
 				.concatMap(streamFrom(host, port))
@@ -54,6 +53,17 @@ public class Lines {
 				.retry()
 				// all subscribers use the same stream
 				.share();
+	}
+
+	private static Observable<Integer> triggersWithDelay(long delayMs) {
+		return just(1)
+		// keep counting
+				.concatWith(
+				// numbers from 2 on now with delay
+						range(2, Integer.MAX_VALUE)
+						// delay till next number released
+								.delay(delayMs, TimeUnit.MILLISECONDS,
+										Schedulers.immediate()));
 	}
 
 	private static Func1<Integer, Observable<String>> streamFrom(
