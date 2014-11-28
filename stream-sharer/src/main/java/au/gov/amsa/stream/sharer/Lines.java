@@ -15,6 +15,9 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.observables.StringObservable;
+import rx.schedulers.Schedulers;
+
+import com.github.davidmoten.rx.slf4j.Logging;
 
 public class Lines {
 
@@ -28,12 +31,17 @@ public class Lines {
 	 * @param hostPort
 	 * @return
 	 */
-	public static Observable<String> from(String host, int port) {
+	public static Observable<String> from(final String host, final int port) {
 		return Observable
-		// create a stream from a socket and dispose of socket
-		// appropriately
-				.using(socketCreator(host, port), observableFactory(),
-						socketDisposer())
+		// if the server closes the stream we want to just connect again
+				.range(1, Integer.MAX_VALUE)
+				// delay connect by one second so that if server closes stream
+				// on every connect we won't be in a mad loop of connections
+				.delay(1, TimeUnit.SECONDS, Schedulers.immediate())
+				// log
+				.lift(Logging.<Integer> log())
+				// connect to server and read lines from its input stream
+				.concatMap(streamFrom(host, port))
 				// ensure connection has not dropped out by throwing an
 				// exception after a minute. This is a good idea with TCPIP
 				// because for example a firewall might drop a quiet connection
@@ -43,6 +51,21 @@ public class Lines {
 				.retry()
 				// all subscribers use the same stream
 				.share();
+	}
+
+	private static Func1<Integer, Observable<String>> streamFrom(
+			final String host, final int port) {
+		return new Func1<Integer, Observable<String>>() {
+			@Override
+			public Observable<String> call(Integer n) {
+				log.info("n=" + n);
+				return Observable
+				// create a stream from a socket and dispose of socket
+				// appropriately
+						.using(socketCreator(host, port), observableFactory(),
+								socketDisposer());
+			}
+		};
 	}
 
 	private static Func0<Socket> socketCreator(final String host, final int port) {
