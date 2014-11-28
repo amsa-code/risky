@@ -31,13 +31,16 @@ public class Lines {
 	 * @param hostPort
 	 * @return
 	 */
-	public static Observable<String> from(final String host, final int port) {
+	public static Observable<String> from(final String host, final int port,
+			long quietTimeoutMs, long reconnectDelayMs) {
 		return Observable
 		// if the server closes the stream we want to just connect again
 				.range(1, Integer.MAX_VALUE)
 				// delay connect by one second so that if server closes stream
-				// on every connect we won't be in a mad loop of connections
-				.delay(1, TimeUnit.SECONDS, Schedulers.immediate())
+				// on every connect we won't be in a mad loop of failing
+				// connections
+				.delay(reconnectDelayMs, TimeUnit.MILLISECONDS,
+						Schedulers.immediate())
 				// log
 				.lift(Logging.<Integer> logger().onNextPrefix("n=").log())
 				// connect to server and read lines from its input stream
@@ -46,7 +49,7 @@ public class Lines {
 				// exception after a minute. This is a good idea with TCPIP
 				// because for example a firewall might drop a quiet connection
 				// and we won't know about it.
-				.timeout(1, TimeUnit.MINUTES)
+				.timeout(quietTimeoutMs, TimeUnit.MILLISECONDS)
 				// if any exception occurs retry
 				.retry()
 				// all subscribers use the same stream

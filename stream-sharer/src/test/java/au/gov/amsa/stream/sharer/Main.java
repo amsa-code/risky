@@ -6,11 +6,12 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		Lines.from("mariweb.amsa.gov.au", 9010).forEach(new Action1<String>() {
-			@Override
-			public void call(String line) {
-				System.out.print(line);
-			}
-		});
+		Lines.from("mariweb.amsa.gov.au", 9010, 60000, 1000).forEach(
+				new Action1<String>() {
+					@Override
+					public void call(String line) {
+						System.out.print(line);
+					}
+				});
 	}
 }
