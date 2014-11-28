@@ -25,7 +25,7 @@ public class Lines {
 
 	/**
 	 * Returns an Observable sequence of lines from the given host and port. If
-	 * the stream is quiet for onen minute then a reconnect will occur. If any
+	 * the stream is quiet for one minute then a reconnect will occur. If any
 	 * exception occurs a reconnect will occur after the given retryInterval.
 	 * 
 	 * @param hostPort
@@ -58,7 +58,6 @@ public class Lines {
 		return new Func1<Integer, Observable<String>>() {
 			@Override
 			public Observable<String> call(Integer n) {
-				log.info("n=" + n);
 				return Observable
 				// create a stream from a socket and dispose of socket
 				// appropriately
