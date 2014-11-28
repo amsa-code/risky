@@ -4,7 +4,6 @@ import static rx.Observable.just;
 import static rx.Observable.range;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -30,10 +29,10 @@ public class Lines {
 	 * Returns an Observable sequence of lines from the given host and port. If
 	 * the stream is quiet for <code>quietTimeoutMs</code> then a reconnect will
 	 * be attempted. Note that this is a good idea with TCPIP connections as for
-	 * instance a firewall can simplly drop a quiet connection without the
-	 * client being aware of it. If any exception occurs a reconnect will be
-	 * attempted after <code>reconnectDelayMs</code>. If the socket is closed by
-	 * the server (the end of the input stream is reached) then a reconnect is
+	 * instance a firewall can simply drop a quiet connection without the client
+	 * being aware of it. If any exception occurs a reconnect will be attempted
+	 * after <code>reconnectDelayMs</code>. If the socket is closed by the
+	 * server (the end of the input stream is reached) then a reconnect is
 	 * attempted after <code>reconnectDelayMs</code>.
 	 * 
 	 * @param hostPort
@@ -107,10 +106,8 @@ public class Lines {
 			@Override
 			public Observable<String> call(Socket socket) {
 				try {
-					InputStream is = socket.getInputStream();
-					InputStreamReader reader = new InputStreamReader(is,
-							"UTF-8");
-					return StringObservable.from(reader);
+					return StringObservable.from(new InputStreamReader(socket
+							.getInputStream(), "UTF-8"));
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
