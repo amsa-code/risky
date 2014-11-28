@@ -39,7 +39,7 @@ public class Lines {
 				// on every connect we won't be in a mad loop of connections
 				.delay(1, TimeUnit.SECONDS, Schedulers.immediate())
 				// log
-				.lift(Logging.<Integer> log())
+				.lift(Logging.<Integer> logger().onNextPrefix("n=").log())
 				// connect to server and read lines from its input stream
 				.concatMap(streamFrom(host, port))
 				// ensure connection has not dropped out by throwing an
