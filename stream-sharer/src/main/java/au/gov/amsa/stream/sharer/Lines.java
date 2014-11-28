@@ -28,8 +28,13 @@ public class Lines {
 
 	/**
 	 * Returns an Observable sequence of lines from the given host and port. If
-	 * the stream is quiet for one minute then a reconnect will occur. If any
-	 * exception occurs a reconnect will occur after the given retryInterval.
+	 * the stream is quiet for <code>quietTimeoutMs</code> then a reconnect will
+	 * be attempted. Note that this is a good idea with TCPIP connections as for
+	 * instance a firewall can simplly drop a quiet connection without the
+	 * client being aware of it. If any exception occurs a reconnect will be
+	 * attempted after <code>reconnectDelayMs</code>. If the socket is closed by
+	 * the server (the end of the input stream is reached) then a reconnect is
+	 * attempted after <code>reconnectDelayMs</code>.
 	 * 
 	 * @param hostPort
 	 * @return
