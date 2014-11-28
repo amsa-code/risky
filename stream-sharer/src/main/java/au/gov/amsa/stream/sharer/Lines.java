@@ -7,19 +7,32 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.observables.StringObservable;
 
-public class Streams {
+public class Lines {
 
-	public static Observable<String> createSharedReader(HostPort hostPort) {
+	private static final Logger log = LoggerFactory.getLogger(Lines.class);
+
+	/**
+	 * Returns an Observable sequence of lines from the given host and port. If
+	 * the stream is quiet for onen minute then a reconnect will occur. If any
+	 * exception occurs a reconnect will occur after the given retryInterval.
+	 * 
+	 * @param hostPort
+	 * @return
+	 */
+	public static Observable<String> from(String host, int port) {
 		return Observable
 		// create a stream from a socket and dispose of socket
 		// appropriately
-				.using(socketCreator(hostPort), observableFactory(),
+				.using(socketCreator(host, port), observableFactory(),
 						socketDisposer())
 				// ensure connection has not dropped out by throwing an
 				// exception after a minute. This is a good idea with TCPIP
@@ -32,12 +45,13 @@ public class Streams {
 				.share();
 	}
 
-	private static Func0<Socket> socketCreator(final HostPort hostPort) {
+	private static Func0<Socket> socketCreator(final String host, final int port) {
 		return new Func0<Socket>() {
 			@Override
 			public Socket call() {
 				try {
-					return new Socket(hostPort.host(), hostPort.port());
+					log.info("creating socket to " + host + ":" + port);
+					return new Socket(host, port);
 				} catch (UnknownHostException e) {
 					throw new RuntimeException(e);
 				} catch (IOException e) {
@@ -56,8 +70,7 @@ public class Streams {
 					InputStream is = socket.getInputStream();
 					InputStreamReader reader = new InputStreamReader(is,
 							"UTF-8");
-					return StringObservable.split(
-							StringObservable.from(reader), "\n");
+					return StringObservable.from(reader);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -70,9 +83,11 @@ public class Streams {
 			@Override
 			public void call(Socket socket) {
 				try {
+					log.info("closing socket");
 					socket.close();
 				} catch (IOException e) {
-					throw new RuntimeException(e);
+					// don't really care if socket could not be closed cleanly
+					log.warn(e.getMessage(), e);
 				}
 			}
 		};
