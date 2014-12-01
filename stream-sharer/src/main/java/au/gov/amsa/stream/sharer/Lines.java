@@ -36,7 +36,8 @@ public class Lines {
 	 * attempted after <code>reconnectDelayMs</code>.
 	 * 
 	 * @param hostPort
-	 * @return
+	 * @return Observable sequence of lines (including possible new line
+	 *         character at end if exists).
 	 */
 	public static Observable<String> from(final String host, final int port,
 			long quietTimeoutMs, long reconnectDelayMs) {
@@ -78,8 +79,8 @@ public class Lines {
 				return Observable
 				// create a stream from a socket and dispose of socket
 				// appropriately
-						.using(socketCreator(host, port), socketObservableFactory(),
-								socketDisposer());
+						.using(socketCreator(host, port),
+								socketObservableFactory(), socketDisposer());
 			}
 		};
 	}
