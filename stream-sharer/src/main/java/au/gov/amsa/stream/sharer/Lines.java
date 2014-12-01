@@ -78,7 +78,7 @@ public class Lines {
 				return Observable
 				// create a stream from a socket and dispose of socket
 				// appropriately
-						.using(socketCreator(host, port), observableFactory(),
+						.using(socketCreator(host, port), socketObservableFactory(),
 								socketDisposer());
 			}
 		};
@@ -100,7 +100,7 @@ public class Lines {
 		};
 	}
 
-	private static Func1<Socket, Observable<String>> observableFactory() {
+	private static Func1<Socket, Observable<String>> socketObservableFactory() {
 		return new Func1<Socket, Observable<String>>() {
 
 			@Override
