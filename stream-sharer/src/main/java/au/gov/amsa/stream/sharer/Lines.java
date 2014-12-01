@@ -124,7 +124,7 @@ public class Lines {
 					socket.close();
 				} catch (IOException e) {
 					// don't really care if socket could not be closed cleanly
-					log.warn(e.getMessage(), e);
+					log.info(e.getMessage(), e);
 				}
 			}
 		};
