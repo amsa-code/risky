@@ -49,9 +49,9 @@ public class Lines {
 				// connect to server and read lines from its input stream
 				.concatMap(streamFrom(host, port))
 				// ensure connection has not dropped out by throwing an
-				// exception after a minute. This is a good idea with TCPIP
-				// because for example a firewall might drop a quiet connection
-				// and we won't know about it.
+				// exception after a minute of no messages. This is a good idea
+				// with TCPIP because for example a firewall might drop a quiet
+				// connection and we won't know about it.
 				.timeout(quietTimeoutMs, TimeUnit.MILLISECONDS)
 				// if any exception occurs retry
 				.retry()
