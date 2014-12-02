@@ -29,7 +29,7 @@ mvn release:prepare
 
 This will commit the tagged version you specify. Use the version number only for the tag. Then 
 
-``bash
+```bash
 git checkout <TAG>
 mvn clean install 
 ```
