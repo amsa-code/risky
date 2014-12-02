@@ -26,5 +26,5 @@ To test the above code:
 
 and you should see the republished stream.
 
-Multiple connections to localhost:6564 will just reuse the one stream to the source and 
+Multiple connections to *localhost:6564* will just reuse the one stream to the source and 
 when all connections have disconnected the stream to source is disconnected as well.
