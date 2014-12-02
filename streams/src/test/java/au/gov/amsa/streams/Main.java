@@ -17,7 +17,6 @@ public class Main {
 		Observable<String> lines = Lines.from(host, port, quietTimeoutMs,
 				reconnectDelayMs).map(Lines.TRIM);
 		StringServer.start(lines, serverSocketPort);
-
 	}
 
 }

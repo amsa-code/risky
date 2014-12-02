@@ -26,6 +26,17 @@ public class StringServer {
 	private final Observable<String> source;
 
 	/**
+	 * Starts the server. Each connection to the server will bring about another
+	 * subscription to the source.
+	 * 
+	 * @param source
+	 * @param port
+	 */
+	public static void start(Observable<String> source, int port) {
+		new StringServer(source, port).start();
+	}
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param ss
@@ -40,10 +51,6 @@ public class StringServer {
 			throw new RuntimeException(e);
 		}
 		this.source = source;
-	}
-
-	public static void start(Observable<String> source, int port) {
-		new StringServer(source, port).start();
 	}
 
 	/**
