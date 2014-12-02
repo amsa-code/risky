@@ -1,4 +1,5 @@
-==streams==
+streams
+=============
 
 Tools for 
 * resharing socket broadcasts of strings (for example AIS NMEA)
