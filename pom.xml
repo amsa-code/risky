@@ -8,10 +8,13 @@
     <description>Parent pom for risky projects modules</description>
     <packaging>pom</packaging>
     
+	<properties>
+		<scm.url>scm:git:https://github.com/davidmoten/risky.git</scm.url
+	</properties>
 	<scm>
-		<connection>scm:git:https://github.com/davidmoten/risky.git</connection>
-		<developerConnection>scm:git:https://github.com/davidmoten/risky.git</developerConnection>
-		<url>scm:git:https://github.com/davidmoten/risky.git</url>
+		<connection>${scm.url}</connection>
+		<developerConnection>${scm.url}</developerConnection>
+		<url>${scm.url}</url>
 	</scm>
 
     <modules>
