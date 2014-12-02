@@ -1,12 +1,10 @@
 package au.gov.amsa.streams;
 
-import java.io.IOException;
-
 import rx.Observable;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 
 		String host = "mariweb.amsa.gov.au";
 		int port = 9010;
