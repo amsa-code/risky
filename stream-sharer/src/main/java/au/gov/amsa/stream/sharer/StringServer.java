@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.nio.charset.StandardCharsets;
 
 import org.slf4j.Logger;
@@ -41,6 +42,10 @@ public class StringServer {
 		this.source = source;
 	}
 
+	public static void start(int port, Observable<String> source) {
+		new StringServer(port, source).start();
+	}
+
 	/**
 	 * Starts the server. Each connection to the server will bring about another
 	 * subscription to the source.
@@ -48,16 +53,29 @@ public class StringServer {
 	public void start() {
 		try {
 			while (keepGoing) {
-				// this is a blocking call so it hogs a thread
-				final Socket socket = ss.accept();
-				final String socketName = socket.getInetAddress()
-						.getHostAddress() + ":" + socket.getPort();
-				final OutputStream out = socket.getOutputStream();
-				source
-				// subscribe in background so can accept another connection
-				.subscribeOn(Schedulers.io())
-				// write each line to the socket OutputStream
-						.subscribe(createSubscriber(socket, socketName, out));
+				try {
+					// this is a blocking call so it hogs a thread
+					final Socket socket = ss.accept();
+					final String socketName = socket.getInetAddress()
+							.getHostAddress() + ":" + socket.getPort();
+					try {
+						final OutputStream out = socket.getOutputStream();
+						source
+						// subscribe in background so can accept another
+						// connection
+						.subscribeOn(Schedulers.io())
+						// write each line to the socket OutputStream
+								.subscribe(
+										createSubscriber(socket, socketName,
+												out));
+					} catch (IOException e) {
+						// could not get output stream (could have closed very
+						// quickly after connecting
+						// dont' care
+					}
+				} catch (SocketTimeoutException e) {
+					// don't care
+				}
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
