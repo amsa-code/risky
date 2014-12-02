@@ -1,5 +1,9 @@
 #!/bin/bash
 set -e
+if [ $# -eq 0 ]; then
+    echo "Usage: ./release.sh <VERSION>"
+    exit 1
+fi
 VERSION=$1
 DRY_RUN=true
 git pull
