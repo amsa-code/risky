@@ -1,8 +1,8 @@
 streams
 =============
 
-Tools for 
-* resharing socket broadcasts of strings (for example AIS NMEA)
+Features 
+* reshare socket broadcasts of strings (for example AIS NMEA) on localhost
 
 Republishing a busy stream from a remote host on a local host server socket can bring about a significant lowering of network traffic and reduce load on the remote host.
 
