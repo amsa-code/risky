@@ -26,3 +26,9 @@ For project maintainers, until we start releasing to Maven Central this is the p
 ```bash
 ./release.sh <VERSION>
 ```
+
+To release a snapshot version to the AMSA internal repository:
+
+```bash
+./release-snapshot.sh
+```
