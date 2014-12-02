@@ -8,11 +8,21 @@
     <description>Parent pom for risky projects modules</description>
     <packaging>pom</packaging>
     
-    <properties>
-    </properties>
+	<scm>
+		<connection>scm:git:git@github.com:davidmoten/risky.git</connection>
+		<developerConnection>scm:git:git@github.com:davidmoten/risky.git</developerConnection>
+		<url>scm:git:git@github.com:davidmoten/risky.git</url>
+	</scm>
 
     <modules>
         <module>streams</module>
     </modules>
+
+	<distributionManagement>
+		<repository>
+			<id>${risky.repo}</id>
+			<url>${risky.repo.url}</url>
+		</repository>
+	</distributionManagement>
 
 </project>
