@@ -2,7 +2,7 @@ streams
 =============
 
 Features 
-* read a socket broadcast of strings (for example AIS NMEA feed) with appropriate timeouts and reconnect delays
+* read a socket broadcast of strings (for example [AIS](http://en.wikipedia.org/wiki/Automatic_Identification_System) [NMEA](http://en.wikipedia.org/wiki/NMEA_0183) feed) with appropriate timeouts and reconnect delays
 * reshare an ```Observable<String>``` on a server socket 
 
 Republishing a busy stream from a remote host on a local host server socket can bring about a significant lowering of network traffic and reduce load on the remote host.
