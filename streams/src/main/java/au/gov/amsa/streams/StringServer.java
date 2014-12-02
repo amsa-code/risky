@@ -33,7 +33,7 @@ public class StringServer {
 	 * @param source
 	 *            the source of lines to publish on ServerSocket
 	 */
-	public StringServer(int port, Observable<String> source) {
+	public StringServer(Observable<String> source, int port) {
 		try {
 			this.ss = new ServerSocket(port);
 		} catch (IOException e) {
@@ -42,8 +42,8 @@ public class StringServer {
 		this.source = source;
 	}
 
-	public static void start(int port, Observable<String> source) {
-		new StringServer(port, source).start();
+	public static void start(Observable<String> source, int port) {
+		new StringServer(source, port).start();
 	}
 
 	/**

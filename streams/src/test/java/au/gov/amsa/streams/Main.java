@@ -2,17 +2,21 @@ package au.gov.amsa.streams;
 
 import java.io.IOException;
 
-import au.gov.amsa.streams.Lines;
-import au.gov.amsa.streams.StringServer;
 import rx.Observable;
 
 public class Main {
 
 	public static void main(String[] args) throws IOException {
 
-		Observable<String> aisLines = Lines.from("mariweb.amsa.gov.au", 9010,
-				60000, 1000).map(Lines.TRIM);
-		StringServer.start(6564, aisLines);
+		String host = "mariweb.amsa.gov.au";
+		int port = 9010;
+		long quietTimeoutMs = 60000;
+		long reconnectDelayMs = 1000;
+		int serverSocketPort = 6564;
+
+		Observable<String> lines = Lines.from(host, port, quietTimeoutMs,
+				reconnectDelayMs).map(Lines.TRIM);
+		StringServer.start(lines, serverSocketPort);
 
 	}
 
