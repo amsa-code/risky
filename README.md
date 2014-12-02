@@ -21,7 +21,9 @@ mvn clean install
 
 How to release
 ---------------
-For project maintainers, until we start releasing to Maven Central this is the procedure:
+For project maintainers only.
+
+Until we start releasing to Maven Central this is the procedure:
 
 ```bash
 ./release.sh <VERSION>
