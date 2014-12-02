@@ -5,6 +5,6 @@ risky
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
-* [stream-sharer](stream-sharer) enables sharing of a single feed of lines of text (like AIS NMEA feed) from a socket among multiple subscribers reading from the same ```ServerSocket```.
+* [streams](streams) enables sharing of a single feed of lines of text (like AIS NMEA feed) from a socket among multiple subscribers reading from the same ```ServerSocket```.
 
 Status: *pre-alpha*
