@@ -30,7 +30,7 @@
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.1</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
@@ -40,6 +40,11 @@
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-slf4j</artifactId>
+            <version>0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava-extras</artifactId>
             <version>0.2</version>
         </dependency>
     </dependencies>

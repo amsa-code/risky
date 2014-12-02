@@ -1,17 +1,25 @@
 package au.gov.amsa.stream.sharer;
 
-import rx.functions.Action1;
+import java.io.IOException;
+import java.net.ServerSocket;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import rx.Observable;
 
 public class Main {
 
-	public static void main(String[] args) {
+	private static Logger log = LoggerFactory.getLogger(Main.class);
 
-		Lines.from("mariweb.amsa.gov.au", 9010, 60000, 1000).forEach(
-				new Action1<String>() {
-					@Override
-					public void call(String line) {
-						System.out.print(line);
-					}
-				});
+	public static void main(String[] args) throws IOException {
+
+		Observable<String> aisLines = Lines.from("mariweb.amsa.gov.au", 9010,
+				60000, 1000).map(Lines.TRIM);
+		// aisLines.lift(
+		// Logging.<String> logger().showCount().every(100).showValue()
+		// .log()).subscribe();
+
+		new StringServer(new ServerSocket(6564), aisLines).start();
 	}
 }

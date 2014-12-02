@@ -21,9 +21,29 @@ import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 
+/**
+ * Utilities for stream processing of lines of text from
+ * <ul>
+ * <li>sockets</li>
+ * </ul>
+ */
 public class Lines {
 
 	private static final Logger log = LoggerFactory.getLogger(Lines.class);
+
+	/**
+	 * Returns null if input is null otherwise returns input.toString().trim().
+	 */
+	public static Func1<Object, String> TRIM = new Func1<Object, String>() {
+
+		@Override
+		public String call(Object input) {
+			if (input == null)
+				return null;
+			else
+				return input.toString().trim();
+		}
+	};
 
 	/**
 	 * Returns an Observable sequence of lines from the given host and port. If
@@ -60,12 +80,19 @@ public class Lines {
 				.share();
 	}
 
+	/**
+	 * Returns a <i>synchronous</i>s stream of a count of integers with delayMs
+	 * between emissions.
+	 * 
+	 * @param delayMs
+	 * @return stream of integers starting at 1 with delayMs between emissions
+	 */
 	private static Observable<Integer> triggersWithDelay(long delayMs) {
 		return just(1)
 		// keep counting
 				.concatWith(
 				// numbers from 2 on now with delay
-						range(2, Integer.MAX_VALUE)
+						range(2, Integer.MAX_VALUE - 1)
 						// delay till next number released
 								.delay(delayMs, TimeUnit.MILLISECONDS,
 										Schedulers.immediate()));
@@ -121,7 +148,9 @@ public class Lines {
 			@Override
 			public void call(Socket socket) {
 				try {
-					log.info("closing socket");
+					log.info("closing socket "
+							+ socket.getInetAddress().getHostAddress() + ":"
+							+ socket.getPort());
 					socket.close();
 				} catch (IOException e) {
 					// don't really care if socket could not be closed cleanly
