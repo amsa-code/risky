@@ -9,9 +9,9 @@
     <packaging>pom</packaging>
     
 	<scm>
-		<connection>scm:git:git@github.com:davidmoten/risky.git</connection>
-		<developerConnection>scm:git:git@github.com:davidmoten/risky.git</developerConnection>
-		<url>scm:git:git@github.com:davidmoten/risky.git</url>
+		<connection>scm:git:https://github.com/davidmoten/risky.git</connection>
+		<developerConnection>scm:git:https://github.com/davidmoten/risky.git</developerConnection>
+		<url>scm:git:https://github.com/davidmoten/risky.git</url>
 	</scm>
 
     <modules>

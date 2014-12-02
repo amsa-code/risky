@@ -24,14 +24,5 @@ How to release
 For project maintainers, until we start releasing to Maven Central this is the procedure:
 
 ```bash
-mvn release:prepare
+./release.sh <VERSION>
 ```
-
-This will commit the tagged version you specify. Use the version number only for the tag. Then 
-
-```bash
-git checkout <TAG>
-mvn clean install 
-```
-
-and deploy the jar manually to the internal repository.
