@@ -4,6 +4,8 @@ streams
 Tools for 
 * resharing socket broadcasts of strings (for example AIS NMEA)
 
+Republishing a busy stream from a remote host on a local host server socket can bring about a significant lowering of network traffic and reduce load on the remote host.
+
 This project is a super example of the effectiveness of [RxJava](https://github.com/ReactiveX/RxJava) for processing streams of data.
 
 Here is an example of reading a stream of AIS NMEA messages from a host and republishing it on a server port for multiple subscribers:
