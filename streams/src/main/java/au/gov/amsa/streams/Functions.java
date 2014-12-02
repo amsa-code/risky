@@ -1,4 +1,4 @@
-package au.gov.amsa.stream.sharer;
+package au.gov.amsa.streams;
 
 import rx.Observable;
 import rx.Scheduler;

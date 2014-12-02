@@ -1,4 +1,4 @@
-package au.gov.amsa.stream.sharer;
+package au.gov.amsa.streams;
 
 import java.io.IOException;
 import java.io.OutputStream;

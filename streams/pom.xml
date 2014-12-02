@@ -6,7 +6,7 @@
         <artifactId>risky-parent</artifactId>
         <version>0.1-SNAPSHOT</version>
     </parent>
-    <artifactId>stream-sharer</artifactId>
+    <artifactId>streams</artifactId>
     <name>${project.artifactId}</name>
     <description></description>
     <properties>

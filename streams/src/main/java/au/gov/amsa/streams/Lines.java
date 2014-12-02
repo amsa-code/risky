@@ -1,4 +1,4 @@
-package au.gov.amsa.stream.sharer;
+package au.gov.amsa.streams;
 
 import static rx.Observable.just;
 import static rx.Observable.range;

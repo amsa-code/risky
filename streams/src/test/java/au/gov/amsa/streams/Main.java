@@ -1,7 +1,9 @@
-package au.gov.amsa.stream.sharer;
+package au.gov.amsa.streams;
 
 import java.io.IOException;
 
+import au.gov.amsa.streams.Lines;
+import au.gov.amsa.streams.StringServer;
 import rx.Observable;
 
 public class Main {
