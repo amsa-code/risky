@@ -8,3 +8,13 @@ Tools for analyzing timestamped position data such as vessel position reports fr
 * [streams](streams)
 
 Status: *pre-alpha*
+
+How to build
+----------------
+
+```bash
+cd <WORKSPACE>
+git clone https://github.com/amsa-code/risky.git
+cd risky
+mvn clean install
+```
