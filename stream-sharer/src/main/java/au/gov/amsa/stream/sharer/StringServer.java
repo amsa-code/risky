@@ -32,8 +32,12 @@ public class StringServer {
 	 * @param source
 	 *            the source of lines to publish on ServerSocket
 	 */
-	public StringServer(ServerSocket ss, Observable<String> source) {
-		this.ss = ss;
+	public StringServer(int port, Observable<String> source) {
+		try {
+			this.ss = new ServerSocket(port);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 		this.source = source;
 	}
 

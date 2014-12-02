@@ -1,16 +1,11 @@
 package au.gov.amsa.stream.sharer;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 public class Main {
-
-	private static Logger log = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) throws IOException {
 
@@ -20,6 +15,9 @@ public class Main {
 		// Logging.<String> logger().showCount().every(100).showValue()
 		// .log()).subscribe();
 
-		new StringServer(new ServerSocket(6564), aisLines).start();
+		// new StringServer(6564, aisLines).start();
+		ServerSockets.publish(aisLines, 6564).observeOn(Schedulers.immediate())
+				.subscribe();
 	}
+
 }
