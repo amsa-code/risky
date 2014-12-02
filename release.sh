@@ -5,7 +5,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 VERSION=$1
-DRY_RUN=true
+DRY_RUN=false
 git pull
 mvn release:clean
 mvn -B release:prepare -DreleaseVersion=$VERSION -DautoVersionSubmodules=true -Dtag=$VERSION -DdryRun=$DRY_RUN
