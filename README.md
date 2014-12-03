@@ -5,8 +5,8 @@ risky
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
-* [streams](streams) read and publish socket broadcasts of string streams (like AIS)
-* [ais](ais) parse nmea and ais messages
+* [streams](streams) - read and publish socket broadcasts of string streams (like AIS)
+* [ais](ais) - parse nmea and ais messages
 
 Status: *pre-alpha*
 
