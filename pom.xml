@@ -8,7 +8,7 @@
     <packaging>pom</packaging>
     
 	<properties>
-		<scm.url>scm:git:https://github.com/davidmoten/risky.git</scm.url>
+		<scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
 	</properties>
 	<scm>
 		<connection>${scm.url}</connection>
