@@ -6,7 +6,6 @@ import static rx.Observable.range;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -121,8 +120,6 @@ public class Lines {
 				try {
 					log.info("creating socket to " + host + ":" + port);
 					return new Socket(host, port);
-				} catch (UnknownHostException e) {
-					throw new RuntimeException(e);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
