@@ -20,6 +20,9 @@ git checkout master
 mvn versions:set -DnewVersion=$VERSION.1-SNAPSHOT -DgenerateBackupPoms=false
 git commit -am "setting versions to snapshot"
 git push
+git checkout $VERSION
+./generate-site.sh
+git checkout master
 
 ## could not get release plugin to work for git push!
 #GIT_USERNAME=$2
