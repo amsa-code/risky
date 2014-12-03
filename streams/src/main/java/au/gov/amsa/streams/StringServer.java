@@ -15,7 +15,8 @@ import rx.Subscriber;
 import rx.schedulers.Schedulers;
 
 /**
- * Publishes lines from an Observable<String> source to a ServerSockets.
+ * Publishes lines from an Observable&lt;String&gt; source to a
+ * {@link ServerSocket}.
  */
 public class StringServer {
 
@@ -45,7 +46,7 @@ public class StringServer {
 	 * @param source
 	 *            the source of lines to publish on ServerSocket
 	 */
-	public StringServer(Observable<String> source, int port) {
+	private StringServer(Observable<String> source, int port) {
 		try {
 			this.ss = new ServerSocket(port);
 		} catch (IOException e) {
@@ -134,7 +135,6 @@ public class StringServer {
 			public void onNext(String line) {
 				try {
 					out.write(line.getBytes(StandardCharsets.UTF_8));
-					out.write('\n');
 					out.flush();
 				} catch (IOException e) {
 					log.info(e.getMessage() + " " + socketName);
