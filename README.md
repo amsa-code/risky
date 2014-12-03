@@ -10,6 +10,8 @@ Tools for analyzing timestamped position data such as vessel position reports fr
 
 Status: *pre-alpha*
 
+Maven site reports are [here](http://amsa-code.github.io/risky/index.html) including [javadoc](http://amsa-code.github.io/risky/apidocs/index.html).
+
 How to build
 ----------------
 
