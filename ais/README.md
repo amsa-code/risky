@@ -23,4 +23,10 @@ Every other message is classified as ```AisMessageOther```.
 
 We are very happy to receive PRs with support for extracting other message types!
 
+Notes
+---------
+To analyze timestamped (TAG BLOCK) ais reports in file many.txt:
+
+  mvn clean install exec:java -Dmany=many.txt
+
 
