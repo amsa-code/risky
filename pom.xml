@@ -166,6 +166,10 @@
             <id>${risky.repo}</id>
             <url>${risky.repo.url}</url>
         </repository>
+	    <site>
+		   <id>site</id>
+			<url>${site.url}</url>
+	   </site>
     </distributionManagement>
 
 </project>
