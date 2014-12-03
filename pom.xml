@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.gov.amsa</groupId>
     <artifactId>risky-parent</artifactId>
@@ -6,51 +7,54 @@
     <name>${project.artifactId}</name>
     <description>Parent pom for risky projects modules</description>
     <packaging>pom</packaging>
-    
-	<properties>
-		<scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
-		<compiler.source>1.7</compiler.source>
-		<compiler.target>1.7</compiler.target>
-	</properties>
-	<scm>
-		<connection>${scm.url}</connection>
-		<developerConnection>${scm.url}</developerConnection>
-		<url>${scm.url}</url>
-	  <tag>0.1</tag>
-  </scm>
+
+    <properties>
+        <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
+        <compiler.source>1.7</compiler.source>
+        <compiler.target>1.7</compiler.target>
+        <rxjava.version>1.0.2</rxjava.version>
+        <rxjava.string.version>0.21.0</rxjava.string.version>
+        <rxjava.extras.version>0.2</rxjava.extras.version>
+    </properties>
+    <scm>
+        <connection>${scm.url}</connection>
+        <developerConnection>${scm.url}</developerConnection>
+        <url>${scm.url}</url>
+        <tag>0.1</tag>
+    </scm>
 
     <modules>
         <module>streams</module>
-<module>ais</module>
+        <module>ais</module>
     </modules>
 
     <build>
-	<plugins>
-<plugin>
-				<inherited>true</inherited>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.2</version>
-				<configuration>
-					<verbose>true</verbose>
-					<fork>true</fork>
-					<source>${compiler.source}</source>
-					<target>${compiler.target}</target>
-				</configuration>
-			</plugin>
-<plugin>
-<groupId>org.apache.maven.plugins</groupId>
-    <artifactId>maven-release-plugin</artifactId>
-    <version>2.5.1</version>
-</plugin>
-</plugins>
-	</build>
+        <plugins>
+            <plugin>
+                <inherited>true</inherited>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <verbose>true</verbose>
+                    <fork>true</fork>
+                    <source>${compiler.source}</source>
+                    <target>${compiler.target}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.1</version>
+            </plugin>
+        </plugins>
+    </build>
 
-	<distributionManagement>
-		<repository>
-			<id>${risky.repo}</id>
-			<url>${risky.repo.url}</url>
-		</repository>
-	</distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>${risky.repo}</id>
+            <url>${risky.repo.url}</url>
+        </repository>
+    </distributionManagement>
 
 </project>

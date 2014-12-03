@@ -7,8 +7,6 @@ import rx.Notification;
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Functions;
-import au.gov.amsa.ais.rx.operators.OperationLog;
 
 public class RxUtil {
 
@@ -46,11 +44,8 @@ public class RxUtil {
 	public static <T> Observable<T> concatButIgnoreFirstSequence(
 			Observable<?> o1, Observable<T> o2) {
 		return Observable.concat(
-				(Observable<T>) o1.filter(Functions.alwaysFalse()), o2);
+				(Observable<T>) o1.filter(com.github.davidmoten.rx.Functions.alwaysFalse()), o2);
 	}
 
-	public static <T> Observable<T> log(Observable<T> source) {
-		return Observable.create(OperationLog.log(source));
-	}
 
 }

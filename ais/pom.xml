@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>au.gov.amsa</groupId>
@@ -11,7 +12,6 @@
     <properties>
         <slf4j.version>1.7.7</slf4j.version>
         <jmh.version>1.1.1</jmh.version>
-		<rxjava.version>0.20.6</rxjava.version>
     </properties>
     <dependencies>
         <dependency>
@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-			<version>18.0</version>
+            <version>18.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -65,14 +65,19 @@
         </dependency>
 
         <dependency>
-            <groupId>com.netflix.rxjava</groupId>
-            <artifactId>rxjava-core</artifactId>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
             <version>${rxjava.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.netflix.rxjava</groupId>
+            <groupId>io.reactivex</groupId>
             <artifactId>rxjava-string</artifactId>
-            <version>${rxjava.version}</version>
+            <version>${rxjava.string.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava-extras</artifactId>
+            <version>${rxjava.extras.version}</version>
         </dependency>
 
         <!-- test/benchmark deps -->
