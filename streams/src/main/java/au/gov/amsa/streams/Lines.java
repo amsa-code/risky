@@ -85,8 +85,8 @@ public final class Lines {
 	public static class Builder {
 		private final String host;
 		private int port = 6564;
-		private long quietTimeoutMs;
-		private long reconnectDelayMs;
+		private long quietTimeoutMs = 60000;
+		private long reconnectDelayMs = 30000;
 		private Charset charset = StandardCharsets.UTF_8;
 
 		Builder(String host) {
@@ -119,6 +119,14 @@ public final class Lines {
 
 	}
 
+	/**
+	 * Returns a builder for converting a socket read to an Observable. Defaults
+	 * to port=6564, quietTimeoutMs=60000, reconnectDelayMs=30000, charset=
+	 * UTF-8.
+	 * 
+	 * @param host
+	 * @return
+	 */
 	public static Builder from(String host) {
 		return new Builder(host);
 	}
