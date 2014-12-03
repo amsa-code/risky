@@ -43,7 +43,7 @@ public class LinesTest {
 			}
 		};
 		executor.execute(runnable);
-		List<String> list = Lines
+		List<String> list = Strings
 				.from("localhost", port, 1000, 1000, StandardCharsets.UTF_8)
 				.take(5).toList().toBlocking().single();
 		System.out.println(list);
@@ -53,24 +53,24 @@ public class LinesTest {
 
 	@Test
 	public void testTrim() {
-		assertEquals("trimmed", Lines.TRIM.call("  \ttrimmed\r\n   "));
+		assertEquals("trimmed", Strings.TRIM.call("  \ttrimmed\r\n   "));
 	}
 
 	@Test
 	public void testTrimOnNullInputReturnsNull() {
-		assertEquals(null, Lines.TRIM.call(null));
+		assertEquals(null, Strings.TRIM.call(null));
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void testSocketCreatorThrowsException() {
-		Lines.socketCreator("non-existent-host", 1234).call();
+		Strings.socketCreator("non-existent-host", 1234).call();
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void testSocketObservableFactoryOnException() throws IOException {
 		Socket socket = mock(Socket.class);
 		doThrow(new IOException("hi")).when(socket).getInputStream();
-		Lines.socketObservableFactory(StandardCharsets.UTF_8).call(socket);
+		Strings.socketObservableFactory(StandardCharsets.UTF_8).call(socket);
 	}
 
 	@Test
@@ -81,6 +81,6 @@ public class LinesTest {
 		doReturn("ahost").when(address).getHostAddress();
 		doReturn(1234).when(socket).getPort();
 		doThrow(new IOException("hi")).when(socket).close();
-		Lines.socketDisposer().call(socket);
+		Strings.socketDisposer().call(socket);
 	}
 }

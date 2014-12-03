@@ -29,9 +29,9 @@ import com.google.common.annotations.VisibleForTesting;
  * <li>sockets</li>
  * </ul>
  */
-public final class Lines {
+public final class Strings {
 
-	private static final Logger log = LoggerFactory.getLogger(Lines.class);
+	private static final Logger log = LoggerFactory.getLogger(Strings.class);
 
 	/**
 	 * Returns null if input is null otherwise returns input.toString().trim().
@@ -103,9 +103,17 @@ public final class Lines {
 			return this;
 		}
 
+		public Builder quietTimeout(long duration, TimeUnit unit) {
+			return quietTimeoutMs(unit.toMillis(duration));
+		}
+
 		public Builder reconnectDelayMs(long reconnectDelayMs) {
 			this.reconnectDelayMs = reconnectDelayMs;
 			return this;
+		}
+
+		public Builder reconnectDelay(long duration, TimeUnit unit) {
+			return reconnectDelayMs(unit.toMillis(duration));
 		}
 
 		public Builder charset(Charset charset) {
