@@ -26,14 +26,15 @@ public class StringServer {
 	private final Observable<String> source;
 
 	/**
-	 * Starts the server. Each connection to the server will bring about another
-	 * subscription to the source.
+	 * Factory method.
 	 * 
 	 * @param source
+	 *            source to publish on server socket
 	 * @param port
+	 *            to assign the server socket to
 	 */
-	public static void start(Observable<String> source, int port) {
-		new StringServer(source, port).start();
+	public static StringServer create(Observable<String> source, int port) {
+		return new StringServer(source, port);
 	}
 
 	/**
