@@ -23,7 +23,7 @@ long reconnectDelayMs = 1000;
 int serverSocketPort = 6564;
 
 Observable<String> lines = Lines.from(host, port, quietTimeoutMs,
-		reconnectDelayMs).map(Lines.TRIM);
+		reconnectDelayMs);
 StringServer.create(lines, serverSocketPort).start();
 ```
 

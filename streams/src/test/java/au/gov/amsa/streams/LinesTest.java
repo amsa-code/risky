@@ -8,6 +8,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -42,8 +43,9 @@ public class LinesTest {
 			}
 		};
 		executor.execute(runnable);
-		List<String> list = Lines.from("localhost", port, 1000, 1000).take(5)
-				.toList().toBlocking().single();
+		List<String> list = Lines
+				.from("localhost", port, 1000, 1000, StandardCharsets.UTF_8)
+				.take(5).toList().toBlocking().single();
 		System.out.println(list);
 		server.stop();
 		executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
@@ -68,7 +70,7 @@ public class LinesTest {
 	public void testSocketObservableFactoryOnException() throws IOException {
 		Socket socket = mock(Socket.class);
 		doThrow(new IOException("hi")).when(socket).getInputStream();
-		Lines.socketObservableFactory().call(socket);
+		Lines.socketObservableFactory(StandardCharsets.UTF_8).call(socket);
 	}
 
 	@Test

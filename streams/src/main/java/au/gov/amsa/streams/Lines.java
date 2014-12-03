@@ -6,6 +6,8 @@ import static rx.Observable.range;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -60,7 +62,7 @@ public final class Lines {
 	 *         character at end if exists).
 	 */
 	public static Observable<String> from(final String host, final int port,
-			long quietTimeoutMs, long reconnectDelayMs) {
+			long quietTimeoutMs, long reconnectDelayMs, Charset charset) {
 		// delay connect by delayMs so that if server closes
 		// stream on every connect we won't be in a mad loop of
 		// failing connections
@@ -68,7 +70,7 @@ public final class Lines {
 		// log
 				.lift(Logging.<Integer> logger().onNextPrefix("n=").log())
 				// connect to server and read lines from its input stream
-				.concatMap(streamFrom(host, port))
+				.concatMap(streamFrom(host, port, charset))
 				// ensure connection has not dropped out by throwing an
 				// exception after a minute of no messages. This is a good idea
 				// with TCPIP because for example a firewall might drop a quiet
@@ -78,6 +80,47 @@ public final class Lines {
 				.retry()
 				// all subscribers use the same stream
 				.share();
+	}
+
+	public static class Builder {
+		private final String host;
+		private int port = 6564;
+		private long quietTimeoutMs;
+		private long reconnectDelayMs;
+		private Charset charset = StandardCharsets.UTF_8;
+
+		Builder(String host) {
+			this.host = host;
+		}
+
+		public Builder port(int port) {
+			this.port = port;
+			return this;
+		}
+
+		public Builder quietTimeoutMs(long quietTimeoutMs) {
+			this.quietTimeoutMs = quietTimeoutMs;
+			return this;
+		}
+
+		public Builder reconnectDelayMs(long reconnectDelayMs) {
+			this.reconnectDelayMs = reconnectDelayMs;
+			return this;
+		}
+
+		public Builder charset(Charset charset) {
+			this.charset = charset;
+			return this;
+		}
+
+		public Observable<String> create() {
+			return from(host, port, quietTimeoutMs, reconnectDelayMs, charset);
+		}
+
+	}
+
+	public static Builder from(String host) {
+		return new Builder(host);
 	}
 
 	/**
@@ -99,7 +142,7 @@ public final class Lines {
 	}
 
 	private static Func1<Integer, Observable<String>> streamFrom(
-			final String host, final int port) {
+			final String host, final int port, final Charset charset) {
 		return new Func1<Integer, Observable<String>>() {
 			@Override
 			public Observable<String> call(Integer n) {
@@ -107,7 +150,8 @@ public final class Lines {
 				// create a stream from a socket and dispose of socket
 				// appropriately
 						.using(socketCreator(host, port),
-								socketObservableFactory(), socketDisposer());
+								socketObservableFactory(charset),
+								socketDisposer());
 			}
 		};
 	}
@@ -128,14 +172,15 @@ public final class Lines {
 	}
 
 	@VisibleForTesting
-	static Func1<Socket, Observable<String>> socketObservableFactory() {
+	static Func1<Socket, Observable<String>> socketObservableFactory(
+			final Charset charset) {
 		return new Func1<Socket, Observable<String>>() {
 
 			@Override
 			public Observable<String> call(Socket socket) {
 				try {
 					return StringObservable.from(new InputStreamReader(socket
-							.getInputStream(), "UTF-8"));
+							.getInputStream(), charset));
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
