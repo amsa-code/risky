@@ -24,7 +24,7 @@ int serverSocketPort = 6564;
 
 Observable<String> lines = Lines.from(host, port, quietTimeoutMs,
 		reconnectDelayMs).map(Lines.TRIM);
-StringServer.start(lines, serverSocketPort);
+StringServer.create(lines, serverSocketPort).start();
 ```
 
 To test the above code:
