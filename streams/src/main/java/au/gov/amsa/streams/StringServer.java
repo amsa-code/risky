@@ -69,17 +69,18 @@ public class StringServer {
 							.getHostAddress() + ":" + socket.getPort();
 					try {
 						final OutputStream out = socket.getOutputStream();
+
+						Subscriber<String> subscriber = createSubscriber(
+								socket, socketName, out);
 						source
 						// subscribe in background so can accept another
 						// connection
 						.subscribeOn(Schedulers.io())
 						// write each line to the socket OutputStream
-								.subscribe(
-										createSubscriber(socket, socketName,
-												out));
+								.subscribe(subscriber);
 					} catch (IOException e) {
 						// could not get output stream (could have closed very
-						// quickly after connecting
+						// quickly after connecting)
 						// dont' care
 					}
 				} catch (SocketTimeoutException e) {
