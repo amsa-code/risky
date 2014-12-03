@@ -20,6 +20,7 @@ import rx.observables.StringObservable;
 import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rx.slf4j.Logging;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Utilities for stream processing of lines of text from
@@ -98,8 +99,9 @@ public class Lines {
 										Schedulers.immediate()));
 	}
 
-	private static Func1<Integer, Observable<String>> streamFrom(
-			final String host, final int port) {
+	@VisibleForTesting
+	static Func1<Integer, Observable<String>> streamFrom(final String host,
+			final int port) {
 		return new Func1<Integer, Observable<String>>() {
 			@Override
 			public Observable<String> call(Integer n) {

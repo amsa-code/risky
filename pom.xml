@@ -15,6 +15,7 @@
         <rxjava.version>1.0.2</rxjava.version>
         <rxjava.string.version>0.21.0</rxjava.string.version>
         <rxjava.extras.version>0.2</rxjava.extras.version>
+		<guava.version>18.0</guava.version>
 
  		<cobertura.version>2.6</cobertura.version>
         <checkstyle.version>2.13</checkstyle.version>
