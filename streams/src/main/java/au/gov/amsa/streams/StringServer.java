@@ -86,7 +86,11 @@ public class StringServer {
 				}
 			}
 		} catch (IOException e) {
-			throw new RuntimeException(e);
+			if (keepGoing) {
+				log.warn(e.getMessage(), e);
+				throw new RuntimeException(e);
+			} else
+				log.info("server stopped");
 		} finally {
 			closeServerSocket();
 		}
@@ -96,6 +100,7 @@ public class StringServer {
 	 * Stops the server by closing the ServerSocket.
 	 */
 	public void stop() {
+		log.info("stopping");
 		keepGoing = false;
 		closeServerSocket();
 	}
