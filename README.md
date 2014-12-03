@@ -34,6 +34,8 @@ Until we start releasing to Maven Central this is the procedure:
 ./release.sh <VERSION>
 ```
 
+Note that the above command will also deploy the site reports for the new version to [here](http://amsa-code.github.io/risky/index.html).
+
 To release a non-tagged snapshot version to the AMSA internal repository:
 
 ```bash
