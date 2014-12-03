@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.gov.amsa</groupId>
     <artifactId>risky-parent</artifactId>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1</version>
     <name>${project.artifactId}</name>
     <description>Parent pom for risky projects modules</description>
     <packaging>pom</packaging>
@@ -14,7 +14,8 @@
 		<connection>${scm.url}</connection>
 		<developerConnection>${scm.url}</developerConnection>
 		<url>${scm.url}</url>
-	</scm>
+	  <tag>0.1</tag>
+  </scm>
 
     <modules>
         <module>streams</module>
