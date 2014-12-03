@@ -27,7 +27,7 @@ import com.google.common.annotations.VisibleForTesting;
  * <li>sockets</li>
  * </ul>
  */
-public class Lines {
+public final class Lines {
 
 	private static final Logger log = LoggerFactory.getLogger(Lines.class);
 
@@ -98,9 +98,8 @@ public class Lines {
 										Schedulers.immediate()));
 	}
 
-	@VisibleForTesting
-	static Func1<Integer, Observable<String>> streamFrom(final String host,
-			final int port) {
+	private static Func1<Integer, Observable<String>> streamFrom(
+			final String host, final int port) {
 		return new Func1<Integer, Observable<String>>() {
 			@Override
 			public Observable<String> call(Integer n) {
@@ -113,7 +112,8 @@ public class Lines {
 		};
 	}
 
-	private static Func0<Socket> socketCreator(final String host, final int port) {
+	@VisibleForTesting
+	static Func0<Socket> socketCreator(final String host, final int port) {
 		return new Func0<Socket>() {
 			@Override
 			public Socket call() {
@@ -127,7 +127,8 @@ public class Lines {
 		};
 	}
 
-	private static Func1<Socket, Observable<String>> socketObservableFactory() {
+	@VisibleForTesting
+	static Func1<Socket, Observable<String>> socketObservableFactory() {
 		return new Func1<Socket, Observable<String>>() {
 
 			@Override
@@ -142,7 +143,8 @@ public class Lines {
 		};
 	}
 
-	private static Action1<Socket> socketDisposer() {
+	@VisibleForTesting
+	static Action1<Socket> socketDisposer() {
 		return new Action1<Socket>() {
 			@Override
 			public void call(Socket socket) {

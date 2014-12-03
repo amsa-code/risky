@@ -1,5 +1,13 @@
 package au.gov.amsa.streams;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -39,5 +47,38 @@ public class LinesTest {
 		System.out.println(list);
 		server.stop();
 		executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
+	}
+
+	@Test
+	public void testTrim() {
+		assertEquals("trimmed", Lines.TRIM.call("  \ttrimmed\r\n   "));
+	}
+
+	@Test
+	public void testTrimOnNullInputReturnsNull() {
+		assertEquals(null, Lines.TRIM.call(null));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testSocketCreatorThrowsException() {
+		Lines.socketCreator("non-existent-host", 1234).call();
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testSocketObservableFactoryOnException() throws IOException {
+		Socket socket = mock(Socket.class);
+		doThrow(new IOException("hi")).when(socket).getInputStream();
+		Lines.socketObservableFactory().call(socket);
+	}
+
+	@Test
+	public void testSocketDisposerOnException() throws IOException {
+		Socket socket = mock(Socket.class);
+		InetAddress address = mock(InetAddress.class);
+		doReturn(address).when(socket).getInetAddress();
+		doReturn("ahost").when(address).getHostAddress();
+		doReturn(1234).when(socket).getPort();
+		doThrow(new IOException("hi")).when(socket).close();
+		Lines.socketDisposer().call(socket);
 	}
 }
