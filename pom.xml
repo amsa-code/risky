@@ -9,6 +9,8 @@
     
 	<properties>
 		<scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
+		<compiler.source>1.7</compiler.source>
+		<compiler.target>1.7</compiler.target>
 	</properties>
 	<scm>
 		<connection>${scm.url}</connection>
@@ -19,10 +21,23 @@
 
     <modules>
         <module>streams</module>
+<module>ais</module>
     </modules>
 
     <build>
 	<plugins>
+<plugin>
+				<inherited>true</inherited>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<verbose>true</verbose>
+					<fork>true</fork>
+					<source>${compiler.source}</source>
+					<target>${compiler.target}</target>
+				</configuration>
+			</plugin>
 <plugin>
 <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-release-plugin</artifactId>
