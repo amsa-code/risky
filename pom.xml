@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.gov.amsa</groupId>
     <artifactId>risky-parent</artifactId>
-    <version>0.1</version>
+    <version>0.1-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <description>Parent pom for risky projects modules</description>
     <packaging>pom</packaging>
@@ -19,6 +19,16 @@
     <modules>
         <module>streams</module>
     </modules>
+
+    <build>
+	<plugins>
+<plugin>
+<groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-release-plugin</artifactId>
+    <version>2.5.1</version>
+</plugin>
+</plugins>
+	</build>
 
 	<distributionManagement>
 		<repository>
