@@ -5,8 +5,10 @@ risky
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
-* [streams](streams) - read and publish socket broadcasts of string streams (like AIS)
-* [ais](ais) - parse nmea and ais messages
+| Subproject         | Description |
+|:-------------------|:------------|
+| [streams](streams) | read and publish socket broadcasts of string streams (like AIS)
+| [ais](ais) | parse nmea and ais messages
 
 Status: *pre-alpha*
 
@@ -31,6 +33,8 @@ Until we start releasing to Maven Central this is the procedure:
 ```bash
 ./release.sh <VERSION>
 ```
+
+Note that the above command will also deploy the site reports for the new version to [here](http://amsa-code.github.io/risky/index.html).
 
 To release a non-tagged snapshot version to the AMSA internal repository:
 
