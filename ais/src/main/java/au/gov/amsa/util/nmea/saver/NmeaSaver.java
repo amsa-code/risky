@@ -20,7 +20,7 @@ import com.google.common.base.Optional;
 public class NmeaSaver {
 
 	private static Logger log = LoggerFactory.getLogger(NmeaSaver.class);
-	
+
 	private volatile Subscriber<String> subscriber;
 
 	private final FileFactory factory;
@@ -34,13 +34,13 @@ public class NmeaSaver {
 		this.factory = factory;
 		this.clock = clock;
 	}
-	
+
 	public void start() {
 		start(Schedulers.io());
 	}
-	
+
 	public void start(Scheduler scheduler) {
-		subscriber = createSubscriber(factory,clock);
+		subscriber = createSubscriber(factory, clock);
 		source.subscribeOn(scheduler).subscribe(subscriber);
 	}
 
@@ -49,7 +49,8 @@ public class NmeaSaver {
 			subscriber.unsubscribe();
 	}
 
-	private static Subscriber<String> createSubscriber(final FileFactory factory, final Clock clock) {
+	private static Subscriber<String> createSubscriber(
+			final FileFactory factory, final Clock clock) {
 
 		return new Subscriber<String>() {
 
@@ -103,7 +104,7 @@ public class NmeaSaver {
 					log.error(e.getMessage(), e);
 				} catch (RuntimeException e) {
 					// could not parse the message, ignore
-					log.warn(e.getMessage() + ":" + line, e);
+					// log.warn(e.getMessage() + ":" + line, e);
 				}
 			}
 		};
