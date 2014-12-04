@@ -26,7 +26,33 @@ We are very happy to receive PRs with support for extracting other message types
 
 NmeaSaver
 -----------
-TODO mention it here
+The obvious format for saving NMEA AIS messages is the raw NMEA message itself supplemented with a 
+timestamp in a tag block if required. ```NmeaSaver`` does this for you.
+
+The example below merges the streams from a *satellite* socket broadcast and a *terrestrial* socket
+broadcast and then saves the messages in daily files based on arrival timestamp and ensures that 
+every message (except for non-first lines of multiline messages) has a tag block with a timestamp (appropriately checksummed).
+
+```java
+import java.util.List;
+import java.io.File;
+import au.gov.amsa.streams.HostPort;
+import au.gov.amsa.streams.Strings;
+import au.gov.amsa.util.nmea.saver.FileFactoryPerDay;
+import au.gov.amsa.util.nmea.saver.NmeaSaver;
+import com.google.common.collect.Lists;
+import rx.Observable;
+
+File directory = ...
+List<HostPort> hostPorts = Lists.newArrayList(
+    HostPort.create("localhost", terrestrialPort, quietTimeoutMs,
+					reconnectIntervalMs),
+	HostPort.create("localhost", satellitePort, quietTimeoutMs,
+					reconnectIntervalMs));
+Observable<String> nmea = Strings.mergeLinesFrom(hostPorts);
+NmeaSaver saver = new NmeaSaver(nmea, new FileFactoryPerDay(directory));
+saver.start();
+```
 
 Notes
 ---------

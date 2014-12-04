@@ -15,6 +15,7 @@ import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 
 public class NmeaSaver {
@@ -29,10 +30,15 @@ public class NmeaSaver {
 
 	private Clock clock;
 
-	public NmeaSaver(Observable<String> nmea, FileFactory factory, Clock clock) {
+	@VisibleForTesting
+	NmeaSaver(Observable<String> nmea, FileFactory factory, Clock clock) {
 		this.source = nmea;
 		this.factory = factory;
 		this.clock = clock;
+	}
+
+	public NmeaSaver(Observable<String> nmea, FileFactory factory) {
+		this(nmea, factory, new SystemClock());
 	}
 
 	public void start() {
