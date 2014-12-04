@@ -99,7 +99,7 @@ public class LinesTest {
 		public void call(Subscriber<? super String> sub) {
 			while (!sub.isUnsubscribed()) {
 				try {
-					Thread.sleep(30);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// do nothing
 				}
@@ -109,24 +109,17 @@ public class LinesTest {
 
 	}
 
-	public static void main(String[] args) {
-		Observable.range(1, 1000).mergeWith(Observable.range(1001, 1000))
-				.subscribe(new Action1<Integer>() {
-					@Override
-					public void call(Integer n) {
-						System.out.println(n);
-					}
-				});
-		System.exit(0);
-		Observable.create(new MySource("a"))
-				.subscribeOn(Schedulers.newThread())
-				.mergeWith(Observable.create(new MySource("b")))
+	public static void main(String[] args) throws InterruptedException {
+		Observable
+				.create(new MySource("a"))
+				.subscribeOn(Schedulers.immediate())
+				.mergeWith(
+						Observable.create(new MySource("b")).subscribeOn(
+								Schedulers.newThread()))
 				.subscribe(new Action1<String>() {
-
 					@Override
 					public void call(String s) {
-						if (!s.equals("a"))
-							System.out.println(s);
+						System.out.println(s);
 					}
 				});
 	}
