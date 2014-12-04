@@ -16,6 +16,8 @@ import com.google.common.collect.Sets;
 
 public final class NmeaUtil {
 
+	private static final char BACKSLASH = '\\';
+
 	private NmeaUtil() {
 		// private constructor to prevent instantiation
 	}
@@ -110,6 +112,58 @@ public final class NmeaUtil {
 
 	public static NmeaMessage parseNmea(String line) {
 		return nmeaParser.parse(line);
+	}
+
+	public static String supplementWithTimeInTagBlock(String line,
+			long arrivalTime) {
+		final String amendedLine;
+		NmeaMessage m = parseNmea(line);
+		Long t = m.getUnixTimeMillis();
+		if (t == null) {
+			// use arrival time if not present
+			t = arrivalTime;
+
+			// if has tag block
+			if (line.startsWith("\\")) {
+				// if multiline then don't deal with second and
+				// later lines
+				if (m.isSingleSentence() || m.getSentenceNumber() == 1) {
+					// insert time into tag block, and adjust the
+					// hash for the tag block
+					int i = line.indexOf(BACKSLASH, 1);
+					if (i == -1)
+						throw new RuntimeException(
+								"line starts with \\ but does not have closing tag block delimiter \\");
+					if (i < 4)
+						throw new RuntimeException(
+								"tag block not long enough to have a checksum");
+					String content = line.substring(1, i - 3);
+					StringBuilder s = new StringBuilder(content);
+					s.append(",c:");
+					s.append(t / 1000);
+					String checksum = NmeaUtil.getChecksum(s.toString(), false);
+					s.append('*');
+					s.append(checksum);
+					s.append(line.substring(i));
+					s.insert(0, BACKSLASH);
+					amendedLine = s.toString();
+				} else
+					amendedLine = line;
+			} else {
+				StringBuilder s = new StringBuilder();
+				s.append("c:");
+				s.append(t / 1000);
+				String checksum = NmeaUtil.getChecksum(s.toString(), false);
+				s.append("*");
+				s.append(checksum);
+				s.append(BACKSLASH);
+				s.append(line);
+				s.insert(0, BACKSLASH);
+				amendedLine = s.toString();
+			}
+		} else
+			amendedLine = line;
+		return amendedLine;
 	}
 
 	public static Talker getTalker(String s) {

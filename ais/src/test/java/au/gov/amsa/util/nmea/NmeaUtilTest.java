@@ -171,4 +171,24 @@ public class NmeaUtilTest {
 		assertEquals(line, m.toLine());
 	}
 
+	@Test
+	public void testSupplementWithTimeDoesNothingToMultilineMessagesAfterFirst() {
+		String line = "\\g:2-2-3987*58\\!BSVDM,2,2,0,A,lQ@@0000002,0*00";
+		assertEquals(line, NmeaUtil.supplementWithTimeInTagBlock(line, 0));
+	}
+
+	@Test
+	public void testSupplementWithTimeDoesNothingToMessageWithTime() {
+		String line = "\\s:rEV02,c:1334337322*5E\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58";
+		assertEquals(line, NmeaUtil.supplementWithTimeInTagBlock(line, 0));
+	}
+
+	@Test
+	public void testSupplementWithTimeAddsTagBlockIfDoesntHaveOne() {
+		String line = "$PGHP,1,2012,1,31,5,55,12,0,316,3,316999999,1AIS_S,18*7A";
+		assertEquals("\\c:1234567*69\\" + line,
+				NmeaUtil.supplementWithTimeInTagBlock(line, 1234567890));
+		assertEquals("69", NmeaUtil.getChecksum("c:1234567"));
+	}
+
 }
