@@ -114,7 +114,7 @@ public final class NmeaUtil {
 		return nmeaParser.parse(line);
 	}
 
-	public static String supplementWithTimeInTagBlock(String line,
+	public static String supplementWithTime(String line,
 			long arrivalTime) {
 		final String amendedLine;
 		NmeaMessage m = parseNmea(line);
