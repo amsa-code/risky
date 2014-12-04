@@ -1,4 +1,4 @@
-package au.gov.amsa.util.nmea;
+package au.gov.amsa.util.nmea.saver;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,6 +13,7 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
+import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.google.common.base.Optional;
 

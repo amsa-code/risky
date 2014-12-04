@@ -1,4 +1,4 @@
-package au.gov.amsa.util.nmea;
+package au.gov.amsa.util.nmea.saver;
 
 import java.io.File;
 

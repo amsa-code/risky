@@ -9,6 +9,9 @@ import java.util.Collection;
 import org.junit.Test;
 import org.openjdk.jmh.util.FileUtils;
 
+import au.gov.amsa.util.nmea.saver.Clock;
+import au.gov.amsa.util.nmea.saver.FileFactoryPerDay;
+import au.gov.amsa.util.nmea.saver.NmeaSaver;
 import rx.Observable;
 import rx.schedulers.Schedulers;
 
