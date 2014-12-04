@@ -245,7 +245,7 @@ public final class Strings {
 			if (!source.isPresent()) {
 				source = Optional.of(lines);
 			} else
-				source = Optional.of(source.get().mergeWith(o));
+				source = Optional.of(source.get().mergeWith(lines));
 		}
 		return source.get();
 	}
