@@ -1,0 +1,96 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>au.gov.amsa.risky</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.3.1-SNAPSHOT</version>
+    </parent>
+    <artifactId>behaviour-detector</artifactId>
+    <name>${project.artifactId}</name>
+    <description />
+    <properties>
+        <geotools.version>11.1</geotools.version>
+    </properties>
+    <dependencies>
+
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava-math</artifactId>
+            <version>${rxjava.math.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava-string</artifactId>
+            <version>${rxjava.string.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rtree</artifactId>
+            <version>0.5.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.functionaljava</groupId>
+            <artifactId>functionaljava</artifactId>
+            <version>4.2-beta-1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava-slf4j</artifactId>
+            <version>0.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.7</version>
+        </dependency>
+
+        <dependency>
+            <groupId>au.gov.amsa.risky</groupId>
+            <artifactId>ais</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>grumpy-core</artifactId>
+            <version>0.2</version>
+        </dependency>
+
+        <!-- test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-shapefile</artifactId>
+            <version>${geotools.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-hsql</artifactId>
+            <version>${geotools.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+
+
+    </dependencies>
+</project>
