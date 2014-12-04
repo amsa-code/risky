@@ -110,6 +110,14 @@ public class LinesTest {
 	}
 
 	public static void main(String[] args) {
+		Observable.range(1, 1000).mergeWith(Observable.range(1001, 1000))
+				.subscribe(new Action1<Integer>() {
+					@Override
+					public void call(Integer n) {
+						System.out.println(n);
+					}
+				});
+		System.exit(0);
 		Observable.create(new MySource("a"))
 				.subscribeOn(Schedulers.newThread())
 				.mergeWith(Observable.create(new MySource("b")))
