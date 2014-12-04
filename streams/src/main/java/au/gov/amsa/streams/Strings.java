@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -22,6 +23,8 @@ import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 /**
  * Utilities for stream processing of lines of text from
@@ -222,4 +225,28 @@ public final class Strings {
 		};
 	}
 
+	public static Observable<String> mergeLinesFrom(
+			Collection<HostPort> hostPorts) {
+		Preconditions.checkArgument(hostPorts.size() > 0);
+		Optional<Observable<String>> source = Optional.absent();
+		for (HostPort hostPort : hostPorts) {
+			Observable<String> o = Strings
+			// connect to localhost
+					.from(hostPort.getHost())
+					// connect to port
+					.port(hostPort.getPort())
+					// if quiet then reconnect
+					.quietTimeoutMs(hostPort.getQuietTimeoutMs())
+					// reconnect delay
+					.reconnectDelayMs(hostPort.getReconnectDelayMs())
+					// create
+					.create();
+			Observable<String> lines = StringObservable.split(o, "\n");
+			if (!source.isPresent()) {
+				source = Optional.of(lines);
+			} else
+				source = Optional.of(source.get().mergeWith(o));
+		}
+		return source.get();
+	}
 }

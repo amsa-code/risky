@@ -79,6 +79,11 @@
             <artifactId>rxjava-extras</artifactId>
             <version>${rxjava.extras.version}</version>
         </dependency>
+         <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.5</version>
+        </dependency>
 
         <!-- test/benchmark deps -->
         <dependency>
