@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
 
@@ -25,21 +26,21 @@ public class NmeaSaver {
 
 	private final Observable<String> source;
 
-	public NmeaSaver(Observable<String> nmea, FileFactory factory) {
+	private Clock clock;
+
+	public NmeaSaver(Observable<String> nmea, FileFactory factory, Clock clock) {
 		this.source = nmea;
 		this.factory = factory;
+		this.clock = clock;
 	}
-
-	public static interface FileFactory {
-
-		File file(String line, long arrivalTime);
-
-		String key(String line, long arrivalTime);
-	}
-
+	
 	public void start() {
-		subscriber = createSubscriber(factory);
-		source.subscribeOn(Schedulers.io()).subscribe(subscriber);
+		start(Schedulers.io());
+	}
+	
+	public void start(Scheduler scheduler) {
+		subscriber = createSubscriber(factory,clock);
+		source.subscribeOn(scheduler).subscribe(subscriber);
 	}
 
 	public void stop() {
@@ -47,7 +48,7 @@ public class NmeaSaver {
 			subscriber.unsubscribe();
 	}
 
-	private static Subscriber<String> createSubscriber(final FileFactory factory) {
+	private static Subscriber<String> createSubscriber(final FileFactory factory, final Clock clock) {
 
 		return new Subscriber<String>() {
 
@@ -58,11 +59,16 @@ public class NmeaSaver {
 			@Override
 			public void onCompleted() {
 				log.warn("should not complete");
+				closeCurrentWriter();
 			}
 
 			@Override
 			public void onError(Throwable e) {
 				log.error(e.getMessage(), e);
+				closeCurrentWriter();
+			}
+
+			private void closeCurrentWriter() {
 				if (current.isPresent())
 					try {
 						current.get().close();
@@ -74,7 +80,7 @@ public class NmeaSaver {
 			@Override
 			public void onNext(String line) {
 				try {
-					long now = System.currentTimeMillis();
+					long now = clock.getTimeMs();
 					String amendedLine = NmeaUtil.supplementWithTime(line, now);
 					String key = factory.key(amendedLine, now);
 					if (!currentKey.isPresent()

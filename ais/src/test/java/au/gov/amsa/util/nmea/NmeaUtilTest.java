@@ -191,4 +191,14 @@ public class NmeaUtilTest {
 		assertEquals("69", NmeaUtil.getChecksum("c:1234567"));
 	}
 
+	@Test
+	public void testSupplementWithTimeInsertsIntoExistingTagBlock() {
+		String line = "\\s:rEV02,d:1334337321*5A\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71";
+		assertEquals(
+				"\\s:rEV02,d:1334337321,c:1234567*1F\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71",
+				NmeaUtil.supplementWithTime(line, 1234567890));
+		assertEquals("1F",
+				NmeaUtil.getChecksum("s:rEV02,d:1334337321,c:1234567"));
+	}
+
 }

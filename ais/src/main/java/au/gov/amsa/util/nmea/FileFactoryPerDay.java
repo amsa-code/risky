@@ -5,7 +5,7 @@ import java.io.File;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
-public class FileFactoryPerDay implements NmeaSaver.FileFactory {
+public class FileFactoryPerDay implements FileFactory {
 	
 	private static DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd")
 			.withZoneUTC();
