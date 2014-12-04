@@ -17,6 +17,9 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.util.PortFinder;
@@ -82,5 +85,41 @@ public class LinesTest {
 		doReturn(1234).when(socket).getPort();
 		doThrow(new IOException("hi")).when(socket).close();
 		Strings.socketDisposer().call(socket);
+	}
+
+	private static class MySource implements OnSubscribe<String> {
+
+		private final String value;
+
+		public MySource(String value) {
+			this.value = value;
+		}
+
+		@Override
+		public void call(Subscriber<? super String> sub) {
+			while (!sub.isUnsubscribed()) {
+				try {
+					Thread.sleep(30);
+				} catch (InterruptedException e) {
+					// do nothing
+				}
+				sub.onNext(value);
+			}
+		}
+
+	}
+
+	public static void main(String[] args) {
+		Observable.create(new MySource("a"))
+				.subscribeOn(Schedulers.newThread())
+				.mergeWith(Observable.create(new MySource("b")))
+				.subscribe(new Action1<String>() {
+
+					@Override
+					public void call(String s) {
+						if (!s.equals("a"))
+							System.out.println(s);
+					}
+				});
 	}
 }
