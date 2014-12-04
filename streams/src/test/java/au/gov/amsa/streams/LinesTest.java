@@ -110,16 +110,16 @@ public class LinesTest {
 	}
 
 	public static void main(String[] args) throws InterruptedException {
-		Observable
-				.create(new MySource("a"))
-				.subscribeOn(Schedulers.immediate())
-				.mergeWith(
-						Observable.create(new MySource("b")).subscribeOn(
-								Schedulers.newThread()))
-				.subscribe(new Action1<String>() {
+		Observable<Integer> o1 = Observable.range(1, 100).delay(500,
+				TimeUnit.MILLISECONDS, Schedulers.immediate());
+		Observable<Integer> o2 = Observable.range(101, 100).delay(500,
+				TimeUnit.MILLISECONDS, Schedulers.immediate());
+		o1.subscribeOn(Schedulers.immediate())
+				.mergeWith(o2.subscribeOn(Schedulers.immediate()))
+				.subscribe(new Action1<Integer>() {
 					@Override
-					public void call(String s) {
-						System.out.println(s);
+					public void call(Integer n) {
+						System.out.println(n);
 					}
 				});
 	}
