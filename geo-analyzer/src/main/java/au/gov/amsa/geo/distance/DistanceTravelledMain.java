@@ -88,15 +88,14 @@ public class DistanceTravelledMain {
 		if (args.length > 0)
 			directory = args[0];
 		else
-			directory = System.getProperty("user.home")
-					+ "/Downloads/positions-365-days-aircraft";
+			directory = "/media/analysis/positions-365-days-2";
 		// directory = System.getProperty("user.home")
 		// + "/Downloads/positions-183-days";
 		final double cellSizeDegrees;
 		if (args.length > 1)
 			cellSizeDegrees = Double.parseDouble(args[1]);
 		else
-			cellSizeDegrees = 0.2;
+			cellSizeDegrees = 0.5;
 
 		final Options options = createOptions(cellSizeDegrees);
 		run(directory, options, false);

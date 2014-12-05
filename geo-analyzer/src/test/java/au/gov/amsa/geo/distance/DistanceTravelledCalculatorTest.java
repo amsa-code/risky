@@ -8,10 +8,11 @@ import static rx.Observable.from;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -26,6 +27,10 @@ import au.gov.amsa.util.navigation.Position.LongitudePair;
 
 public class DistanceTravelledCalculatorTest {
 
+	
+	private static Logger log = LoggerFactory
+			.getLogger(DistanceTravelledCalculatorTest.class);
+	
 	private static final Fix f1 = new Fix("f1", -35, 142.0, 0);
 	private static final Fix f3 = new Fix("f3", -35.12, 142.12,
 			HOURS.toMillis(2));

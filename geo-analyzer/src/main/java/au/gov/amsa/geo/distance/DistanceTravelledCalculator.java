@@ -116,6 +116,8 @@ public class DistanceTravelledCalculator {
 					.flatMap(toCellAndDistance)
 					// update counts of cells in each segment
 					.doOnNext(countSegmentCells)
+					//use memory to buffer if producing fast
+					.onBackpressureBuffer()
 					// process each craft with a different Scheduler to get
 					// concurrent processing
 					.subscribeOn(Schedulers.computation());
