@@ -9,6 +9,8 @@
     <packaging>pom</packaging>
 
     <properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
         <compiler.source>1.7</compiler.source>
         <compiler.target>1.7</compiler.target>
@@ -16,7 +18,9 @@
         <rxjava.string.version>0.21.0</rxjava.string.version>
 		<rxjava.math.version>0.21.0</rxjava.math.version>
         <rxjava.extras.version>0.2</rxjava.extras.version>
+		<rxjava.slf4j.version>0.3</rxjava.slf4j.version>
 		<guava.version>18.0</guava.version>
+		<geotools.version>11.1</geotools.version>
 		<junit.version>4.11</junit.version>
 
  		<cobertura.version>2.6</cobertura.version>
@@ -44,6 +48,7 @@
         <module>streams</module>
         <module>ais</module>
         <module>behaviour-detector</module>
+		<module>geo-analyzer</module>
     </modules>
 
     <build>
