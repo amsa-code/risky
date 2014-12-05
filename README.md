@@ -1,5 +1,6 @@
 risky
 =====
+Note: in active development till Feb 2014 at least. Will change lots!
 
 <a href="https://travis-ci.org/amsa-code/risky"><img src="https://travis-ci.org/amsa-code/risky.svg"/></a>
 
