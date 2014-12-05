@@ -7,8 +7,8 @@ Tools for analyzing timestamped position data such as vessel position reports fr
 
 | Subproject         | Description |
 |:-------------------|:------------|
-| [streams](streams) | read and publish socket broadcasts of string streams (like AIS)
 | [ais](ais) | parse nmea and ais messages
+| [streams](streams) | read and publish socket broadcasts of string streams (like AIS)
 | [behaviour-detector](behaviour-detector) | drift candidate and collision candidate detection algorithms
 | [geo-analyzer](geo-analyzer) | distance travelled calculation, traffic density plots
 
