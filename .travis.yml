@@ -3,8 +3,6 @@ jdk:
   - oraclejdk8
   - oraclejdk7
   - openjdk7
-env:
- global:
-   - "MAVEN_OPTS=-Xmx512m"
+
 
 
