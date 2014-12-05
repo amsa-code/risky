@@ -58,7 +58,7 @@ public class CollisionDetector {
 				double minLat = -50;
 				double minLon = -70;
 				double maxLon = 179;
-				int numRegions = Schedulers.computation().parallelism();
+				int numRegions = Runtime.getRuntime().availableProcessors();;
 				int x = (int) Math.floor((p.lon() - minLon) / (maxLon - minLon)
 						* numRegions);
 				double lonCellSize = (maxLon - minLon) / numRegions;
@@ -151,7 +151,7 @@ public class CollisionDetector {
 
 		final Observable<TreeSet<VesselPosition>> othersByVessel = near
 		// only those vessels with different id as latest position report
-				.filter(Functions.not(isVessel(p.id())))
+				.filter(not(isVessel(p.id())))
 				// group by individual vessel
 				.groupBy(byId())
 				// sort the positions by time
@@ -161,6 +161,15 @@ public class CollisionDetector {
 				.flatMap(toCollisionCandidates2(p, next));
 
 		return collisionCandidates;
+	}
+
+	private static <T> Func1<T, Boolean> not(
+			final Func1<T, Boolean> f) {
+		return new Func1<T, Boolean>(){
+			@Override
+			public Boolean call(T t) {
+				return !f.call(t);
+			}};
 	}
 
 	private static double longitudeDelta(double lat) {

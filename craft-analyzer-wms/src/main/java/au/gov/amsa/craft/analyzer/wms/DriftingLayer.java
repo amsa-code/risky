@@ -72,7 +72,7 @@ public class DriftingLayer implements Layer {
 				//get the positions from each file
 				.flatMap(filenameToPositions())
 				//log
-				.lift(Logging.<VesselPosition>logger().showCount().log())
+				.lift(Logging.<VesselPosition>logger().every(1000).showCount().log())
 				// only class A vessels
 				.filter(onlyClassA())
 				//ignore vessels at anchor
@@ -125,6 +125,7 @@ public class DriftingLayer implements Layer {
 		return new Func1<String, Observable<VesselPosition>>() {
 			@Override
 			public Observable<VesselPosition> call(final String filename) {
+				log.info("loading " + filename);
 				return AisVesselPositions
 				// read positions
 						.positions(Streams.nmeaFromGzip(filename))
