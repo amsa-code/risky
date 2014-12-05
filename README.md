@@ -2,8 +2,6 @@ risky
 =====
 <a href="https://travis-ci.org/amsa-code/risky"><img src="https://travis-ci.org/amsa-code/risky.svg"/></a>
 
-Note: in active development till Feb 2014 at least. Will change lots!
-
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
 | Subproject         | Description |
