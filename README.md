@@ -17,7 +17,7 @@ Maven site reports are [here](http://amsa-code.github.io/risky/index.html) inclu
 
 How to build
 ----------------
-You need Java 7 or later installed and Maven 3 or later.
+[Install Java 8 and Maven 3](https://github.com/amsa-code/risky/wiki/Install-Java-and-Maven)
 
 ```bash
 cd <WORKSPACE>
