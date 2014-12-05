@@ -1,10 +1,10 @@
 language: java
-before_install: 
-  - sudo rm /etc/mavenrc
-  - export M2_HOME=/usr/local/maven
-  - export MAVEN_OPTS='-Dmaven.repo.local=$HOME/.m2/repository -Xmx512m'
 jdk:
   - oraclejdk8
   - oraclejdk7
   - openjdk7
+env:
+ global:
+   - "MAVEN_OPTS=-Xmx512m"
+
 
