@@ -73,9 +73,9 @@ public class DriftingLayer implements Layer {
 				// get the positions from each file
 				.flatMap(filenameToPositions())
 				// log
-				.lift(Logging.<VesselPosition> logger()
-						.onNextPrefix("afterFlatMap=").every(1000).showCount()
-						.log())
+//				.lift(Logging.<VesselPosition> logger()
+//						.onNextPrefix("afterFlatMap=").showCount()
+//						.every(100000).log())
 				// only class A vessels
 				.filter(onlyClassA())
 				// ignore vessels at anchor
@@ -137,8 +137,9 @@ public class DriftingLayer implements Layer {
 						// in background thread from pool per file
 						.subscribeOn(Schedulers.computation())
 						// log
-						.lift(Logging.<VesselPosition> logger().showCount()
-								.onNextPrefix("inPositions=").every(1000).log())
+//						.lift(Logging.<VesselPosition> logger().showCount()
+//								.onNextPrefix("inPositions=").every(100000)
+//								.log())
 						// log completion of read of file
 						.doOnCompleted(new Action0() {
 							@Override
