@@ -51,6 +51,7 @@
         <module>ais</module>
         <module>behaviour-detector</module>
 		<module>geo-analyzer</module>
+		<module>craft-analyzer-wms</module>
     </modules>
 
     <build>
