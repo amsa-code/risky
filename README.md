@@ -10,7 +10,7 @@ Tools for analyzing timestamped position data such as vessel position reports fr
 | [streams](streams) | read and publish socket broadcasts of string streams (like AIS)
 | [ais](ais) | parse nmea and ais messages
 | [behaviour-detector](behaviour-detector) | drift candidate and collision candidate detection algorithms (draft)
-| [geo-analyzer](geo-analyzer) | distance travelled calculation
+| [geo-analyzer](geo-analyzer) | distance travelled calculation, traffic density plots
 
 Status: *pre-alpha*
 
