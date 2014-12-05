@@ -8,9 +8,19 @@ Features:
 * RxJava stream utilities for processing AIS data
 * saves NMEA streams to disk supplemented with tag block timestamp
 
+Getting started
+--------------------
+Add this to your pom.xml:
+```xml
+<dependency>
+    <groupId>au.gov.amsa.risky</groupId>
+    <artifactId>ais</artifactId>
+    <version>${risky.version}</version>
+</dependency>
+```
+
 AIS Message types
 -------------------
-
 Supports these AIS message types:
 
 * Aid To Navigation
