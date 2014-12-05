@@ -68,14 +68,17 @@ public class DriftingLayer implements Layer {
 			}
 		}
 
-		Observable<VesselPosition> aisPositions = Observable.from(filenames)
-				//get the positions from each file
+		Observable<VesselPosition> aisPositions = Observable
+				.from(filenames)
+				// get the positions from each file
 				.flatMap(filenameToPositions())
-				//log
-				.lift(Logging.<VesselPosition>logger().every(1000).showCount().log())
+				// log
+				.lift(Logging.<VesselPosition> logger()
+						.onNextPrefix("afterFlatMap=").every(1000).showCount()
+						.log())
 				// only class A vessels
 				.filter(onlyClassA())
-				//ignore vessels at anchor
+				// ignore vessels at anchor
 				.filter(notAtAnchor())
 				// is a big vessel
 				.filter(isBig());
@@ -107,11 +110,11 @@ public class DriftingLayer implements Layer {
 		return new Func1<VesselPosition, Boolean>() {
 			@Override
 			public Boolean call(VesselPosition p) {
-				return p.cls() == VesselClass.A ;
+				return p.cls() == VesselClass.A;
 			}
 		};
 	}
-	
+
 	private Func1<VesselPosition, Boolean> notAtAnchor() {
 		return new Func1<VesselPosition, Boolean>() {
 			@Override
@@ -133,6 +136,9 @@ public class DriftingLayer implements Layer {
 						.onBackpressureBuffer()
 						// in background thread from pool per file
 						.subscribeOn(Schedulers.computation())
+						// log
+						.lift(Logging.<VesselPosition> logger().showCount()
+								.onNextPrefix("inPositions=").every(1000).log())
 						// log completion of read of file
 						.doOnCompleted(new Action0() {
 							@Override

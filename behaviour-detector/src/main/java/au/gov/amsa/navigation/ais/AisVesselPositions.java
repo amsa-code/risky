@@ -25,14 +25,13 @@ import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 
 public class AisVesselPositions {
-	
-	private static final  Logger log = LoggerFactory.getLogger(AisVesselPositions.class);
+
+	private static final Logger log = LoggerFactory
+			.getLogger(AisVesselPositions.class);
 
 	public static Observable<VesselPosition> positions(Observable<String> nmea) {
 		return Streams
 				.extractMessages(nmea)
-				//log
-				.lift(Logging.<Timestamped<AisMessage>>logger().every(1000).showCount().log())
 				// aggregate ship data with the message
 				.scan(new AisMessageAndVesselData(),
 						AisMessageAndVesselData.aggregate)
@@ -49,17 +48,18 @@ public class AisVesselPositions {
 			public int compare(Timestamped<AisMessage> t1,
 					Timestamped<AisMessage> t2) {
 				return ((Long) t1.time()).compareTo(t2.time());
-			}};
+			}
+		};
 		return source
-				// sort by time
-				.lift(new SortOperator<Timestamped<AisMessage>>(comparator,20000000));
+		// sort by time
+				.lift(new SortOperator<Timestamped<AisMessage>>(comparator,
+						20000000));
 	}
 
 	public static Observable<VesselPosition> positionsSortedByTime(
 			Observable<String> nmea) {
-		return sortByTime(Streams
-				.extractMessages(nmea))
-				// aggregate ship data with the message
+		return sortByTime(Streams.extractMessages(nmea))
+		// aggregate ship data with the message
 				.scan(new AisMessageAndVesselData(),
 						AisMessageAndVesselData.aggregate)
 				// positions only
