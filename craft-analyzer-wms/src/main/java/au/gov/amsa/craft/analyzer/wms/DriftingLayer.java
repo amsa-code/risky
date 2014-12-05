@@ -44,6 +44,7 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
+import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
@@ -70,6 +71,8 @@ public class DriftingLayer implements Layer {
 		Observable<VesselPosition> aisPositions = Observable.from(filenames)
 				//get the positions from each file
 				.flatMap(filenameToPositions())
+				//log
+				.lift(Logging.<VesselPosition>logger().showCount().log())
 				// only class A vessels
 				.filter(onlyClassA())
 				//ignore vessels at anchor
