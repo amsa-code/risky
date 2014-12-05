@@ -5,9 +5,7 @@ import static com.google.common.base.Optional.of;
 import static rx.Observable.empty;
 import static rx.Observable.just;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +21,7 @@ import au.gov.amsa.navigation.Mmsi;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
 
+import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 
 public class AisVesselPositions {
@@ -32,6 +31,8 @@ public class AisVesselPositions {
 	public static Observable<VesselPosition> positions(Observable<String> nmea) {
 		return Streams
 				.extractMessages(nmea)
+				//log
+				.lift(Logging.<Timestamped<AisMessage>>logger().every(1000).showCount().log())
 				// aggregate ship data with the message
 				.scan(new AisMessageAndVesselData(),
 						AisMessageAndVesselData.aggregate)
