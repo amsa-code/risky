@@ -19,8 +19,10 @@
 		<rxjava.math.version>0.21.0</rxjava.math.version>
         <rxjava.extras.version>0.2</rxjava.extras.version>
 		<rxjava.slf4j.version>0.3</rxjava.slf4j.version>
+		<slf4j.version>1.7.7</slf4j.version>
 		<guava.version>18.0</guava.version>
 		<geotools.version>11.1</geotools.version>
+		<joda.time.version>2.5</joda.time.version>
 		<junit.version>4.11</junit.version>
 
  		<cobertura.version>2.6</cobertura.version>

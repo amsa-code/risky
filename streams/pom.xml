@@ -10,7 +10,6 @@
     <name>${project.artifactId}</name>
     <description />
     <properties>
-        <slf4j.version>1.7.7</slf4j.version>
         <jetty.plugin.version>8.1.15.v20140411</jetty.plugin.version>
     </properties>
     <dependencies>
@@ -28,22 +27,22 @@
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-            <version>1.0.2</version>
+            <version>${rxjava.version}</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava-string</artifactId>
-            <version>0.21.0</version>
+            <version>${rxjava.string.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-slf4j</artifactId>
-            <version>0.3</version>
+            <version>${rxjava.slf4j.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-extras</artifactId>
-            <version>0.2</version>
+            <version>${rxjava.extras.version}</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
