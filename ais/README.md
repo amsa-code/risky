@@ -27,7 +27,7 @@ We are very happy to receive PRs with support for extracting other message types
 NmeaSaver
 -----------
 The obvious format for saving NMEA AIS messages is the raw NMEA message itself supplemented with a 
-timestamp in a tag block if required. ```NmeaSaver`` does this for you.
+timestamp in a tag block if required. ```NmeaSaver``` does this for you.
 
 The example below merges the streams from a *satellite* socket broadcast and a *terrestrial* socket
 broadcast and then saves the messages in daily files based on arrival timestamp and ensures that 
