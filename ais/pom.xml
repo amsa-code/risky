@@ -77,6 +77,11 @@
             <artifactId>joda-time</artifactId>
             <version>${joda.time.version}</version>
         </dependency>
+        <dependency>
+            <groupId>au.gov.amsa.risky</groupId>
+            <artifactId>streams</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
 
         <!-- test/benchmark deps -->
         <dependency>

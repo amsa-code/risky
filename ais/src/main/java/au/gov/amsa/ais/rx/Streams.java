@@ -32,6 +32,7 @@ import au.gov.amsa.ais.AisParseException;
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.Timestamped;
 import au.gov.amsa.ais.message.AisShipStaticA;
+import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
@@ -91,7 +92,7 @@ public class Streams {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return StringObservable.split(StringObservable.from(isr), "\n");
+		return StringObservable.split(Strings.from(isr), "\n");
 	}
 
 	public static void print(Observable<?> stream, final PrintStream out) {

@@ -4,7 +4,9 @@ import static rx.Observable.just;
 import static rx.Observable.range;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -15,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -250,4 +254,35 @@ public final class Strings {
 		}
 		return source.get();
 	}
+
+	public static Observable<byte[]> from(final InputStream is, final int size) {
+		return Observable.create(new OnSubscribe<byte[]>() {
+
+			@Override
+			public void call(Subscriber<? super byte[]> subscriber) {
+				subscriber.setProducer(new InputStreamProducer(is, subscriber,
+						size));
+			}
+		});
+	}
+
+	public static Observable<byte[]> from(InputStream is) {
+		return from(is, 8192);
+	}
+
+	public static Observable<String> from(final Reader reader, final int size) {
+		return Observable.create(new OnSubscribe<String>() {
+
+			@Override
+			public void call(Subscriber<? super String> subscriber) {
+				subscriber.setProducer(new ReaderProducer(reader, subscriber,
+						size));
+			}
+		});
+	}
+
+	public static Observable<String> from(Reader reader) {
+		return from(reader, 8192);
+	}
+
 }

@@ -44,7 +44,6 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
-import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
@@ -57,31 +56,10 @@ public class DriftingLayer implements Layer {
 
 		// collect drifting candidates
 
-		// use these filename as input NMEA
-		List<String> filenames = new ArrayList<String>();
-		for (int i = 1; i <= 31; i++) {
-			String filename = "/media/analysis/nmea/2014/NMEA_ITU_201407"
-					+ new DecimalFormat("00").format(i) + ".gz";
-			if (new File(filename).exists()) {
-				filenames.add(filename);
-				log.info("adding filename " + filename);
-			}
-		}
+		// use these filenames as input NMEA
+		List<String> filenames = getFilenames();
 
-		Observable<VesselPosition> aisPositions = Observable
-				.from(filenames)
-				// get the positions from each file
-				.flatMap(filenameToPositions())
-				// log
-//				.lift(Logging.<VesselPosition> logger()
-//						.onNextPrefix("afterFlatMap=").showCount()
-//						.every(100000).log())
-				// only class A vessels
-				.filter(onlyClassA())
-				// ignore vessels at anchor
-				.filter(notAtAnchor())
-				// is a big vessel
-				.filter(isBig());
+		Observable<VesselPosition> aisPositions = getPositions(filenames);
 
 		new DriftingDetector().getCandidates(aisPositions)
 		// group by id and date
@@ -91,12 +69,50 @@ public class DriftingLayer implements Layer {
 				// add to queue
 				.doOnNext(addToQueue())
 				// run in background
-				.subscribeOn(Schedulers.computation())
+				.subscribeOn(Schedulers.io())
 				// subscribe
 				.subscribe(createObserver());
 	}
 
-	private Func1<VesselPosition, Boolean> isBig() {
+	private static Observable<VesselPosition> getPositions(
+			List<String> filenames) {
+		Observable<VesselPosition> aisPositions = Observable.from(filenames)
+		// get the positions from each file
+				.flatMap(filenameToPositions())
+				// log
+				.doOnNext(new Action1<VesselPosition>() {
+					long count = 0;
+
+					@Override
+					public void call(VesselPosition t1) {
+						if (++count % 100 == 0)
+							System.out.println(t1);
+
+					}
+				})
+				// only class A vessels
+				.filter(onlyClassA())
+				// ignore vessels at anchor
+				.filter(notAtAnchor())
+				// is a big vessel
+				.filter(isBig());
+		return aisPositions;
+	}
+
+	private static List<String> getFilenames() {
+		List<String> filenames = new ArrayList<String>();
+		for (int i = 1; i <= 31; i++) {
+			String filename = "/media/analysis/nmea/2014/NMEA_ITU_201407"
+					+ new DecimalFormat("00").format(i) + ".gz";
+			if (new File(filename).exists()) {
+				filenames.add(filename);
+				log.info("adding filename " + filename);
+			}
+		}
+		return filenames;
+	}
+
+	private static Func1<VesselPosition, Boolean> isBig() {
 		return new Func1<VesselPosition, Boolean>() {
 			@Override
 			public Boolean call(VesselPosition p) {
@@ -106,7 +122,7 @@ public class DriftingLayer implements Layer {
 		};
 	}
 
-	private Func1<VesselPosition, Boolean> onlyClassA() {
+	private static Func1<VesselPosition, Boolean> onlyClassA() {
 		return new Func1<VesselPosition, Boolean>() {
 			@Override
 			public Boolean call(VesselPosition p) {
@@ -115,7 +131,7 @@ public class DriftingLayer implements Layer {
 		};
 	}
 
-	private Func1<VesselPosition, Boolean> notAtAnchor() {
+	private static Func1<VesselPosition, Boolean> notAtAnchor() {
 		return new Func1<VesselPosition, Boolean>() {
 			@Override
 			public Boolean call(VesselPosition p) {
@@ -124,7 +140,7 @@ public class DriftingLayer implements Layer {
 		};
 	}
 
-	private Func1<String, Observable<VesselPosition>> filenameToPositions() {
+	private static Func1<String, Observable<VesselPosition>> filenameToPositions() {
 		return new Func1<String, Observable<VesselPosition>>() {
 			@Override
 			public Observable<VesselPosition> call(final String filename) {
@@ -133,13 +149,13 @@ public class DriftingLayer implements Layer {
 				// read positions
 						.positions(Streams.nmeaFromGzip(filename))
 						// backpressure strategy - don't
-						.onBackpressureBuffer()
+//						.onBackpressureBuffer()
 						// in background thread from pool per file
 						.subscribeOn(Schedulers.computation())
 						// log
-//						.lift(Logging.<VesselPosition> logger().showCount()
-//								.onNextPrefix("inPositions=").every(100000)
-//								.log())
+						// .lift(Logging.<VesselPosition> logger().showCount()
+						// .onNextPrefix("inPositions=").every(100000)
+						// .log())
 						// log completion of read of file
 						.doOnCompleted(new Action0() {
 							@Override
@@ -321,9 +337,7 @@ public class DriftingLayer implements Layer {
 				});
 	}
 
-	public static void main(String[] args) throws FileNotFoundException,
-			IOException {
-		// String filename = "/media/analysis/nmea/2014/NMEA_ITU_20140701.gz";
+	private static void sortFiles() throws FileNotFoundException, IOException {
 		File directory = new File("/media/analysis/nmea/2014");
 		Preconditions.checkArgument(directory.exists());
 		File[] files = directory.listFiles(new FileFilter() {
@@ -348,4 +362,19 @@ public class DriftingLayer implements Layer {
 			sortFile(file.getAbsolutePath());
 		}
 	}
+
+	public static void main(String[] args) throws FileNotFoundException,
+			IOException, InterruptedException {
+		// String filename = "/media/analysis/nmea/2014/NMEA_ITU_20140701.gz";
+		// sortFiles();
+
+		List<String> filenames = getFilenames();
+
+		Observable<VesselPosition> positions = getPositions(filenames);
+
+		positions.observeOn(Schedulers.immediate()).subscribe();
+		Thread.sleep(10000000);
+
+	}
+
 }
