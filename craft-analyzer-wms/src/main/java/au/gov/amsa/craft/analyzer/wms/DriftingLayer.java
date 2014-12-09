@@ -44,6 +44,7 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
+import com.github.davidmoten.rx.Functions;
 import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
@@ -90,20 +91,22 @@ public class DriftingLayer implements Layer {
 
 					}
 				})
-				// only class A vessels
-				.filter(onlyClassA())
-				// ignore vessels at anchor
-				.filter(notAtAnchor())
-				// is a big vessel
-				.filter(isBig());
+		// only class A vessels
+		// .filter(onlyClassA())
+		// ignore vessels at anchor
+		// .filter(notAtAnchor())
+		// is a big vessel
+		// .filter(isBig())
+		;
 		return aisPositions;
 	}
 
 	private static List<String> getFilenames() {
 		List<String> filenames = new ArrayList<String>();
-		for (int i = 1; i <= 31; i++) {
-			String filename = "/media/analysis/nmea/2014/NMEA_ITU_201407"
-					+ new DecimalFormat("00").format(i) + ".gz";
+		final String filenameBase = "/media/analysis/nmea/2014/NMEA_ITU_201407";
+		for (int i = 1; i <= 2; i++) {
+			String filename = filenameBase + new DecimalFormat("00").format(i)
+					+ ".gz";
 			if (new File(filename).exists()) {
 				filenames.add(filename);
 				log.info("adding filename " + filename);
@@ -149,13 +152,9 @@ public class DriftingLayer implements Layer {
 				// read positions
 						.positions(Streams.nmeaFromGzip(filename))
 						// backpressure strategy - don't
-//						.onBackpressureBuffer()
+						.onBackpressureBuffer()
 						// in background thread from pool per file
 						.subscribeOn(Schedulers.computation())
-						// log
-						// .lift(Logging.<VesselPosition> logger().showCount()
-						// .onNextPrefix("inPositions=").every(100000)
-						// .log())
 						// log completion of read of file
 						.doOnCompleted(new Action0() {
 							@Override
@@ -338,6 +337,7 @@ public class DriftingLayer implements Layer {
 	}
 
 	private static void sortFiles() throws FileNotFoundException, IOException {
+		// String filename = "/media/analysis/nmea/2014/NMEA_ITU_20140701.gz";
 		File directory = new File("/media/analysis/nmea/2014");
 		Preconditions.checkArgument(directory.exists());
 		File[] files = directory.listFiles(new FileFilter() {
@@ -365,14 +365,74 @@ public class DriftingLayer implements Layer {
 
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException, InterruptedException {
-		// String filename = "/media/analysis/nmea/2014/NMEA_ITU_20140701.gz";
+
 		// sortFiles();
+		// Observable.range(1, 20).flatMap(
+		// new Func1<Integer, Observable<Integer>>() {
+		// @Override
+		// public Observable<Integer> call(final Integer n) {
+		// return Observable.range(1, Integer.MAX_VALUE - 1)
+		// .map(new Func1<Integer, Integer>(){
+		// @Override
+		// public Integer call(Integer i) {
+		// return i*n;
+		// }})
+		// .subscribeOn(Schedulers.computation());
+		// }
+		// }).forEach(new Action1<Integer>() {
+		// long count = 0;
+		// @Override
+		// public void call(Integer n) {
+		// if (++count %1000==0)
+		// System.out.println(n);
+		// }});
 
-		List<String> filenames = getFilenames();
+		Observable.range(1, 2)
+		// produce 1000 strings a second per range emission
+				.flatMap(new Func1<Integer, Observable<String>>() {
+					@Override
+					public Observable<String> call(final Integer number) {
+						return Observable
+								.range(1, Integer.MAX_VALUE)
+								.map(new Func1<Integer, String>() {
 
-		Observable<VesselPosition> positions = getPositions(filenames);
+									@Override
+									public String call(Integer n) {
+										// simulate something intensive
+										try {
+											Thread.sleep(1);
+											return number
+													+ "-"
+													+ System.currentTimeMillis();
+										} catch (InterruptedException e) {
+											throw new RuntimeException(e);
+										}
+									}
+								})
+								.onBackpressureBuffer()
+								.subscribeOn(Schedulers.computation());
+					}
+				})
+				// log every 100th value
+				.doOnNext(new Action1<String>() {
+					long count;
 
-		positions.observeOn(Schedulers.immediate()).subscribe();
+					@Override
+					public void call(String line) {
+						if (++count % 100 == 0)
+							System.out.println(line);
+					}
+				}).subscribeOn(Schedulers.computation()).subscribe();
+
+		// List<String> filenames = getFilenames();
+		// Observable<VesselPosition> positions = getPositions(filenames)
+		// .subscribeOn(Schedulers.newThread());
+		//
+		// positions
+		// // observeOn
+		// // .observeOn(Schedulers.newThread())
+		// // go
+		// .subscribe();
 		Thread.sleep(10000000);
 
 	}

@@ -54,6 +54,8 @@ public final class Strings {
 		}
 	};
 
+	private static boolean useReaderProducer = true;
+
 	/**
 	 * Returns an Observable sequence of lines from the given host and port. If
 	 * the stream is quiet for <code>quietTimeoutMs</code> then a reconnect will
@@ -271,14 +273,19 @@ public final class Strings {
 	}
 
 	public static Observable<String> from(final Reader reader, final int size) {
-		return Observable.create(new OnSubscribe<String>() {
 
-			@Override
-			public void call(Subscriber<? super String> subscriber) {
-				subscriber.setProducer(new ReaderProducer(reader, subscriber,
-						size));
-			}
-		});
+		if (useReaderProducer)
+			return Observable.create(new OnSubscribe<String>() {
+
+				@Override
+				public void call(Subscriber<? super String> subscriber) {
+					subscriber.setProducer(new ReaderProducer(reader,
+							subscriber, size));
+				}
+			});
+
+		else
+			return StringObservable.from(reader, size);
 	}
 
 	public static Observable<String> from(Reader reader) {
