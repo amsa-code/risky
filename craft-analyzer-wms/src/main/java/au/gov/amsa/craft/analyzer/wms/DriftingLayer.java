@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -81,13 +82,13 @@ public class DriftingLayer implements Layer {
 		// get the positions from each file
 		// use concatMap till merge bug is fixed RxJava
 		// https://github.com/ReactiveX/RxJava/issues/1941
-				.concatMap(filenameToPositions())
+				.flatMap(filenameToPositions())
 				// only class A vessels
 				.filter(onlyClassA())
 				// ignore vessels at anchor
-				.filter(notAtAnchor())
+//				.filter(notAtAnchor())
 				// is a big vessel
-				.filter(isBig())
+//				.filter(isBig())
 				// log
 				.doOnNext(new Action1<VesselPosition>() {
 					long count = 0;
@@ -105,7 +106,7 @@ public class DriftingLayer implements Layer {
 	private static List<String> getFilenames() {
 		List<String> filenames = new ArrayList<String>();
 		final String filenameBase = "/media/analysis/nmea/2014/sorted-NMEA_ITU_201407";
-		for (int i = 1; i <= 4; i++) {
+		for (int i = 1; i <= 31; i++) {
 			String filename = filenameBase + new DecimalFormat("00").format(i)
 					+ ".gz";
 			if (new File(filename).exists()) {
@@ -403,12 +404,36 @@ public class DriftingLayer implements Layer {
 //					}
 //				});
 
-//		List<String> filenames = getFilenames();
-		List<String> filenames = Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
+		List<String> filenames = getFilenames();
+//		List<String> filenames = Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
 		Observable<VesselPosition> positions = getPositions(filenames)
 				.subscribeOn(Schedulers.newThread());
 
-		positions.subscribe();
+		positions.subscribe(new Subscriber<VesselPosition>() {
+			long count = 0;
+			final int SIZE = 8192;
+			
+			@Override
+			public void onStart() {
+				request(SIZE);
+			}
+			
+			@Override
+			public void onCompleted() {
+				
+			}
+
+			@Override
+			public void onError(Throwable e) {
+				throw new RuntimeException(e);
+			}
+
+			@Override
+			public void onNext(VesselPosition p) {
+				count++;
+				if (count%SIZE==0)
+					request(SIZE);
+			}});
 		Thread.sleep(10000000);
 
 	}
