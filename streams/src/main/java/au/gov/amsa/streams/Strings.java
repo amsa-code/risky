@@ -247,12 +247,13 @@ public final class Strings {
 					.reconnectDelayMs(hostPort.getReconnectDelayMs())
 					// create
 					.create();
-			Observable<String> lines = StringObservable.split(o, "\n");
+			Observable<String> lines = StringObservable.split(o, "\n")
+					.onBackpressureBuffer();
 			if (!source.isPresent()) {
 				source = Optional.of(lines);
 			} else
-				source = Optional.of(source.get()
-						.subscribeOn(Schedulers.newThread()).mergeWith(lines));
+				source = Optional.of(source.get().subscribeOn(Schedulers.io())
+						.mergeWith(lines));
 		}
 		return source.get();
 	}
