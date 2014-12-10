@@ -18,7 +18,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
@@ -32,12 +31,8 @@ import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.LineAndTime;
-import au.gov.amsa.ais.Timestamped;
-import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams;
-import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
@@ -50,6 +45,7 @@ import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 public class DriftingLayer implements Layer {
 
@@ -376,38 +372,39 @@ public class DriftingLayer implements Layer {
 		Observable<String> source = Streams
 				.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
 
-		Integer count = Streams.extract(source)
-		// filter
-				.filter(new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
-					@Override
-					public Boolean call(TimestampedAndLine<AisMessage> t) {
-						if (t.getMessage().isPresent() && t.getMessage().get().message() instanceof AisShipStaticA) {
-							AisShipStaticA m = ((AisShipStaticA) t.getMessage().get().message());
-							if (!m.getDimensionA().isPresent()
-									&& m.getDimensionB().isPresent()) {
-								log.info(m.getMmsi() + ":"
-										+ m.getDimensionB().get());
-								log.info(t.getLine());
-								return true;
-							} else
-								return false;
-						} else
-							return false;
-					}
-				}).count().toBlocking().single();
-		System.out.println("count=" + count);
-		System.exit(0);
-		AisVesselPositions
-		// read positions
-				.positions(source).forEach(new Action1<VesselPosition>() {
+//		Integer count = Streams.extract(source)
+//		// filter
+//				.filter(new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
+//					@Override
+//					public Boolean call(TimestampedAndLine<AisMessage> t) {
+//						if (t.getMessage().isPresent() && t.getMessage().get().message() instanceof AisShipStaticA) {
+//							AisShipStaticA m = ((AisShipStaticA) t.getMessage().get().message());
+//							if (!m.getDimensionA().isPresent()
+//									&& m.getDimensionB().isPresent()) {
+//								log.info(m.getMmsi() + ":"
+//										+ m.getDimensionB().get());
+//								log.info(t.getLine());
+//								return true;
+//							} else
+//								return false;
+//						} else
+//							return false;
+//					}
+//				}).count().toBlocking().single();
+//		System.out.println("count=" + count);
+//		System.exit(0);
+//		AisVesselPositions
+//		// read positions
+//				.positions(source).forEach(new Action1<VesselPosition>() {
+//
+//					@Override
+//					public void call(VesselPosition vp) {
+//						System.out.println(vp);
+//					}
+//				});
 
-					@Override
-					public void call(VesselPosition vp) {
-						System.out.println(vp);
-					}
-				});
-
-		List<String> filenames = getFilenames();
+//		List<String> filenames = getFilenames();
+		List<String> filenames = Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
 		Observable<VesselPosition> positions = getPositions(filenames)
 				.subscribeOn(Schedulers.newThread());
 

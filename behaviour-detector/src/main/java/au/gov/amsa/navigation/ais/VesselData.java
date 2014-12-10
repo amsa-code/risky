@@ -50,10 +50,6 @@ public class VesselData {
 			else
 				inserted = map.putIfAbsent(id, vessel) == null;
 			if (inserted) {
-				System.out.println("-------------------------");
-				for (Identifier ident:map.keySet()) {
-					System.out.println(map.get(ident));
-				}
 				return this;
 			}
 		}
