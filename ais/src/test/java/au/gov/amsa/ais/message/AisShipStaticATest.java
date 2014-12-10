@@ -1,6 +1,7 @@
 package au.gov.amsa.ais.message;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -37,6 +38,20 @@ public class AisShipStaticATest {
 		assertEquals(0, s.getSpare());
 		assertTrue(s.getDataTerminalAvailable());
 		assertEquals("source", s.getSource());
+	}
+	
+	@Test
+	public void testDimensionsOnlyNoReferencePoint() {
+		String m = "57ldaq@1`57M0u9P000DM>1=E9HETu800000001J00g086u60=@C@SkP000000000000000";
+		AisShipStaticA s = new AisShipStaticA(m, "source");
+		System.out.println(s.toString().replaceAll(",", ",\n"));
+	
+		assertFalse(s.getDimensionA().isPresent());
+		assertEquals(47, (int) s.getDimensionB().get());
+		assertFalse(s.getDimensionC().isPresent());
+		assertEquals(8, (int) s.getDimensionD().get());
+		assertEquals(47, (int) s.getLengthMetres().get());
+		assertEquals(8, (int) s.getWidthMetres().get());
 	}
 	
 	@Test

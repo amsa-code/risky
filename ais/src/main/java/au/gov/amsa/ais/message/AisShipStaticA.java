@@ -40,10 +40,10 @@ public class AisShipStaticA implements AisShipStatic {
 	private final int shipType;
 	private final int dimensionB;
 
-	private AisShipStaticA( String source, int messageId,
-			int repeatIndicator, int mmsi, int aisVersionIndicator, int imo,
-			String callsign, String name, int dimensionA, int dimensionC,
-			int dimensionD, int typeOfElectronicPositionFixingDevice,
+	private AisShipStaticA(String source, int messageId, int repeatIndicator,
+			int mmsi, int aisVersionIndicator, int imo, String callsign,
+			String name, int dimensionA, int dimensionC, int dimensionD,
+			int typeOfElectronicPositionFixingDevice,
 			long expectedTimeOfArrival, long expectedTimeOfArrivalUnprocessed,
 			double maximumPresentStaticDraughtMetres, String destination,
 			boolean dataTerminalAvailable, int spare, int shipType,
@@ -107,7 +107,6 @@ public class AisShipStaticA implements AisShipStatic {
 		spare = extractor.getValue(423, 424);
 	}
 
-
 	@Override
 	public int getMessageId() {
 		return messageId;
@@ -126,8 +125,6 @@ public class AisShipStaticA implements AisShipStatic {
 		return aisVersionIndicator;
 	}
 
-	
-	
 	public Optional<Integer> getImo() {
 		if (imo == 0)
 			return Optional.absent();
@@ -177,22 +174,34 @@ public class AisShipStaticA implements AisShipStatic {
 
 	public Optional<Integer> getLengthMetres() {
 		Optional<Integer> a = getDimensionA();
-		if (!a.isPresent())
-			return Optional.absent();
 		Optional<Integer> b = getDimensionB();
-		if (!b.isPresent())
-			return Optional.absent();
-		return Optional.of(a.get() + b.get());
+		if (a.isPresent() && b.isPresent())
+			return Optional.of(a.get() + b.get());
+		else {
+			Optional<Integer> c = getDimensionC();
+			Optional<Integer> d = getDimensionD();
+			if (!a.isPresent() && !c.isPresent() && b.isPresent()
+					&& d.isPresent())
+				return b;
+			else
+				return Optional.absent();
+		}
 	}
 
 	public Optional<Integer> getWidthMetres() {
 		Optional<Integer> c = getDimensionC();
-		if (!c.isPresent())
-			return Optional.absent();
 		Optional<Integer> d = getDimensionD();
-		if (!d.isPresent())
-			return Optional.absent();
-		return Optional.of(c.get() + d.get());
+		if (c.isPresent() && d.isPresent())
+			return Optional.of(c.get() + d.get());
+		else {
+			Optional<Integer> a = getDimensionA();
+			Optional<Integer> b = getDimensionB();
+			if (!a.isPresent() && !c.isPresent() && b.isPresent()
+					&& d.isPresent())
+				return d;
+			else
+				return Optional.absent();
+		}
 	}
 
 	public int getTypeOfElectronicPositionFixingDevice() {
@@ -266,6 +275,8 @@ public class AisShipStaticA implements AisShipStatic {
 		builder.append(name);
 		builder.append(", dimensionA=");
 		builder.append(dimensionA);
+		builder.append(", dimensionB=");
+		builder.append(dimensionB);
 		builder.append(", dimensionC=");
 		builder.append(dimensionC);
 		builder.append(", dimensionD=");
@@ -321,7 +332,6 @@ public class AisShipStaticA implements AisShipStatic {
 
 		private Builder() {
 		}
-
 
 		public Builder source(String source) {
 			this.source = source;
@@ -427,8 +437,8 @@ public class AisShipStaticA implements AisShipStatic {
 		}
 
 		public AisShipStaticA build() {
-			return new AisShipStaticA(source, messageId, repeatIndicator,
-					mmsi, aisVersionIndicator, imo, callsign, name, dimensionA,
+			return new AisShipStaticA(source, messageId, repeatIndicator, mmsi,
+					aisVersionIndicator, imo, callsign, name, dimensionA,
 					dimensionC, dimensionD,
 					typeOfElectronicPositionFixingDevice,
 					expectedTimeOfArrival, expectedTimeOfArrivalUnprocessed,

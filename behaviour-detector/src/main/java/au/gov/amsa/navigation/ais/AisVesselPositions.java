@@ -21,7 +21,6 @@ import au.gov.amsa.navigation.Mmsi;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
 
-import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 
 public class AisVesselPositions {

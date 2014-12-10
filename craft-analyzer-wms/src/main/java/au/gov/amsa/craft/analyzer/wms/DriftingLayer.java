@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
@@ -31,8 +32,12 @@ import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
+import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.LineAndTime;
+import au.gov.amsa.ais.Timestamped;
+import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
@@ -44,7 +49,6 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
-import com.github.davidmoten.rx.Functions;
 import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
@@ -79,7 +83,15 @@ public class DriftingLayer implements Layer {
 			List<String> filenames) {
 		Observable<VesselPosition> aisPositions = Observable.from(filenames)
 		// get the positions from each file
-				.flatMap(filenameToPositions())
+		// use concatMap till merge bug is fixed RxJava
+		// https://github.com/ReactiveX/RxJava/issues/1941
+				.concatMap(filenameToPositions())
+				// only class A vessels
+				.filter(onlyClassA())
+				// ignore vessels at anchor
+				.filter(notAtAnchor())
+				// is a big vessel
+				.filter(isBig())
 				// log
 				.doOnNext(new Action1<VesselPosition>() {
 					long count = 0;
@@ -87,24 +99,17 @@ public class DriftingLayer implements Layer {
 					@Override
 					public void call(VesselPosition t1) {
 						if (++count % 100 == 0)
-							System.out.println(t1);
+							System.out.println(count + ":" + t1);
 
 					}
-				})
-		// only class A vessels
-		// .filter(onlyClassA())
-		// ignore vessels at anchor
-		// .filter(notAtAnchor())
-		// is a big vessel
-		// .filter(isBig())
-		;
+				});
 		return aisPositions;
 	}
 
 	private static List<String> getFilenames() {
 		List<String> filenames = new ArrayList<String>();
-		final String filenameBase = "/media/analysis/nmea/2014/NMEA_ITU_201407";
-		for (int i = 1; i <= 2; i++) {
+		final String filenameBase = "/media/analysis/nmea/2014/sorted-NMEA_ITU_201407";
+		for (int i = 1; i <= 4; i++) {
 			String filename = filenameBase + new DecimalFormat("00").format(i)
 					+ ".gz";
 			if (new File(filename).exists()) {
@@ -367,72 +372,46 @@ public class DriftingLayer implements Layer {
 			IOException, InterruptedException {
 
 		// sortFiles();
-		// Observable.range(1, 20).flatMap(
-		// new Func1<Integer, Observable<Integer>>() {
-		// @Override
-		// public Observable<Integer> call(final Integer n) {
-		// return Observable.range(1, Integer.MAX_VALUE - 1)
-		// .map(new Func1<Integer, Integer>(){
-		// @Override
-		// public Integer call(Integer i) {
-		// return i*n;
-		// }})
-		// .subscribeOn(Schedulers.computation());
-		// }
-		// }).forEach(new Action1<Integer>() {
-		// long count = 0;
-		// @Override
-		// public void call(Integer n) {
-		// if (++count %1000==0)
-		// System.out.println(n);
-		// }});
 
-		Observable.range(1, 2)
-		// produce 1000 strings a second per range emission
-				.flatMap(new Func1<Integer, Observable<String>>() {
+		Observable<String> source = Streams
+				.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
+
+		Integer count = Streams.extract(source)
+		// filter
+				.filter(new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
 					@Override
-					public Observable<String> call(final Integer number) {
-						return Observable
-								.range(1, Integer.MAX_VALUE)
-								.map(new Func1<Integer, String>() {
-
-									@Override
-									public String call(Integer n) {
-										// simulate something intensive
-										try {
-											Thread.sleep(1);
-											return number
-													+ "-"
-													+ System.currentTimeMillis();
-										} catch (InterruptedException e) {
-											throw new RuntimeException(e);
-										}
-									}
-								})
-								.onBackpressureBuffer()
-								.subscribeOn(Schedulers.computation());
+					public Boolean call(TimestampedAndLine<AisMessage> t) {
+						if (t.getMessage().isPresent() && t.getMessage().get().message() instanceof AisShipStaticA) {
+							AisShipStaticA m = ((AisShipStaticA) t.getMessage().get().message());
+							if (!m.getDimensionA().isPresent()
+									&& m.getDimensionB().isPresent()) {
+								log.info(m.getMmsi() + ":"
+										+ m.getDimensionB().get());
+								log.info(t.getLine());
+								return true;
+							} else
+								return false;
+						} else
+							return false;
 					}
-				})
-				// log every 100th value
-				.doOnNext(new Action1<String>() {
-					long count;
+				}).count().toBlocking().single();
+		System.out.println("count=" + count);
+		System.exit(0);
+		AisVesselPositions
+		// read positions
+				.positions(source).forEach(new Action1<VesselPosition>() {
 
 					@Override
-					public void call(String line) {
-						if (++count % 100 == 0)
-							System.out.println(line);
+					public void call(VesselPosition vp) {
+						System.out.println(vp);
 					}
-				}).subscribeOn(Schedulers.computation()).subscribe();
+				});
 
-		// List<String> filenames = getFilenames();
-		// Observable<VesselPosition> positions = getPositions(filenames)
-		// .subscribeOn(Schedulers.newThread());
-		//
-		// positions
-		// // observeOn
-		// // .observeOn(Schedulers.newThread())
-		// // go
-		// .subscribe();
+		List<String> filenames = getFilenames();
+		Observable<VesselPosition> positions = getPositions(filenames)
+				.subscribeOn(Schedulers.newThread());
+
+		positions.subscribe();
 		Thread.sleep(10000000);
 
 	}

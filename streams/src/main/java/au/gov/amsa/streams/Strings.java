@@ -248,19 +248,17 @@ public final class Strings {
 					// create
 					.create();
 			Observable<String> lines = StringObservable.split(o, "\n")
-					.onBackpressureBuffer();
+					.onBackpressureBuffer().subscribeOn(Schedulers.io());
 			if (!source.isPresent()) {
 				source = Optional.of(lines);
 			} else
-				source = Optional.of(source.get().subscribeOn(Schedulers.io())
-						.mergeWith(lines));
+				source = Optional.of(source.get().mergeWith(lines));
 		}
 		return source.get();
 	}
 
 	public static Observable<byte[]> from(final InputStream is, final int size) {
 		return Observable.create(new OnSubscribe<byte[]>() {
-
 			@Override
 			public void call(Subscriber<? super byte[]> subscriber) {
 				subscriber.setProducer(new InputStreamProducer(is, subscriber,

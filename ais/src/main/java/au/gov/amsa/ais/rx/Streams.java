@@ -41,7 +41,7 @@ import com.google.common.base.Optional;
 
 public class Streams {
 
-	private static final int BUFFER_SIZE = 100;
+	public static final int BUFFER_SIZE = 100;
 
 	private static Logger log = LoggerFactory.getLogger(Streams.class);
 
@@ -139,7 +139,6 @@ public class Streams {
 					}
 					return Observable.empty();
 				}
-
 			}
 		};
 	}

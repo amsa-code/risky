@@ -42,6 +42,7 @@ public class VesselData {
 				builder = builder.dimensionA(m.getDimensionC());
 			if (m.getDimensionD().isPresent())
 				builder = builder.dimensionA(m.getDimensionD());
+			builder = builder.shipType(Optional.of(m.getShipType()));
 			Vessel vessel = builder.build();
 			final boolean inserted;
 			if (value.isPresent())
@@ -49,6 +50,10 @@ public class VesselData {
 			else
 				inserted = map.putIfAbsent(id, vessel) == null;
 			if (inserted) {
+				System.out.println("-------------------------");
+				for (Identifier ident:map.keySet()) {
+					System.out.println(map.get(ident));
+				}
 				return this;
 			}
 		}
