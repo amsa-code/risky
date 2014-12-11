@@ -245,8 +245,11 @@ public class DriftingLayer implements Layer {
 								+ p.id().uniqueId()
 								+ "</a>, time="
 								+ new Date(p.time()));
-						if (p.shipType().isPresent())
-							response.append(ShipTypeDecoder.getShipType(p.shipType().get()));
+						if (p.shipType().isPresent()) {
+							response.append(", ");
+							response.append(ShipTypeDecoder.getShipType(p
+									.shipType().get()));
+						}
 						response.append("</p>");
 					}
 				})
