@@ -32,16 +32,12 @@ public class VesselData {
 			} else
 				v = value;
 			Builder builder = Vessel.from(v.get());
-			if (m.getImo().isPresent())
-				builder = builder.imo(m.getImo());
-			if (m.getDimensionA().isPresent())
-				builder = builder.dimensionA(m.getDimensionA());
-			if (m.getDimensionB().isPresent())
-				builder = builder.dimensionA(m.getDimensionB());
-			if (m.getDimensionC().isPresent())
-				builder = builder.dimensionA(m.getDimensionC());
-			if (m.getDimensionD().isPresent())
-				builder = builder.dimensionA(m.getDimensionD());
+			builder = builder.imo(m.getImo());
+			builder = builder.dimensionA(m.getDimensionA());
+			builder = builder.dimensionA(m.getDimensionB());
+			builder = builder.dimensionA(m.getDimensionC());
+			builder = builder.dimensionA(m.getDimensionD());
+			builder = builder.lengthMetres(m.getLengthMetres());
 			builder = builder.shipType(Optional.of(m.getShipType()));
 			Vessel vessel = builder.build();
 			final boolean inserted;

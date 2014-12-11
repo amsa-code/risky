@@ -1,5 +1,7 @@
 package au.gov.amsa.navigation.ais;
 
+import au.gov.amsa.navigation.ais.Vessel.Builder;
+
 import com.google.common.base.Optional;
 
 public class Vessel {
@@ -11,11 +13,14 @@ public class Vessel {
 	private Optional<Integer> dimensionB;
 	private Optional<Integer> dimensionC;
 	private Optional<Integer> dimensionD;
+	private Optional<Integer> lengthMetres;
+	private Optional<Integer> widthMetres;
+	
 
 	private Vessel(long mmsi, Optional<Integer> imo,
 			Optional<Integer> shipType, Optional<Integer> dimensionA,
 			Optional<Integer> dimensionB, Optional<Integer> dimensionC,
-			Optional<Integer> dimensionD) {
+			Optional<Integer> dimensionD, Optional<Integer> lengthMetres, Optional<Integer> widthMetres) {
 		this.mmsi = mmsi;
 		this.imo = imo;
 		this.shipType = shipType;
@@ -23,6 +28,8 @@ public class Vessel {
 		this.dimensionB = dimensionB;
 		this.dimensionC = dimensionC;
 		this.dimensionD = dimensionD;
+		this.lengthMetres = lengthMetres;
+		this.widthMetres = widthMetres;
 	}
 
 	public long getMmsi() {
@@ -54,17 +61,11 @@ public class Vessel {
 	}
 
 	public Optional<Integer> getLengthMetres() {
-		if (dimensionA.isPresent() && dimensionB.isPresent())
-			return Optional.of(dimensionA.get() + dimensionB.get());
-		else
-			return Optional.absent();
+		return lengthMetres;
 	}
 
 	public Optional<Integer> getWidthMetres() {
-		if (dimensionC.isPresent() && dimensionD.isPresent())
-			return Optional.of(dimensionC.get() + dimensionD.get());
-		else
-			return Optional.absent();
+		return widthMetres;
 	}
 
 	public static Builder builder() {
@@ -86,6 +87,8 @@ public class Vessel {
 		private Optional<Integer> dimensionB = Optional.absent();
 		private Optional<Integer> dimensionC = Optional.absent();
 		private Optional<Integer> dimensionD = Optional.absent();
+		private Optional<Integer> lengthMetres = Optional.absent();
+		private Optional<Integer> widthMetres = Optional.absent();
 
 		private Builder() {
 		}
@@ -127,29 +130,42 @@ public class Vessel {
 
 		public Vessel build() {
 			return new Vessel(mmsi, imo, shipType, dimensionA, dimensionB,
-					dimensionC, dimensionD);
+					dimensionC, dimensionD, lengthMetres, widthMetres);
+		}
+
+		public Builder lengthMetres(Optional<Integer> lengthMetres) {
+			this.lengthMetres = lengthMetres;
+			return this;
 		}
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder builder2 = new StringBuilder();
-		builder2.append("Vessel [mmsi=");
-		builder2.append(mmsi);
-		builder2.append(", imo=");
-		builder2.append(imo);
-		builder2.append(", shipType=");
-		builder2.append(shipType);
-		builder2.append(", dimensionA=");
-		builder2.append(dimensionA);
-		builder2.append(", dimensionB=");
-		builder2.append(dimensionB);
-		builder2.append(", dimensionC=");
-		builder2.append(dimensionC);
-		builder2.append(", dimensionD=");
-		builder2.append(dimensionD);
-		builder2.append("]");
-		return builder2.toString();
+		StringBuilder b = new StringBuilder();
+		b.append("Vessel [mmsi=");
+		b.append(mmsi);
+		b.append(", imo=");
+		b.append(imo);
+		b.append(", shipType=");
+		b.append(shipType);
+		b.append(", dimensionA=");
+		b.append(dimensionA);
+		b.append(", dimensionB=");
+		b.append(dimensionB);
+		b.append(", dimensionC=");
+		b.append(dimensionC);
+		b.append(", dimensionD=");
+		b.append(dimensionD);
+		b.append(", lengthMetres=");
+		b.append(lengthMetres);
+		b.append(", widthMetres=");
+		b.append(widthMetres);
+		b.append("]");
+		return b.toString();
 	}
+	
+	
+
+	
 
 }

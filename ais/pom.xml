@@ -73,6 +73,11 @@
             <version>${rxjava.extras.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava-slf4j</artifactId>
+            <version>${rxjava.slf4j.version}</version>
+        </dependency>
+        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>${joda.time.version}</version>

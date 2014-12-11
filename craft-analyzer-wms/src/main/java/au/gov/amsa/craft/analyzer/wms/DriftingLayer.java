@@ -25,12 +25,10 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observer;
-import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.rx.Streams;
@@ -45,8 +43,8 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
+import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 public class DriftingLayer implements Layer {
 
@@ -61,13 +59,13 @@ public class DriftingLayer implements Layer {
 		// use these filenames as input NMEA
 		List<String> filenames = getFilenames();
 
-		Observable<VesselPosition> aisPositions = getPositions(filenames);
+		Observable<VesselPosition> aisPositions = getPositions(filenames).lift(
+				Logging.<VesselPosition> logger().showCount().every(100000)
+						.log());
 
 		new DriftingDetector().getCandidates(aisPositions)
 		// group by id and date
-				.groupBy(byDay())
-				// grab the first position each day by ship identifier
-				.flatMap(first())
+				.distinct(byIdAndDay())
 				// add to queue
 				.doOnNext(addToQueue())
 				// run in background
@@ -82,24 +80,13 @@ public class DriftingLayer implements Layer {
 		// get the positions from each file
 		// use concatMap till merge bug is fixed RxJava
 		// https://github.com/ReactiveX/RxJava/issues/1941
-				.flatMap(filenameToPositions())
+				.concatMap(filenameToPositions())
 				// only class A vessels
 				.filter(onlyClassA())
 				// ignore vessels at anchor
-//				.filter(notAtAnchor())
+				.filter(notAtAnchor())
 				// is a big vessel
-//				.filter(isBig())
-				// log
-				.doOnNext(new Action1<VesselPosition>() {
-					long count = 0;
-
-					@Override
-					public void call(VesselPosition t1) {
-						if (++count % 100 == 0)
-							System.out.println(count + ":" + t1);
-
-					}
-				});
+				.filter(isBig());
 		return aisPositions;
 	}
 
@@ -121,8 +108,8 @@ public class DriftingLayer implements Layer {
 		return new Func1<VesselPosition, Boolean>() {
 			@Override
 			public Boolean call(VesselPosition p) {
-				return p.lengthMetres().isPresent()
-						&& p.lengthMetres().get() > 50;
+				return !p.lengthMetres().isPresent()
+						|| p.lengthMetres().get() > 50;
 			}
 		};
 	}
@@ -195,28 +182,18 @@ public class DriftingLayer implements Layer {
 			public void call(VesselPosition p) {
 				// System.out.println(p.lat() + "\t" + p.lon() + "\t"
 				// + p.id().uniqueId());
-				// System.out.println(p);
+				if (queue.size() % 1000 == 0)
+					System.out.println("queue.size=" + queue.size());
 				queue.add(p);
-				System.out.println("queue size=" + queue.size());
 			}
 		};
 	}
 
-	private Func1<GroupedObservable<String, VesselPosition>, Observable<VesselPosition>> first() {
-		return new Func1<GroupedObservable<String, VesselPosition>, Observable<VesselPosition>>() {
-
-			@Override
-			public Observable<VesselPosition> call(
-					GroupedObservable<String, VesselPosition> positions) {
-				return positions.first();
-			}
-		};
-	}
-
-	private Func1<VesselPosition, String> byDay() {
+	private Func1<VesselPosition, String> byIdAndDay() {
 		return new Func1<VesselPosition, String>() {
 			@Override
 			public String call(VesselPosition p) {
+				// TODO use joda
 				SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 				return p.id().uniqueId() + sdf.format(new Date(p.time()));
 			}
@@ -373,67 +350,45 @@ public class DriftingLayer implements Layer {
 		Observable<String> source = Streams
 				.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
 
-//		Integer count = Streams.extract(source)
-//		// filter
-//				.filter(new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
-//					@Override
-//					public Boolean call(TimestampedAndLine<AisMessage> t) {
-//						if (t.getMessage().isPresent() && t.getMessage().get().message() instanceof AisShipStaticA) {
-//							AisShipStaticA m = ((AisShipStaticA) t.getMessage().get().message());
-//							if (!m.getDimensionA().isPresent()
-//									&& m.getDimensionB().isPresent()) {
-//								log.info(m.getMmsi() + ":"
-//										+ m.getDimensionB().get());
-//								log.info(t.getLine());
-//								return true;
-//							} else
-//								return false;
-//						} else
-//							return false;
-//					}
-//				}).count().toBlocking().single();
-//		System.out.println("count=" + count);
-//		System.exit(0);
-//		AisVesselPositions
-//		// read positions
-//				.positions(source).forEach(new Action1<VesselPosition>() {
-//
-//					@Override
-//					public void call(VesselPosition vp) {
-//						System.out.println(vp);
-//					}
-//				});
+		// Integer count = Streams.extract(source)
+		// // filter
+		// .filter(new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
+		// @Override
+		// public Boolean call(TimestampedAndLine<AisMessage> t) {
+		// if (t.getMessage().isPresent() && t.getMessage().get().message()
+		// instanceof AisShipStaticA) {
+		// AisShipStaticA m = ((AisShipStaticA) t.getMessage().get().message());
+		// if (!m.getDimensionA().isPresent()
+		// && m.getDimensionB().isPresent()) {
+		// log.info(m.getMmsi() + ":"
+		// + m.getDimensionB().get());
+		// log.info(t.getLine());
+		// return true;
+		// } else
+		// return false;
+		// } else
+		// return false;
+		// }
+		// }).count().toBlocking().single();
+		// System.out.println("count=" + count);
+		// System.exit(0);
+		// AisVesselPositions
+		// // read positions
+		// .positions(source).forEach(new Action1<VesselPosition>() {
+		//
+		// @Override
+		// public void call(VesselPosition vp) {
+		// System.out.println(vp);
+		// }
+		// });
 
 		List<String> filenames = getFilenames();
-//		List<String> filenames = Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
+		// List<String> filenames = Lists
+		// .newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
 		Observable<VesselPosition> positions = getPositions(filenames)
 				.subscribeOn(Schedulers.newThread());
 
-		positions.subscribe(new Subscriber<VesselPosition>() {
-			long count = 0;
-			final int SIZE = 8192;
-			
-			@Override
-			public void onStart() {
-				request(SIZE);
-			}
-			
-			@Override
-			public void onCompleted() {
-				
-			}
-
-			@Override
-			public void onError(Throwable e) {
-				throw new RuntimeException(e);
-			}
-
-			@Override
-			public void onNext(VesselPosition p) {
-				count++;
-				if (count%SIZE==0)
-					request(SIZE);
-			}});
+		positions.subscribe();
 		Thread.sleep(10000000);
 
 	}
