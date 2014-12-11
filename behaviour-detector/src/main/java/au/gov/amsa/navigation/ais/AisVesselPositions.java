@@ -110,11 +110,15 @@ public class AisVesselPositions {
 							.getSpeedOverGroundKnots() * 0.5144444444)
 							: Optional.<Double> absent();
 
+					Optional<Integer> shipType = vessel.isPresent() ? vessel
+							.get().getShipType() : Optional.<Integer> absent();
+
 					boolean isAtAnchor;
 					if (p instanceof AisPositionA)
 						isAtAnchor = ((AisPositionA) p).isAtAnchor();
 					else
 						isAtAnchor = false;
+
 					// TODO adjust lat, lon for position of ais set on ship
 					// given by A,B,C,D? Or instead store the position offset in
 					// metres in VesselPosition (preferred because RateOfTurn
@@ -128,11 +132,26 @@ public class AisVesselPositions {
 										fromNullable((double) p
 												.getTrueHeading()))
 								.speedMetresPerSecond(speedMetresPerSecond)
-								.lat(p.getLatitude()).lon(p.getLongitude())
-								.id(id).lengthMetres(lengthMetres)
+								// lat
+								.lat(p.getLatitude())
+								// lon
+								.lon(p.getLongitude())
+								// id
+								.id(id)
+								// length
+								.lengthMetres(lengthMetres)
+								// width
+								.widthMetres(widthMetres)
+								// time
 								.time(messageAndData.message().get().time())
-								.widthMetres(widthMetres).cls(cls)
-								.atAnchor(isAtAnchor).build());
+								// ship type
+								.shipType(shipType)
+								// class
+								.cls(cls)
+								// at anchor
+								.atAnchor(isAtAnchor)
+								// build it
+								.build());
 					} catch (RuntimeException e) {
 						throw e;
 					}

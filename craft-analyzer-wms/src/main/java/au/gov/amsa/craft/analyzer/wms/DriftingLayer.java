@@ -31,6 +31,7 @@ import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.LineAndTime;
+import au.gov.amsa.ais.ShipTypeDecoder;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselClass;
@@ -244,6 +245,8 @@ public class DriftingLayer implements Layer {
 								+ p.id().uniqueId()
 								+ "</a>, time="
 								+ new Date(p.time()));
+						if (p.shipType().isPresent())
+							response.append(ShipTypeDecoder.getShipType(p.shipType().get()));
 						response.append("</p>");
 					}
 				})
@@ -356,7 +359,15 @@ public class DriftingLayer implements Layer {
 		Observable<VesselPosition> positions = getPositions(filenames)
 				.subscribeOn(Schedulers.newThread());
 
-		positions.subscribe();
+		positions.forEach(new Action1<VesselPosition>() {
+			@Override
+			public void call(VesselPosition vp) {
+				if (vp.shipType().isPresent()) {
+					System.out.println(ShipTypeDecoder.getShipType(vp
+							.shipType().get()) + ":" + vp);
+				}
+			}
+		});
 		Thread.sleep(10000000);
 
 	}

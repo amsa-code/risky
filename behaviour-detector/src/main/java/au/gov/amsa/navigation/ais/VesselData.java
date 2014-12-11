@@ -38,7 +38,7 @@ public class VesselData {
 			builder = builder.dimensionA(m.getDimensionC());
 			builder = builder.dimensionA(m.getDimensionD());
 			builder = builder.lengthMetres(m.getLengthMetres());
-			builder = builder.shipType(Optional.of(m.getShipType()));
+			builder = builder.shipType(of(m.getShipType()));
 			Vessel vessel = builder.build();
 			final boolean inserted;
 			if (value.isPresent())

@@ -24,7 +24,5 @@ public interface AisShipStatic extends AisMessage, HasMmsi {
 	Optional<Integer> getWidthMetres();
 
 	int getShipType();
-	
-	
 
 }

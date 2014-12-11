@@ -24,6 +24,7 @@ public class VesselPosition {
 	private final long time;
 	private final Identifier id;
 	private final VesselClass cls;
+	private final Optional<Integer> shipType;
 
 	private static AtomicLong counter = new AtomicLong();
 	private long messageId;
@@ -32,9 +33,12 @@ public class VesselPosition {
 			double lon, Optional<Integer> lengthMetres,
 			Optional<Integer> widthMetres, Optional<Double> cog,
 			Optional<Double> heading, Optional<Double> speedMetresPerSecond,
-			VesselClass cls,boolean isAtAnchor, long time) {
-		Preconditions.checkArgument(lat >= -90 && lat <= 90, "unexpected lat "+ lat);
-		Preconditions.checkArgument(lon >= -180 && lon <= 180,"unexpected lon "+ lon);
+			VesselClass cls, boolean isAtAnchor, long time,
+			Optional<Integer> shipType) {
+		Preconditions.checkArgument(lat >= -90 && lat <= 90, "unexpected lat "
+				+ lat);
+		Preconditions.checkArgument(lon >= -180 && lon <= 180,
+				"unexpected lon " + lon);
 		Preconditions.checkNotNull(id);
 		Preconditions.checkNotNull(lengthMetres);
 		Preconditions.checkNotNull(widthMetres);
@@ -50,6 +54,7 @@ public class VesselPosition {
 		this.speedMetresPerSecond = speedMetresPerSecond;
 		this.time = time;
 		this.isAtAnchor = isAtAnchor;
+		this.shipType = shipType;
 	}
 
 	public long messageId() {
@@ -102,9 +107,13 @@ public class VesselPosition {
 	public long time() {
 		return time;
 	}
-	
+
 	public boolean isAtAnchor() {
 		return isAtAnchor;
+	}
+
+	public Optional<Integer> shipType() {
+		return shipType;
 	}
 
 	public static Builder builder() {
@@ -124,6 +133,7 @@ public class VesselPosition {
 		private boolean isAtAnchor = false;
 		private VesselClass cls;
 		private long time;
+		private Optional<Integer> shipType = Optional.absent();
 
 		private Builder() {
 		}
@@ -162,7 +172,7 @@ public class VesselPosition {
 			this.headingDegrees = heading;
 			return this;
 		}
-		
+
 		public Builder atAnchor(boolean atAnchor) {
 			this.isAtAnchor = atAnchor;
 			return this;
@@ -184,11 +194,17 @@ public class VesselPosition {
 			return this;
 		}
 
+		public Builder shipType(Optional<Integer> shipType) {
+			this.shipType = shipType;
+			return this;
+		}
+
 		public VesselPosition build() {
 			return new VesselPosition(counter.incrementAndGet(), id, lat, lon,
 					lengthMetres, widthMetres, cogDegrees, headingDegrees,
-					speedMetresPerSecond, cls,isAtAnchor, time);
+					speedMetresPerSecond, cls, isAtAnchor, time, shipType);
 		}
+
 	}
 
 	private double metresPerDegreeLongitude() {
@@ -224,7 +240,8 @@ public class VesselPosition {
 	// }
 
 	public Optional<VesselPosition> predict(long t) {
-		if (!speedMetresPerSecond.isPresent() || !cogDegrees.isPresent()||isAtAnchor)
+		if (!speedMetresPerSecond.isPresent() || !cogDegrees.isPresent()
+				|| isAtAnchor)
 			return Optional.absent();
 		else {
 			double lat = this.lat - speedMetresPerSecond.get()
@@ -234,13 +251,13 @@ public class VesselPosition {
 					/ metresPerDegreeLongitude() * (t - time) / 1000.0
 					* Math.sin(Math.toRadians(cogDegrees.get()));
 
+			//TODO should use constructor so don't miss additions to constructor
 			return Optional.of(builder().lat(lat).lon(lon)
 					.cogDegrees(cogDegrees).headingDegrees(headingDegrees)
-					.time(t).lengthMetres(lengthMetres)
+					.time(t).lengthMetres(lengthMetres).shipType(shipType)
 					.widthMetres(widthMetres).id(id)
 					.speedMetresPerSecond(speedMetresPerSecond).cls(cls)
-					.atAnchor(isAtAnchor)
-					.build());
+					.atAnchor(isAtAnchor).build());
 		}
 	}
 
@@ -263,16 +280,20 @@ public class VesselPosition {
 	 */
 	public Optional<Times> intersectionTimes(VesselPosition vp) {
 
-		//TODO handle vp doesn't have speed or cog but is within collision distance given any cog and max speed
-		
+		// TODO handle vp doesn't have speed or cog but is within collision
+		// distance given any cog and max speed
+
 		Optional<VesselPosition> p = vp.predict(time);
 		Vector deltaV = velocity().get().minus(p.get().velocity().get());
 		Vector deltaP = position(this).minus(p.get().position(this));
 
 		// imagine a ring around the vessel centroid with maxDimensionMetres/2
 		// radius. This is the ring we are going to test for collision.
-		double r = p.get().maxDimensionMetres().or(maxDimensionMetresWhenUnknown) / 2
-				+ maxDimensionMetres().or(maxDimensionMetresWhenUnknown) / 2;
+		double r = p.get().maxDimensionMetres()
+				.or(maxDimensionMetresWhenUnknown)
+				/ 2
+				+ maxDimensionMetres().or(maxDimensionMetresWhenUnknown)
+				/ 2;
 
 		if (deltaP.dot(deltaP) <= r)
 			return of(new Times(p.get().time()));
@@ -304,27 +325,35 @@ public class VesselPosition {
 
 	@Override
 	public String toString() {
-		StringBuilder builder2 = new StringBuilder();
-		builder2.append("VesselPosition [lat,lon=");
-		builder2.append(lat);
-		builder2.append(",");
-		builder2.append(lon);
-		builder2.append(", lengthMetres=");
-		builder2.append(lengthMetres);
-		builder2.append(", widthMetres=");
-		builder2.append(widthMetres);
-		builder2.append(", cogDegrees=");
-		builder2.append(cogDegrees);
-		builder2.append(", headingDegrees=");
-		builder2.append(headingDegrees);
-		builder2.append(", speedMetresPerSecond=");
-		builder2.append(speedMetresPerSecond);
-		builder2.append(", time=");
-		builder2.append(new Date(time));
-		builder2.append(", id=");
-		builder2.append(id);
-		builder2.append("]");
-		return builder2.toString();
+		StringBuilder b = new StringBuilder();
+		b.append("VesselPosition [lat=");
+		b.append(lat);
+		b.append(", lon=");
+		b.append(lon);
+		b.append(", lengthMetres=");
+		b.append(lengthMetres);
+		b.append(", widthMetres=");
+		b.append(widthMetres);
+		b.append(", cogDegrees=");
+		b.append(cogDegrees);
+		b.append(", headingDegrees=");
+		b.append(headingDegrees);
+		b.append(", speedMetresPerSecond=");
+		b.append(speedMetresPerSecond);
+		b.append(", isAtAnchor=");
+		b.append(isAtAnchor);
+		b.append(", time=");
+		b.append(time);
+		b.append(", id=");
+		b.append(id);
+		b.append(", cls=");
+		b.append(cls);
+		b.append(", shipType=");
+		b.append(shipType);
+		b.append(", messageId=");
+		b.append(messageId);
+		b.append("]");
+		return b.toString();
 	}
 
 	@Override
