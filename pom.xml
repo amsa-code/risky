@@ -21,9 +21,9 @@
 		<rxjava.slf4j.version>0.3</rxjava.slf4j.version>
 		<slf4j.version>1.7.7</slf4j.version>
 		<guava.version>18.0</guava.version>
-		<geotools.version>11.1</geotools.version>
-		<joda.time.version>2.5</joda.time.version>
-		<junit.version>4.11</junit.version>
+		<geotools.version>12.1</geotools.version>
+		<joda.time.version>2.6</joda.time.version>
+		<junit.version>4.12</junit.version>
 
  		<cobertura.version>2.6</cobertura.version>
         <checkstyle.version>2.13</checkstyle.version>

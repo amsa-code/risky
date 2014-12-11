@@ -350,38 +350,6 @@ public class DriftingLayer implements Layer {
 		Observable<String> source = Streams
 				.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
 
-		// Integer count = Streams.extract(source)
-		// // filter
-		// .filter(new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
-		// @Override
-		// public Boolean call(TimestampedAndLine<AisMessage> t) {
-		// if (t.getMessage().isPresent() && t.getMessage().get().message()
-		// instanceof AisShipStaticA) {
-		// AisShipStaticA m = ((AisShipStaticA) t.getMessage().get().message());
-		// if (!m.getDimensionA().isPresent()
-		// && m.getDimensionB().isPresent()) {
-		// log.info(m.getMmsi() + ":"
-		// + m.getDimensionB().get());
-		// log.info(t.getLine());
-		// return true;
-		// } else
-		// return false;
-		// } else
-		// return false;
-		// }
-		// }).count().toBlocking().single();
-		// System.out.println("count=" + count);
-		// System.exit(0);
-		// AisVesselPositions
-		// // read positions
-		// .positions(source).forEach(new Action1<VesselPosition>() {
-		//
-		// @Override
-		// public void call(VesselPosition vp) {
-		// System.out.println(vp);
-		// }
-		// });
-
 		List<String> filenames = getFilenames();
 		// List<String> filenames = Lists
 		// .newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
