@@ -1,6 +1,9 @@
 package au.gov.amsa.navigation.ais;
 
+import au.gov.amsa.navigation.ais.Vessel.Builder;
+
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 public class Vessel {
 
@@ -13,12 +16,22 @@ public class Vessel {
 	private Optional<Integer> dimensionD;
 	private Optional<Integer> lengthMetres;
 	private Optional<Integer> widthMetres;
-	
+	private Optional<String> nmea;
 
 	private Vessel(long mmsi, Optional<Integer> imo,
 			Optional<Integer> shipType, Optional<Integer> dimensionA,
 			Optional<Integer> dimensionB, Optional<Integer> dimensionC,
-			Optional<Integer> dimensionD, Optional<Integer> lengthMetres, Optional<Integer> widthMetres) {
+			Optional<Integer> dimensionD, Optional<Integer> lengthMetres,
+			Optional<Integer> widthMetres, Optional<String> nmea) {
+		Preconditions.checkNotNull(imo);
+		Preconditions.checkNotNull(shipType);
+		Preconditions.checkNotNull(dimensionA);
+		Preconditions.checkNotNull(dimensionB);
+		Preconditions.checkNotNull(dimensionC);
+		Preconditions.checkNotNull(dimensionD);
+		Preconditions.checkNotNull(lengthMetres);
+		Preconditions.checkNotNull(widthMetres);
+		Preconditions.checkNotNull(nmea);
 		this.mmsi = mmsi;
 		this.imo = imo;
 		this.shipType = shipType;
@@ -28,6 +41,7 @@ public class Vessel {
 		this.dimensionD = dimensionD;
 		this.lengthMetres = lengthMetres;
 		this.widthMetres = widthMetres;
+		this.nmea = nmea;
 	}
 
 	public long getMmsi() {
@@ -66,6 +80,10 @@ public class Vessel {
 		return widthMetres;
 	}
 
+	public Optional<String> getNmea() {
+		return nmea;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -73,7 +91,9 @@ public class Vessel {
 	public static Builder from(Vessel v) {
 		return builder().mmsi(v.mmsi).imo(v.imo).shipType(v.shipType)
 				.dimensionA(v.dimensionA).dimensionB(v.dimensionB)
-				.dimensionC(v.dimensionC).dimensionD(v.dimensionD);
+				.dimensionC(v.dimensionC).dimensionD(v.dimensionD)
+				.lengthMetres(v.lengthMetres).widthMetres(v.widthMetres)
+				.nmea(v.nmea);
 	}
 
 	public static class Builder {
@@ -87,6 +107,7 @@ public class Vessel {
 		private Optional<Integer> dimensionD = Optional.absent();
 		private Optional<Integer> lengthMetres = Optional.absent();
 		private Optional<Integer> widthMetres = Optional.absent();
+		private Optional<String> nmea = Optional.absent();
 
 		private Builder() {
 		}
@@ -126,15 +147,26 @@ public class Vessel {
 			return this;
 		}
 
-		public Vessel build() {
-			return new Vessel(mmsi, imo, shipType, dimensionA, dimensionB,
-					dimensionC, dimensionD, lengthMetres, widthMetres);
-		}
-
 		public Builder lengthMetres(Optional<Integer> lengthMetres) {
 			this.lengthMetres = lengthMetres;
 			return this;
 		}
+
+		public Builder widthMetres(Optional<Integer> widthMetres) {
+			this.widthMetres = widthMetres;
+			return this;
+		}
+
+		public Builder nmea(Optional<String> nmea) {
+			this.nmea = nmea;
+			return this;
+		}
+
+		public Vessel build() {
+			return new Vessel(mmsi, imo, shipType, dimensionA, dimensionB,
+					dimensionC, dimensionD, lengthMetres, widthMetres, nmea);
+		}
+
 	}
 
 	@Override
@@ -158,12 +190,11 @@ public class Vessel {
 		b.append(lengthMetres);
 		b.append(", widthMetres=");
 		b.append(widthMetres);
+		b.append(", nmea=");
+		b.append(nmea);
 		b.append("]");
 		return b.toString();
 	}
-	
-	
 
 	
-
 }

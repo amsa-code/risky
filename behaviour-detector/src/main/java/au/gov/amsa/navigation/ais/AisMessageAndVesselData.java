@@ -13,7 +13,8 @@ public final class AisMessageAndVesselData {
 	private Optional<Timestamped<AisMessage>> message;
 	private VesselData data;
 
-	public AisMessageAndVesselData(Optional<Timestamped<AisMessage>> message, VesselData data) {
+	public AisMessageAndVesselData(Optional<Timestamped<AisMessage>> message,
+			VesselData data) {
 		this.message = message;
 		this.data = data;
 	}
@@ -33,14 +34,19 @@ public final class AisMessageAndVesselData {
 	public static Func2<AisMessageAndVesselData, Timestamped<AisMessage>, AisMessageAndVesselData> aggregate = new Func2<AisMessageAndVesselData, Timestamped<AisMessage>, AisMessageAndVesselData>() {
 
 		@Override
-		public AisMessageAndVesselData call(AisMessageAndVesselData messageAndData,
+		public AisMessageAndVesselData call(
+				AisMessageAndVesselData messageAndData,
 				Timestamped<AisMessage> message) {
+			// TODO pass in line somehow
+			Optional<String> line = Optional.absent();
 			if (message.message() instanceof AisShipStaticA)
 				return new AisMessageAndVesselData(Optional.of(message),
-						messageAndData.data().add((AisShipStaticA) message.message()));
+						messageAndData.data().add(
+								(AisShipStaticA) message.message(), line));
 			else if (message.message() instanceof AisPositionBExtended)
 				return new AisMessageAndVesselData(Optional.of(message),
-						messageAndData.data().add((AisPositionBExtended) message.message()));
+						messageAndData.data().add(
+								(AisPositionBExtended) message.message(), line));
 			else
 				return new AisMessageAndVesselData(Optional.of(message),
 						messageAndData.data());

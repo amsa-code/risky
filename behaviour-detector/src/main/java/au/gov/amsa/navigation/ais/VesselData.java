@@ -21,7 +21,7 @@ public class VesselData {
 		return Optional.fromNullable(map.get(id));
 	}
 
-	public VesselData add(AisShipStaticA m) {
+	public VesselData add(AisShipStaticA m, Optional<String> nmea) {
 		Identifier id = new Mmsi(m.getMmsi());
 		// use atomic compare and set algorithm for non-blocking concurrency
 		while (true) {
@@ -32,12 +32,20 @@ public class VesselData {
 			} else
 				v = value;
 			Builder builder = Vessel.from(v.get());
-			builder = builder.imo(m.getImo());
-			builder = builder.dimensionA(m.getDimensionA());
-			builder = builder.dimensionA(m.getDimensionB());
-			builder = builder.dimensionA(m.getDimensionC());
-			builder = builder.dimensionA(m.getDimensionD());
-			builder = builder.lengthMetres(m.getLengthMetres());
+			if (m.getImo().isPresent())
+				builder = builder.imo(m.getImo());
+			if (m.getDimensionA().isPresent())
+				builder = builder.dimensionA(m.getDimensionA());
+			if (m.getDimensionB().isPresent())
+				builder = builder.dimensionB(m.getDimensionB());
+			if (m.getDimensionC().isPresent())
+				builder = builder.dimensionC(m.getDimensionC());
+			if (m.getDimensionD().isPresent())
+				builder = builder.dimensionD(m.getDimensionD());
+			if (m.getLengthMetres().isPresent())
+				builder = builder.lengthMetres(m.getLengthMetres());
+			if (nmea.isPresent())
+				builder = builder.nmea(nmea);
 			builder = builder.shipType(of(m.getShipType()));
 			Vessel vessel = builder.build();
 			final boolean inserted;
@@ -52,8 +60,8 @@ public class VesselData {
 
 	}
 
-	public VesselData add(AisPositionBExtended message) {
-		// TODO
+	public VesselData add(AisPositionBExtended message, Optional<String> line) {
+		//TODO implement this
 		return this;
 	}
 }

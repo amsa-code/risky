@@ -3,7 +3,6 @@ package au.gov.amsa.navigation;
 import static com.google.common.base.Optional.of;
 import static java.lang.Math.toRadians;
 
-import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.common.base.Optional;
@@ -20,6 +19,8 @@ public class VesselPosition {
 	private final Optional<Double> cogDegrees;
 	private final Optional<Double> headingDegrees;
 	private final Optional<Double> speedMetresPerSecond;
+	private Optional<String> positionAisNmea;
+	private Optional<String> shipStaticAisNmea;
 	private final boolean isAtAnchor;
 	private final long time;
 	private final Identifier id;
@@ -34,7 +35,9 @@ public class VesselPosition {
 			Optional<Integer> widthMetres, Optional<Double> cog,
 			Optional<Double> heading, Optional<Double> speedMetresPerSecond,
 			VesselClass cls, boolean isAtAnchor, long time,
-			Optional<Integer> shipType) {
+			Optional<Integer> shipType, Optional<String> positionAisNmea,
+			Optional<String> shipStaticAisNmea) {
+
 		Preconditions.checkArgument(lat >= -90 && lat <= 90, "unexpected lat "
 				+ lat);
 		Preconditions.checkArgument(lon >= -180 && lon <= 180,
@@ -42,6 +45,10 @@ public class VesselPosition {
 		Preconditions.checkNotNull(id);
 		Preconditions.checkNotNull(lengthMetres);
 		Preconditions.checkNotNull(widthMetres);
+		Preconditions.checkNotNull(shipType);
+		Preconditions.checkNotNull(positionAisNmea);
+		Preconditions.checkNotNull(shipStaticAisNmea);
+
 		this.messageId = messageId;
 		this.cls = cls;
 		this.id = id;
@@ -55,6 +62,8 @@ public class VesselPosition {
 		this.time = time;
 		this.isAtAnchor = isAtAnchor;
 		this.shipType = shipType;
+		this.positionAisNmea = positionAisNmea;
+		this.shipStaticAisNmea = shipStaticAisNmea;
 	}
 
 	public long messageId() {
@@ -116,6 +125,14 @@ public class VesselPosition {
 		return shipType;
 	}
 
+	public Optional<String> positionAisNmea() {
+		return positionAisNmea;
+	}
+
+	public Optional<String> shipStaticAisNmea() {
+		return shipStaticAisNmea;
+	}
+
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -127,9 +144,13 @@ public class VesselPosition {
 		private double lon;
 		private Optional<Integer> lengthMetres = Optional.absent();
 		private Optional<Integer> widthMetres = Optional.absent();
+		// leave these null so if not set get an error in VesselPosition
+		// constructor
 		private Optional<Double> cogDegrees;
 		private Optional<Double> headingDegrees;
 		private Optional<Double> speedMetresPerSecond;
+		private Optional<String> positionAisNmea;
+		private Optional<String> shipStaticAisNmea;
 		private boolean isAtAnchor = false;
 		private VesselClass cls;
 		private long time;
@@ -199,10 +220,21 @@ public class VesselPosition {
 			return this;
 		}
 
+		public Builder positionAisNmea(Optional<String> nmea) {
+			this.positionAisNmea = nmea;
+			return this;
+		}
+
+		public Builder shipStaticAisNmea(Optional<String> nmea) {
+			this.shipStaticAisNmea = nmea;
+			return this;
+		}
+
 		public VesselPosition build() {
 			return new VesselPosition(counter.incrementAndGet(), id, lat, lon,
 					lengthMetres, widthMetres, cogDegrees, headingDegrees,
-					speedMetresPerSecond, cls, isAtAnchor, time, shipType);
+					speedMetresPerSecond, cls, isAtAnchor, time, shipType,
+					positionAisNmea, shipStaticAisNmea);
 		}
 
 	}
@@ -251,13 +283,10 @@ public class VesselPosition {
 					/ metresPerDegreeLongitude() * (t - time) / 1000.0
 					* Math.sin(Math.toRadians(cogDegrees.get()));
 
-			//TODO should use constructor so don't miss additions to constructor
-			return Optional.of(builder().lat(lat).lon(lon)
-					.cogDegrees(cogDegrees).headingDegrees(headingDegrees)
-					.time(t).lengthMetres(lengthMetres).shipType(shipType)
-					.widthMetres(widthMetres).id(id)
-					.speedMetresPerSecond(speedMetresPerSecond).cls(cls)
-					.atAnchor(isAtAnchor).build());
+			return Optional.of(new VesselPosition(messageId, id, lat, lon,
+					lengthMetres, widthMetres, cogDegrees, headingDegrees,
+					speedMetresPerSecond, cls, isAtAnchor, time, shipType,
+					positionAisNmea, shipStaticAisNmea));
 		}
 	}
 
