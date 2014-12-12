@@ -142,12 +142,25 @@ public class NmeaMessageParserTest {
 		NmeaMessage n = new NmeaMessageParser().parse(msg);
 		assertEquals(1399340268000L, (long) n.getUnixTimeMillis());
 	}
-	
+
 	@Test
 	public void testParseOnly2ItemsInMessage() {
 		String msg = "\\c:1388929778*00\\!ABF?:0000,0*5D";
 		NmeaMessage n = new NmeaMessageParser().parse(msg);
 		assertEquals(1388929778000L, (long) n.getUnixTimeMillis());
 	}
-	
+
+	@Test
+	public void testTagBlockThatIncludesAValueWithAColonIsParsedCorrectly() {
+		String msg = "\\s:rEV06,c:1418371240,i:|X=1|D=1|T=41985.3864759144|P=10.225.253.129:25479|R=IN|*54\\!AIVDM,1,1,,A,13IMtL01BC4mJ7uurMNWP6;>08H:,0*03";
+		NmeaMessage n = new NmeaMessageParser().parse(msg);
+		LinkedHashMap<String, String> tags = n.getTags();
+		assertEquals("rEV06", tags.get("s"));
+		assertEquals("1418371240", tags.get("c"));
+		assertEquals(
+				"|X=1|D=1|T=41985.3864759144|P=10.225.253.129:25479|R=IN|",
+				tags.get("i"));
+		assertEquals(3, tags.size());
+	}
+
 }

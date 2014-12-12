@@ -77,11 +77,11 @@ public class NmeaMessageParser {
 		s = s.substring(0, s.lastIndexOf(CHECKSUM_DELIMITER));
 		String[] items = s.split(PARAMETER_DELIMITER);
 		for (String item : items) {
-			String[] parts = item.split(CODE_DELIMITER);
-			if (parts.length != 2)
+			int i = item.indexOf(CODE_DELIMITER);
+			if (i == -1)
 				throw new NmeaMessageParseException(
 						"TAG BLOCK parameter is not is format 'a:b' :" + s);
-			map.put(parts[0], parts[1]);
+			map.put(item.substring(0, i), item.substring(i + 1));
 		}
 		return map;
 	}
