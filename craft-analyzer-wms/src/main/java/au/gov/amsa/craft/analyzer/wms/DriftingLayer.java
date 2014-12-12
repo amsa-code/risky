@@ -46,6 +46,7 @@ import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 public class DriftingLayer implements Layer {
 
@@ -342,12 +343,8 @@ public class DriftingLayer implements Layer {
 
         // sortFiles();
 
-        // Observable<String> source =
-        // Streams.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
-
-        List<String> filenames = getFilenames();
-        // List<String> filenames = Lists
-        // .newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
+        // List<String> filenames = getFilenames();
+        List<String> filenames = Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
         Observable<VesselPosition> positions = getPositions(filenames).subscribeOn(
                 Schedulers.newThread());
 
