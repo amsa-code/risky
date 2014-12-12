@@ -349,7 +349,6 @@ public class VesselPosition {
 				return of(new Times(alpha1, alpha2));
 			}
 		}
-
 	}
 
 	@Override
@@ -369,6 +368,10 @@ public class VesselPosition {
 		b.append(headingDegrees);
 		b.append(", speedMetresPerSecond=");
 		b.append(speedMetresPerSecond);
+		b.append(", positionAisNmea=");
+		b.append(positionAisNmea);
+		b.append(", shipStaticAisNmea=");
+		b.append(shipStaticAisNmea);
 		b.append(", isAtAnchor=");
 		b.append(isAtAnchor);
 		b.append(", time=");

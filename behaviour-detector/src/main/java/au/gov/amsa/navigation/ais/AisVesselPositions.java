@@ -13,10 +13,10 @@ import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.functions.Func1;
 import au.gov.amsa.ais.AisMessage;
-import au.gov.amsa.ais.Timestamped;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.navigation.Mmsi;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
@@ -30,7 +30,8 @@ public class AisVesselPositions {
 
 	public static Observable<VesselPosition> positions(Observable<String> nmea) {
 		return Streams
-				.extractMessages(nmea)
+				.extract(nmea)
+				.filter(isPresent())
 				// aggregate ship data with the message
 				.scan(new AisMessageAndVesselData(),
 						AisMessageAndVesselData.aggregate)
@@ -40,24 +41,34 @@ public class AisVesselPositions {
 				.flatMap(toVesselPosition);
 	}
 
-	public static Observable<Timestamped<AisMessage>> sortByTime(
-			Observable<Timestamped<AisMessage>> source) {
-		Comparator<Timestamped<AisMessage>> comparator = new Comparator<Timestamped<AisMessage>>() {
+	private static Func1<TimestampedAndLine<AisMessage>, Boolean> isPresent() {
+		return new Func1<TimestampedAndLine<AisMessage>, Boolean> (){
+
 			@Override
-			public int compare(Timestamped<AisMessage> t1,
-					Timestamped<AisMessage> t2) {
-				return ((Long) t1.time()).compareTo(t2.time());
+			public Boolean call(TimestampedAndLine<AisMessage> t) {
+				return t.getMessage().isPresent();
+			}};
+	}
+
+	public static Observable<TimestampedAndLine<AisMessage>> sortByTime(
+			Observable<TimestampedAndLine<AisMessage>> source) {
+		Comparator<TimestampedAndLine<AisMessage>> comparator = new Comparator<TimestampedAndLine<AisMessage>>() {
+			@Override
+			public int compare(TimestampedAndLine<AisMessage> t1,
+					TimestampedAndLine<AisMessage> t2) {
+				return ((Long) t1.getMessage().get().time()).compareTo(t2
+						.getMessage().get().time());
 			}
 		};
 		return source
 		// sort by time
-				.lift(new SortOperator<Timestamped<AisMessage>>(comparator,
-						20000000));
+				.lift(new SortOperator<TimestampedAndLine<AisMessage>>(
+						comparator, 20000000));
 	}
 
 	public static Observable<VesselPosition> positionsSortedByTime(
 			Observable<String> nmea) {
-		return sortByTime(Streams.extractMessages(nmea))
+		return sortByTime(Streams.extract(nmea))
 		// aggregate ship data with the message
 				.scan(new AisMessageAndVesselData(),
 						AisMessageAndVesselData.aggregate)
@@ -71,7 +82,7 @@ public class AisVesselPositions {
 		@Override
 		public Boolean call(AisMessageAndVesselData m) {
 			return m.message().isPresent()
-					&& m.message().get().message() instanceof AisPosition;
+					&& m.message().get().getMessage().get().message() instanceof AisPosition;
 		}
 	};
 
@@ -81,9 +92,10 @@ public class AisVesselPositions {
 				AisMessageAndVesselData messageAndData) {
 
 			if (messageAndData.message().isPresent()
-					&& messageAndData.message().get().message() instanceof AisPosition) {
+					&& messageAndData.message().get().getMessage().get()
+							.message() instanceof AisPosition) {
 				AisPosition p = (AisPosition) messageAndData.message().get()
-						.message();
+						.getMessage().get().message();
 				if (p.getCourseOverGround() == null
 						|| p.getTrueHeading() == null
 						|| p.getSpeedOverGroundKnots() == null
@@ -118,6 +130,21 @@ public class AisVesselPositions {
 						isAtAnchor = ((AisPositionA) p).isAtAnchor();
 					else
 						isAtAnchor = false;
+					
+					
+					Optional<String> positionAisNmea;
+					if (p instanceof AisPositionA) {
+						positionAisNmea = Optional.of(messageAndData.message().get().getLine());
+					}
+					else 
+						positionAisNmea = Optional.absent();
+					
+					
+					Optional<String> shipStaticAisNmea;
+					if (vessel.isPresent())
+						shipStaticAisNmea = vessel.get().getNmea();
+					else 
+						shipStaticAisNmea = Optional.absent();
 
 					// TODO adjust lat, lon for position of ais set on ship
 					// given by A,B,C,D? Or instead store the position offset in
@@ -143,13 +170,18 @@ public class AisVesselPositions {
 								// width
 								.widthMetres(widthMetres)
 								// time
-								.time(messageAndData.message().get().time())
+								.time(messageAndData.message().get()
+										.getMessage().get().time())
 								// ship type
 								.shipType(shipType)
 								// class
 								.cls(cls)
 								// at anchor
 								.atAnchor(isAtAnchor)
+								//position nmea
+								.positionAisNmea(positionAisNmea)
+								//ship static nmea
+								.shipStaticAisNmea(shipStaticAisNmea)
 								// build it
 								.build());
 					} catch (RuntimeException e) {

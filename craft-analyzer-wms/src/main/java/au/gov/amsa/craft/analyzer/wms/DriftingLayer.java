@@ -80,13 +80,14 @@ public class DriftingLayer implements Layer {
         // use concatMap till merge bug is fixed RxJava
         // https://github.com/ReactiveX/RxJava/issues/1941
                 .concatMap(filenameToPositions())
+                // log
+                // .lift(Logging.<VesselPosition>logger().log())
                 // only class A vessels
                 .filter(onlyClassA())
                 // ignore vessels at anchor
                 .filter(notAtAnchor())
                 // is a big vessel
-//                .filter(isBig())
-                ;
+                .filter(isBig());
         return aisPositions;
     }
 
@@ -341,7 +342,8 @@ public class DriftingLayer implements Layer {
 
         // sortFiles();
 
-        Observable<String> source = Streams.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
+        // Observable<String> source =
+        // Streams.nmeaFromGzip("/media/analysis/nmea/2014-12-05.txt.gz");
 
         List<String> filenames = getFilenames();
         // List<String> filenames = Lists
@@ -349,14 +351,28 @@ public class DriftingLayer implements Layer {
         Observable<VesselPosition> positions = getPositions(filenames).subscribeOn(
                 Schedulers.newThread());
 
-        positions.subscribe(new Action1<VesselPosition>() {
+        positions.subscribe(new Observer<VesselPosition>() {
+
             @Override
-            public void call(VesselPosition vp) {
+            public void onCompleted() {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                log.error(e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
+
+            @Override
+            public void onNext(VesselPosition vp) {
                 if (vp.shipType().isPresent()) {
                     System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get()) + ":" + vp);
                 }
             }
         });
+
         Thread.sleep(10000000);
 
     }
