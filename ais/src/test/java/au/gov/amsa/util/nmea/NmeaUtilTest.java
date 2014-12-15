@@ -186,7 +186,7 @@ public class NmeaUtilTest {
 	@Test
 	public void testSupplementWithTimeAddsTagBlockIfDoesntHaveOne() {
 		String line = "$PGHP,1,2012,1,31,5,55,12,0,316,3,316999999,1AIS_S,18*7A";
-		assertEquals("\\c:1234567*69\\" + line,
+		assertEquals("\\c:1234567,a:1234567890*1F\\" + line,
 				NmeaUtil.supplementWithTime(line, 1234567890));
 		assertEquals("69", NmeaUtil.getChecksum("c:1234567"));
 	}
@@ -195,7 +195,7 @@ public class NmeaUtilTest {
 	public void testSupplementWithTimeInsertsIntoExistingTagBlock() {
 		String line = "\\s:rEV02,d:1334337321*5A\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71";
 		assertEquals(
-				"\\s:rEV02,d:1334337321,c:1234567*1F\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71",
+				"\\s:rEV02,d:1334337321,c:1234567,a:1234567890*69\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71",
 				NmeaUtil.supplementWithTime(line, 1234567890));
 		assertEquals("1F",
 				NmeaUtil.getChecksum("s:rEV02,d:1334337321,c:1234567"));

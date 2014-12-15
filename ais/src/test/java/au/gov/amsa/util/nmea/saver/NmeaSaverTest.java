@@ -20,7 +20,7 @@ public class NmeaSaverTest {
 	@Test
 	public void testSaving() throws InterruptedException, IOException {
 		String line = "\\s:rEV02,d:1334337321*5A\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71";
-		String amendedLine = "\\s:rEV02,d:1334337321,c:1234567*1F\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71";
+		String amendedLine = "\\s:rEV02,d:1334337321,c:1234567,a:1234567890*69\\!AIVDM,1,1,,B,33:JeT0OjtVls<;fDlbl5CFH2000,0*71";
 		Clock clock = new Clock() {
 			@Override
 			public long getTimeMs() {

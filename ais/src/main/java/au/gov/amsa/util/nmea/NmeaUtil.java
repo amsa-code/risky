@@ -114,8 +114,7 @@ public final class NmeaUtil {
 		return nmeaParser.parse(line);
 	}
 
-	public static String supplementWithTime(String line,
-			long arrivalTime) {
+	public static String supplementWithTime(String line, long arrivalTime) {
 		final String amendedLine;
 		NmeaMessage m = parseNmea(line);
 		Long t = m.getUnixTimeMillis();
@@ -139,8 +138,8 @@ public final class NmeaUtil {
 								"tag block not long enough to have a checksum");
 					String content = line.substring(1, i - 3);
 					StringBuilder s = new StringBuilder(content);
-					s.append(",c:");
-					s.append(t / 1000);
+					s.append(",");
+					appendTimes(arrivalTime, t, s);
 					String checksum = NmeaUtil.getChecksum(s.toString(), false);
 					s.append('*');
 					s.append(checksum);
@@ -151,8 +150,7 @@ public final class NmeaUtil {
 					amendedLine = line;
 			} else {
 				StringBuilder s = new StringBuilder();
-				s.append("c:");
-				s.append(t / 1000);
+				appendTimes(t, arrivalTime, s);
 				String checksum = NmeaUtil.getChecksum(s.toString(), false);
 				s.append("*");
 				s.append(checksum);
@@ -164,6 +162,13 @@ public final class NmeaUtil {
 		} else
 			amendedLine = line;
 		return amendedLine;
+	}
+
+	private static void appendTimes(long arrivalTime, Long t, StringBuilder s) {
+		s.append("c:");
+		s.append(t / 1000);
+		s.append(",a:");
+		s.append(arrivalTime);
 	}
 
 	public static Talker getTalker(String s) {
