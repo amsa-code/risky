@@ -80,7 +80,7 @@ public class DriftingLayer implements Layer {
         // get the positions from each file
         // use concatMap till merge bug is fixed RxJava
         // https://github.com/ReactiveX/RxJava/issues/1941
-                .concatMap(filenameToPositions())
+                .flatMap(filenameToPositions())
                 // log
                 // .lift(Logging.<VesselPosition>logger().log())
                 // only class A vessels
