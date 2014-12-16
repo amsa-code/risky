@@ -80,6 +80,9 @@ public class DriftingLayer implements Layer {
         // get the positions from each file
         // use concatMap till merge bug is fixed RxJava
         // https://github.com/ReactiveX/RxJava/issues/1941
+                //log filename
+                .lift(Logging.<String>logger().onNextPrefix("loading file=").showValue().log())
+                //extract positions from file
                 .flatMap(filenameToPositions())
                 // log
                 // .lift(Logging.<VesselPosition>logger().log())
@@ -136,7 +139,6 @@ public class DriftingLayer implements Layer {
         return new Func1<String, Observable<VesselPosition>>() {
             @Override
             public Observable<VesselPosition> call(final String filename) {
-                log.info("loading " + filename);
                 return AisVesselPositions
                 // read positions
                         .positions(Streams.nmeaFromGzip(filename))
@@ -350,7 +352,7 @@ public class DriftingLayer implements Layer {
                 Schedulers.newThread());
 
         positions
-        .lift(Logging.<VesselPosition>logger().showCount().showMemory().every(10000).log())
+        .lift(Logging.<VesselPosition>logger().showCount().showRateSinceStart("msgPerSecond=").every(10000).log())
         .subscribe(new Observer<VesselPosition>() {
 
             @Override
