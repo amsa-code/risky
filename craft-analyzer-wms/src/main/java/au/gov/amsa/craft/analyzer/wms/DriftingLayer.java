@@ -46,7 +46,6 @@ import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 public class DriftingLayer implements Layer {
 
@@ -61,8 +60,9 @@ public class DriftingLayer implements Layer {
         // use these filenames as input NMEA
         List<String> filenames = getFilenames();
 
-        Observable<VesselPosition> aisPositions = getPositions(filenames).lift(
-                Logging.<VesselPosition> logger().showCount().every(100000).log());
+        Observable<VesselPosition> aisPositions = getPositions(filenames)
+        // log
+                .lift(Logging.<VesselPosition> logger().showCount().every(100000).log());
 
         new DriftingDetector().getCandidates(aisPositions)
         // group by id and date
@@ -343,12 +343,15 @@ public class DriftingLayer implements Layer {
 
         // sortFiles();
 
-        // List<String> filenames = getFilenames();
-        List<String> filenames = Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
+        List<String> filenames = getFilenames();
+        // List<String> filenames =
+        // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
         Observable<VesselPosition> positions = getPositions(filenames).subscribeOn(
                 Schedulers.newThread());
 
-        positions.subscribe(new Observer<VesselPosition>() {
+        positions
+        .lift(Logging.<VesselPosition>logger().showCount().showMemory().every(10000).log())
+        .subscribe(new Observer<VesselPosition>() {
 
             @Override
             public void onCompleted() {
@@ -364,9 +367,9 @@ public class DriftingLayer implements Layer {
 
             @Override
             public void onNext(VesselPosition vp) {
-                if (vp.shipType().isPresent()) {
-                    System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get()) + ":" + vp);
-                }
+//                if (vp.shipType().isPresent()) {
+//                    System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get()) + ":" + vp);
+//                }
             }
         });
 

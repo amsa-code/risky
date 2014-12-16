@@ -9,11 +9,7 @@
     <artifactId>behaviour-detector</artifactId>
     <name>${project.artifactId}</name>
     <description />
-    <properties>
-        <geotools.version>11.1</geotools.version>
-    </properties>
     <dependencies>
-
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava-math</artifactId>
