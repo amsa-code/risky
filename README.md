@@ -4,6 +4,8 @@ risky
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
+Status: *pre-alpha*
+
 | Subproject         | Description |
 |:-------------------|:------------|
 | [ais](ais) | parse nmea and ais messages
@@ -11,8 +13,6 @@ Tools for analyzing timestamped position data such as vessel position reports fr
 | [behaviour-detector](behaviour-detector) | drift candidate and collision candidate detection algorithms
 | [geo-analyzer](geo-analyzer) | distance travelled calculation, traffic density plots
 | [craft-analyzer-wms](craft-analyzer-wms) | visualations using OpenLayers and Grumpy WMS
-
-Status: *pre-alpha*
 
 Maven site reports are [here](http://amsa-code.github.io/risky/index.html) including [javadoc](http://amsa-code.github.io/risky/apidocs/index.html).
 
