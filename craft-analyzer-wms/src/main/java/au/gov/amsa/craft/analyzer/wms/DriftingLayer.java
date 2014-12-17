@@ -30,6 +30,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
+import rx.internal.operators.OperatorPauseOnHighHeapUsage;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.ShipTypeDecoder;
@@ -77,13 +78,14 @@ public class DriftingLayer implements Layer {
     }
 
     private static Observable<VesselPosition> getPositions(Observable<String> filenames) {
-        Observable<VesselPosition> aisPositions = filenames
+        return filenames
         // get the positions from each file
         // use concatMap till merge bug is fixed RxJava
         // https://github.com/ReactiveX/RxJava/issues/1941
         // log filename
-                .lift(Logging.<String> logger().onNextPrefix("loading file=").showValue().log())
-                // extract positions from file
+        // .lift(Logging.<String>
+        // logger().onNextPrefix("loading file=").showValue().log())
+        // extract positions from file
                 .flatMap(filenameToPositions())
                 // log
                 // .lift(Logging.<VesselPosition>logger().log())
@@ -93,7 +95,6 @@ public class DriftingLayer implements Layer {
                 .filter(notAtAnchor())
                 // is a big vessel
                 .filter(isBig());
-        return aisPositions;
     }
 
     private static Observable<String> getFilenames() {
@@ -347,20 +348,37 @@ public class DriftingLayer implements Layer {
         // sortFiles();
 
         // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
-        System.out.println("availableProcessors="+Runtime.getRuntime().availableProcessors());
         getFilenames()
                 // need to leave a processor spare to process the merged items
-                .window(Runtime.getRuntime().availableProcessors() - 3)
+                // and another for gc perhaps
+                .buffer(Runtime.getRuntime().availableProcessors() - 2)
+                .map(new Func1<List<String>, Observable<String>>() {
+                    @Override
+                    public Observable<String> call(List<String> list) {
+                        return Observable.from(list);
+                    }
+                })
                 // get positions for each window
                 .concatMap(new Func1<Observable<String>, Observable<VesselPosition>>() {
                     @Override
                     public Observable<VesselPosition> call(Observable<String> filenames) {
-                        return getPositions(filenames).subscribeOn(Schedulers.computation());
+                        return getPositions(filenames);
+                    }
+                }).doOnNext(new Action1<VesselPosition>() {
+                    long count = 0;
+
+                    @Override
+                    public void call(VesselPosition vp) {
+                        count++;
+                        if (count % 10000 == 0) {
+                            log.info("count=" + count);
+                        }
                     }
                 })
                 // log
-                .lift(Logging.<VesselPosition> logger().showCount()
-                        .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
+                // .lift(Logging.<VesselPosition> logger().showCount()
+                // .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
+                .lift(new OperatorPauseOnHighHeapUsage<VesselPosition>(70, 5000, 1000))
                 // subscribe
                 .subscribe(new Subscriber<VesselPosition>() {
 
