@@ -347,31 +347,29 @@ public class DriftingLayer implements Layer {
         // sortFiles();
 
         // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
-
-        Observable<VesselPosition> positions = getFilenames()
-        // need to leave a processor spare to process the merged items
-                .window(Runtime.getRuntime().availableProcessors() - 1)
+        System.out.println("availableProcessors="+Runtime.getRuntime().availableProcessors());
+        getFilenames()
+                // need to leave a processor spare to process the merged items
+                .window(Runtime.getRuntime().availableProcessors() - 3)
                 // get positions for each window
                 .concatMap(new Func1<Observable<String>, Observable<VesselPosition>>() {
                     @Override
                     public Observable<VesselPosition> call(Observable<String> filenames) {
                         return getPositions(filenames).subscribeOn(Schedulers.computation());
                     }
-                });
-
-        positions
-        // log
+                })
+                // log
                 .lift(Logging.<VesselPosition> logger().showCount()
-                        .showRateSinceStart("msgPerSecond=").showMemory().every(10000).log())
+                        .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
                 // subscribe
                 .subscribe(new Subscriber<VesselPosition>() {
-                    
-                    long count =0;
+
+                    long count = 0;
                     final long batchSize = 10000;
-                    
+
                     @Override
                     public void onStart() {
-                       request(batchSize);
+                        request(batchSize);
                     }
 
                     @Override
@@ -388,7 +386,7 @@ public class DriftingLayer implements Layer {
 
                     @Override
                     public void onNext(VesselPosition vp) {
-                        count ++;
+                        count++;
                         if (count == batchSize) {
                             count = 0;
                             request(batchSize);
