@@ -274,15 +274,7 @@ public final class Strings {
 	public static Observable<String> from(final Reader reader, final int size) {
 
 		if (useReaderProducer)
-			return Observable.create(new OnSubscribe<String>() {
-
-				@Override
-				public void call(Subscriber<? super String> subscriber) {
-					subscriber.setProducer(new ReaderProducer(reader,
-							subscriber, size));
-				}
-			});
-
+			return new ReaderOnSubscribe(size, reader).toObservable();
 		else
 			return StringObservable.from(reader, size);
 	}

@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observer;
+import rx.Subscriber;
 import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -58,7 +59,7 @@ public class DriftingLayer implements Layer {
         // collect drifting candidates
 
         // use these filenames as input NMEA
-        List<String> filenames = getFilenames();
+        Observable<String> filenames = getFilenames();
 
         Observable<VesselPosition> aisPositions = getPositions(filenames)
         // log
@@ -75,14 +76,14 @@ public class DriftingLayer implements Layer {
                 .subscribe(createObserver());
     }
 
-    private static Observable<VesselPosition> getPositions(List<String> filenames) {
-        Observable<VesselPosition> aisPositions = Observable.from(filenames)
+    private static Observable<VesselPosition> getPositions(Observable<String> filenames) {
+        Observable<VesselPosition> aisPositions = filenames
         // get the positions from each file
         // use concatMap till merge bug is fixed RxJava
         // https://github.com/ReactiveX/RxJava/issues/1941
-                //log filename
-                .lift(Logging.<String>logger().onNextPrefix("loading file=").showValue().log())
-                //extract positions from file
+        // log filename
+                .lift(Logging.<String> logger().onNextPrefix("loading file=").showValue().log())
+                // extract positions from file
                 .flatMap(filenameToPositions())
                 // log
                 // .lift(Logging.<VesselPosition>logger().log())
@@ -95,7 +96,7 @@ public class DriftingLayer implements Layer {
         return aisPositions;
     }
 
-    private static List<String> getFilenames() {
+    private static Observable<String> getFilenames() {
         List<String> filenames = new ArrayList<String>();
         final String filenameBase = "/media/analysis/nmea/2014/sorted-NMEA_ITU_201407";
         for (int i = 1; i <= 31; i++) {
@@ -105,7 +106,7 @@ public class DriftingLayer implements Layer {
                 log.info("adding filename " + filename);
             }
         }
-        return filenames;
+        return Observable.from(filenames);
     }
 
     private static Func1<VesselPosition, Boolean> isBig() {
@@ -143,7 +144,7 @@ public class DriftingLayer implements Layer {
                 // read positions
                         .positions(Streams.nmeaFromGzip(filename))
                         // backpressure strategy - don't
-                        .onBackpressureBuffer()
+                        // .onBackpressureBuffer()
                         // in background thread from pool per file
                         .subscribeOn(Schedulers.computation())
                         // log completion of read of file
@@ -345,38 +346,61 @@ public class DriftingLayer implements Layer {
 
         // sortFiles();
 
-        List<String> filenames = getFilenames();
-        // List<String> filenames =
         // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
-        Observable<VesselPosition> positions = getPositions(filenames).subscribeOn(
-                Schedulers.newThread());
+
+        Observable<VesselPosition> positions = getFilenames()
+        // need to leave a processor spare to process the merged items
+                .window(Runtime.getRuntime().availableProcessors() - 1)
+                // get positions for each window
+                .concatMap(new Func1<Observable<String>, Observable<VesselPosition>>() {
+                    @Override
+                    public Observable<VesselPosition> call(Observable<String> filenames) {
+                        return getPositions(filenames).subscribeOn(Schedulers.computation());
+                    }
+                });
 
         positions
-        .lift(Logging.<VesselPosition>logger().showCount().showRateSinceStart("msgPerSecond=").every(10000).log())
-        .subscribe(new Observer<VesselPosition>() {
+        // log
+                .lift(Logging.<VesselPosition> logger().showCount()
+                        .showRateSinceStart("msgPerSecond=").showMemory().every(10000).log())
+                // subscribe
+                .subscribe(new Subscriber<VesselPosition>() {
+                    
+                    long count =0;
+                    final long batchSize = 10000;
+                    
+                    @Override
+                    public void onStart() {
+                       request(batchSize);
+                    }
 
-            @Override
-            public void onCompleted() {
-                // TODO Auto-generated method stub
+                    @Override
+                    public void onCompleted() {
+                        // TODO Auto-generated method stub
 
-            }
+                    }
 
-            @Override
-            public void onError(Throwable e) {
-                log.error(e.getMessage(), e);
-                throw new RuntimeException(e);
-            }
+                    @Override
+                    public void onError(Throwable e) {
+                        log.error(e.getMessage(), e);
+                        throw new RuntimeException(e);
+                    }
 
-            @Override
-            public void onNext(VesselPosition vp) {
-//                if (vp.shipType().isPresent()) {
-//                    System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get()) + ":" + vp);
-//                }
-            }
-        });
+                    @Override
+                    public void onNext(VesselPosition vp) {
+                        count ++;
+                        if (count == batchSize) {
+                            count = 0;
+                            request(batchSize);
+                        }
+                        // if (vp.shipType().isPresent()) {
+                        // System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get())
+                        // + ":" + vp);
+                        // }
+                    }
+                });
 
         Thread.sleep(10000000);
 
     }
-
 }
