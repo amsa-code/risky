@@ -1,6 +1,7 @@
 package au.gov.amsa.navigation;
 
 import rx.Observable;
+import rx.Observable.Transformer;
 import rx.functions.Func1;
 
 import com.google.common.base.Preconditions;
@@ -15,7 +16,21 @@ public class DriftingDetector {
 	public Observable<VesselPosition> getCandidates(Observable<VesselPosition> o) {
 		return o.filter(isCandidate());
 	}
-
+	
+	private static class DriftingTransformer implements Transformer<VesselPosition,VesselPosition>{
+		
+		private DriftingDetector d = new DriftingDetector();
+		
+		@Override
+		public Observable<VesselPosition> call(Observable<VesselPosition> o) {
+			return d.getCandidates(o);
+		}
+	}
+	
+	public static DriftingTransformer detectDrift() {
+		return new DriftingTransformer();
+	}
+	
 	private Func1<VesselPosition, Boolean> isCandidate() {
 
 		return new Func1<VesselPosition, Boolean>() {

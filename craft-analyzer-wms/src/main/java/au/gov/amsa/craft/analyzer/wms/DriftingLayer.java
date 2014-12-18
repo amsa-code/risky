@@ -18,6 +18,7 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
 import org.slf4j.Logger;
@@ -57,18 +58,8 @@ public class DriftingLayer implements Layer {
     public DriftingLayer() {
 
         // collect drifting candidates
-
-        // use these filenames as input NMEA
-        Observable<String> filenames = getFilenames();
-
-        Observable<VesselPosition> aisPositions = getPositions(filenames)
-        // log
-                .lift(Logging.<VesselPosition> logger().showCount().every(100000).log());
-
-        new DriftingDetector().getCandidates(aisPositions)
-        // group by id and date
-                .distinct(byIdAndDay())
-                // add to queue
+        getDrifters()
+        // add to queue
                 .doOnNext(addToQueue())
                 // run in background
                 .subscribeOn(Schedulers.io())
@@ -76,7 +67,18 @@ public class DriftingLayer implements Layer {
                 .subscribe(createObserver());
     }
 
-    private static Observable<VesselPosition> getPositions(Observable<String> filenames) {
+    private static Observable<VesselPosition> getDrifters() {
+        return getFilenames()
+        // need to leave a processor spare to process the merged items
+        // and another for gc perhaps
+                .buffer(Runtime.getRuntime().availableProcessors() - 1)
+                // convert list to Observable
+                .map(DriftingLayer.<String> iterableToObservable())
+                // get positions for each window
+                .concatMap(detectDrifters());
+    }
+
+    private static Observable<VesselPosition> getDriftingPositions(Observable<String> filenames) {
         return filenames
         // get the positions from each file
         // use concatMap till merge bug is fixed RxJava
@@ -92,7 +94,9 @@ public class DriftingLayer implements Layer {
                 // ignore vessels at anchor
                 .filter(notAtAnchor())
                 // is a big vessel
-                .filter(isBig());
+                .filter(isBig())
+                // group by id and date
+                .distinct(byIdAndDay());
     }
 
     private static Observable<String> getFilenames() {
@@ -135,6 +139,8 @@ public class DriftingLayer implements Layer {
         };
     }
 
+    private static AtomicLong totalCount = new AtomicLong();
+
     private static Func1<String, Observable<VesselPosition>> filenameToPositions() {
         return new Func1<String, Observable<VesselPosition>>() {
             @Override
@@ -148,7 +154,34 @@ public class DriftingLayer implements Layer {
                             public void call(Long n) {
                                 // log.info("requested=" + n);
                             }
+                        }).doOnNext(new Action1<VesselPosition>() {
+                            final long startTime = System.currentTimeMillis();
+                            long lastTime = System.currentTimeMillis();
+                            DecimalFormat df = new DecimalFormat("0");
+                            @Override
+                            public void call(VesselPosition vp) {
+                                long n = 100000;
+                                if (totalCount.incrementAndGet() % n == 0) {
+                                    long now = System.currentTimeMillis();
+                                    final double rate;
+                                    if (now == lastTime)
+                                        rate = -1;
+                                    else {
+                                        rate = n / (double) (now - lastTime) * 1000d;
+                                    }
+                                    lastTime = now;
+                                    final double rateSinceStart;
+                                    if (now == startTime)
+                                        rateSinceStart = -1;
+                                    else 
+                                        rateSinceStart = totalCount.get()/(double)(now - startTime) * 1000d;
+                                    log.info("totalCount=" + totalCount.get() + ", msgsPerSecond="
+                                            + df.format(rate) + ", msgPerSecondOverall=" + df.format(rateSinceStart));
+                                }
+                            }
                         })
+                        // detect drift
+                        .compose(DriftingDetector.detectDrift())
                         // backpressure strategy - don't
                         // .onBackpressureBlock()
                         // in background thread from pool per file
@@ -198,7 +231,7 @@ public class DriftingLayer implements Layer {
         };
     }
 
-    private Func1<VesselPosition, String> byIdAndDay() {
+    private static Func1<VesselPosition, String> byIdAndDay() {
         return new Func1<VesselPosition, String>() {
             @Override
             public String call(VesselPosition p) {
@@ -347,36 +380,33 @@ public class DriftingLayer implements Layer {
         }
     }
 
+    private static <T> Func1<Iterable<T>, Observable<T>> iterableToObservable() {
+        return new Func1<Iterable<T>, Observable<T>>() {
+            @Override
+            public Observable<T> call(Iterable<T> iterable) {
+                return Observable.from(iterable);
+            }
+        };
+    }
+
+    private static Func1<Observable<String>, Observable<VesselPosition>> detectDrifters() {
+        return new Func1<Observable<String>, Observable<VesselPosition>>() {
+            @Override
+            public Observable<VesselPosition> call(Observable<String> filenames) {
+                return getDriftingPositions(filenames);
+            }
+        };
+    }
+
     public static void main(String[] args) throws FileNotFoundException, IOException,
             InterruptedException {
 
-        // sortFiles();
-
-        // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
-        getFilenames()
-                // need to leave a processor spare to process the merged items
-                // and another for gc perhaps
-                .buffer(Runtime.getRuntime().availableProcessors() - 5)
-                .map(new Func1<List<String>, Observable<String>>() {
-                    @Override
-                    public Observable<String> call(List<String> list) {
-                        return Observable.from(list);
-                    }
-                })
-                // get positions for each window
-                .concatMap(new Func1<Observable<String>, Observable<VesselPosition>>() {
-                    @Override
-                    public Observable<VesselPosition> call(Observable<String> filenames) {
-                        return getPositions(filenames);
-                    }
-                })
+        getDrifters()
                 // log
                 .lift(Logging.<VesselPosition> logger().showCount()
                         .showRateSinceStart("msgPerSecond").showMemory().every(5000).log())
                 // subscribe
                 .subscribe(new Subscriber<VesselPosition>() {
-
-                    long count = 0;
 
                     @Override
                     public void onStart() {
@@ -396,15 +426,17 @@ public class DriftingLayer implements Layer {
 
                     @Override
                     public void onNext(VesselPosition vp) {
-                        count++;
-                        // if (vp.shipType().isPresent()) {
-                        // System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get())
-                        // + ":" + vp);
-                        // }
+                        if (vp.shipType().isPresent() && false) {
+                            System.out.println(vp.id() + ","
+                                    + ShipTypeDecoder.getShipType(vp.shipType().get())
+                                    + ", length=" + vp.lengthMetres() + ", cog=" + vp.cogDegrees()
+                                    + ", heading=" + vp.headingDegrees() + ", speedKnots="
+                                    + (vp.speedMetresPerSecond().get() / 1852.0 * 3600));
+                        }
                     }
                 });
 
         Thread.sleep(10000000);
-
     }
+
 }
