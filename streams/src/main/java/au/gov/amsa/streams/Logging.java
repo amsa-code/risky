@@ -48,22 +48,17 @@ public final class Logging {
 
 		public Builder<T> count(final String prefix) {
 			final AtomicLong count = new AtomicLong();
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					StringBuilder line = new StringBuilder();
 					line.append(prefix);
 					line.append(count.get());
-					String value = f.call(t);
-					if (value.length() > 0) {
-						line.append(", ");
-						line.append(value);
-					}
 					return line.toString();
 				}
 			});
 
-			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					count.incrementAndGet();
@@ -74,24 +69,26 @@ public final class Logging {
 			return this;
 		}
 
-		private static <T, R> Func1<Func1<T, R>, Func1<T, R>> toPartialFunction(
-				final Func2<Func1<T, R>, T, R> function) {
-			return new Func1<Func1<T, R>, Func1<T, R>>() {
+		private static <T> Func1<Func1<T, String>, Func1<T, String>> toPartialFunctionMessage(
+				final Func2<Func1<T, String>, T, String> function) {
+			return new Func1<Func1<T, String>, Func1<T, String>>() {
 
 				@Override
-				public Func1<T, R> call(final Func1<T, R> f) {
-					return new Func1<T, R>() {
+				public Func1<T, String> call(final Func1<T, String> f) {
+					return new Func1<T, String>() {
 
 						@Override
-						public R call(T t) {
-							return function.call(f, t);
+						public String call(T t) {
+							StringBuilder line = new StringBuilder(
+									function.call(f, t));
+							return appendValue(f, t, line);
 						}
 					};
 				}
 			};
 		}
 
-		private static <T> Func1<Action1<T>, Action1<T>> toPartial(
+		private static <T> Func1<Action1<T>, Action1<T>> toPartialFunctionAction(
 				final Action2<Action1<T>, T> action2) {
 			return new Func1<Action1<T>, Action1<T>>() {
 
@@ -112,7 +109,7 @@ public final class Logging {
 			final AtomicLong count = new AtomicLong();
 			Func1<Func1<T, String>, Func1<T, String>> message = Functions
 					.identity();
-			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					if (count.incrementAndGet() % every == 0)
@@ -129,7 +126,7 @@ public final class Logging {
 					System.currentTimeMillis() + deltaMs);
 			Func1<Func1<T, String>, Func1<T, String>> message = Functions
 					.identity();
-			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					long now = System.currentTimeMillis();
@@ -144,13 +141,13 @@ public final class Logging {
 		}
 
 		public Builder<T> value(final String prefix) {
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					StringBuilder line = new StringBuilder();
 					line.append(prefix);
 					line.append(String.valueOf(t));
-					return appendValue(f, t, line);
+					return line.toString();
 				}
 
 			});
@@ -160,12 +157,10 @@ public final class Logging {
 		}
 
 		public Builder<T> memory() {
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
-					StringBuilder line = new StringBuilder();
-					line.append(memoryUsage());
-					return appendValue(f, t, line);
+					return memoryUsage();
 				}
 			});
 			Func1<Action1<T>, Action1<T>> action = Functions.identity();
@@ -177,7 +172,7 @@ public final class Logging {
 				final TimeUnit per) {
 			final DecimalFormat df = new DecimalFormat("#0.000");
 			final EvictingQueue<Long> times = EvictingQueue.create(over);
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					long now = System.currentTimeMillis();
@@ -189,10 +184,10 @@ public final class Logging {
 						line.append(prefix);
 						line.append(df.format(rate));
 					}
-					return appendValue(f, t, line);
+					return line.toString();
 				}
 			});
-			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					times.add(System.currentTimeMillis());
