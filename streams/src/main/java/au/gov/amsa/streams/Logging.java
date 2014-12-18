@@ -20,6 +20,26 @@ public final class Logging {
 		return new Builder<T>();
 	}
 
+	public static <T> Builder<T> count(String prefix) {
+		return Logging.<T> builder().count(prefix);
+	}
+
+	public static <T> Builder<T> rate(String prefix, int over, TimeUnit per) {
+		return Logging.<T> builder().rate(prefix, over, per);
+	}
+
+	public static <T> Builder<T> memory() {
+		return Logging.<T> builder().memory();
+	}
+
+	public static <T> Builder<T> every(long every) {
+		return Logging.<T> builder().every(every);
+	}
+
+	public static <T> Builder<T> value(String prefix) {
+		return Logging.<T> builder().value(prefix);
+	}
+
 	public static class Builder<T> {
 
 		private final List<Transition<T>> transitions = new ArrayList<Transition<T>>();
@@ -76,6 +96,31 @@ public final class Logging {
 						public void call(T t) {
 							if (count.incrementAndGet() % every == 0)
 								action.call(t);
+						}
+					};
+				}
+			};
+			transitions.add(new Transition<T>(action, message));
+			return this;
+		}
+
+		public Builder<T> every(final int every, TimeUnit unit) {
+			final long deltaMs = unit.toMillis(every);
+			final AtomicLong nextTime = new AtomicLong(
+					System.currentTimeMillis() + deltaMs);
+			Func1<Func1<T, String>, Func1<T, String>> message = Functions
+					.identity();
+			Func1<Action1<T>, Action1<T>> action = new Func1<Action1<T>, Action1<T>>() {
+				@Override
+				public Action1<T> call(final Action1<T> action) {
+					return new Action1<T>() {
+						@Override
+						public void call(T t) {
+							long now = System.currentTimeMillis();
+							if (nextTime.get() <= now) {
+								nextTime.set(now + deltaMs);
+								action.call(t);
+							}
 						}
 					};
 				}
@@ -168,7 +213,7 @@ public final class Logging {
 			return this;
 		}
 
-		public Action1<T> build() {
+		public Action1<T> log() {
 			final AtomicReference<Func1<T, String>> messageRef = new AtomicReference<Func1<T, String>>();
 			Action1<T> action = new Action1<T>() {
 				@Override
@@ -253,10 +298,10 @@ public final class Logging {
 					}
 				})
 				.doOnNext(
-						Logging.builder()
-								.rate("msgsPerSecond=", 100, TimeUnit.SECONDS)
-								.count("count=").count("n=").every(100)
-								.count("mod100=").value("v=").memory().build())
+						Logging.rate("msgsPerSecond=", 100, TimeUnit.SECONDS)
+								.count("count=").count("n=")
+								.every(200, TimeUnit.MILLISECONDS)
+								.count("mod100=").value("v=").memory().log())
 				.subscribe();
 	}
 }
