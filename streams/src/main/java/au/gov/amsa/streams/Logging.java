@@ -48,7 +48,7 @@ public final class Logging {
 
 		public Builder<T> count(final String prefix) {
 			final AtomicLong count = new AtomicLong();
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = chainMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					StringBuilder line = new StringBuilder();
@@ -58,7 +58,7 @@ public final class Logging {
 				}
 			});
 
-			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = chainAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					count.incrementAndGet();
@@ -69,7 +69,7 @@ public final class Logging {
 			return this;
 		}
 
-		private static <T> Func1<Func1<T, String>, Func1<T, String>> toPartialFunctionMessage(
+		private static <T> Func1<Func1<T, String>, Func1<T, String>> chainMessage(
 				final Func2<Func1<T, String>, T, String> function) {
 			return new Func1<Func1<T, String>, Func1<T, String>>() {
 
@@ -88,7 +88,7 @@ public final class Logging {
 			};
 		}
 
-		private static <T> Func1<Action1<T>, Action1<T>> toPartialFunctionAction(
+		private static <T> Func1<Action1<T>, Action1<T>> chainAction(
 				final Action2<Action1<T>, T> action2) {
 			return new Func1<Action1<T>, Action1<T>>() {
 
@@ -109,7 +109,7 @@ public final class Logging {
 			final AtomicLong count = new AtomicLong();
 			Func1<Func1<T, String>, Func1<T, String>> message = Functions
 					.identity();
-			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = chainAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					if (count.incrementAndGet() % every == 0)
@@ -126,7 +126,7 @@ public final class Logging {
 					System.currentTimeMillis() + deltaMs);
 			Func1<Func1<T, String>, Func1<T, String>> message = Functions
 					.identity();
-			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = chainAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					long now = System.currentTimeMillis();
@@ -141,7 +141,7 @@ public final class Logging {
 		}
 
 		public Builder<T> value(final String prefix) {
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = chainMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					StringBuilder line = new StringBuilder();
@@ -157,7 +157,7 @@ public final class Logging {
 		}
 
 		public Builder<T> memory() {
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = chainMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					return memoryUsage();
@@ -172,7 +172,7 @@ public final class Logging {
 				final TimeUnit per) {
 			final DecimalFormat df = new DecimalFormat("#0.000");
 			final EvictingQueue<Long> times = EvictingQueue.create(over);
-			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunctionMessage(new Func2<Func1<T, String>, T, String>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = chainMessage(new Func2<Func1<T, String>, T, String>() {
 				@Override
 				public String call(Func1<T, String> f, T t) {
 					long now = System.currentTimeMillis();
@@ -187,7 +187,7 @@ public final class Logging {
 					return line.toString();
 				}
 			});
-			Func1<Action1<T>, Action1<T>> action = toPartialFunctionAction(new Action2<Action1<T>, T>() {
+			Func1<Action1<T>, Action1<T>> action = chainAction(new Action2<Action1<T>, T>() {
 				@Override
 				public void call(Action1<T> action, T t) {
 					times.add(System.currentTimeMillis());
