@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.regex.Pattern;
@@ -26,6 +27,7 @@ import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.internal.operators.NotificationLite;
 import rx.observables.StringObservable;
 import rx.schedulers.Schedulers;
 
@@ -300,74 +302,22 @@ public final class Strings {
 		return from(reader, 8192);
 	}
 
-	public static Observable<String> split(final Observable<String> src,
-			String regex) {
-		final Pattern pattern = Pattern.compile(regex);
-
-		return src.lift(new Operator<String, String>() {
-			@Override
-			public Subscriber<? super String> call(
-					final Subscriber<? super String> child) {
-				return new Subscriber<String>(child) {
-					private String leftOver = null;
-
-					@Override
-					public void onCompleted() {
-						if (leftOver != null)
-							output(leftOver);
-						if (!child.isUnsubscribed())
-							child.onCompleted();
-					}
-
-					@Override
-					public void onError(Throwable e) {
-						if (leftOver != null)
-							output(leftOver);
-						if (!child.isUnsubscribed())
-							child.onError(e);
-					}
-
-					@Override
-					public void onNext(String segment) {
-						String[] parts = pattern.split(segment, -1);
-
-						if (leftOver != null)
-							parts[0] = leftOver + parts[0];
-						for (int i = 0; i < parts.length - 1; i++) {
-							String part = parts[i];
-							output(part);
-						}
-						leftOver = parts[parts.length - 1];
-					}
-
-					private int emptyPartCount = 0;
-
-					/**
-					 * when limit == 0 trailing empty parts are not emitted.
-					 * 
-					 * @param part
-					 */
-					private void output(String part) {
-						if (part.isEmpty()) {
-							emptyPartCount++;
-						} else {
-							for (; emptyPartCount > 0; emptyPartCount--)
-								if (!child.isUnsubscribed())
-									child.onNext("");
-							if (!child.isUnsubscribed())
-								child.onNext(part);
-						}
-					}
-				};
-			}
-		});
+	public static Observable<String> split(Observable<String> source,
+			String pattern) {
+		return source.lift(new SplitOperator(Pattern.compile(pattern)));
 	}
 
 	private static class SplitOperator implements Operator<String, String> {
 
+		private final Pattern pattern;
+
+		public SplitOperator(Pattern pattern) {
+			this.pattern = pattern;
+		}
+
 		@Override
 		public Subscriber<? super String> call(Subscriber<? super String> child) {
-			final ParentSubscriber parent = new ParentSubscriber(child);
+			final ParentSubscriber parent = new ParentSubscriber(child, pattern);
 
 			child.setProducer(new Producer() {
 				@Override
@@ -382,15 +332,21 @@ public final class Strings {
 	}
 
 	private static final class ParentSubscriber extends Subscriber<String> {
+
+		private final NotificationLite<String> on = NotificationLite.instance();
 		private final Subscriber<? super String> child;
 
 		private boolean requestAll = false;
-		private volatile long requested = 0;
-		private final AtomicLongFieldUpdater<ParentSubscriber> REQUESTED = AtomicLongFieldUpdater
-				.newUpdater(ParentSubscriber.class, "requested");
+		private volatile long expected = 0;
+		private final AtomicLongFieldUpdater<ParentSubscriber> EXPECTED = AtomicLongFieldUpdater
+				.newUpdater(ParentSubscriber.class, "expected");
+		private final ConcurrentLinkedDeque<Object> queue = new ConcurrentLinkedDeque<Object>();
+		private final Pattern pattern;
 
-		private ParentSubscriber(Subscriber<? super String> child) {
+		private ParentSubscriber(Subscriber<? super String> child,
+				Pattern pattern) {
 			this.child = child;
+			this.pattern = pattern;
 		}
 
 		private void requestMore(long n) {
@@ -398,27 +354,52 @@ public final class Strings {
 				return;
 			if (n == Long.MAX_VALUE) {
 				requestAll = true;
-				REQUESTED.set(this, n);
+				EXPECTED.set(this, n);
 				request(n);
 			} else {
-				REQUESTED.addAndGet(this, n);
+				EXPECTED.addAndGet(this, n);
 				request(n);
 			}
 		}
 
 		@Override
 		public void onCompleted() {
-			child.onCompleted();
+			queue.add(on.completed());
+			drainQueue();
 		}
 
 		@Override
 		public void onError(Throwable e) {
-			child.onError(e);
+			queue.add(on.error(e));
+			drainQueue();
 		}
 
 		@Override
-		public void onNext(String t) {
-			child.onNext(t);
+		public void onNext(String s) {
+			String[] parts = pattern.split(s, -1);
+			for (String part : parts)
+				queue.add(on.next(part));
+			drainQueue();
+		}
+
+		private void drainQueue() {
+			while (true) {
+				Object item = queue.peek();
+				if (item == null)
+					break;
+				else if (on.isCompleted(item) || on.isError(item)) {
+					on.accept(child, queue.poll());
+					break;
+				} else {
+					if (expected > 0) {
+						if (expected != Long.MAX_VALUE)
+							EXPECTED.decrementAndGet(this);
+						on.accept(child, queue.poll());
+					} else {
+						break;
+					}
+				}
+			}
 		}
 	}
 }

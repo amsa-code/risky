@@ -92,7 +92,7 @@ public class Streams {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		return StringObservable.split(Strings.from(isr), "\n");
+		return Strings.split(Strings.from(isr), "\n");
 	}
 
 	public static void print(Observable<?> stream, final PrintStream out) {
