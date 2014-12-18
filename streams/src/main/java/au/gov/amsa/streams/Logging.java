@@ -9,7 +9,9 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import rx.Observable;
 import rx.functions.Action1;
+import rx.functions.Action2;
 import rx.functions.Func1;
+import rx.functions.Func2;
 
 import com.github.davidmoten.rx.Functions;
 import com.google.common.collect.EvictingQueue;
@@ -46,27 +48,52 @@ public final class Logging {
 
 		public Builder<T> count(final String prefix) {
 			final AtomicLong count = new AtomicLong();
-			Func1<Func1<T, String>, Func1<T, String>> message = new Func1<Func1<T, String>, Func1<T, String>>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
 				@Override
-				public Func1<T, String> call(final Func1<T, String> f) {
-					return new Func1<T, String>() {
+				public String call(Func1<T, String> f, T t) {
+					StringBuilder line = new StringBuilder();
+					line.append(prefix);
+					line.append(count.get());
+					String value = f.call(t);
+					if (value.length() > 0) {
+						line.append(", ");
+						line.append(value);
+					}
+					return line.toString();
+				}
+			});
+
+			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
+				@Override
+				public void call(Action1<T> action, T t) {
+					count.incrementAndGet();
+					action.call(t);
+				}
+			});
+			transitions.add(new Transition<T>(action, message));
+			return this;
+		}
+
+		private static <T, R> Func1<Func1<T, R>, Func1<T, R>> toPartialFunction(
+				final Func2<Func1<T, R>, T, R> function) {
+			return new Func1<Func1<T, R>, Func1<T, R>>() {
+
+				@Override
+				public Func1<T, R> call(final Func1<T, R> f) {
+					return new Func1<T, R>() {
 
 						@Override
-						public String call(T t) {
-							StringBuilder line = new StringBuilder();
-							line.append(prefix);
-							line.append(count.get());
-							String value = f.call(t);
-							if (value.length() > 0) {
-								line.append(", ");
-								line.append(value);
-							}
-							return line.toString();
+						public R call(T t) {
+							return function.call(f, t);
 						}
 					};
 				}
 			};
-			Func1<Action1<T>, Action1<T>> action = new Func1<Action1<T>, Action1<T>>() {
+		}
+
+		private static <T> Func1<Action1<T>, Action1<T>> toPartial(
+				final Action2<Action1<T>, T> action2) {
+			return new Func1<Action1<T>, Action1<T>>() {
 
 				@Override
 				public Action1<T> call(final Action1<T> action) {
@@ -74,32 +101,24 @@ public final class Logging {
 
 						@Override
 						public void call(T t) {
-							count.incrementAndGet();
-							action.call(t);
+							action2.call(action, t);
 						}
 					};
 				}
 			};
-			transitions.add(new Transition<T>(action, message));
-			return this;
 		}
 
 		public Builder<T> every(final long every) {
 			final AtomicLong count = new AtomicLong();
 			Func1<Func1<T, String>, Func1<T, String>> message = Functions
 					.identity();
-			Func1<Action1<T>, Action1<T>> action = new Func1<Action1<T>, Action1<T>>() {
+			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
 				@Override
-				public Action1<T> call(final Action1<T> action) {
-					return new Action1<T>() {
-						@Override
-						public void call(T t) {
-							if (count.incrementAndGet() % every == 0)
-								action.call(t);
-						}
-					};
+				public void call(Action1<T> action, T t) {
+					if (count.incrementAndGet() % every == 0)
+						action.call(t);
 				}
-			};
+			});
 			transitions.add(new Transition<T>(action, message));
 			return this;
 		}
@@ -110,62 +129,45 @@ public final class Logging {
 					System.currentTimeMillis() + deltaMs);
 			Func1<Func1<T, String>, Func1<T, String>> message = Functions
 					.identity();
-			Func1<Action1<T>, Action1<T>> action = new Func1<Action1<T>, Action1<T>>() {
+			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
 				@Override
-				public Action1<T> call(final Action1<T> action) {
-					return new Action1<T>() {
-						@Override
-						public void call(T t) {
-							long now = System.currentTimeMillis();
-							if (nextTime.get() <= now) {
-								nextTime.set(now + deltaMs);
-								action.call(t);
-							}
-						}
-					};
+				public void call(Action1<T> action, T t) {
+					long now = System.currentTimeMillis();
+					if (nextTime.get() <= now) {
+						nextTime.set(now + deltaMs);
+						action.call(t);
+					}
 				}
-			};
+			});
 			transitions.add(new Transition<T>(action, message));
 			return this;
 		}
 
 		public Builder<T> value(final String prefix) {
-			Func1<Func1<T, String>, Func1<T, String>> message = new Func1<Func1<T, String>, Func1<T, String>>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
 				@Override
-				public Func1<T, String> call(final Func1<T, String> f) {
-					return new Func1<T, String>() {
-
-						@Override
-						public String call(T t) {
-							StringBuilder line = new StringBuilder();
-							line.append(prefix);
-							line.append(String.valueOf(t));
-							return appendValue(f, t, line);
-						}
-
-					};
+				public String call(Func1<T, String> f, T t) {
+					StringBuilder line = new StringBuilder();
+					line.append(prefix);
+					line.append(String.valueOf(t));
+					return appendValue(f, t, line);
 				}
-			};
+
+			});
 			Func1<Action1<T>, Action1<T>> action = Functions.identity();
 			transitions.add(new Transition<T>(action, message));
 			return this;
 		}
 
 		public Builder<T> memory() {
-			Func1<Func1<T, String>, Func1<T, String>> message = new Func1<Func1<T, String>, Func1<T, String>>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
 				@Override
-				public Func1<T, String> call(final Func1<T, String> f) {
-					return new Func1<T, String>() {
-
-						@Override
-						public String call(T t) {
-							StringBuilder line = new StringBuilder();
-							line.append(memoryUsage());
-							return appendValue(f, t, line);
-						}
-					};
+				public String call(Func1<T, String> f, T t) {
+					StringBuilder line = new StringBuilder();
+					line.append(memoryUsage());
+					return appendValue(f, t, line);
 				}
-			};
+			});
 			Func1<Action1<T>, Action1<T>> action = Functions.identity();
 			transitions.add(new Transition<T>(action, message));
 			return this;
@@ -175,40 +177,28 @@ public final class Logging {
 				final TimeUnit per) {
 			final DecimalFormat df = new DecimalFormat("#0.000");
 			final EvictingQueue<Long> times = EvictingQueue.create(over);
-			Func1<Func1<T, String>, Func1<T, String>> message = new Func1<Func1<T, String>, Func1<T, String>>() {
+			Func1<Func1<T, String>, Func1<T, String>> message = toPartialFunction(new Func2<Func1<T, String>, T, String>() {
 				@Override
-				public Func1<T, String> call(final Func1<T, String> f) {
-					return new Func1<T, String>() {
-
-						@Override
-						public String call(T t) {
-							long now = System.currentTimeMillis();
-							long firstTime = times.peek();
-							StringBuilder line = new StringBuilder();
-							if (firstTime < now) {
-								double rate = times.size()
-										/ (double) (now - firstTime)
-										* per.toMillis(1);
-								line.append(prefix);
-								line.append(df.format(rate));
-							}
-							return appendValue(f, t, line);
-						}
-					};
+				public String call(Func1<T, String> f, T t) {
+					long now = System.currentTimeMillis();
+					long firstTime = times.peek();
+					StringBuilder line = new StringBuilder();
+					if (firstTime < now) {
+						double rate = times.size() / (double) (now - firstTime)
+								* per.toMillis(1);
+						line.append(prefix);
+						line.append(df.format(rate));
+					}
+					return appendValue(f, t, line);
 				}
-			};
-			Func1<Action1<T>, Action1<T>> action = new Func1<Action1<T>, Action1<T>>() {
+			});
+			Func1<Action1<T>, Action1<T>> action = toPartial(new Action2<Action1<T>, T>() {
 				@Override
-				public Action1<T> call(final Action1<T> action) {
-					return new Action1<T>() {
-						@Override
-						public void call(T t) {
-							times.add(System.currentTimeMillis());
-							action.call(t);
-						}
-					};
+				public void call(Action1<T> action, T t) {
+					times.add(System.currentTimeMillis());
+					action.call(t);
 				}
-			};
+			});
 			transitions.add(new Transition<T>(action, message));
 			return this;
 		}
