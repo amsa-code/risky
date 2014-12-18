@@ -8,12 +8,12 @@ import rx.observables.AbstractOnSubscribe;
 
 public class ReaderOnSubscribe extends AbstractOnSubscribe<String, Reader> {
 
-	private final int size;
 	private final Reader reader;
+	private final int size;
 
-	public ReaderOnSubscribe(int size, Reader reader) {
-		this.size = size;
+	public ReaderOnSubscribe(Reader reader, int size) {
 		this.reader = reader;
+		this.size = size;
 	}
 
 	@Override

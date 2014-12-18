@@ -274,7 +274,7 @@ public final class Strings {
 	public static Observable<String> from(final Reader reader, final int size) {
 
 		if (useReaderProducer)
-			return new ReaderOnSubscribe(size, reader).toObservable();
+			return new ReaderOnSubscribe(reader, size).toObservable();
 		else
 			return StringObservable.from(reader, size);
 	}

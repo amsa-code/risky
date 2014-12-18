@@ -51,7 +51,7 @@ import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
 
-    private static Logger log = LoggerFactory.getLogger(AnalyzeLayer.class);
+    private static Logger log = LoggerFactory.getLogger(DriftingLayer.class);
 
     private final ConcurrentLinkedQueue<VesselPosition> queue = new ConcurrentLinkedQueue<VesselPosition>();
 
@@ -83,9 +83,8 @@ public class DriftingLayer implements Layer {
         // use concatMap till merge bug is fixed RxJava
         // https://github.com/ReactiveX/RxJava/issues/1941
         // log filename
-        // .lift(Logging.<String>
-        // logger().onNextPrefix("loading file=").showValue().log())
-        // extract positions from file
+                .lift(Logging.<String> logger().onNextPrefix("loading file=").showValue().log())
+                // extract positions from file
                 .flatMap(filenameToPositions())
                 // log
                 // .lift(Logging.<VesselPosition>logger().log())
@@ -144,14 +143,15 @@ public class DriftingLayer implements Layer {
                 return AisVesselPositions
                 // read positions
                         .positions(Streams.nmeaFromGzip(filename))
-                        .doOnRequest(new Action1<Long> () {
-
+                        // log requests
+                        .doOnRequest(new Action1<Long>() {
                             @Override
                             public void call(Long n) {
-                                log.info("requested="+n);
-                            }})
+                                // log.info("requested=" + n);
+                            }
+                        })
                         // backpressure strategy - don't
-                        // .onBackpressureBuffer()
+                        .onBackpressureBuffer()
                         // in background thread from pool per file
                         .subscribeOn(Schedulers.computation())
                         // log completion of read of file
@@ -355,10 +355,10 @@ public class DriftingLayer implements Layer {
 
         // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
         getFilenames()
-                // need to leave a processor spare to process the merged items
-                // and another for gc perhaps
-                .buffer(Runtime.getRuntime().availableProcessors() - 2)
-                .map(new Func1<List<String>, Observable<String>>() {
+        // need to leave a processor spare to process the merged items
+        // and another for gc perhaps
+        // .buffer(Runtime.getRuntime().availableProcessors() - 2)
+                .buffer(6).map(new Func1<List<String>, Observable<String>>() {
                     @Override
                     public Observable<String> call(List<String> list) {
                         return Observable.from(list);
@@ -370,21 +370,23 @@ public class DriftingLayer implements Layer {
                     public Observable<VesselPosition> call(Observable<String> filenames) {
                         return getPositions(filenames);
                     }
-                }).doOnNext(new Action1<VesselPosition>() {
-                    long count = 0;
-
-                    @Override
-                    public void call(VesselPosition vp) {
-                        count++;
-                        if (count % 10000 == 0) {
-                            log.info("count=" + count);
-                        }
-                    }
                 })
+                // .doOnNext(new Action1<VesselPosition>() {
+                // long count = 0;
+                //
+                // @Override
+                // public void call(VesselPosition vp) {
+                // count++;
+                // if (count % 10000 == 0) {
+                // log.info("count=" + count);
+                // }
+                // }
+                // })
                 // log
-                // .lift(Logging.<VesselPosition> logger().showCount()
-                // .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
-//                .lift(new OperatorPauseOnHighHeapUsage<VesselPosition>(70, 5000, 1000))
+                .lift(Logging.<VesselPosition> logger().showCount()
+                        .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
+                // .lift(new OperatorPauseOnHighHeapUsage<VesselPosition>(70,
+                // 5000, 1000))
                 // subscribe
                 .subscribe(new Subscriber<VesselPosition>() {
 
