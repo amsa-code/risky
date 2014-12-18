@@ -30,7 +30,6 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import rx.internal.operators.OperatorPauseOnHighHeapUsage;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.ShipTypeDecoder;
@@ -147,11 +146,11 @@ public class DriftingLayer implements Layer {
                         .doOnRequest(new Action1<Long>() {
                             @Override
                             public void call(Long n) {
-                                // log.info("requested=" + n);
+//                                 log.info("requested=" + n);
                             }
                         })
                         // backpressure strategy - don't
-                        .onBackpressureBuffer()
+                        .onBackpressureBlock()
                         // in background thread from pool per file
                         .subscribeOn(Schedulers.computation())
                         // log completion of read of file
@@ -160,7 +159,7 @@ public class DriftingLayer implements Layer {
                             public void call() {
                                 log.info("finished " + filename);
                             }
-                        });
+                        }).lift(new OperatorBackpressureChecker<VesselPosition>());
             }
         };
     }
@@ -355,10 +354,10 @@ public class DriftingLayer implements Layer {
 
         // Lists.newArrayList("/media/analysis/nmea/2014-12-05.txt.gz");
         getFilenames()
-        // need to leave a processor spare to process the merged items
-        // and another for gc perhaps
-        // .buffer(Runtime.getRuntime().availableProcessors() - 2)
-                .buffer(6).map(new Func1<List<String>, Observable<String>>() {
+                // need to leave a processor spare to process the merged items
+                // and another for gc perhaps
+                .buffer(Runtime.getRuntime().availableProcessors() - 1)
+                .map(new Func1<List<String>, Observable<String>>() {
                     @Override
                     public Observable<String> call(List<String> list) {
                         return Observable.from(list);
@@ -371,31 +370,16 @@ public class DriftingLayer implements Layer {
                         return getPositions(filenames);
                     }
                 })
-                // .doOnNext(new Action1<VesselPosition>() {
-                // long count = 0;
-                //
-                // @Override
-                // public void call(VesselPosition vp) {
-                // count++;
-                // if (count % 10000 == 0) {
-                // log.info("count=" + count);
-                // }
-                // }
-                // })
                 // log
                 .lift(Logging.<VesselPosition> logger().showCount()
-                        .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
-                // .lift(new OperatorPauseOnHighHeapUsage<VesselPosition>(70,
-                // 5000, 1000))
+                        .showRateSinceStart("msgPerSecond").showMemory().every(5000).log())
                 // subscribe
                 .subscribe(new Subscriber<VesselPosition>() {
 
                     long count = 0;
-                    final long batchSize = 10000;
 
                     @Override
                     public void onStart() {
-                        request(batchSize);
                     }
 
                     @Override
@@ -413,10 +397,6 @@ public class DriftingLayer implements Layer {
                     @Override
                     public void onNext(VesselPosition vp) {
                         count++;
-                        if (count == batchSize) {
-                            count = 0;
-                            request(batchSize);
-                        }
                         // if (vp.shipType().isPresent()) {
                         // System.out.println(ShipTypeDecoder.getShipType(vp.shipType().get())
                         // + ":" + vp);

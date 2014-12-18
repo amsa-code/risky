@@ -12,12 +12,16 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
+import rx.Observable.Operator;
+import rx.Producer;
 import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func0;
@@ -54,7 +58,11 @@ public final class Strings {
 		}
 	};
 
-	private static boolean useReaderProducer = true;
+	private static enum ReaderProducerOption {
+		STRING_OBSERVABLE, BACKPRESSURE_1, BACKPRESSURE_2
+	}
+
+	private final static ReaderProducerOption readerProducerOption = ReaderProducerOption.BACKPRESSURE_2;
 
 	/**
 	 * Returns an Observable sequence of lines from the given host and port. If
@@ -273,8 +281,17 @@ public final class Strings {
 
 	public static Observable<String> from(final Reader reader, final int size) {
 
-		if (useReaderProducer)
+		if (readerProducerOption == ReaderProducerOption.BACKPRESSURE_2)
 			return new ReaderOnSubscribe(reader, size).toObservable();
+		else if (readerProducerOption == ReaderProducerOption.BACKPRESSURE_1)
+			return Observable.create(new OnSubscribe<String>() {
+
+				@Override
+				public void call(Subscriber<? super String> subscriber) {
+					subscriber.setProducer(new ReaderProducer(reader,
+							subscriber, size));
+				}
+			});
 		else
 			return StringObservable.from(reader, size);
 	}
@@ -283,4 +300,125 @@ public final class Strings {
 		return from(reader, 8192);
 	}
 
+	public static Observable<String> split(final Observable<String> src,
+			String regex) {
+		final Pattern pattern = Pattern.compile(regex);
+
+		return src.lift(new Operator<String, String>() {
+			@Override
+			public Subscriber<? super String> call(
+					final Subscriber<? super String> child) {
+				return new Subscriber<String>(child) {
+					private String leftOver = null;
+
+					@Override
+					public void onCompleted() {
+						if (leftOver != null)
+							output(leftOver);
+						if (!child.isUnsubscribed())
+							child.onCompleted();
+					}
+
+					@Override
+					public void onError(Throwable e) {
+						if (leftOver != null)
+							output(leftOver);
+						if (!child.isUnsubscribed())
+							child.onError(e);
+					}
+
+					@Override
+					public void onNext(String segment) {
+						String[] parts = pattern.split(segment, -1);
+
+						if (leftOver != null)
+							parts[0] = leftOver + parts[0];
+						for (int i = 0; i < parts.length - 1; i++) {
+							String part = parts[i];
+							output(part);
+						}
+						leftOver = parts[parts.length - 1];
+					}
+
+					private int emptyPartCount = 0;
+
+					/**
+					 * when limit == 0 trailing empty parts are not emitted.
+					 * 
+					 * @param part
+					 */
+					private void output(String part) {
+						if (part.isEmpty()) {
+							emptyPartCount++;
+						} else {
+							for (; emptyPartCount > 0; emptyPartCount--)
+								if (!child.isUnsubscribed())
+									child.onNext("");
+							if (!child.isUnsubscribed())
+								child.onNext(part);
+						}
+					}
+				};
+			}
+		});
+	}
+
+	private static class SplitOperator implements Operator<String, String> {
+
+		@Override
+		public Subscriber<? super String> call(Subscriber<? super String> child) {
+			final ParentSubscriber parent = new ParentSubscriber(child);
+
+			child.setProducer(new Producer() {
+				@Override
+				public void request(long n) {
+					parent.requestMore(n);
+				}
+			});
+
+			return parent;
+		}
+
+	}
+
+	private static final class ParentSubscriber extends Subscriber<String> {
+		private final Subscriber<? super String> child;
+
+		private boolean requestAll = false;
+		private volatile long requested = 0;
+		private final AtomicLongFieldUpdater<ParentSubscriber> REQUESTED = AtomicLongFieldUpdater
+				.newUpdater(ParentSubscriber.class, "requested");
+
+		private ParentSubscriber(Subscriber<? super String> child) {
+			this.child = child;
+		}
+
+		private void requestMore(long n) {
+			if (requestAll)
+				return;
+			if (n == Long.MAX_VALUE) {
+				requestAll = true;
+				REQUESTED.set(this, n);
+				request(n);
+			} else {
+				REQUESTED.addAndGet(this, n);
+				request(n);
+			}
+		}
+
+		@Override
+		public void onCompleted() {
+			child.onCompleted();
+		}
+
+		@Override
+		public void onError(Throwable e) {
+			child.onError(e);
+		}
+
+		@Override
+		public void onNext(String t) {
+			child.onNext(t);
+		}
+	}
 }
