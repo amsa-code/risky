@@ -11,7 +11,8 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.regex.Pattern;
@@ -340,7 +341,7 @@ public final class Strings {
 		private volatile long expected = 0;
 		private final AtomicLongFieldUpdater<ParentSubscriber> EXPECTED = AtomicLongFieldUpdater
 				.newUpdater(ParentSubscriber.class, "expected");
-		private final ConcurrentLinkedDeque<Object> queue = new ConcurrentLinkedDeque<Object>();
+		private final Deque<Object> queue = new LinkedList<Object>();
 		private final Pattern pattern;
 
 		private ParentSubscriber(Subscriber<? super String> child,

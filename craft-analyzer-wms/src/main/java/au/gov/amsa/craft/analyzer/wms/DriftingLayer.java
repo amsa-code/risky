@@ -146,11 +146,11 @@ public class DriftingLayer implements Layer {
                         .doOnRequest(new Action1<Long>() {
                             @Override
                             public void call(Long n) {
-//                                 log.info("requested=" + n);
+                                // log.info("requested=" + n);
                             }
                         })
                         // backpressure strategy - don't
-//                        .onBackpressureBlock()
+                        // .onBackpressureBlock()
                         // in background thread from pool per file
                         .subscribeOn(Schedulers.computation())
                         // log completion of read of file
@@ -356,7 +356,7 @@ public class DriftingLayer implements Layer {
         getFilenames()
                 // need to leave a processor spare to process the merged items
                 // and another for gc perhaps
-                .buffer(Runtime.getRuntime().availableProcessors() -5)
+                .buffer(Runtime.getRuntime().availableProcessors() - 5)
                 .map(new Func1<List<String>, Observable<String>>() {
                     @Override
                     public Observable<String> call(List<String> list) {
