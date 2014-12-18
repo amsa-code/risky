@@ -144,6 +144,12 @@ public class DriftingLayer implements Layer {
                 return AisVesselPositions
                 // read positions
                         .positions(Streams.nmeaFromGzip(filename))
+                        .doOnRequest(new Action1<Long> () {
+
+                            @Override
+                            public void call(Long n) {
+                                log.info("requested="+n);
+                            }})
                         // backpressure strategy - don't
                         // .onBackpressureBuffer()
                         // in background thread from pool per file
@@ -378,7 +384,7 @@ public class DriftingLayer implements Layer {
                 // log
                 // .lift(Logging.<VesselPosition> logger().showCount()
                 // .showRateSinceStart("msgPerSecond=").showMemory().every(5000).log())
-                .lift(new OperatorPauseOnHighHeapUsage<VesselPosition>(70, 5000, 1000))
+//                .lift(new OperatorPauseOnHighHeapUsage<VesselPosition>(70, 5000, 1000))
                 // subscribe
                 .subscribe(new Subscriber<VesselPosition>() {
 
