@@ -67,6 +67,8 @@ public class StringSplitOperator implements Operator<String, String> {
 		// pattern to split upon
 		private final Pattern pattern;
 
+		private String leftOver = "";
+
 		private ParentSubscriber(Subscriber<? super String> child,
 				Pattern pattern) {
 			this.child = child;
@@ -89,9 +91,13 @@ public class StringSplitOperator implements Operator<String, String> {
 
 		@Override
 		public void onCompleted() {
-			if (requestAll)
+			if (requestAll) {
+				if (leftOver.length() > 0)
+					child.onNext(leftOver);
 				child.onCompleted();
-			else {
+			} else {
+				if (leftOver.length() > 0)
+					queue.add(leftOver);
 				queue.add(on.completed());
 				drainQueue();
 			}
@@ -110,14 +116,18 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onNext(String s) {
 			String[] parts = pattern.split(s, -1);
-			if (requestAll)
-				for (String part : parts)
-					child.onNext(part);
-			else {
-				for (String part : parts)
-					queue.add(on.next(part));
+			// can emit all parts except the last part because it hasn't been
+			// terminated by the pattern yet
+			parts[0] = leftOver + parts[0];
+			if (requestAll) {
+				for (int i = 0; i < parts.length - 1; i++)
+					child.onNext(parts[i]);
+			} else {
+				for (int i = 1; i < parts.length - 1; i++)
+					queue.add(on.next(parts[i]));
 				drainQueue();
 			}
+			leftOver = parts[parts.length - 1];
 		}
 
 		private void drainQueue() {

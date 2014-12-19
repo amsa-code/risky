@@ -23,7 +23,6 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Func1;
-import rx.observables.StringObservable;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.AisNmeaBuffer;
