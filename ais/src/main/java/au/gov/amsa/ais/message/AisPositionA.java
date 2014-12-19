@@ -186,6 +186,10 @@ public class AisPositionA implements AisPosition, HasCommunications {
 		return getNavigationalStatus() == 1;
 	}
 
+	public boolean isMoored() {
+		return getNavigationalStatus() == 5;
+	}
+
 	@Override
 	public String getSource() {
 		return source;

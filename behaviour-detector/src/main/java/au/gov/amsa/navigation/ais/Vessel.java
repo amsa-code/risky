@@ -1,7 +1,5 @@
 package au.gov.amsa.navigation.ais;
 
-import au.gov.amsa.navigation.ais.Vessel.Builder;
-
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

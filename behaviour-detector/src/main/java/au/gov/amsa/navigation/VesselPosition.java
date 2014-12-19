@@ -5,10 +5,14 @@ import static java.lang.Math.toRadians;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import au.gov.amsa.navigation.VesselPosition.Builder;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 public class VesselPosition {
+	
+	public static enum NavigationalStatus {AT_ANCHOR, MOORED, UNKNOWN }
 
 	private static final double EARTH_RADIUS_KM = 6378.1;
 	private static final int maxDimensionMetresWhenUnknown = 30;
@@ -21,7 +25,7 @@ public class VesselPosition {
 	private final Optional<Double> speedMetresPerSecond;
 	private Optional<String> positionAisNmea;
 	private Optional<String> shipStaticAisNmea;
-	private final boolean isAtAnchor;
+	private final NavigationalStatus navigationalStatus;
 	private final long time;
 	private final Identifier id;
 	private final VesselClass cls;
@@ -34,7 +38,7 @@ public class VesselPosition {
 			double lon, Optional<Integer> lengthMetres,
 			Optional<Integer> widthMetres, Optional<Double> cog,
 			Optional<Double> heading, Optional<Double> speedMetresPerSecond,
-			VesselClass cls, boolean isAtAnchor, long time,
+			VesselClass cls, NavigationalStatus navigationalStatus, long time,
 			Optional<Integer> shipType, Optional<String> positionAisNmea,
 			Optional<String> shipStaticAisNmea) {
 
@@ -48,6 +52,7 @@ public class VesselPosition {
 		Preconditions.checkNotNull(shipType);
 		Preconditions.checkNotNull(positionAisNmea);
 		Preconditions.checkNotNull(shipStaticAisNmea);
+		Preconditions.checkNotNull(navigationalStatus);
 
 		this.messageId = messageId;
 		this.cls = cls;
@@ -60,7 +65,7 @@ public class VesselPosition {
 		this.headingDegrees = heading;
 		this.speedMetresPerSecond = speedMetresPerSecond;
 		this.time = time;
-		this.isAtAnchor = isAtAnchor;
+		this.navigationalStatus = navigationalStatus;
 		this.shipType = shipType;
 		this.positionAisNmea = positionAisNmea;
 		this.shipStaticAisNmea = shipStaticAisNmea;
@@ -117,8 +122,8 @@ public class VesselPosition {
 		return time;
 	}
 
-	public boolean isAtAnchor() {
-		return isAtAnchor;
+	public NavigationalStatus navigationalStatus() {
+		return navigationalStatus;
 	}
 
 	public Optional<Integer> shipType() {
@@ -151,10 +156,10 @@ public class VesselPosition {
 		private Optional<Double> speedMetresPerSecond;
 		private Optional<String> positionAisNmea;
 		private Optional<String> shipStaticAisNmea;
-		private boolean isAtAnchor = false;
 		private VesselClass cls;
 		private long time;
 		private Optional<Integer> shipType = Optional.absent();
+		private NavigationalStatus navigationalStatus;
 
 		private Builder() {
 		}
@@ -194,11 +199,6 @@ public class VesselPosition {
 			return this;
 		}
 
-		public Builder atAnchor(boolean atAnchor) {
-			this.isAtAnchor = atAnchor;
-			return this;
-		}
-
 		public Builder speedMetresPerSecond(
 				Optional<Double> speedMetresPerSecond) {
 			this.speedMetresPerSecond = speedMetresPerSecond;
@@ -229,11 +229,16 @@ public class VesselPosition {
 			this.shipStaticAisNmea = nmea;
 			return this;
 		}
+		
+		public Builder navigationalStatus(NavigationalStatus status) {
+			this.navigationalStatus= status;
+			return this;
+		}
 
 		public VesselPosition build() {
 			return new VesselPosition(counter.incrementAndGet(), id, lat, lon,
 					lengthMetres, widthMetres, cogDegrees, headingDegrees,
-					speedMetresPerSecond, cls, isAtAnchor, time, shipType,
+					speedMetresPerSecond, cls, navigationalStatus, time, shipType,
 					positionAisNmea, shipStaticAisNmea);
 		}
 
@@ -273,7 +278,7 @@ public class VesselPosition {
 
 	public Optional<VesselPosition> predict(long t) {
 		if (!speedMetresPerSecond.isPresent() || !cogDegrees.isPresent()
-				|| isAtAnchor)
+				|| navigationalStatus == NavigationalStatus.AT_ANCHOR|| navigationalStatus == NavigationalStatus.MOORED)
 			return Optional.absent();
 		else {
 			double lat = this.lat - speedMetresPerSecond.get()
@@ -285,7 +290,7 @@ public class VesselPosition {
 
 			return Optional.of(new VesselPosition(messageId, id, lat, lon,
 					lengthMetres, widthMetres, cogDegrees, headingDegrees,
-					speedMetresPerSecond, cls, isAtAnchor, time, shipType,
+					speedMetresPerSecond, cls, navigationalStatus, time, shipType,
 					positionAisNmea, shipStaticAisNmea));
 		}
 	}
@@ -372,8 +377,8 @@ public class VesselPosition {
 		b.append(positionAisNmea);
 		b.append(", shipStaticAisNmea=");
 		b.append(shipStaticAisNmea);
-		b.append(", isAtAnchor=");
-		b.append(isAtAnchor);
+		b.append(", navStatus=");
+		b.append(navigationalStatus);
 		b.append(", time=");
 		b.append(time);
 		b.append(", id=");

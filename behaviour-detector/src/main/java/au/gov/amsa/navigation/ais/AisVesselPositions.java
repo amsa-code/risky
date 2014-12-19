@@ -7,9 +7,6 @@ import static rx.Observable.just;
 
 import java.util.Comparator;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import rx.Observable;
 import rx.functions.Func1;
 import au.gov.amsa.ais.AisMessage;
@@ -20,17 +17,15 @@ import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.navigation.Mmsi;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
+import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 
 import com.google.common.base.Optional;
 
 public class AisVesselPositions {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(AisVesselPositions.class);
 
 	public static Observable<VesselPosition> positions(Observable<String> nmea) {
-		return Streams
-				.extract(nmea)
+		return Streams.extract(nmea)
 				.filter(isPresent())
 				// aggregate ship data with the message
 				.scan(new AisMessageAndVesselData(),
@@ -42,12 +37,13 @@ public class AisVesselPositions {
 	}
 
 	private static Func1<TimestampedAndLine<AisMessage>, Boolean> isPresent() {
-		return new Func1<TimestampedAndLine<AisMessage>, Boolean> (){
+		return new Func1<TimestampedAndLine<AisMessage>, Boolean>() {
 
 			@Override
 			public Boolean call(TimestampedAndLine<AisMessage> t) {
 				return t.getMessage().isPresent();
-			}};
+			}
+		};
 	}
 
 	public static Observable<TimestampedAndLine<AisMessage>> sortByTime(
@@ -125,25 +121,29 @@ public class AisVesselPositions {
 					Optional<Integer> shipType = vessel.isPresent() ? vessel
 							.get().getShipType() : Optional.<Integer> absent();
 
-					boolean isAtAnchor;
-					if (p instanceof AisPositionA)
-						isAtAnchor = ((AisPositionA) p).isAtAnchor();
-					else
-						isAtAnchor = false;
-					
-					
+					final NavigationalStatus navigationalStatus;
+					if (p instanceof AisPositionA) {
+						if (((AisPositionA) p).isAtAnchor())
+							navigationalStatus = NavigationalStatus.AT_ANCHOR;
+						else if (((AisPositionA) p).isMoored()) {
+							navigationalStatus = NavigationalStatus.MOORED;
+						} else
+							navigationalStatus = NavigationalStatus.UNKNOWN;
+					} else
+						navigationalStatus = NavigationalStatus.UNKNOWN;
+
+
 					Optional<String> positionAisNmea;
 					if (p instanceof AisPositionA) {
-						positionAisNmea = Optional.of(messageAndData.message().get().getLine());
-					}
-					else 
+						positionAisNmea = Optional.of(messageAndData.message()
+								.get().getLine());
+					} else
 						positionAisNmea = Optional.absent();
-					
-					
+
 					Optional<String> shipStaticAisNmea;
 					if (vessel.isPresent())
 						shipStaticAisNmea = vessel.get().getNmea();
-					else 
+					else
 						shipStaticAisNmea = Optional.absent();
 
 					// TODO adjust lat, lon for position of ais set on ship
@@ -177,10 +177,10 @@ public class AisVesselPositions {
 								// class
 								.cls(cls)
 								// at anchor
-								.atAnchor(isAtAnchor)
-								//position nmea
+								.navigationalStatus(navigationalStatus)
+								// position nmea
 								.positionAisNmea(positionAisNmea)
-								//ship static nmea
+								// ship static nmea
 								.shipStaticAisNmea(shipStaticAisNmea)
 								// build it
 								.build());

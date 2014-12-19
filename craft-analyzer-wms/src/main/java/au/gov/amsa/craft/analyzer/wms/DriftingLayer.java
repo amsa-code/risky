@@ -40,6 +40,7 @@ import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
+import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.navigation.ais.AisVesselPositions;
 import au.gov.amsa.navigation.ais.SortOperator;
 
@@ -101,7 +102,9 @@ public class DriftingLayer implements Layer {
                 // only class A vessels
                 .filter(onlyClassA())
                 // ignore vessels at anchor
-                .filter(notAtAnchor())
+                .filter(not(atAnchor()))
+                                // ignore vessels at moorings
+                .filter(not(isMoored()))
                 // ignore vessels that might be fishing
                 .filter(not(isShipType(SHIP_TYPE_FISHING)))
                 // ignore vessels that might be dredging
@@ -167,11 +170,20 @@ public class DriftingLayer implements Layer {
         };
     }
 
-    private static Func1<VesselPosition, Boolean> notAtAnchor() {
+    private static Func1<VesselPosition, Boolean> atAnchor() {
         return new Func1<VesselPosition, Boolean>() {
             @Override
             public Boolean call(VesselPosition p) {
-                return !p.isAtAnchor();
+                return p.navigationalStatus()== NavigationalStatus.AT_ANCHOR;
+            }
+        };
+    }
+    
+    private static Func1<VesselPosition, Boolean> isMoored() {
+        return new Func1<VesselPosition, Boolean>() {
+            @Override
+            public Boolean call(VesselPosition p) {
+                return p.navigationalStatus()== NavigationalStatus.MOORED;
             }
         };
     }
@@ -322,6 +334,9 @@ public class DriftingLayer implements Layer {
                             response.append(", ");
                             response.append(ShipTypeDecoder.getShipType(p.shipType().get()));
                         }
+                        response.append("</p>");
+                        response.append("<p>");
+                        response.append(p.toString());
                         response.append("</p>");
                     }
                 })
