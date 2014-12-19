@@ -11,10 +11,7 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLongFieldUpdater;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -22,13 +19,10 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
-import rx.Observable.Operator;
-import rx.Producer;
 import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
-import rx.internal.operators.NotificationLite;
 import rx.observables.StringObservable;
 import rx.schedulers.Schedulers;
 
@@ -305,102 +299,7 @@ public final class Strings {
 
 	public static Observable<String> split(Observable<String> source,
 			String pattern) {
-		return source.lift(new SplitOperator(Pattern.compile(pattern)));
+		return source.lift(new StringSplitOperator(Pattern.compile(pattern)));
 	}
 
-	private static class SplitOperator implements Operator<String, String> {
-
-		private final Pattern pattern;
-
-		public SplitOperator(Pattern pattern) {
-			this.pattern = pattern;
-		}
-
-		@Override
-		public Subscriber<? super String> call(Subscriber<? super String> child) {
-			final ParentSubscriber parent = new ParentSubscriber(child, pattern);
-
-			child.setProducer(new Producer() {
-				@Override
-				public void request(long n) {
-					parent.requestMore(n);
-				}
-			});
-
-			return parent;
-		}
-
-	}
-
-	private static final class ParentSubscriber extends Subscriber<String> {
-
-		private final NotificationLite<String> on = NotificationLite.instance();
-		private final Subscriber<? super String> child;
-
-		private boolean requestAll = false;
-		private volatile long expected = 0;
-		private final AtomicLongFieldUpdater<ParentSubscriber> EXPECTED = AtomicLongFieldUpdater
-				.newUpdater(ParentSubscriber.class, "expected");
-		private final Deque<Object> queue = new LinkedList<Object>();
-		private final Pattern pattern;
-
-		private ParentSubscriber(Subscriber<? super String> child,
-				Pattern pattern) {
-			this.child = child;
-			this.pattern = pattern;
-		}
-
-		private void requestMore(long n) {
-			if (requestAll)
-				return;
-			if (n == Long.MAX_VALUE) {
-				requestAll = true;
-				EXPECTED.set(this, n);
-				request(n);
-			} else {
-				EXPECTED.addAndGet(this, n);
-				request(n);
-			}
-		}
-
-		@Override
-		public void onCompleted() {
-			queue.add(on.completed());
-			drainQueue();
-		}
-
-		@Override
-		public void onError(Throwable e) {
-			queue.add(on.error(e));
-			drainQueue();
-		}
-
-		@Override
-		public void onNext(String s) {
-			String[] parts = pattern.split(s, -1);
-			for (String part : parts)
-				queue.add(on.next(part));
-			drainQueue();
-		}
-
-		private void drainQueue() {
-			while (true) {
-				Object item = queue.peek();
-				if (item == null)
-					break;
-				else if (on.isCompleted(item) || on.isError(item)) {
-					on.accept(child, queue.poll());
-					break;
-				} else {
-					if (expected > 0) {
-						if (expected != Long.MAX_VALUE)
-							EXPECTED.decrementAndGet(this);
-						on.accept(child, queue.poll());
-					} else {
-						break;
-					}
-				}
-			}
-		}
-	}
 }
