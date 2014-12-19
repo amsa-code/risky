@@ -51,6 +51,8 @@ import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
 
+    private static final int SHIP_TYPE_FISHING = 30;
+
     private static Logger log = LoggerFactory.getLogger(DriftingLayer.class);
 
     private final ConcurrentLinkedQueue<VesselPosition> queue = new ConcurrentLinkedQueue<VesselPosition>();
@@ -93,10 +95,21 @@ public class DriftingLayer implements Layer {
                 .filter(onlyClassA())
                 // ignore vessels at anchor
                 .filter(notAtAnchor())
+                // ignore vessels at anchor
+                .filter(notFishingVessels())
                 // is a big vessel
                 .filter(isBig())
                 // group by id and date
                 .distinct(byIdAndDay());
+    }
+
+    private static Func1<VesselPosition, Boolean> notFishingVessels() {
+       return new Func1<VesselPosition, Boolean>() {
+
+        @Override
+        public Boolean call(VesselPosition vp) {
+            return !vp.shipType().isPresent()||vp.shipType().get() != SHIP_TYPE_FISHING;
+        }};
     }
 
     private static Observable<String> getFilenames() {
@@ -426,8 +439,8 @@ public class DriftingLayer implements Layer {
 
                     @Override
                     public void onNext(VesselPosition vp) {
-                        if (vp.shipType().isPresent() && false) {
-                            System.out.println(vp.id() + ","
+                        if (vp.shipType().isPresent()) {
+                            System.out.println(vp.id() + "," + vp.shipType() + ","
                                     + ShipTypeDecoder.getShipType(vp.shipType().get())
                                     + ", length=" + vp.lengthMetres() + ", cog=" + vp.cogDegrees()
                                     + ", heading=" + vp.headingDegrees() + ", speedKnots="
