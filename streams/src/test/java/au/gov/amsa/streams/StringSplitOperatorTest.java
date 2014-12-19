@@ -30,6 +30,13 @@ public class StringSplitOperatorTest {
 	}
 
 	@Test
+	public void testEmptyItemsEmittedWithBackpressure() {
+		Observable<String> o = Observable.just("::boo:an", "d:::you::");
+		List<String> expected = asList("", "", "boo", "and", "", "", "you", "");
+		checkWithBackpressure(o, expected);
+	}
+
+	@Test
 	public void testWithBackpressure() throws InterruptedException {
 		Observable<String> o = Observable.just("boo:an", "d:you");
 		List<String> expected = asList("boo", "and", "you");
