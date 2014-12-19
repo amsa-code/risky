@@ -5,7 +5,7 @@ Features:
 
 * parses NMEA 4.0 messages
 * parses AIS messages
-* RxJava stream utilities for processing AIS data
+* [RxJava](https://github.com/ReactiveX/RxJava) stream utilities for processing AIS data
 * saves NMEA streams to disk supplemented with tag block timestamp
 
 Getting started
