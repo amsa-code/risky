@@ -67,6 +67,8 @@ public class StringSplitOperator implements Operator<String, String> {
 		// pattern to split upon
 		private final Pattern pattern;
 
+		// the bit left over from that last string that hasn't been terminated
+		// yet
 		private String leftOver = "";
 
 		private ParentSubscriber(Subscriber<? super String> child,
@@ -94,7 +96,8 @@ public class StringSplitOperator implements Operator<String, String> {
 			if (requestAll) {
 				if (leftOver.length() > 0)
 					child.onNext(leftOver);
-				child.onCompleted();
+				if (!isUnsubscribed())
+					child.onCompleted();
 			} else {
 				if (leftOver.length() > 0)
 					queue.add(leftOver);
@@ -133,7 +136,7 @@ public class StringSplitOperator implements Operator<String, String> {
 		private void drainQueue() {
 			while (true) {
 				Object item = queue.peek();
-				if (item == null)
+				if (item == null || isUnsubscribed())
 					break;
 				else if (on.isCompleted(item) || on.isError(item)) {
 					on.accept(child, queue.poll());
@@ -144,9 +147,8 @@ public class StringSplitOperator implements Operator<String, String> {
 						// decrement
 						EXPECTED.decrementAndGet(this);
 						on.accept(child, queue.poll());
-					} else {
+					} else
 						break;
-					}
 				}
 			}
 		}
