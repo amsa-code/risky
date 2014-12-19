@@ -58,6 +58,7 @@ public class DriftingLayer implements Layer {
     private static final int SHIP_TYPE_DREDGING_OR_UNDERWATER_OPERATIONS = 33;
     private static final int SHIP_TYPE_TUG = 52;
     private static final int SHIP_TYPE_MILITARY_OPERATIONS = 35;
+    private static final int SHIP_TYPE_LAW_ENFORCEMENT = 55;
 
     private static Logger log = LoggerFactory.getLogger(DriftingLayer.class);
 
@@ -109,6 +110,8 @@ public class DriftingLayer implements Layer {
                 .filter(not(isShipType(SHIP_TYPE_TUG)))
                 // ignore military
                 .filter(not(isShipType(SHIP_TYPE_MILITARY_OPERATIONS)))
+                // ignore military
+                .filter(not(isShipType(SHIP_TYPE_LAW_ENFORCEMENT)))
                 // is a big vessel
                 .filter(isBig())
                 // group by id and date
@@ -459,7 +462,7 @@ public class DriftingLayer implements Layer {
 
                     @Override
                     public void onNext(VesselPosition vp) {
-                        if (vp.shipType().isPresent()) {
+                        if (vp.shipType().isPresent() && false) {
                             System.out.println(vp.id() + "," + vp.shipType() + ","
                                     + ShipTypeDecoder.getShipType(vp.shipType().get())
                                     + ", length=" + vp.lengthMetres() + ", cog=" + vp.cogDegrees()
