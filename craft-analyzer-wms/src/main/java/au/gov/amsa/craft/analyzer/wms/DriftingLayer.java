@@ -48,12 +48,16 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
+import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
 
     private static final int SHIP_TYPE_FISHING = 30;
+    private static final int SHIP_TYPE_DREDGING_OR_UNDERWATER_OPERATIONS = 33;
+    private static final int SHIP_TYPE_TUG = 52;
+    private static final int SHIP_TYPE_MILITARY_OPERATIONS = 35;
 
     private static Logger log = LoggerFactory.getLogger(DriftingLayer.class);
 
@@ -97,23 +101,38 @@ public class DriftingLayer implements Layer {
                 .filter(onlyClassA())
                 // ignore vessels at anchor
                 .filter(notAtAnchor())
-                // ignore vessels at anchor
-                .filter(notFishingVessels())
+                // ignore vessels that might be fishing
+                .filter(not(isShipType(SHIP_TYPE_FISHING)))
+                // ignore vessels that might be dredging
+                .filter(not(isShipType(SHIP_TYPE_DREDGING_OR_UNDERWATER_OPERATIONS)))
+                // ignore tugs
+                .filter(not(isShipType(SHIP_TYPE_TUG)))
+                // ignore military
+                .filter(not(isShipType(SHIP_TYPE_MILITARY_OPERATIONS)))
                 // is a big vessel
                 .filter(isBig())
                 // group by id and date
                 .distinct(byIdAndDay());
     }
 
-    private static Func1<VesselPosition, Boolean> notFishingVessels() {
-       return new Func1<VesselPosition, Boolean>() {
+    private static Func1<VesselPosition, Boolean> isShipType(final int shipType) {
+        return new Func1<VesselPosition, Boolean>() {
 
-        @Override
-        public Boolean call(VesselPosition vp) {
-            return !vp.shipType().isPresent()||vp.shipType().get() != SHIP_TYPE_FISHING;
-        }};
+            @Override
+            public Boolean call(VesselPosition vp) {
+                return vp.shipType().isPresent() && vp.shipType().get() == shipType;
+            }};
     }
 
+    public static <T> Func1<T, Boolean> not(final Func1<T, Boolean> f) {
+        return new Func1<T, Boolean>() {
+            @Override
+            public Boolean call(T t) {
+                return !f.call(t);
+            }
+        };
+    }
+    
     private static Observable<String> getFilenames() {
         List<String> filenames = new ArrayList<String>();
         final String filenameBase = "/media/analysis/nmea/2014/sorted-NMEA_ITU_201407";
