@@ -126,7 +126,7 @@ public class StringSplitOperator implements Operator<String, String> {
 				for (int i = 0; i < parts.length - 1; i++)
 					child.onNext(parts[i]);
 			} else {
-				for (int i = 1; i < parts.length - 1; i++)
+				for (int i = 0; i < parts.length - 1; i++)
 					queue.add(on.next(parts[i]));
 				drainQueue();
 			}
@@ -141,14 +141,13 @@ public class StringSplitOperator implements Operator<String, String> {
 				else if (on.isCompleted(item) || on.isError(item)) {
 					on.accept(child, queue.poll());
 					break;
-				} else {
-					if (expected > 0) {
-						// expected won't be Long.MAX_VALUE so can safely
-						// decrement
-						EXPECTED.decrementAndGet(this);
-						on.accept(child, queue.poll());
-					} else
-						break;
+				} else if (expected == 0)
+					break;
+				else {
+					// expected won't be Long.MAX_VALUE so can safely
+					// decrement
+					EXPECTED.decrementAndGet(this);
+					on.accept(child, queue.poll());
 				}
 			}
 		}
