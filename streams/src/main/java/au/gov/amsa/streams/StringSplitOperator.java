@@ -10,10 +10,21 @@ import rx.Producer;
 import rx.Subscriber;
 import rx.internal.operators.NotificationLite;
 
+/**
+ * Splits strings by a regex pattern. Supports backpressure.
+ */
 public class StringSplitOperator implements Operator<String, String> {
 
+	/**
+	 * Pattern to split the strings by.
+	 */
 	private final Pattern pattern;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param pattern
+	 */
 	public StringSplitOperator(Pattern pattern) {
 		this.pattern = pattern;
 	}
