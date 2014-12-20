@@ -97,7 +97,6 @@ public class StringSplitOperator implements Operator<String, String> {
 				child.onNext(leftOver);
 				if (!isUnsubscribed()){
 					child.onCompleted();
-      unsubscribe();
      }
 			} else {
 				queue.add(leftOver);
@@ -110,7 +109,6 @@ public class StringSplitOperator implements Operator<String, String> {
 		public void onError(Throwable e) {
 			if (requestAll) {
 				child.onError(e);
-     unsubscribe();
     }
 			else {
 				queue.add(on.error(e));
@@ -142,7 +140,6 @@ public class StringSplitOperator implements Operator<String, String> {
 					break;
 				else if (on.isCompleted(item) || on.isError(item)) {
 					on.accept(child, queue.poll());
-      unsubscribe();
 					break;
 				} else if (expected == 0)
 					break;
