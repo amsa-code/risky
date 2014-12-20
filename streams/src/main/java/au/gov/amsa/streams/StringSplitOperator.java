@@ -94,13 +94,11 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onCompleted() {
 			if (requestAll) {
-				if (leftOver.length() > 0)
-					child.onNext(leftOver);
+				child.onNext(leftOver);
 				if (!isUnsubscribed())
 					child.onCompleted();
 			} else {
-				if (leftOver.length() > 0)
-					queue.add(leftOver);
+				queue.add(leftOver);
 				queue.add(on.completed());
 				drainQueue();
 			}

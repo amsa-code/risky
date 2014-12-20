@@ -25,14 +25,14 @@ public class StringSplitOperatorTest {
 	@Test
 	public void testEmptyItemsEmitted() {
 		Observable<String> o = Observable.just("::boo:an", "d:::you::");
-		List<String> expected = asList("", "", "boo", "and", "", "", "you", "");
+		List<String> expected = asList("", "", "boo", "and", "", "", "you", "", "");
 		check(o, expected);
 	}
 
 	@Test
 	public void testEmptyItemsEmittedWithBackpressure() {
 		Observable<String> o = Observable.just("::boo:an", "d:::you::");
-		List<String> expected = asList("", "", "boo", "and", "", "", "you", "");
+		List<String> expected = asList("", "", "boo", "and", "", "", "you", "", "");
 		checkWithBackpressure(o, expected);
 	}
 
