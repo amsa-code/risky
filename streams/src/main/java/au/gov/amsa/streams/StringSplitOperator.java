@@ -69,7 +69,7 @@ public class StringSplitOperator implements Operator<String, String> {
 
 		// the bit left over from that last string that hasn't been terminated
 		// yet
-		private String leftOver = "";
+		private String leftOver = null;
 
 		private ParentSubscriber(Subscriber<? super String> child,
 				Pattern pattern) {
@@ -94,12 +94,14 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onCompleted() {
 			if (requestAll) {
-				child.onNext(leftOver);
-				if (!isUnsubscribed()){
+				if (leftOver != null)
+					child.onNext(leftOver);
+				if (!isUnsubscribed()) {
 					child.onCompleted();
-     }
+				}
 			} else {
-				queue.add(leftOver);
+				if (leftOver != null)
+					queue.add(leftOver);
 				queue.add(on.completed());
 				drainQueue();
 			}
@@ -109,8 +111,7 @@ public class StringSplitOperator implements Operator<String, String> {
 		public void onError(Throwable e) {
 			if (requestAll) {
 				child.onError(e);
-    }
-			else {
+			} else {
 				queue.add(on.error(e));
 				drainQueue();
 			}
@@ -121,7 +122,8 @@ public class StringSplitOperator implements Operator<String, String> {
 			String[] parts = pattern.split(s, -1);
 			// can emit all parts except the last part because it hasn't been
 			// terminated by the pattern yet
-			parts[0] = leftOver + parts[0];
+			if (leftOver != null)
+				parts[0] = leftOver + parts[0];
 			if (requestAll) {
 				for (int i = 0; i < parts.length - 1; i++)
 					child.onNext(parts[i]);

@@ -16,30 +16,60 @@ import rx.Subscriber;
 public class StringSplitOperatorTest {
 
 	@Test
-	public void test() {
+	public void testNormal() {
 		Observable<String> o = Observable.just("boo:an", "d:you");
 		List<String> expected = asList("boo", "and", "you");
 		check(o, expected);
 	}
 
 	@Test
-	public void testEmptyItemsEmitted() {
-		Observable<String> o = Observable.just("::boo:an", "d:::you::");
-		List<String> expected = asList("", "", "boo", "and", "", "", "you", "", "");
-		check(o, expected);
-	}
-
-	@Test
-	public void testEmptyItemsEmittedWithBackpressure() {
-		Observable<String> o = Observable.just("::boo:an", "d:::you::");
-		List<String> expected = asList("", "", "boo", "and", "", "", "you", "", "");
+	public void testNormalWithBackpressure() throws InterruptedException {
+		Observable<String> o = Observable.just("boo:an", "d:you");
+		List<String> expected = asList("boo", "and", "you");
 		checkWithBackpressure(o, expected);
 	}
 
 	@Test
-	public void testWithBackpressure() throws InterruptedException {
-		Observable<String> o = Observable.just("boo:an", "d:you");
-		List<String> expected = asList("boo", "and", "you");
+	public void testEmptyProducesNothing() {
+		Observable<String> o = Observable.empty();
+		List<String> expected = asList();
+		check(o, expected);
+	}
+
+	@Test
+	public void testEmptyProducesNothingWithBackpressure() {
+		Observable<String> o = Observable.empty();
+		List<String> expected = asList();
+		checkWithBackpressure(o, expected);
+	}
+
+	@Test
+	public void testSeparatorOnlyProducesTwoBlanks() {
+		Observable<String> o = Observable.just(":");
+		List<String> expected = asList("", "");
+		check(o, expected);
+	}
+
+	@Test
+	public void testSeparatorOnlyProducesTwoBlanksWithBackpressure() {
+		Observable<String> o = Observable.just(":");
+		List<String> expected = asList("", "");
+		checkWithBackpressure(o, expected);
+	}
+
+	@Test
+	public void testEmptyItemsAtEndEmitted() {
+		Observable<String> o = Observable.just("::boo:an", "d:::you::");
+		List<String> expected = asList("", "", "boo", "and", "", "", "you", "",
+				"");
+		check(o, expected);
+	}
+
+	@Test
+	public void testEmptyItemsAtEndEmittedWithBackpressure() {
+		Observable<String> o = Observable.just("::boo:an", "d:::you::");
+		List<String> expected = asList("", "", "boo", "and", "", "", "you", "",
+				"");
 		checkWithBackpressure(o, expected);
 	}
 
