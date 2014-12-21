@@ -81,10 +81,11 @@ public class StringSplitOperator implements Operator<String, String> {
 			// this method may be run concurrent with any of the event methods
 			// below so watch out for thread safety
 
-			if (requestAll)
-				// ignore request if all items have already been requested
+			if (n <= 0 || requestAll)
+				// ignore request if invalid or all items have already been
+				// requested
 				return;
-			if (n == Long.MAX_VALUE)
+			else if (n == Long.MAX_VALUE)
 				requestAll = true;
 			else
 				EXPECTED.addAndGet(this, n);
