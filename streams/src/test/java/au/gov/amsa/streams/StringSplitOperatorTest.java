@@ -44,6 +44,20 @@ public class StringSplitOperatorTest {
 	}
 
 	@Test
+	public void testBlankProducesSingleBlank() {
+		Observable<String> o = Observable.just("");
+		List<String> expected = asList("");
+		check(o, expected);
+	}
+
+	@Test
+	public void testBlankProducesBlankWithBackpressure() {
+		Observable<String> o = Observable.just("");
+		List<String> expected = asList("");
+		checkWithBackpressure(o, expected);
+	}
+
+	@Test
 	public void testSeparatorOnlyProducesTwoBlanks() {
 		Observable<String> o = Observable.just(":");
 		List<String> expected = asList("", "");
