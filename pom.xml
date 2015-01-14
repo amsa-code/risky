@@ -5,7 +5,7 @@
     <artifactId>parent</artifactId>
     <version>0.3.4-SNAPSHOT</version>
     <name>${project.artifactId}</name>
-    <description>Parent pom for risky projects modules</description>
+    <description>Parent pom for risky project modules</description>
     <packaging>pom</packaging>
 
     <properties>
