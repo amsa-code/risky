@@ -32,14 +32,13 @@ public class StringSplitOperator implements Operator<String, String> {
 	@Override
 	public Subscriber<? super String> call(Subscriber<? super String> child) {
 		final ParentSubscriber parent = new ParentSubscriber(child, pattern);
-
 		child.setProducer(new Producer() {
 			@Override
 			public void request(long n) {
 				parent.requestMore(n);
 			}
 		});
-
+		child.add(parent);
 		return parent;
 	}
 

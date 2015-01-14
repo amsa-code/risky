@@ -11,6 +11,7 @@ import java.util.Set;
 import rx.Observable;
 import rx.observables.StringObservable;
 import au.gov.amsa.ais.AisParseException;
+import au.gov.amsa.streams.Strings;
 
 import com.google.common.collect.Sets;
 
@@ -225,7 +226,7 @@ public final class NmeaUtil {
 	}
 
 	public static Observable<String> nmeaLines(InputStream is) {
-		return StringObservable.split(StringObservable
+		return Strings.split(StringObservable
 				.from(new InputStreamReader(is, Charset.forName("UTF-8"))),
 				"\n");
 	}
