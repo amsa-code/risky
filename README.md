@@ -1,6 +1,7 @@
 risky
 =====
-<a href="https://travis-ci.org/amsa-code/risky"><img src="https://travis-ci.org/amsa-code/risky.svg"/></a>
+<a href="https://travis-ci.org/amsa-code/risky"><img src="https://travis-ci.org/amsa-code/risky.svg"/></a><br/>
+[![Dependency Status](https://gemnasium.com/com.github.davidmoten/risky.svg)](https://gemnasium.com/com.github.davidmoten/risky)
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
