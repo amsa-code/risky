@@ -17,8 +17,6 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -85,28 +83,6 @@ public class LinesTest {
 		doReturn(1234).when(socket).getPort();
 		doThrow(new IOException("hi")).when(socket).close();
 		Strings.socketDisposer().call(socket);
-	}
-
-	private static class MySource implements OnSubscribe<String> {
-
-		private final String value;
-
-		public MySource(String value) {
-			this.value = value;
-		}
-
-		@Override
-		public void call(Subscriber<? super String> sub) {
-			while (!sub.isUnsubscribed()) {
-				try {
-					Thread.sleep(500);
-				} catch (InterruptedException e) {
-					// do nothing
-				}
-				sub.onNext(value);
-			}
-		}
-
 	}
 
 	public static void main(String[] args) throws InterruptedException {

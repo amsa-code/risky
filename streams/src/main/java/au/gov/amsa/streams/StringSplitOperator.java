@@ -38,6 +38,8 @@ public class StringSplitOperator implements Operator<String, String> {
 				parent.requestMore(n);
 			}
 		});
+
+		// ensure unsubscription of child unsubscribes parent
 		child.add(parent);
 		return parent;
 	}
