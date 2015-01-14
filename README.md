@@ -4,6 +4,8 @@ risky
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
+Makes extensive use of functional stream programming libraries from [RxJava](https://github.com/reactivex/RxJava).
+
 Status: *pre-alpha*
 
 | Subproject         | Description |
