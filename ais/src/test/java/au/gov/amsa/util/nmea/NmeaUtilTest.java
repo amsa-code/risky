@@ -121,7 +121,6 @@ public class NmeaUtilTest {
 
 	@Test
 	public void testCanCreateNmeaLine() {
-		String tag = "\\g:1-2-1536,c:1334258609*2F\\";
 		String line = "!BSVDM,2,1,0,A,577V7s02?k61I8Lg<00Dq@E918U<F1=@58000016Op`BL5D8tIm5@PDPCp0T,0*5B";
 		List<String> list = createSampleList();
 
