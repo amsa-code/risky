@@ -10,7 +10,9 @@ import java.io.Reader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -28,7 +30,6 @@ import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 /**
@@ -239,7 +240,7 @@ public final class Strings {
 	public static Observable<String> mergeLinesFrom(
 			Collection<HostPort> hostPorts) {
 		Preconditions.checkArgument(hostPorts.size() > 0);
-		Optional<Observable<String>> source = Optional.absent();
+		List<Observable<String>> sources = new ArrayList<Observable<String>>();
 		for (HostPort hostPort : hostPorts) {
 			Observable<String> o = Strings
 			// connect to localhost
@@ -252,14 +253,11 @@ public final class Strings {
 					.reconnectDelayMs(hostPort.getReconnectDelayMs())
 					// create
 					.create();
-			Observable<String> lines = StringObservable.split(o, "\n")
-					.onBackpressureBuffer().subscribeOn(Schedulers.io());
-			if (!source.isPresent()) {
-				source = Optional.of(lines);
-			} else
-				source = Optional.of(source.get().mergeWith(lines));
+			Observable<String> lines = Strings.split(o, "\n").subscribeOn(
+					Schedulers.io());
+			sources.add(lines);
 		}
-		return source.get();
+		return Observable.merge(sources);
 	}
 
 	public static Observable<byte[]> from(final InputStream is, final int size) {
