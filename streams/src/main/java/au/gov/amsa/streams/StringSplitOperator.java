@@ -11,7 +11,8 @@ import rx.Subscriber;
 import rx.internal.operators.NotificationLite;
 
 /**
- * Splits strings by a regex pattern. Supports backpressure.
+ * Splits and joins items in a sequence of strings based on a regex pattern.
+ * Supports backpressure.
  */
 public class StringSplitOperator implements Operator<String, String> {
 
