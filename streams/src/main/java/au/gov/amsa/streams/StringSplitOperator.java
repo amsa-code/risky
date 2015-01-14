@@ -69,7 +69,7 @@ public class StringSplitOperator implements Operator<String, String> {
 
 		// the bit left over from that last string that hasn't been terminated
 		// yet
-		private String leftOver = "";
+		private String leftOver = null;
 
 		private ParentSubscriber(Subscriber<? super String> child,
 				Pattern pattern) {
@@ -84,7 +84,7 @@ public class StringSplitOperator implements Operator<String, String> {
 				// ignore request if all items have already been requested or if
 				// invalid request is received
 				return;
-			if (n == Long.MAX_VALUE)
+			else if (n == Long.MAX_VALUE)
 				requestAll = true;
 			else
 				EXPECTED.addAndGet(this, n);
@@ -94,12 +94,13 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onCompleted() {
 			if (requestAll) {
-				if (leftOver.length() > 0)
+				if (leftOver != null)
 					child.onNext(leftOver);
-				if (!isUnsubscribed())
+				if (!isUnsubscribed()) {
 					child.onCompleted();
+				}
 			} else {
-				if (leftOver.length() > 0)
+				if (leftOver != null)
 					queue.add(leftOver);
 				queue.add(on.completed());
 				drainQueue();
@@ -108,9 +109,9 @@ public class StringSplitOperator implements Operator<String, String> {
 
 		@Override
 		public void onError(Throwable e) {
-			if (requestAll)
+			if (requestAll) {
 				child.onError(e);
-			else {
+			} else {
 				queue.add(on.error(e));
 				drainQueue();
 			}
@@ -121,7 +122,8 @@ public class StringSplitOperator implements Operator<String, String> {
 			String[] parts = pattern.split(s, -1);
 			// can emit all parts except the last part because it hasn't been
 			// terminated by the pattern yet
-			parts[0] = leftOver + parts[0];
+			if (leftOver != null)
+				parts[0] = leftOver + parts[0];
 			if (requestAll) {
 				for (int i = 0; i < parts.length - 1; i++)
 					child.onNext(parts[i]);
@@ -141,14 +143,13 @@ public class StringSplitOperator implements Operator<String, String> {
 				else if (on.isCompleted(item) || on.isError(item)) {
 					on.accept(child, queue.poll());
 					break;
-				} else {
-					if (expected > 0) {
-						// expected won't be Long.MAX_VALUE so can safely
-						// decrement
-						EXPECTED.decrementAndGet(this);
-						on.accept(child, queue.poll());
-					} else
-						break;
+				} else if (expected == 0)
+					break;
+				else {
+					// expected won't be Long.MAX_VALUE so can safely
+					// decrement
+					EXPECTED.decrementAndGet(this);
+					on.accept(child, queue.poll());
 				}
 			}
 		}

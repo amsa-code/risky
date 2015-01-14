@@ -18,8 +18,9 @@ Maven site reports are [here](http://amsa-code.github.io/risky/index.html) inclu
 
 How to build
 ----------------
-[Install Java 8 and Maven 3](https://github.com/amsa-code/risky/wiki/Install-Java-and-Maven)
+Prequesite: [Install Java 8 and Maven 3](https://github.com/amsa-code/risky/wiki/Install-Java-and-Maven)
 
+Clone source and build:
 ```bash
 cd <WORKSPACE>
 git clone https://github.com/amsa-code/risky.git
