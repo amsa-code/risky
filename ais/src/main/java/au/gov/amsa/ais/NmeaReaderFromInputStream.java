@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
 import rx.functions.Func1;
-import rx.observables.StringObservable;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.nmea.NmeaReader;
 
