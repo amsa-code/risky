@@ -15,6 +15,7 @@ import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -28,7 +29,8 @@ public class NmeaStreamProcessor {
 
 	private static final int DEFAULT_NMEA_BUFFER_SIZE = 100;
 	private static final int DEFAULT_LOG_COUNT_FREQUENCY = 100000;
-	private static Logger log = LoggerFactory.getLogger(NmeaStreamProcessor.class);
+	private static Logger log = LoggerFactory
+			.getLogger(NmeaStreamProcessor.class);
 	private static final long MAXIMUM_ARRIVAL_TIME_DIFFERENCE_MS = 1000;
 	private final NmeaStreamProcessorListener listener;
 	private final List<LineAndTime> lines = Lists.newArrayList();
@@ -102,13 +104,19 @@ public class NmeaStreamProcessor {
 		// if is multi line message then don't report to listener till last
 		// message in sequence has been received.
 		if (!nmea.isSingleSentence()) {
-			NmeaMessage completedMessage = nmeaBuffer.add(nmea);
-			if (completedMessage != null) {
-				if (completedMessage.getUnixTimeMillis() != null)
-					listener.message(completedMessage.toLine(),
-							completedMessage.getUnixTimeMillis());
-				else
-					listener.message(completedMessage.toLine(), arrivalTime);
+			Optional<List<NmeaMessage>> messages = nmeaBuffer.add(nmea);
+			if (messages.isPresent()) {
+				Optional<NmeaMessage> joined = AisNmeaBuffer
+						.concatenateMessages(messages.get());
+				if (joined.isPresent()) {
+					if (joined.get().getUnixTimeMillis() != null)
+						listener.message(joined.get().toLine(), joined.get()
+								.getUnixTimeMillis());
+					else
+						listener.message(joined.get().toLine(), arrivalTime);
+				}
+				// TODO else report error, might need to change signature of
+				// listener to handle problem with multi-line message
 			}
 			return;
 		}
@@ -354,8 +362,7 @@ public class NmeaStreamProcessor {
 	 * @param lines
 	 * @return
 	 */
-	private static Integer getEarliestTimestampLineIndex(
-			List<LineAndTime> lines) {
+	private static Integer getEarliestTimestampLineIndex(List<LineAndTime> lines) {
 		Integer i = 0;
 		for (LineAndTime line : lines) {
 			if (isExactEarthTimestamp(line.getLine()))

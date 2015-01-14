@@ -9,6 +9,7 @@ import java.util.List;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 
@@ -16,20 +17,15 @@ public class AisNmeaBuffer {
 
 	private static final int AIS_MESSAGE_COL_NO = 5;
 	private static final int MIN_NUM_COLS_FOR_LINE_TO_BE_AGGREGATED = 6;
-	private final int columnToAggregate;
+	private static final int COLUMN_TO_AGGREGATE= AIS_MESSAGE_COL_NO;
 	private final int maxBufferSize;
 	private final LinkedHashMultimap<String, NmeaMessage> buffer;
 
-	public AisNmeaBuffer(int columnToAggregate, int maxBufferSize) {
-		this.columnToAggregate = columnToAggregate;
-		this.maxBufferSize = maxBufferSize;
-		buffer = LinkedHashMultimap.create();
-	}
-
 	public AisNmeaBuffer(int maxBufferSize) {
-		this(AIS_MESSAGE_COL_NO, maxBufferSize);
+		this.maxBufferSize = maxBufferSize;
+		this.buffer = LinkedHashMultimap.create();
 	}
-
+	
 	/**
 	 * Returns the complete message only once the whole group of messages has
 	 * arrived otherwise returns null.
@@ -37,12 +33,12 @@ public class AisNmeaBuffer {
 	 * @param nmea
 	 * @return
 	 */
-	public synchronized NmeaMessage add(NmeaMessage nmea) {
+	public synchronized Optional<List<NmeaMessage>> add(NmeaMessage nmea) {
 		List<String> items = nmea.getItems();
 		if (items.size() < MIN_NUM_COLS_FOR_LINE_TO_BE_AGGREGATED)
-			return nmea;
+			return Optional.of(Collections.singletonList(nmea));
 		if (nmea.isSingleSentence()) {
-			return nmea;
+			return Optional.of(Collections.singletonList(nmea));
 		} else {
 			String groupId = nmea.getSentenceGroupId();
 			buffer.put(groupId, nmea);
@@ -54,11 +50,11 @@ public class AisNmeaBuffer {
 			if (numGroupMessagesSoFar == numGroupMessages) {
 				// we have all messages in that group now so concatenate
 				List<NmeaMessage> list = orderMessages(buffer.get(groupId));
-				NmeaMessage concatenatedMessage = concatenateMessages(list);
+//				NmeaMessage concatenatedMessage = concatenateMessages(list);
 				buffer.removeAll(groupId);
-				return concatenatedMessage;
+				return Optional.of(list);
 			} else
-				return null;
+				return Optional.absent();
 		}
 	}
 
@@ -69,7 +65,10 @@ public class AisNmeaBuffer {
 	 * @param list
 	 * @return
 	 */
-	private NmeaMessage concatenateMessages(List<NmeaMessage> list) {
+	public static Optional<NmeaMessage> concatenateMessages(List<NmeaMessage> list) {
+		if (list.size()==1)
+			return Optional.of(list.get(0));
+			
 		NmeaMessage first = list.get(0);
 		// concatenate column 5 and use row 1 tag block
 
@@ -83,9 +82,9 @@ public class AisNmeaBuffer {
 
 		StringBuilder s = new StringBuilder();
 		for (NmeaMessage t : list) {
-			s.append(t.getItems().get(columnToAggregate));
+			s.append(t.getItems().get(COLUMN_TO_AGGREGATE));
 		}
-		cols.set(columnToAggregate, s.toString());
+		cols.set(COLUMN_TO_AGGREGATE, s.toString());
 		// set num sentences to be 1 and current sentence number to be 1
 		cols.set(1, "1");
 		cols.set(2, "1");
@@ -93,9 +92,9 @@ public class AisNmeaBuffer {
 		tags.put("g", "1-1-" + first.getSentenceGroupId());
 		try {
 			NmeaMessage message = new NmeaMessage(tags, cols);
-			return message;
+			return Optional.of(message);
 		} catch (NmeaMessageParseException e) {
-			return null;
+			return Optional.absent();
 		}
 	}
 

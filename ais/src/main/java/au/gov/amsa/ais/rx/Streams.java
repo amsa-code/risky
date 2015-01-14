@@ -10,6 +10,7 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPInputStream;
@@ -275,11 +276,17 @@ public class Streams {
 
 			@Override
 			public Observable<NmeaMessage> call(NmeaMessage nmea) {
-				NmeaMessage result = buffer.add(nmea);
-				if (result == null)
+				Optional<List<NmeaMessage>> list = buffer.add(nmea);
+				if (!list.isPresent())
 					return Observable.empty();
-				else
-					return Observable.just(result);
+				else {
+					Optional<NmeaMessage> concat = AisNmeaBuffer
+							.concatenateMessages(list.get());
+					if (concat.isPresent())
+						return Observable.just(concat.get());
+					else
+						return Observable.empty();
+				}
 			}
 		};
 	}
