@@ -80,9 +80,9 @@ public class StringSplitOperator implements Operator<String, String> {
 		private void requestMore(long n) {
 			// this method may be run concurrent with any of the event methods
 			// below so watch out for thread safety
-
-			if (requestAll)
-				// ignore request if all items have already been requested
+			if (requestAll || n <= 0)
+				// ignore request if all items have already been requested or if
+				// invalid request is received
 				return;
 			if (n == Long.MAX_VALUE)
 				requestAll = true;
@@ -126,7 +126,7 @@ public class StringSplitOperator implements Operator<String, String> {
 				for (int i = 0; i < parts.length - 1; i++)
 					child.onNext(parts[i]);
 			} else {
-				for (int i = 1; i < parts.length - 1; i++)
+				for (int i = 0; i < parts.length - 1; i++)
 					queue.add(on.next(parts[i]));
 				drainQueue();
 			}
