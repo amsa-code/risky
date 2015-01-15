@@ -6,19 +6,10 @@
         <artifactId>parent</artifactId>
         <version>0.3.4-SNAPSHOT</version>
     </parent>
-    <artifactId>streams</artifactId>
+    <artifactId>formats</artifactId>
     <name>${project.artifactId}</name>
     <description />
-    <properties>
-        <jetty.plugin.version>8.1.15.v20140411</jetty.plugin.version>
-    </properties>
     <dependencies>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -28,11 +19,6 @@
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
             <version>${rxjava.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.reactivex</groupId>
-            <artifactId>rxjava-string</artifactId>
-            <version>${rxjava.string.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
@@ -53,32 +39,7 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>1.10.8</version>
-            <scope>test</scope>
+			<scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-           <plugin>
-                <groupId>org.mortbay.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>${jetty.plugin.version}</version>
-                <configuration>
-                    <scanIntervalSeconds>10</scanIntervalSeconds>
-                    <stopKey>foo</stopKey>
-                    <stopPort>9998</stopPort>
-                    <webAppConfig>
-                        <contextPath>/${project.artifactId}</contextPath>
-                    </webAppConfig>
-                    <systemProperties>
-                    </systemProperties>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
