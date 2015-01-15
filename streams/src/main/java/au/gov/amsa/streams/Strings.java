@@ -86,8 +86,6 @@ public final class Strings {
 				.lift(Logging.<Integer> logger().onNextPrefix("n=").log())
 				// connect to server and read lines from its input stream
 				.concatMap(streamFrom(host, port, charset))
-				// cannot ask other host to slow down so buffer on backpressure
-				.onBackpressureBuffer()
 				// ensure connection has not dropped out by throwing an
 				// exception after a minute of no messages. This is a good idea
 				// with TCPIP because for example a firewall might drop a quiet
@@ -184,7 +182,10 @@ public final class Strings {
 				// appropriately
 						.using(socketCreator(host, port),
 								socketObservableFactory(charset),
-								socketDisposer());
+								socketDisposer())
+						// cannot ask host to slow down so buffer on
+						// backpressure
+						.onBackpressureBuffer();
 			}
 		};
 	}
