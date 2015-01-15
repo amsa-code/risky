@@ -82,10 +82,12 @@ public final class Strings {
 		// stream on every connect we won't be in a mad loop of
 		// failing connections
 		return triggersWithDelay(reconnectDelayMs)
-		// log
-				.lift(Logging.<Integer> logger().onNextPrefix("n=").log())
+		// log (note connection number will increase if socket is cleanly closed
+		// by the server)
+				.lift(Logging.<Integer> logger()
+						.onNextPrefix("connectionNumber=").log())
 				// connect to server and read lines from its input stream
-				.concatMap(streamFrom(host, port, charset))
+				.concatMap(from(host, port, charset))
 				// ensure connection has not dropped out by throwing an
 				// exception after a minute of no messages. This is a good idea
 				// with TCPIP because for example a firewall might drop a quiet
@@ -172,8 +174,8 @@ public final class Strings {
 										Schedulers.immediate()));
 	}
 
-	private static Func1<Integer, Observable<String>> streamFrom(
-			final String host, final int port, final Charset charset) {
+	private static Func1<Integer, Observable<String>> from(final String host,
+			final int port, final Charset charset) {
 		return new Func1<Integer, Observable<String>>() {
 			@Override
 			public Observable<String> call(Integer n) {
