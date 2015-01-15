@@ -15,7 +15,7 @@ Status: *pre-alpha*
 | [streams](streams) | read and publish socket broadcasts of string streams (like AIS)
 | [behaviour-detector](behaviour-detector) | drift candidate and collision candidate detection algorithms
 | [geo-analyzer](geo-analyzer) | distance travelled calculation, traffic density plots
-| [craft-analyzer-wms](craft-analyzer-wms) | visualations using OpenLayers and Grumpy WMS
+| [craft-analyzer-wms](craft-analyzer-wms) | visualizations using OpenLayers and Grumpy WMS
 
 Maven site reports are [here](http://amsa-code.github.io/risky/index.html) including [javadoc](http://amsa-code.github.io/risky/apidocs/index.html).
 
