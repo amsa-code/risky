@@ -10,13 +10,15 @@ How to use
 Observable<Fix> fixes = BinaryFixes.from(new File("target/123456789.track"));
 ```
 
-Generate a sample file
--------------------------
-To generate a sample of 100,000 identical fixes in the file ```target/123456789.track```:
-
+Generate sample files
+------------------------
+Run unit tests:
 ```
-mvn clean install
+mvn test
 ```
 
+This generates these files in the *target* directory:
+* ```123456789.track``` - 100,000 identical fixes
+* ```123456790.track``` - 2 fixes with different positions and time
 
 
