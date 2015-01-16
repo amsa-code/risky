@@ -1,6 +1,8 @@
 package au.gov.amsa.risky.format;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import rx.Observable;
@@ -14,6 +16,17 @@ public final class BinaryFixes {
 
 	public static Observable<Fix> from(File file) {
 		return Observable.create(new BinaryFixesOnSubscribe(file));
+	}
+	
+	public static void write(Fix fix, OutputStream os){
+		byte[] bytes = new byte[BINARY_FIX_BYTES];
+		ByteBuffer bb = ByteBuffer.wrap(bytes);
+		write(fix, bb);
+		try {
+			os.write(bytes);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	public static void write(Fix fix, ByteBuffer bb) {

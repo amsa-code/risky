@@ -23,11 +23,12 @@ public final class BinaryFixesTest {
 		Fix fix = new Fix(213456789, -10f, 135f, 1000,
 				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),
 				of(46f), AisClass.B);
-		ByteBuffer bb = ByteBuffer.allocate(BinaryFixes.BINARY_FIX_BYTES);
+		byte[] bytes = new byte[BinaryFixes.BINARY_FIX_BYTES];
+		ByteBuffer bb = ByteBuffer.wrap(bytes);
 		BinaryFixes.write(fix, bb);
 		int numFixes = 100000;
 		for (int i = 0; i < numFixes; i++)
-			os.write(bb.array());
+			os.write(bytes);
 		os.close();
 		
 		System.out.println("wrote " + numFixes + " fixes");
@@ -48,6 +49,20 @@ public final class BinaryFixesTest {
 		assertEquals(AisClass.B, f.getAisClass());
 		
 		System.out.println("read " + numFixes + " fixes in " + (System.currentTimeMillis()-t) + "ms");
+	}
+	
+	@Test
+	public void testWriteTwoBinaryFixes() throws IOException {
+		OutputStream os = new BufferedOutputStream(new FileOutputStream("target/123456790.track"));
+		Fix fix1 = new Fix(213456789, -10f, 135f, 1000,
+				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),
+				of(46f), AisClass.B);
+		Fix fix2 = new Fix(213456789, -10.1f, 135.2f, 1000,
+				of(NavigationalStatus.AT_ANCHOR), of(4.5f), of(20f),
+				of(30f), AisClass.B);
+		BinaryFixes.write(fix1, os);
+		BinaryFixes.write(fix2, os);
+		os.close();
 	}
 
 }
