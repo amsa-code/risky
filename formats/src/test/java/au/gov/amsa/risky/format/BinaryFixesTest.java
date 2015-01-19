@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -53,6 +54,11 @@ public final class BinaryFixesTest {
 	
 	@Test
 	public void testWriteTwoBinaryFixes() throws IOException {
+		writeTwoBinaryFixes();
+	}
+
+	static void writeTwoBinaryFixes() throws 
+			IOException {
 		OutputStream os = new BufferedOutputStream(new FileOutputStream("target/123456790.track"));
 		Fix fix1 = new Fix(213456789, -10f, 135f, 0,
 				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),

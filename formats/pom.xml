@@ -33,13 +33,27 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
+            <!--  use guava 13 because renjin has specific dep on deprecated method -->
+            <version>13.0</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
-			<scope>test</scope>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.renjin</groupId>
+            <artifactId>renjin-script-engine</artifactId>
+            <version>0.7.0-RC7</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <id>bedatadriven</id>
+            <name>bedatadriven public repo</name>
+            <url>http://nexus.bedatadriven.com/content/groups/public/</url>
+        </repository>
+    </repositories>
 </project>
