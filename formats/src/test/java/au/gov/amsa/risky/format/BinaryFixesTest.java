@@ -60,10 +60,11 @@ public final class BinaryFixesTest {
 	static void writeTwoBinaryFixes() throws 
 			IOException {
 		OutputStream os = new BufferedOutputStream(new FileOutputStream("target/123456790.track"));
-		Fix fix1 = new Fix(213456789, -10f, 135f, 0,
+		long t = 1421708455237L;
+		Fix fix1 = new Fix(213456789, -10f, 135f, t,
 				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),
 				of(46f), AisClass.B);
-		Fix fix2 = new Fix(213456789, -10.1f, 135.2f, 1000*3600*2L,
+		Fix fix2 = new Fix(213456789, -10.1f, 135.2f, t + 1000*3600*2L,
 				of(NavigationalStatus.AT_ANCHOR), of(4.5f), of(20f),
 				of(30f), AisClass.B);
 		BinaryFixes.write(fix1, os);
