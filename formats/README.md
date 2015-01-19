@@ -16,7 +16,7 @@ All values use *Big Endian* bit order.
 | rate of turn | byte | 1 | not used yet
 | speed over ground | short | 2 |unit is 1/10 knot, 1023 = not present
 | course over ground | short | 2 |unit is 1/10 degree, 3600 = not present
-| heading | short | 2 | unit is degrees
+| heading | short | 2 | unit is degrees, 360 = not present
 | ais class | byte | 1 | 0 = A, 1 = B
 
 How to use in java
