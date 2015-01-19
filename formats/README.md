@@ -3,14 +3,9 @@ formats
 
 Java routines for manipulating binary formatted files of vessel positions and static vessel data.
 
-How to use
----------------
-
-```java
-Observable<Fix> fixes = BinaryFixes.from(new File("target/123456789.track"));
-```
 BinaryFixes format (.track)
 --------------------------------
+All values use *Big Endian* bit order.
 
 | Name         | Type | Bytes | Notes |
 |:-------------|:-----|:-----|:-----|
@@ -24,7 +19,14 @@ BinaryFixes format (.track)
 | heading | short | 2 | unit is degrees
 | ais class | byte | 1 | 0 = A, 1 = B
 
-How to read .track with R
+How to use in java
+---------------------
+
+```java
+Observable<Fix> fixes = BinaryFixes.from(new File("target/123456789.track"));
+```
+
+How to use with R
 ----------------------------
 To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). To test:
 
