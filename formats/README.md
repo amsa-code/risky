@@ -24,8 +24,8 @@ BinaryFixes format (.track)
 | heading | short | 2 | unit is degrees
 | ais class | byte | 1 | 0 = A, 1 = B
 
-R code to read
-----------------
+How to read .track with R
+----------------------------
 To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). To test:
 
 ```bash
