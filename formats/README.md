@@ -12,8 +12,8 @@ Observable<Fix> fixes = BinaryFixes.from(new File("target/123456789.track"));
 BinaryFixes format (.track)
 --------------------------------
 
-| Name         | Type | Bytes| Notes
-|:-------------------|:------------|
+| Name         | Type | Bytes | Notes |
+|:-------------|:-----|:-----|:-----|
 | latitude | float | 4
 | longitude | float | 4
 | time | long | 8
