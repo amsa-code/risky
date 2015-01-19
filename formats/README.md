@@ -28,7 +28,8 @@ Observable<Fix> fixes = BinaryFixes.from(new File("target/123456789.track"));
 
 How to use with R
 ----------------------------
-To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). To test:
+To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). 
+To test, generate the sample files (see below), then:
 
 ```bash
 Rscript src/test/resources/read-binary-fixes.r
