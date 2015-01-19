@@ -26,7 +26,11 @@ BinaryFixes format (.track)
 
 R code to read
 ----------------
-To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r).
+To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). To test:
+
+```bash
+Rscript src/test/resources/read-binary-fixes.r
+```
 
 Generate sample files
 ------------------------
