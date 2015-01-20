@@ -22,8 +22,6 @@ All values use *Big Endian* bit order.
 | ais class | byte | 1 | 0 = A, 1 = B
 | **Total** | | 31 | |
 
-TODO: what about source (e.g. which satellite) and arrival time (so will have record of latency especially for AIS satellite reports)?
-
 How to use in java
 ---------------------
 
