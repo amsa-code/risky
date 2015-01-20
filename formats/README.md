@@ -12,7 +12,7 @@ All values use *Big Endian* bit order.
 | latitude | float | 4 
 | longitude | float | 4
 | time | signed long | 8
-| source | short | 2 | 0 = not present, others TBA
+| source | signed short | 2 | 0 = not present, others TBA
 | latency | signed integer | 4 | unit is seconds, -1 = not present 
 | navigational status | signed byte | 1 | 127 = not present
 | rate of turn | signed byte | 1 | not used yet
