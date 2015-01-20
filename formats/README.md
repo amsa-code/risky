@@ -15,11 +15,12 @@ All values use *Big Endian* bit order.
 | source | signed short | 2 | 0 = not present, others TBA
 | latency | signed integer | 4 | unit is seconds, -1 = not present 
 | navigational status | signed byte | 1 | 127 = not present
-| rate of turn | signed byte | 1 | not used yet
+| rate of turn | signed byte | 1 | -128 = not present, others TBA
 | speed over ground | signed short | 2 |unit is 1/10 knot, 1023 = not present
 | course over ground | signed short | 2 |unit is 1/10 degree, 3600 = not present
 | heading | signed short | 2 | unit is degrees, 360 = not present
 | ais class | byte | 1 | 0 = A, 1 = B
+| ``Total`` | | 31 | |
 
 TODO: what about source (e.g. which satellite) and arrival time (so will have record of latency especially for AIS satellite reports)?
 

@@ -16,6 +16,7 @@ public final class BinaryFixes {
 	public static final byte NAV_STATUS_ABSENT = Byte.MAX_VALUE;
 	public static final int LATENCY_ABSENT = -1;
 	public static final short SOURCE_ABSENT = 0;
+	public static final byte ROT_ABSENT = Byte.MIN_VALUE;
 
 	public static Observable<Fix> from(File file) {
 		return Observable.create(new BinaryFixesOnSubscribe(file));
@@ -51,7 +52,7 @@ public final class BinaryFixes {
 			bb.put(NAV_STATUS_ABSENT);
 		
 		// rot
-		bb.put((byte) 0);
+		bb.put(ROT_ABSENT);
 
 		if (fix.getSpeedOverGroundKnots().isPresent())
 			bb.putShort((short) Math.round(10 * fix.getSpeedOverGroundKnots()

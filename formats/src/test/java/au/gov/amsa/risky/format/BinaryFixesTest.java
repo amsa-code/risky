@@ -44,6 +44,8 @@ public final class BinaryFixesTest {
 		assertEquals(-10.0, f.getLat(), PRECISION);
 		assertEquals(135, f.getLon(), PRECISION);
 		assertEquals(1000, f.getTime(), PRECISION);
+		assertEquals(12,(int) f.getLatencySeconds().get());
+		assertEquals(1,(int) f.getSource().get());
 		assertEquals(NavigationalStatus.ENGAGED_IN_FISHING, f
 				.getNavigationalStatus().get());
 		assertEquals(7.5, f.getSpeedOverGroundKnots().get(), PRECISION);
