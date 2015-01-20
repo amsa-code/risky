@@ -19,6 +19,8 @@ All values use *Big Endian* bit order.
 | heading | short | 2 | unit is degrees, 360 = not present
 | ais class | byte | 1 | 0 = A, 1 = B
 
+TODO: what about source (e.g. which satellite) and arrival time (so will have record of latency especially for AIS satellite reports)?
+
 How to use in java
 ---------------------
 
