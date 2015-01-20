@@ -1,10 +1,18 @@
 file = file("target/123456790.track","rb")
 readSingle = function() readBin(file, single(), size=4, endian="big")
-readLong = function() readBin(file, integer(), size=8, endian="big")
+readInteger = function() readBin(file, integer(), size=4, endian="big")
+readLong = function() { 
+  a = readBin(file, integer(), size=4, endian="big")
+  b = readBin(file, integer(), size=4, endian="big")
+  # now need to do some bit manipulations to get the desired 8 byte integer as a double
+  0
+}
 readByte = function() readBin(file, integer(), size=1, endian="big")
 readShort = function() readBin(file, integer(), size=2, endian="big") 
 assertEquals = function(expected, actual) 
-  if (expected != actual) { warning(sprintf("expected %s but was %s", expected, actual)) }
+  if (expected != actual) { 
+    warning(sprintf("expected %s but was %s", expected, actual)) 
+  }
 
 lat = readSingle()
 lon = readSingle()
