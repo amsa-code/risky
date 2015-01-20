@@ -9,16 +9,19 @@ import rx.Observable;
 
 public final class BinaryFixes {
 
-	public static final int BINARY_FIX_BYTES = 25;
+	public static final int BINARY_FIX_BYTES = 31;
 	public static final short SOG_ABSENT = 1023;
 	public static final short COG_ABSENT = 3600;
 	public static final short HEADING_ABSENT = 360;
+	public static final byte NAV_STATUS_ABSENT = Byte.MAX_VALUE;
+	public static final int LATENCY_ABSENT = -1;
+	public static final short SOURCE_ABSENT = 0;
 
 	public static Observable<Fix> from(File file) {
 		return Observable.create(new BinaryFixesOnSubscribe(file));
 	}
-	
-	public static void write(Fix fix, OutputStream os){
+
+	public static void write(Fix fix, OutputStream os) {
 		byte[] bytes = new byte[BINARY_FIX_BYTES];
 		ByteBuffer bb = ByteBuffer.wrap(bytes);
 		write(fix, bb);
@@ -33,10 +36,20 @@ public final class BinaryFixes {
 		bb.putFloat(fix.getLat());
 		bb.putFloat(fix.getLon());
 		bb.putLong(fix.getTime());
+		if (fix.getLatencySeconds().isPresent())
+			bb.putInt(fix.getLatencySeconds().get());
+		else
+			bb.putInt(LATENCY_ABSENT);
+		if (fix.getSource().isPresent())
+			bb.putShort(fix.getSource().get());
+		else 
+			bb.putShort(SOURCE_ABSENT);
+
 		if (fix.getNavigationalStatus().isPresent())
 			bb.put((byte) fix.getNavigationalStatus().get().ordinal());
 		else
-			bb.put(Byte.MAX_VALUE);
+			bb.put(NAV_STATUS_ABSENT);
+		
 		// rot
 		bb.put((byte) 0);
 

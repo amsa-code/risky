@@ -13,9 +13,11 @@ public final class Fix {
 	private final Optional<Float> courseOverGroundDegrees;
 	private final Optional<Float> headingDegrees;
 	private final AisClass aisClass;
+	private final Optional<Integer> latencySeconds;
+	private final Optional<Short> source;
 	
 	public Fix(long mmsi, float lat, float lon,long time, 
-			Optional<NavigationalStatus> navigationalStatus,
+			Optional<Integer> latencySeconds, Optional<Short> source, Optional<NavigationalStatus> navigationalStatus,
 			Optional<Float> speedOverGroundKnots,
 			Optional<Float> courseOverGroundDegrees,
 			Optional<Float> headingDegrees, AisClass aisClass) {
@@ -23,6 +25,8 @@ public final class Fix {
 		this.lat = lat;
 		this.lon = lon;
 		this.time = time;
+		this.latencySeconds = latencySeconds;
+		this.source = source;
 		this.navigationalStatus = navigationalStatus;
 		this.speedOverGroundKnots = speedOverGroundKnots;
 		this.courseOverGroundDegrees = courseOverGroundDegrees;
@@ -64,6 +68,14 @@ public final class Fix {
 
 	public AisClass getAisClass() {
 		return aisClass;
+	}
+
+	public Optional<Integer> getLatencySeconds() {
+		return latencySeconds;
+	}
+
+	public Optional<Short> getSource() {
+		return source;
 	}
 	
 }

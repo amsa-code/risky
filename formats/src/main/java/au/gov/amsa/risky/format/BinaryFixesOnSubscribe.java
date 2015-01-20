@@ -60,6 +60,18 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		float lat = bb.getFloat();
 		float lon = bb.getFloat();
 		long time = bb.getLong();
+		int latency = bb.getInt();
+		final Optional<Integer> latencySeconds;
+		if (latency == -1) 
+			latencySeconds = absent();
+		else 
+			latencySeconds = of(latency);
+		short src = bb.getShort();
+		final Optional<Short> source;
+		if (src ==0)
+			source = absent();
+		else 
+			source = of(src);
 		byte nav = bb.get();
 		final Optional<NavigationalStatus> navigationalStatus;
 		if (nav == Byte.MAX_VALUE)
@@ -97,7 +109,7 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		else
 			aisClass = AisClass.B;
 
-		Fix fix = new Fix(mmsi, lat, lon, time, navigationalStatus,
+		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source,navigationalStatus,
 				speedOverGroundKnots, courseOverGroundDegrees,
 				headingDegrees, aisClass);
 		return fix;
