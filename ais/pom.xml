@@ -83,9 +83,16 @@
             <version>${joda.time.version}</version>
         </dependency>
         <dependency>
-            <groupId>au.gov.amsa.risky</groupId>
+            <groupId>${project.parent.groupId}</groupId>
             <artifactId>streams</artifactId>
             <version>${project.parent.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>formats</artifactId>
+            <version>${project.parent.version}</version>
+            <optional>true</optional>
         </dependency>
 
         <!-- test/benchmark deps -->
@@ -109,6 +116,11 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>au.gov.amsa.risky</groupId>
+            <artifactId>formats</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
     </dependencies>
 
     <profiles>

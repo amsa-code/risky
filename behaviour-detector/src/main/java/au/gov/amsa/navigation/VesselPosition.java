@@ -5,8 +5,6 @@ import static java.lang.Math.toRadians;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import au.gov.amsa.navigation.VesselPosition.Builder;
-
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 

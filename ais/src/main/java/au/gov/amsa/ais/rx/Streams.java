@@ -31,7 +31,12 @@ import au.gov.amsa.ais.AisNmeaMessage;
 import au.gov.amsa.ais.AisParseException;
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.Timestamped;
+import au.gov.amsa.ais.message.AisPosition;
+import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.message.AisShipStaticA;
+import au.gov.amsa.risky.format.AisClass;
+import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
@@ -71,6 +76,59 @@ public class Streams {
 				.flatMap(aggregateMultiLineNmea(BUFFER_SIZE))
 				.flatMap(toAisMessage());
 	}
+
+	public static Observable<Fix> extractFixes(Observable<String> rawAisNmea) {
+		return extractMessages(rawAisNmea).flatMap(TO_FIX);
+	}
+
+	//TODO unit test
+	private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = new Func1<Timestamped<AisMessage>, Observable<Fix>>() {
+
+		@Override
+		public Observable<Fix> call(Timestamped<AisMessage> m) {
+			if (m.message() instanceof AisPosition) {
+				AisPosition a = (AisPosition) m.message();
+				if (a.getLatitude() == null || a.getLongitude() == null)
+					return Observable.empty();
+				else {
+					Optional<NavigationalStatus> nav = Optional.absent();
+					final Optional<Float> sog;
+					if (a.getSpeedOverGroundKnots() == null)
+						sog = Optional.absent();
+					else
+						sog = Optional.of((a.getSpeedOverGroundKnots()
+								.floatValue()));
+					final Optional<Float> cog;
+					if (a.getCourseOverGround() == null)
+						cog = Optional.absent();
+					else
+						cog = Optional
+								.of((a.getCourseOverGround().floatValue()));
+					final Optional<Float> heading;
+					if (a.getTrueHeading() == null)
+						heading = Optional.absent();
+					else
+						heading = Optional
+								.of((a.getTrueHeading().floatValue()));
+					final AisClass aisClass;
+					if (m.message() instanceof AisPositionA)
+						aisClass = AisClass.A;
+					else 
+						aisClass = AisClass.B;
+					
+					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(), a
+							.getLongitude().floatValue(), m.time(),
+							Optional.<Integer> absent(),
+							Optional.<Short> absent(),
+							nav, sog, cog,
+							heading, aisClass);
+					return Observable.just(f);
+				}
+			} else
+				return Observable.empty();
+		}
+
+	};
 
 	public static Observable<Observable<String>> nmeasFromGzip(
 			Observable<File> files) {

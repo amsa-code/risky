@@ -15,9 +15,10 @@ public final class Fix {
 	private final AisClass aisClass;
 	private final Optional<Integer> latencySeconds;
 	private final Optional<Short> source;
-	
-	public Fix(long mmsi, float lat, float lon,long time, 
-			Optional<Integer> latencySeconds, Optional<Short> source, Optional<NavigationalStatus> navigationalStatus,
+
+	public Fix(long mmsi, float lat, float lon, long time,
+			Optional<Integer> latencySeconds, Optional<Short> source,
+			Optional<NavigationalStatus> navigationalStatus,
 			Optional<Float> speedOverGroundKnots,
 			Optional<Float> courseOverGroundDegrees,
 			Optional<Float> headingDegrees, AisClass aisClass) {
@@ -77,5 +78,34 @@ public final class Fix {
 	public Optional<Short> getSource() {
 		return source;
 	}
-	
+
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder();
+		b.append("Fix [mmsi=");
+		b.append(mmsi);
+		b.append(", lat=");
+		b.append(lat);
+		b.append(", lon=");
+		b.append(lon);
+		b.append(", time=");
+		b.append(time);
+		b.append(", navigationalStatus=");
+		b.append(navigationalStatus);
+		b.append(", speedOverGroundKnots=");
+		b.append(speedOverGroundKnots);
+		b.append(", courseOverGroundDegrees=");
+		b.append(courseOverGroundDegrees);
+		b.append(", headingDegrees=");
+		b.append(headingDegrees);
+		b.append(", aisClass=");
+		b.append(aisClass);
+		b.append(", latencySeconds=");
+		b.append(latencySeconds);
+		b.append(", source=");
+		b.append(source);
+		b.append("]");
+		return b.toString();
+	}
+
 }
