@@ -5,7 +5,7 @@ readLong = function() {
   a = readBin(file, integer(), size=4, endian="big")
   b = readBin(file, integer(), size=4, endian="big")
   if (a<0) 
-    stop("haven't handled the negative case but shouldn't happen for millions of years when reading a unix time in ms so should be safe")
+    stop("haven't handled the negative case but shouldn't happen for 289 million years when reading a unix time in ms so should be safe")
   c = a*2^32 +b
 }
 readByte = function() readBin(file, integer(), size=1, endian="big")
