@@ -1,6 +1,7 @@
 package au.gov.amsa.ais.rx;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import org.junit.Test;
 
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
 public class StreamsTest {
@@ -38,21 +40,54 @@ public class StreamsTest {
 		assertEquals(-13.0884285, fix.getLat(), PRECISION);
 		assertEquals(1334337317000L, fix.getTime());
 		assertEquals(AisClass.A, fix.getAisClass());
+		assertEquals(67.0, fix.getHeadingDegrees().get(), PRECISION);
+		assertEquals(67.199996948, fix.getCourseOverGroundDegrees().get(),
+				PRECISION);
+		assertFalse(fix.getLatencySeconds().isPresent());
+		assertEquals(1, fix.getSource());
 		System.out.println(fix);
+		is.close();
+	}
+
+	@Test
+	public void testExtractFixGetsNavigationalStatusOfUnderWay()
+			throws IOException {
+
+		InputStream is = new ByteArrayInputStream(
+				"\\s:Pt Hedland NOMAD,c:1421878430*19\\!ABVDM,1,1,,B,33m2SV800K`Nh85lJdeDlTCN0000,0*1A"
+						.getBytes(Charset.forName("UTF-8")));
+		Fix fix = Streams.extractFixes(NmeaUtil.nmeaLines(is)).toBlocking()
+				.single();
+		assertEquals(NavigationalStatus.UNDER_WAY, fix.getNavigationalStatus()
+				.get());
+		is.close();
+	}
+
+	@Test
+	public void testExtractFixGetsNavigationalStatusOfAbsentForNotDefined15()
+			throws IOException {
+
+		InputStream is = new ByteArrayInputStream(
+				"\\s:ISEEK Flinders,c:1421879177*61\\!AIVDO,1,1,,,1>qc9wwP009qrbKd6DMAPww>0000,0*76"
+						.getBytes(Charset.forName("UTF-8")));
+		Fix fix = Streams.extractFixes(NmeaUtil.nmeaLines(is)).toBlocking()
+				.single();
+		assertFalse(fix.getNavigationalStatus().isPresent());
 		is.close();
 	}
 
 	@Test
 	public void testExtractFixFromAisPositionB() throws IOException {
 		InputStream is = new ByteArrayInputStream(
-				"\\s:rEV02,c:1334337317*58\\!AIVDM,1,1,,B,19NWuLhuRb5QHfCpPcwj`26B0<02,0*5F"
+				"\\s:MSQ - Mt Cootha,c:1421877742*76\\!AIVDM,1,1,,B,B7P?oe00FRg9t`L4T4IV;wbToP06,0*2F"
 						.getBytes(Charset.forName("UTF-8")));
 		Fix fix = Streams.extractFixes(NmeaUtil.nmeaLines(is)).toBlocking()
 				.single();
-		assertEquals(636091763, fix.getMmsi());
-		assertEquals(-13.0884285, fix.getLat(), PRECISION);
-		assertEquals(1334337317000L, fix.getTime());
-		assertEquals(AisClass.A, fix.getAisClass());
+		assertEquals(503576500, fix.getMmsi());
+		assertEquals(-27.46356391906, fix.getLat(), PRECISION);
+		assertEquals(1421877742000L, fix.getTime());
+		assertEquals(AisClass.B, fix.getAisClass());
+		assertFalse(fix.getSource().isPresent());
 		System.out.println(fix);
 		is.close();
 	}

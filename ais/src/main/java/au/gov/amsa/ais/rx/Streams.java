@@ -1,5 +1,8 @@
 package au.gov.amsa.ais.rx;
 
+import static com.google.common.base.Optional.absent;
+import static com.google.common.base.Optional.of;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -81,7 +84,7 @@ public class Streams {
 		return extractMessages(rawAisNmea).flatMap(TO_FIX);
 	}
 
-	//TODO unit test
+	// TODO unit test
 	private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = new Func1<Timestamped<AisMessage>, Observable<Fix>>() {
 
 		@Override
@@ -91,36 +94,49 @@ public class Streams {
 				if (a.getLatitude() == null || a.getLongitude() == null)
 					return Observable.empty();
 				else {
-					Optional<NavigationalStatus> nav = Optional.absent();
+					final Optional<NavigationalStatus> nav;
+					if (a instanceof AisPositionA) {
+						AisPositionA p = (AisPositionA) a;
+						if (p.getNavigationalStatus() == 15
+								|| p.getNavigationalStatus() > NavigationalStatus
+										.values().length - 1)
+							nav = absent();
+						else
+							nav = of(NavigationalStatus.values()[p
+									.getNavigationalStatus()]);
+					} else
+						nav = absent();
+
 					final Optional<Float> sog;
 					if (a.getSpeedOverGroundKnots() == null)
-						sog = Optional.absent();
+						sog = absent();
 					else
-						sog = Optional.of((a.getSpeedOverGroundKnots()
-								.floatValue()));
+						sog = of((a.getSpeedOverGroundKnots().floatValue()));
 					final Optional<Float> cog;
 					if (a.getCourseOverGround() == null)
-						cog = Optional.absent();
+						cog = absent();
 					else
-						cog = Optional
-								.of((a.getCourseOverGround().floatValue()));
+						cog = of((a.getCourseOverGround().floatValue()));
 					final Optional<Float> heading;
 					if (a.getTrueHeading() == null)
-						heading = Optional.absent();
+						heading = absent();
 					else
-						heading = Optional
-								.of((a.getTrueHeading().floatValue()));
+						heading = of((a.getTrueHeading().floatValue()));
+
 					final AisClass aisClass;
-					if (m.message() instanceof AisPositionA)
+					if (a instanceof AisPositionA)
 						aisClass = AisClass.A;
-					else 
+					else
 						aisClass = AisClass.B;
-					
-					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(), a
-							.getLongitude().floatValue(), m.time(),
-							Optional.<Integer> absent(),
-							Optional.<Short> absent(),
-							nav, sog, cog,
+					final Optional<Short> src;
+					if (a.getSource() != null) {
+						src = of((short) 1);
+					} else
+						src = absent();
+
+					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(),
+							a.getLongitude().floatValue(), m.time(),
+							Optional.<Integer> absent(), src, nav, sog, cog,
 							heading, aisClass);
 					return Observable.just(f);
 				}
