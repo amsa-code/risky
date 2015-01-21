@@ -49,5 +49,16 @@ This generates these files in the *target* directory:
 * ```123456789.track``` - 100,000 identical fixes
 * ```123456790.track``` - 2 fixes with different positions and time
 
+How to convert an NMEA stream to BinaryFixes
+--------------------------------------------
+You need the *ais* dependency for this:
+
+```java
+import au.gov.amsa.ais.rx.Streams;
+
+Observable<String> nmea = ...
+Observable<Fix> fixes = Streams.extractFixes(nmea);
+```
+
 
 
