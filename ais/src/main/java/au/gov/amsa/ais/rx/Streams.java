@@ -38,6 +38,7 @@ import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.risky.format.AisClass;
+import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
@@ -130,7 +131,8 @@ public class Streams {
 						aisClass = AisClass.B;
 					final Optional<Short> src;
 					if (a.getSource() != null) {
-						src = of((short) 1);
+						// TODO decode
+						src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
 					} else
 						src = absent();
 

@@ -11,6 +11,7 @@ import java.nio.charset.Charset;
 import org.junit.Test;
 
 import au.gov.amsa.risky.format.AisClass;
+import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.util.nmea.NmeaUtil;
@@ -44,7 +45,7 @@ public class StreamsTest {
 		assertEquals(67.199996948, fix.getCourseOverGroundDegrees().get(),
 				PRECISION);
 		assertFalse(fix.getLatencySeconds().isPresent());
-		assertEquals(1, fix.getSource());
+		assertEquals(1, (int) fix.getSource().get());
 		System.out.println(fix);
 		is.close();
 	}
@@ -87,7 +88,8 @@ public class StreamsTest {
 		assertEquals(-27.46356391906, fix.getLat(), PRECISION);
 		assertEquals(1421877742000L, fix.getTime());
 		assertEquals(AisClass.B, fix.getAisClass());
-		assertFalse(fix.getSource().isPresent());
+		assertEquals(BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN, (int) fix
+				.getSource().get());
 		System.out.println(fix);
 		is.close();
 	}

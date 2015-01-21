@@ -17,6 +17,7 @@ public final class BinaryFixes {
 	public static final int LATENCY_ABSENT = -1;
 	public static final short SOURCE_ABSENT = 0;
 	public static final byte ROT_ABSENT = Byte.MIN_VALUE;
+	public static final byte SOURCE_PRESENT_BUT_UNKNOWN = 1;
 
 	public static Observable<Fix> from(File file) {
 		return Observable.create(new BinaryFixesOnSubscribe(file));
@@ -43,14 +44,14 @@ public final class BinaryFixes {
 			bb.putInt(LATENCY_ABSENT);
 		if (fix.getSource().isPresent())
 			bb.putShort(fix.getSource().get());
-		else 
+		else
 			bb.putShort(SOURCE_ABSENT);
 
 		if (fix.getNavigationalStatus().isPresent())
 			bb.put((byte) fix.getNavigationalStatus().get().ordinal());
 		else
 			bb.put(NAV_STATUS_ABSENT);
-		
+
 		// rot
 		bb.put(ROT_ABSENT);
 
