@@ -4,8 +4,9 @@ readInteger = function() readBin(file, integer(), size=4, endian="big")
 readLong = function() { 
   a = readBin(file, integer(), size=4, endian="big")
   b = readBin(file, integer(), size=4, endian="big")
-  # now need to do some bit manipulations to get the desired 8 byte integer as a double
-  0
+  if (a<0) 
+    stop("haven't handled the negative case but shouldn't happen for millions of years when reading a unix time in ms so should be safe")
+  c = a*2^32 +b
 }
 readByte = function() readBin(file, integer(), size=1, endian="big")
 readShort = function() readBin(file, integer(), size=2, endian="big") 
