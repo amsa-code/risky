@@ -90,6 +90,8 @@ public class StreamsTest {
 		assertEquals(AisClass.B, fix.getAisClass());
 		assertEquals(BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN, (int) fix
 				.getSource().get());
+		assertFalse(fix.getNavigationalStatus().isPresent());
+		assertFalse(fix.getLatencySeconds().isPresent());
 		System.out.println(fix);
 		is.close();
 	}

@@ -136,10 +136,12 @@ public class Streams {
 					} else
 						src = absent();
 
+					// TODO latency
+					Optional<Integer> latency = absent();
+
 					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(),
-							a.getLongitude().floatValue(), m.time(),
-							Optional.<Integer> absent(), src, nav, sog, cog,
-							heading, aisClass);
+							a.getLongitude().floatValue(), m.time(), latency,
+							src, nav, sog, cog, heading, aisClass);
 					return Observable.just(f);
 				}
 			} else
