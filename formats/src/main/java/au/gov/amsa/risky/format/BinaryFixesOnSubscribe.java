@@ -62,15 +62,15 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		long time = bb.getLong();
 		int latency = bb.getInt();
 		final Optional<Integer> latencySeconds;
-		if (latency == -1) 
+		if (latency == -1)
 			latencySeconds = absent();
-		else 
+		else
 			latencySeconds = of(latency);
 		short src = bb.getShort();
 		final Optional<Short> source;
-		if (src ==0)
+		if (src == 0)
 			source = absent();
-		else 
+		else
 			source = of(src);
 		byte nav = bb.get();
 		final Optional<NavigationalStatus> navigationalStatus;
@@ -78,7 +78,7 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 			navigationalStatus = absent();
 		else
 			navigationalStatus = of(NavigationalStatus.values()[nav]);
-			
+
 		// rate of turn
 		bb.get();
 
@@ -109,9 +109,9 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		else
 			aisClass = AisClass.B;
 
-		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source,navigationalStatus,
-				speedOverGroundKnots, courseOverGroundDegrees,
-				headingDegrees, aisClass);
+		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source,
+				navigationalStatus, speedOverGroundKnots,
+				courseOverGroundDegrees, headingDegrees, aisClass);
 		return fix;
 	}
 
@@ -126,7 +126,7 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 
 	public static long getMmsi(File file) {
 		int finish = file.getName().indexOf('.');
-		String id = file.getName().substring(0,finish);
+		String id = file.getName().substring(0, finish);
 		return Long.parseLong(id);
 	}
 
