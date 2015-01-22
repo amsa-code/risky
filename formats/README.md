@@ -4,7 +4,7 @@ formats
 Java routines for manipulating binary formatted files of vessel positions and static vessel data. 
 
 The *BinaryFixes* format provides very good read rates from Java code, up to 7m records per second from SSD 
-which beats the hell out of reading raw NMEA at about 2K/second.
+which beats the hell out of decoding raw NMEA at about 2K/second.
 
 BinaryFixes format (.track)
 --------------------------------
