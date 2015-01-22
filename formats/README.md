@@ -69,7 +69,7 @@ Characteristics
 -------------------
 | Metric         | NMEA | BinaryFixes 
 |:---------------|:-----|:-----|
-| GZ compression factor | 3.9x | 8x
+| GZ compression factor | 3.9 | 8
 | Uncompressed disk space ratio | 2.8  | 1
 | GZ compressed disk space ratio | 5 | 1
 
