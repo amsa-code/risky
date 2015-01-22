@@ -194,6 +194,7 @@
                         <configuration>
                             <classpathScope>test</classpathScope>
                             <mainClass>au.gov.amsa.ais.rx.BinaryFixesWriterMain</mainClass>
+                            <argument>${directory}</argument>
                         </configuration>
                     </plugin>
                 </plugins>

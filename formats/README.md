@@ -60,5 +60,9 @@ Observable<String> nmea = ...
 Observable<Fix> fixes = Streams.extractFixes(nmea);
 ```
 
+Characteristics
+-------------------
+GZ compression yields 8x compression on the BinaryFixes format. For example, 802KB n.trace -> 107KB n.trace.gz
+
 
 
