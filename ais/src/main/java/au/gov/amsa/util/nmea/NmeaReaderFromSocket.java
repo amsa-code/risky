@@ -6,6 +6,8 @@ import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 
+import au.gov.amsa.ais.rx.Streams;
+
 import com.google.common.annotations.VisibleForTesting;
 
 /**
@@ -47,7 +49,7 @@ public class NmeaReaderFromSocket implements NmeaReader {
 	@Override
 	public Iterable<String> read() {
 		try {
-			return NmeaUtil.nmeaLines(socket.getInputStream()).toBlocking()
+			return Streams.nmeaFrom(socket.getInputStream()).toBlocking()
 					.toIterable();
 		} catch (IOException e) {
 			throw new RuntimeException(e);

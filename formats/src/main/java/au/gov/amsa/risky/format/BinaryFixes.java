@@ -34,6 +34,10 @@ public final class BinaryFixes {
 		}
 	}
 
+	public static ByteBuffer createFixByteBuffer() {
+		return ByteBuffer.allocate(BINARY_FIX_BYTES);
+	}
+
 	public static void write(Fix fix, ByteBuffer bb) {
 		bb.putFloat(fix.getLat());
 		bb.putFloat(fix.getLon());

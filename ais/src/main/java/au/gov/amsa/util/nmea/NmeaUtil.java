@@ -1,17 +1,11 @@
 package au.gov.amsa.util.nmea;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import rx.Observable;
-import rx.observables.StringObservable;
 import au.gov.amsa.ais.AisParseException;
-import au.gov.amsa.streams.Strings;
 
 import com.google.common.collect.Sets;
 
@@ -223,12 +217,6 @@ public final class NmeaUtil {
 		s.append(checksum);
 
 		return s.toString();
-	}
-
-	public static Observable<String> nmeaLines(InputStream is) {
-		return Strings.split(StringObservable
-				.from(new InputStreamReader(is, Charset.forName("UTF-8"))),
-				"\n");
 	}
 
 }

@@ -6,6 +6,7 @@ import static com.google.common.base.Optional.of;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -26,6 +27,8 @@ import rx.Observable.OnSubscribe;
 import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.functions.Action1;
+import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.AisMessage;
@@ -85,7 +88,6 @@ public class Streams {
 		return extractMessages(rawAisNmea).flatMap(TO_FIX);
 	}
 
-	// TODO unit test
 	private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = new Func1<Timestamped<AisMessage>, Observable<Fix>>() {
 
 		@Override
@@ -163,6 +165,7 @@ public class Streams {
 	}
 
 	public static Observable<String> nmeaFromGzip(String filename) {
+		// TODO use Observable.using to close resources
 		InputStreamReader isr;
 		try {
 			isr = new InputStreamReader(new GZIPInputStream(
@@ -484,5 +487,40 @@ public class Streams {
 
 	public static void main(String[] args) {
 		print(connectAndExtract("mariweb", 9010).take(10));
+	}
+
+	public static Observable<String> nmeaFrom(InputStream is) {
+		return Strings.split(Strings.from(new InputStreamReader(is, Charset
+				.forName("UTF-8"))), "\n");
+	}
+
+	public static Observable<String> nmeaFrom(final File file) {
+		return Observable.using(new Func0<InputStream>() {
+
+			@Override
+			public InputStream call() {
+				try {
+					return new FileInputStream(file);
+				} catch (FileNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}, new Func1<InputStream, Observable<String>>() {
+
+			@Override
+			public Observable<String> call(InputStream is) {
+				return nmeaFrom(is);
+			}
+		}, new Action1<InputStream>() {
+
+			@Override
+			public void call(InputStream is) {
+				try {
+					is.close();
+				} catch (IOException e) {
+					// don't care
+				}
+			}
+		});
 	}
 }

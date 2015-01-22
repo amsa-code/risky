@@ -9,7 +9,6 @@ import java.util.List;
 import org.junit.Test;
 
 import au.gov.amsa.ais.rx.operators.OperatorCraftProperty;
-import au.gov.amsa.util.nmea.NmeaUtil;
 
 public class OperatorCraftPropertyTest {
 
@@ -18,7 +17,7 @@ public class OperatorCraftPropertyTest {
 		InputStream is = StreamsTest.class
 				.getResourceAsStream("/exact-earth-with-tag-block.txt");
 		List<CraftProperty> list = Streams
-				.extractMessages(NmeaUtil.nmeaLines(is))
+				.extractMessages(Streams.nmeaFrom(is))
 				.lift(new OperatorCraftProperty()).toList().toBlocking()
 				.single();
 		assertEquals(CraftPropertyName.CALLSIGN, list.get(0).getName());
