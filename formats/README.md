@@ -62,7 +62,7 @@ Observable<Fix> fixes = Streams.extractFixes(nmea);
 
 Performance
 --------------
-Using Intel Xeon CPU ES-1650 @ 3.2GHz and SSD, binary format is read in at up to 7m records per second.
+Using Intel Xeon CPU ES-1650 @ 3.2GHz and SSD, binary format is read in at up to **7m records per second**.
 This compares very favourably with NMEA decode which is about 2K records/second.
 
 Characteristics
