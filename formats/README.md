@@ -71,7 +71,7 @@ Characteristics
 |:---------------|:-----|:-----|
 | GZ compression factor | 3.9x | 8x
 | Uncompressed disk space ratio | 2.8  | 1
- | GZ compressed disk space ratio | 5 | 1
+| GZ compressed disk space ratio | 5 | 1
 
 GZ compression yields 8x compression on the BinaryFixes format. For example: 
 
