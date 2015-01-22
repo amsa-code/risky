@@ -67,10 +67,16 @@ This compares very favourably with NMEA decode which is about 2K records/second.
 
 Characteristics
 -------------------
-GZ compression yields 8x compression on the BinaryFixes format. For example, 802KB n.trace -> 107KB n.trace.gz
+GZ compression yields 8x compression on the BinaryFixes format. For example: 
+
+```802KB n.trace -> 107KB n.trace.gz```
 
 Note that GZ compression of NMEA yields 3.9x compression.
 
-GZ compressed disk space savings of BinaryFixes is better than NMEA by a factor of 5.  For example 167.9MB n.nmea.gz *vs* 29MB n.trace.gz
+GZ compressed disk space savings of BinaryFixes is better than NMEA by a factor of 5.  For example:
 
-Uncompressed disk space saving is better than NMEA by a factor of 2.8. For example 654.7MB n.nmea *vs* 234MB n.trace
+```167.9MB n.nmea.gz vs 29MB n.trace.gz```
+
+Uncompressed disk space saving is better than NMEA by a factor of 2.8. For example:
+
+```654.7MB n.nmea vs 234MB n.trace```
