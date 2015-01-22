@@ -18,6 +18,7 @@ public class BinaryFixesWriterMain {
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("starting");
+		long t = System.currentTimeMillis();
 		final String inputFilename;
 		if (args.length > 0)
 			inputFilename = args[0];
@@ -42,7 +43,8 @@ public class BinaryFixesWriterMain {
 				});
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100).subscribe();
-		System.out.println("finished");
+		System.out.println("finished in " + (System.currentTimeMillis() - t)
+				/ 1000.0 + "s");
 	}
 
 	private static List<File> find(File file, final Pattern pattern) {
