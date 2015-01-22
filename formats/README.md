@@ -67,6 +67,12 @@ This compares very favourably with NMEA decode which is about 2K records/second.
 
 Characteristics
 -------------------
+| Metric         | NMEA | BinaryFixes 
+|:---------------|:-----|:-----|
+| GZ compression factor | 3.9x | 8x
+| Uncompressed disk space ratio | 2.8  | 1
+ | GZ compressed disk space ratio | 5 | 1
+
 GZ compression yields 8x compression on the BinaryFixes format. For example: 
 
 ```802KB n.trace -> 107KB n.trace.gz```
