@@ -14,6 +14,8 @@ import rx.functions.Func1;
 import au.gov.amsa.ais.rx.BinaryFixesWriter.ByMonth;
 import au.gov.amsa.risky.format.Fix;
 
+import com.github.davidmoten.rx.slf4j.Logging;
+
 public class BinaryFixesWriterMain {
 
 	public static void main(String[] args) throws IOException {
@@ -33,14 +35,16 @@ public class BinaryFixesWriterMain {
 		// System.out.println(files.count().toBlocking().single());
 
 		FileUtils.deleteDirectory(output);
-		Observable<Fix> fixes = files
-				.flatMap(new Func1<File, Observable<Fix>>() {
+		Observable<Fix> fixes = files.flatMap(
+				new Func1<File, Observable<Fix>>() {
 					@Override
 					public Observable<Fix> call(File file) {
 						return Streams.extractFixes(Streams.nmeaFromGzip(file
 								.getAbsolutePath()));
 					}
-				});
+				})
+		// log
+				.lift(Logging.<Fix> logger().showCount().every(10000).log());
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100).subscribe();
 		System.out.println("finished in " + (System.currentTimeMillis() - t)
