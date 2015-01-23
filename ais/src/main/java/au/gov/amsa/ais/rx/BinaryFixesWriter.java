@@ -113,7 +113,7 @@ public final class BinaryFixesWriter {
 			s.append(month);
 			s.append(File.separator);
 			s.append(fix.getMmsi());
-			s.append(".trace");
+			s.append(".track");
 			return s.toString();
 		}
 
@@ -144,7 +144,7 @@ public final class BinaryFixesWriter {
 		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100)
 		// count number of fixes
 				.count()
-				// on completion of writing fixes, sort the trace files and emit
+				// on completion of writing fixes, sort the track files and emit
 				// the count of files
 				.concatWith(sortOutputFilesByTime(output))
 				// go
@@ -173,8 +173,8 @@ public final class BinaryFixesWriter {
 		return Observable.just(1)
 		// use output lazily
 				.map(Functions.constant(output))
-				// find the trace files
-				.flatMap(findTraceFiles())
+				// find the track files
+				.flatMap(findTrackFiles())
 				// sort the fixes in each one and rewrite
 				.flatMap(sortFileFixes())
 				// return the count
@@ -197,12 +197,12 @@ public final class BinaryFixesWriter {
 		};
 	}
 
-	private static Func1<File, Observable<File>> findTraceFiles() {
+	private static Func1<File, Observable<File>> findTrackFiles() {
 		return new Func1<File, Observable<File>>() {
 			@Override
 			public Observable<File> call(File output) {
 				return Observable.from(Files.find(output,
-						Pattern.compile("\\d+\\.trace")));
+						Pattern.compile("\\d+\\.track")));
 			}
 		};
 	}
