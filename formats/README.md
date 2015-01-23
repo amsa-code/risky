@@ -85,9 +85,9 @@ up to the number of available processors minus one (just to leave a bit
 of processing power for downstream). 
 
 ```java
-        // using concurrency, count all the fixes across all files in the target
+        // using concurrency, count all the fixes across all files in the '2014'
 		// directory
-		Observable<File> files = Observable.from(Files.find(new File("target"),
+		Observable<File> files = Observable.from(Files.find(new File("2014"),
 				Pattern.compile("\\d+\\.track")));
 		int count = files
 		        // group the files against each processor
