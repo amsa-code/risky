@@ -1,6 +1,6 @@
 package au.gov.amsa.risky.format;
 
-import static au.gov.amsa.risky.format.Downsample.downsample;
+import static au.gov.amsa.risky.format.Downsample.minTimeStep;
 import static com.google.common.base.Optional.of;
 import static org.junit.Assert.assertEquals;
 
@@ -17,7 +17,7 @@ public class DownsampleTest {
 	@Test
 	public void testDownSampleOfEmptyReturnsEmpty() {
 		int count = Observable.<Fix> empty()
-				.compose(downsample(100, TimeUnit.MILLISECONDS)).count()
+				.compose(minTimeStep(100, TimeUnit.MILLISECONDS)).count()
 				.toBlocking().single();
 		assertEquals(0, count);
 	}
@@ -26,7 +26,7 @@ public class DownsampleTest {
 	public void testDownSampleOfOneReturnsOne() {
 		Fix f = createFix(0);
 		Fix fix = Observable.just(f)
-				.compose(downsample(100, TimeUnit.MILLISECONDS)).toBlocking()
+				.compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toBlocking()
 				.single();
 		assertEquals(f, fix);
 	}
@@ -36,7 +36,7 @@ public class DownsampleTest {
 		Fix f = createFix(0);
 		Fix f2 = createFix(50);
 		Fix fix = Observable.just(f, f2)
-				.compose(downsample(100, TimeUnit.MILLISECONDS)).toBlocking()
+				.compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toBlocking()
 				.single();
 		assertEquals(f, fix);
 	}
@@ -46,7 +46,7 @@ public class DownsampleTest {
 		Fix f = createFix(0);
 		Fix f2 = createFix(150);
 		List<Fix> fixes = Observable.just(f, f2)
-				.compose(downsample(100, TimeUnit.MILLISECONDS)).toList()
+				.compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toList()
 				.toBlocking().single();
 		assertEquals(Arrays.asList(f, f2), fixes);
 	}
@@ -57,7 +57,7 @@ public class DownsampleTest {
 		Fix f2 = createFix(50);
 		Fix f3 = createFix(150);
 		List<Fix> fixes = Observable.just(f, f2, f3)
-				.compose(downsample(100, TimeUnit.MILLISECONDS)).toList()
+				.compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toList()
 				.toBlocking().single();
 		assertEquals(Arrays.asList(f, f3), fixes);
 	}

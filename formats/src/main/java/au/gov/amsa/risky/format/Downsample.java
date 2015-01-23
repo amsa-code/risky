@@ -10,11 +10,11 @@ public class Downsample implements Transformer<Fix, Fix> {
 
 	private long maxTimeBetweenFixesMs;
 
-	public Downsample(long maxTimeBetweenFixesMs) {
-		this.maxTimeBetweenFixesMs = maxTimeBetweenFixesMs;
+	public Downsample(long minTimeBetweenFixesMs) {
+		this.maxTimeBetweenFixesMs = minTimeBetweenFixesMs;
 	}
 
-	public static Downsample downsample(long duration, TimeUnit unit) {
+	public static Downsample minTimeStep(long duration, TimeUnit unit) {
 		return new Downsample(unit.toMillis(duration));
 	}
 

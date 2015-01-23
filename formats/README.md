@@ -65,12 +65,14 @@ Observable<Fix> fixes = Streams.extractFixes(nmea);
 
 How to downsample 
 ---------------------
+The code below downsamples a stream of fixes with for the same vessel that must be in ascending time order so that the minimum time between fixes is 5 minutes.
+
 ```java
-import static au.gov.amsa.risky.format.Downsample.downsample;
+import au.gov.amsa.risky.format.Downsample;
 import java.util.concurrent.TimeUnit;
 
 Observable<Fix> fixes = BinaryFixes.from(new File("123456789.trace"));
-Observable<Fix> sampled = fixes.compose(downsample(5, TimeUnit.MINUTES));
+Observable<Fix> sampled = fixes.compose(Downsample.minTimeStep(5, TimeUnit.MINUTES));
 ```
 
 Performance
