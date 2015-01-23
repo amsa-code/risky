@@ -23,7 +23,12 @@ public class Downsample implements Transformer<Fix, Fix> {
 		return fixes.scan(new Func2<Fix, Fix, Fix>() {
 			@Override
 			public Fix call(Fix latest, Fix fix) {
-				if (fix.getTime() - latest.getTime() > maxTimeBetweenFixesMs)
+				if (fix.getTime() < latest.getTime())
+					throw new RuntimeException("not in ascending time order!");
+				else if (fix.getMmsi() != latest.getMmsi())
+					throw new RuntimeException(
+							"can only downsample a single vessel");
+				else if (fix.getTime() - latest.getTime() > maxTimeBetweenFixesMs)
 					return fix;
 				else
 					return latest;
