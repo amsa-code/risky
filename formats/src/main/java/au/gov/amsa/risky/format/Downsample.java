@@ -6,16 +6,16 @@ import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Func2;
 
-public class DownSample implements Transformer<Fix, Fix> {
+public class Downsample implements Transformer<Fix, Fix> {
 
 	private long maxTimeBetweenFixesMs;
 
-	public DownSample(long maxTimeBetweenFixesMs) {
+	public Downsample(long maxTimeBetweenFixesMs) {
 		this.maxTimeBetweenFixesMs = maxTimeBetweenFixesMs;
 	}
 
-	public static DownSample downSample(long duration, TimeUnit unit) {
-		return new DownSample(unit.toMillis(duration));
+	public static Downsample downsample(long duration, TimeUnit unit) {
+		return new Downsample(unit.toMillis(duration));
 	}
 
 	@Override

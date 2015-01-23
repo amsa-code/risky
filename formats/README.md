@@ -63,14 +63,14 @@ Observable<String> nmea = ...
 Observable<Fix> fixes = Streams.extractFixes(nmea);
 ```
 
-How to down sample 
+How to downsample 
 ---------------------
 ```java
-import static au.gov.amsa.risky.format.DownSample.downSample;
+import static au.gov.amsa.risky.format.Downsample.downsample;
 import java.util.concurrent.TimeUnit;
 
 Observable<Fix> fixes = BinaryFixes.from(new File("123456789.trace"));
-Observable<Fix> sampled = fixes.compose(downSample(5, TimeUnit.MINUTES));
+Observable<Fix> sampled = fixes.compose(downsample(5, TimeUnit.MINUTES));
 ```
 
 Performance
