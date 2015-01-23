@@ -119,20 +119,23 @@ public final class BinaryFixesWriter {
 	}
 
 	public static void writeFixes(File input, File output) {
-		writeFixes(input, Pattern.compile("NMEA_ITU_20.*.gz"), output);
+		writeFixes(input, Pattern.compile("NMEA_ITU_20.*.gz"), output, 10000);
 	}
 
-	public static void writeFixes(File input, Pattern inputPattern, File output) {
+	public static void writeFixes(File input, Pattern inputPattern,
+			File output, int logEvery) {
 		Observable<File> files = Observable.from(find(input, inputPattern));
 
 		deleteDirectory(output);
 
 		Observable<Fix> fixes = files
-		// extract fixes
+		// log the filename
+				.lift(Logging.<File> log())
+				// extract fixes
 				.flatMap(extractFixesFromNmeaGz())
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
-						.every(10000).log());
+						.every(logEvery).log());
 
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 

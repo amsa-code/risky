@@ -25,11 +25,12 @@ public class BinaryFixesWriterMain {
 		File output = new File("target/binary");
 		long t = System.currentTimeMillis();
 
-		BinaryFixesWriter.writeFixes(input,
-				Pattern.compile("NMEA_ITU_201412.*.gz"), output);
+		int logEvery = 100000;
+		Pattern inputPattern = Pattern.compile("NMEA_ITU_201412.*.gz");
+
+		BinaryFixesWriter.writeFixes(input, inputPattern, output, logEvery);
 
 		log.info("finished in " + (System.currentTimeMillis() - t) / 1000.0
 				+ "s");
 	}
-
 }
