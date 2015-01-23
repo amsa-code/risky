@@ -22,6 +22,7 @@ import rx.functions.Func1;
 import rx.observables.GroupedObservable;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.util.Files;
 
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
@@ -124,7 +125,8 @@ public final class BinaryFixesWriter {
 
 	public static void writeFixes(File input, Pattern inputPattern,
 			File output, int logEvery) {
-		Observable<File> files = Observable.from(find(input, inputPattern));
+		Observable<File> files = Observable.from(Files
+				.find(input, inputPattern));
 
 		deleteDirectory(output);
 
@@ -199,7 +201,7 @@ public final class BinaryFixesWriter {
 		return new Func1<File, Observable<File>>() {
 			@Override
 			public Observable<File> call(File output) {
-				return Observable.from(find(output,
+				return Observable.from(Files.find(output,
 						Pattern.compile("\\d+\\.trace")));
 			}
 		};
@@ -223,31 +225,5 @@ public final class BinaryFixesWriter {
 			return ((Long) a.getTime()).compareTo(b.getTime());
 		}
 	};
-
-	private static List<File> find(File file, final Pattern pattern) {
-		if (!file.exists())
-			return Collections.emptyList();
-		else {
-			if (!file.isDirectory()
-					&& pattern.matcher(file.getName()).matches())
-				return Collections.singletonList(file);
-			else if (file.isDirectory()) {
-				List<File> list = new ArrayList<File>();
-				File[] files = file.listFiles();
-				if (files != null)
-					for (File f : file.listFiles()) {
-						if (!f.getName().startsWith(".")) {
-							if (f.isFile()
-									&& pattern.matcher(f.getName()).matches())
-								list.add(f);
-							else
-								list.addAll(find(f, pattern));
-						}
-					}
-				return list;
-			} else
-				return Collections.emptyList();
-		}
-	}
 
 }
