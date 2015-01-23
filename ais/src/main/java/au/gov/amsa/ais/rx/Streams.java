@@ -152,6 +152,41 @@ public class Streams {
 
 	};
 
+	public static Observable<String> nmeaFrom(final File file) {
+		return Observable.using(new Func0<InputStream>() {
+
+			@Override
+			public InputStream call() {
+				try {
+					return new FileInputStream(file);
+				} catch (FileNotFoundException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}, new Func1<InputStream, Observable<String>>() {
+
+			@Override
+			public Observable<String> call(InputStream is) {
+				return nmeaFrom(is);
+			}
+		}, new Action1<InputStream>() {
+
+			@Override
+			public void call(InputStream is) {
+				try {
+					is.close();
+				} catch (IOException e) {
+					// don't care
+				}
+			}
+		});
+	}
+
+	public static Observable<String> nmeaFrom(InputStream is) {
+		return Strings.split(Strings.from(new InputStreamReader(is, Charset
+				.forName("UTF-8"))), "\n");
+	}
+
 	public static Observable<Observable<String>> nmeasFromGzip(
 			Observable<File> files) {
 		return files.map(new Func1<File, Observable<String>>() {
@@ -469,12 +504,6 @@ public class Streams {
 		});
 	}
 
-	public static Observable<CraftProperties> aggregate(
-			Observable<CraftProperty> source) {
-		// TODO
-		return null;
-	}
-
 	private static Socket createSocket(final String host, final int port) {
 		try {
 			return new Socket(host, port);
@@ -486,41 +515,14 @@ public class Streams {
 	}
 
 	public static void main(String[] args) {
-		print(connectAndExtract("mariweb", 9010).take(10));
+		// print(connectAndExtract("mariweb", 9010).take(10));
+		long t = System.currentTimeMillis();
+		int count = extractMessages(
+				nmeaFrom(new File("/home/dxm/temp/NMEA_ITU_20150101"))).count()
+				.toBlocking().single();
+		double rate = count * 1000.0 / (System.currentTimeMillis() - t);
+		System.out.println("read " + count + " records, rateMsgsPerSecond = "
+				+ rate);
 	}
 
-	public static Observable<String> nmeaFrom(InputStream is) {
-		return Strings.split(Strings.from(new InputStreamReader(is, Charset
-				.forName("UTF-8"))), "\n");
-	}
-
-	public static Observable<String> nmeaFrom(final File file) {
-		return Observable.using(new Func0<InputStream>() {
-
-			@Override
-			public InputStream call() {
-				try {
-					return new FileInputStream(file);
-				} catch (FileNotFoundException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		}, new Func1<InputStream, Observable<String>>() {
-
-			@Override
-			public Observable<String> call(InputStream is) {
-				return nmeaFrom(is);
-			}
-		}, new Action1<InputStream>() {
-
-			@Override
-			public void call(InputStream is) {
-				try {
-					is.close();
-				} catch (IOException e) {
-					// don't care
-				}
-			}
-		});
-	}
 }
