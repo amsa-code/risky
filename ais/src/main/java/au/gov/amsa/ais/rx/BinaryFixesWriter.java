@@ -123,29 +123,38 @@ public final class BinaryFixesWriter {
 	}
 
 	public static void writeFixes(File input, Pattern inputPattern, File output) {
-		Observable<File> files = Observable.from(find(input, inputPattern))
-				.cache();
+		Observable<File> files = Observable.from(find(input, inputPattern));
 
-		try {
-			FileUtils.deleteDirectory(output);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		Observable<Fix> fixes = files.flatMap(toFixes())
-		// log
+		deleteDirectory(output);
+
+		Observable<Fix> fixes = files
+		// extract fixes
+				.flatMap(extractFixesFromNmeaGz())
+				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.every(10000).log());
+
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
+
 		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100)
 		// count number of fixes
 				.count()
-				// on completion of writing fixes, sort the trace files
+				// on completion of writing fixes, sort the trace files and emit
+				// the count of files
 				.concatWith(sortOutputFilesByTime(output))
 				// go
 				.subscribe();
 	}
 
-	private static Func1<File, Observable<Fix>> toFixes() {
+	private static void deleteDirectory(File output) {
+		try {
+			FileUtils.deleteDirectory(output);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static Func1<File, Observable<Fix>> extractFixesFromNmeaGz() {
 		return new Func1<File, Observable<Fix>>() {
 			@Override
 			public Observable<Fix> call(File file) {
