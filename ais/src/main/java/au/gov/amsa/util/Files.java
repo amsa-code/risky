@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class Files {
+public final class Files {
 
 	public static List<File> find(File file, final Pattern pattern) {
 		if (!file.exists())
