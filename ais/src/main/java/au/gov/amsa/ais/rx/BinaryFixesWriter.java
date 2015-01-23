@@ -123,7 +123,6 @@ public final class BinaryFixesWriter {
 	}
 
 	public static void writeFixes(File input, Pattern inputPattern, File output) {
-		long t = System.currentTimeMillis();
 		Observable<File> files = Observable.from(find(input, inputPattern))
 				.cache();
 
