@@ -75,6 +75,46 @@ Observable<Fix> fixes = BinaryFixes.from(new File("123.track"));
 Observable<Fix> sampled = fixes.compose(Downsample.minTimeStep(5, TimeUnit.MINUTES));
 ```
 
+How to process many files concurrently
+--------------------------------------
+Given that one of the file arrangements being used is one BinaryFix file 
+per month per vessel, this fact can be used to leverage concurrency.
+
+This example uses concurrency to process many BinaryFix files at a time
+up to the number of available processors minus one (just to leave a bit
+of processing power for downstream). 
+
+```java
+        // using concurrency, count all the fixes across all files in the target
+		// directory
+		Observable<File> files = Observable.from(Files.find(new File("target"),
+				Pattern.compile("\\d+\\.track")));
+		int count = files
+		        // group the files against each processor
+				.buffer(Runtime.getRuntime().availableProcessors() - 1)
+				// do the work per buffer on a separate scheduler
+				.flatMap(new Func1<List<File>, Observable<Integer>>() {
+					@Override
+					public Observable<Integer> call(List<File> list) {
+						return Observable.from(list)
+				        		// count the fixes in each file
+								.flatMap(countFixes())
+								// perform concurrently
+								.subscribeOn(Schedulers.computation());
+					}
+				})
+				// total all the counts
+				.reduce(0, new Func2<Integer, Integer, Integer>() {
+					@Override
+					public Integer call(Integer a, Integer b) {
+						return a + b;
+					}
+				})
+				// block and get the result
+				.toBlocking().single();
+		System.out.println("total fixes = " + count);
+```
+
 Performance
 --------------
 Using Intel Xeon CPU ES-1650 @ 3.2GHz and SSD, binary format is read in at up to **7m records per second**.
