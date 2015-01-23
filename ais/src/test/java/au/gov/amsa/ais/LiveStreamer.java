@@ -2,14 +2,15 @@ package au.gov.amsa.ais;
 
 import static au.gov.amsa.ais.TstUtil.handleAisStream;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
 
 public class LiveStreamer {
 
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws IOException {
+
 		System.out.println("Testing live stream");
 		int port = Integer.parseInt(System.getProperty("ais.port", "1236"));
 		String host = System.getProperty("ais.host", "cbrais01.amsa.gov.au");
@@ -18,16 +19,22 @@ public class LiveStreamer {
 		FileOutputStream raw = new FileOutputStream("target/raw-2.txt");
 		FileOutputStream processed = new FileOutputStream(
 				"target/processed-2.txt", true);
-		while (true)
-			try {
-				Socket socket = new Socket(host, port);
-				handleAisStream(socket.getInputStream(), new PrintStream(raw),
-						new PrintStream(processed), System.out);
-				Thread.sleep(30000);
-			} catch (InterruptedException e) {
-				// do nothing
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		Socket socket = null;
+		try {
+			while (true)
+				try {
+					socket = new Socket(host, port);
+					handleAisStream(socket.getInputStream(), new PrintStream(
+							raw), new PrintStream(processed), System.out);
+					Thread.sleep(30000);
+				} catch (InterruptedException e) {
+					// do nothing
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+		} finally {
+			if (socket != null)
+				socket.close();
+		}
 	}
 }

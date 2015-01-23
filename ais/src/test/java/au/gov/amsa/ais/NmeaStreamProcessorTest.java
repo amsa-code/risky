@@ -235,10 +235,6 @@ public class NmeaStreamProcessorTest {
 			return notFound;
 		}
 
-		public List<Pair<String, Long>> getInvalidNmea() {
-			return notFound;
-		}
-
 		@Override
 		public void invalidNmea(String line, long arrivalTime, String message) {
 			invalidNmea.add(Pair.of(line, arrivalTime));

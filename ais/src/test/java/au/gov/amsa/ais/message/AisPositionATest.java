@@ -23,7 +23,7 @@ public class AisPositionATest {
 	@Test
 	public void testAisPosition() {
 		String m = "15MgK45P3@G?fl0E`JbR0OwT0@MS";
-		
+
 		AisPositionA p = new AisPositionA(m);
 		assertEquals(1, p.getMessageId());
 		assertEquals(0, p.getRepeatIndicator());
@@ -85,7 +85,7 @@ public class AisPositionATest {
 	@Test(expected = AisParseException.class)
 	public void testConstructorFailsWhenLineHasWrongMessageId() {
 		String m = "B7P@fj00RJVpbIuUhlF93wm5WP06";
-		AisPositionA p = new AisPositionA(m);
+		new AisPositionA(m);
 	}
 
 	@Test
