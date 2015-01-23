@@ -15,8 +15,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.functions.Action1;
@@ -29,9 +27,6 @@ import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
 
 public final class BinaryFixesWriter {
-
-	private static final Logger log = LoggerFactory
-			.getLogger(BinaryFixesWriter.class);
 
 	public static Observable<List<Fix>> writeFixes(
 			final Func1<Fix, String> fileMapper, Observable<Fix> fixes,
@@ -137,46 +132,66 @@ public final class BinaryFixesWriter {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-		Observable<Fix> fixes = files.flatMap(
-				new Func1<File, Observable<Fix>>() {
-					@Override
-					public Observable<Fix> call(File file) {
-						return Streams.extractFixes(Streams.nmeaFromGzip(file
-								.getAbsolutePath()));
-					}
-				})
+		Observable<Fix> fixes = files.flatMap(toFixes())
 		// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.every(10000).log());
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
-		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100).count()
-				.concatWith(sortOutputFilesByTime(output)).subscribe();
-		System.out.println("finished in " + (System.currentTimeMillis() - t)
-				/ 1000.0 + "s");
+		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100)
+		// count number of fixes
+				.count()
+				// on completion of writing fixes, sort the trace files
+				.concatWith(sortOutputFilesByTime(output))
+				// go
+				.subscribe();
+	}
+
+	private static Func1<File, Observable<Fix>> toFixes() {
+		return new Func1<File, Observable<Fix>>() {
+			@Override
+			public Observable<Fix> call(File file) {
+				return Streams.extractFixes(Streams.nmeaFromGzip(file
+						.getAbsolutePath()));
+			}
+		};
 	}
 
 	private static Observable<Integer> sortOutputFilesByTime(File output) {
-		return Observable.just(1).map(Functions.constant(output))
-				.flatMap(new Func1<File, Observable<File>>() {
-					@Override
-					public Observable<File> call(File output) {
-						return Observable.from(find(output,
-								Pattern.compile("\\d+\\.trace")));
-					}
-				}).flatMap(new Func1<File, Observable<Integer>>() {
-					@Override
-					public Observable<Integer> call(final File file) {
-						return BinaryFixes.from(file).toList().map(sortFixes())
-								.doOnNext(new Action1<List<Fix>>() {
-									@Override
-									public void call(List<Fix> list) {
-										BinaryFixesWriter.writeFixes(list,
-												file, false);
-									}
-								}).count();
-					}
+		return Observable.just(1)
+		// use output lazily
+				.map(Functions.constant(output))
+				// find the trace files
+				.flatMap(findTraceFiles())
+				// sort the fixes in each one and rewrite
+				.flatMap(sortFileFixes())
+				// return the count
+				.count();
+	}
 
-				}).count();
+	private static Func1<File, Observable<Integer>> sortFileFixes() {
+		return new Func1<File, Observable<Integer>>() {
+			@Override
+			public Observable<Integer> call(final File file) {
+				return BinaryFixes.from(file).toList().map(sortFixes())
+						.doOnNext(new Action1<List<Fix>>() {
+							@Override
+							public void call(List<Fix> list) {
+								BinaryFixesWriter.writeFixes(list, file, false);
+							}
+						}).count();
+			}
+
+		};
+	}
+
+	private static Func1<File, Observable<File>> findTraceFiles() {
+		return new Func1<File, Observable<File>>() {
+			@Override
+			public Observable<File> call(File output) {
+				return Observable.from(find(output,
+						Pattern.compile("\\d+\\.trace")));
+			}
+		};
 	}
 
 	private static Func1<List<Fix>, List<Fix>> sortFixes() {
@@ -222,11 +237,6 @@ public final class BinaryFixesWriter {
 			} else
 				return Collections.emptyList();
 		}
-	}
-
-	public static void main(String[] args) {
-		System.out.println(find(new File("target/binary"),
-				Pattern.compile("\\d+\\.trace")));
 	}
 
 }
