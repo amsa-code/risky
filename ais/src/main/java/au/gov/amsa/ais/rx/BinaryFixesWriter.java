@@ -8,12 +8,15 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.functions.Action1;
@@ -22,9 +25,13 @@ import rx.observables.GroupedObservable;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 
+import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
 
-public class BinaryFixesWriter {
+public final class BinaryFixesWriter {
+
+	private static final Logger log = LoggerFactory
+			.getLogger(BinaryFixesWriter.class);
 
 	public static Observable<List<Fix>> writeFixes(
 			final Func1<Fix, String> fileMapper, Observable<Fix> fixes,
@@ -58,32 +65,35 @@ public class BinaryFixesWriter {
 				if (fixes.size() == 0)
 					return;
 				String filename = fileMapper.call(fixes.get(0));
-				OutputStream os = null;
-				try {
-					File file = new File(filename);
-					file.getParentFile().mkdirs();
-					os = new BufferedOutputStream(new FileOutputStream(file,
-							true));
-					ByteBuffer bb = BinaryFixes.createFixByteBuffer();
-					for (Fix fix : fixes) {
-						bb.rewind();
-						BinaryFixes.write(fix, bb);
-						os.write(bb.array());
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-					throw new RuntimeException(e);
-				} finally {
-					if (os != null)
-						try {
-							os.close();
-						} catch (IOException e) {
-							// we care because we are writing
-							throw new RuntimeException(e);
-						}
-				}
+				writeFixes(fixes, new File(filename), true);
 			}
+
 		};
+	}
+
+	private static void writeFixes(List<Fix> fixes, File file, boolean append) {
+		OutputStream os = null;
+		try {
+			file.getParentFile().mkdirs();
+			os = new BufferedOutputStream(new FileOutputStream(file, append));
+			ByteBuffer bb = BinaryFixes.createFixByteBuffer();
+			for (Fix fix : fixes) {
+				bb.rewind();
+				BinaryFixes.write(fix, bb);
+				os.write(bb.array());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} finally {
+			if (os != null)
+				try {
+					os.close();
+				} catch (IOException e) {
+					// we care because we are writing
+					throw new RuntimeException(e);
+				}
+		}
 	}
 
 	public static class ByMonth implements Func1<Fix, String> {
@@ -119,7 +129,8 @@ public class BinaryFixesWriter {
 
 	public static void writeFixes(File input, Pattern inputPattern, File output) {
 		long t = System.currentTimeMillis();
-		Observable<File> files = Observable.from(find(input, inputPattern));
+		Observable<File> files = Observable.from(find(input, inputPattern))
+				.cache();
 
 		try {
 			FileUtils.deleteDirectory(output);
@@ -135,12 +146,57 @@ public class BinaryFixesWriter {
 					}
 				})
 		// log
-				.lift(Logging.<Fix> logger().showCount().every(10000).log());
+				.lift(Logging.<Fix> logger().showCount().showMemory()
+						.every(10000).log());
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
-		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100).subscribe();
+		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100).count()
+				.concatWith(sortOutputFilesByTime(output)).subscribe();
 		System.out.println("finished in " + (System.currentTimeMillis() - t)
 				/ 1000.0 + "s");
 	}
+
+	private static Observable<Integer> sortOutputFilesByTime(File output) {
+		return Observable.just(1).map(Functions.constant(output))
+				.flatMap(new Func1<File, Observable<File>>() {
+					@Override
+					public Observable<File> call(File output) {
+						return Observable.from(find(output,
+								Pattern.compile("\\d+\\.trace")));
+					}
+				}).flatMap(new Func1<File, Observable<Integer>>() {
+					@Override
+					public Observable<Integer> call(final File file) {
+						return BinaryFixes.from(file).toList().map(sortFixes())
+								.doOnNext(new Action1<List<Fix>>() {
+									@Override
+									public void call(List<Fix> list) {
+										BinaryFixesWriter.writeFixes(list,
+												file, false);
+									}
+								}).count();
+					}
+
+				}).count();
+	}
+
+	private static Func1<List<Fix>, List<Fix>> sortFixes() {
+		return new Func1<List<Fix>, List<Fix>>() {
+
+			@Override
+			public List<Fix> call(List<Fix> list) {
+				ArrayList<Fix> temp = new ArrayList<Fix>(list);
+				Collections.sort(temp, FIX_ORDER_BY_TIME);
+				return temp;
+			}
+		};
+	}
+
+	private static final Comparator<Fix> FIX_ORDER_BY_TIME = new Comparator<Fix>() {
+		@Override
+		public int compare(Fix a, Fix b) {
+			return ((Long) a.getTime()).compareTo(b.getTime());
+		}
+	};
 
 	private static List<File> find(File file, final Pattern pattern) {
 		if (!file.exists())
@@ -166,6 +222,11 @@ public class BinaryFixesWriter {
 			} else
 				return Collections.emptyList();
 		}
+	}
+
+	public static void main(String[] args) {
+		System.out.println(find(new File("target/binary"),
+				Pattern.compile("\\d+\\.trace")));
 	}
 
 }
