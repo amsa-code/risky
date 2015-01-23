@@ -29,7 +29,7 @@ How to use in java
 ---------------------
 
 ```java
-Observable<Fix> fixes = BinaryFixes.from(new File("target/123456789.track"));
+Observable<Fix> fixes = BinaryFixes.from(new File("123.track"));
 ```
 
 How to use with R
@@ -71,14 +71,14 @@ The code below downsamples a stream of fixes with for the same vessel that must 
 import au.gov.amsa.risky.format.Downsample;
 import java.util.concurrent.TimeUnit;
 
-Observable<Fix> fixes = BinaryFixes.from(new File("123456789.trace"));
+Observable<Fix> fixes = BinaryFixes.from(new File("123.trace"));
 Observable<Fix> sampled = fixes.compose(Downsample.minTimeStep(5, TimeUnit.MINUTES));
 ```
 
 Performance
 --------------
 Using Intel Xeon CPU ES-1650 @ 3.2GHz and SSD, binary format is read in at up to **7m records per second**.
-This compares very favourably with NMEA decode which is about 2K records/second.
+This compares very favourably with NMEA decode which is about 75K records/second (probably lots worse because the decode does extractions lazily).
 
 Characteristics
 -------------------
