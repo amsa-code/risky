@@ -75,6 +75,11 @@ public final class BinaryFixesTest {
 		writeTwoBinaryFixes();
 	}
 
+	@Test
+	public void testExample() {
+
+	}
+
 	static void writeTwoBinaryFixes() throws IOException {
 		OutputStream os = new BufferedOutputStream(new FileOutputStream(
 				"target/123456790.track"));
