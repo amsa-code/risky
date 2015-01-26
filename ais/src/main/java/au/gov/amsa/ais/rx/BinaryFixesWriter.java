@@ -25,6 +25,7 @@ import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
 
 import com.github.davidmoten.rx.Functions;
+import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
 import com.github.davidmoten.rx.slf4j.Logging;
 
 public final class BinaryFixesWriter {
@@ -185,15 +186,29 @@ public final class BinaryFixesWriter {
 		return new Func1<File, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(final File file) {
-				return BinaryFixes.from(file).toList().map(sortFixes())
-						.doOnNext(new Action1<List<Fix>>() {
-							@Override
-							public void call(List<Fix> list) {
-								BinaryFixesWriter.writeFixes(list, file, false);
-							}
-						}).count();
+				return BinaryFixes
+						.from(file)
+						// ensure file is closed in case we want to rewrite
+						// downstream
+						.lift(OperatorUnsubscribeEagerly.<Fix> instance())
+						.toList()
+						// sort each list
+						.map(sortFixes())
+						// replace the file with sorted fixes
+						.doOnNext(writeFixes(file))
+						// count the fixes
+						.count();
 			}
 
+		};
+	}
+
+	private static Action1<List<Fix>> writeFixes(final File file) {
+		return new Action1<List<Fix>>() {
+			@Override
+			public void call(List<Fix> list) {
+				BinaryFixesWriter.writeFixes(list, file, false);
+			}
 		};
 	}
 

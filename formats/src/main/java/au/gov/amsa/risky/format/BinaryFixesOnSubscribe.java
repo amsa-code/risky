@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 
 import rx.Observable.OnSubscribe;
 import rx.Subscriber;
+import rx.Subscription;
 
 import com.google.common.base.Optional;
 
@@ -28,13 +29,36 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		FileInputStream fis = null;
 		try {
 			fis = new FileInputStream(file);
+			subscriber.add(createSubscription(fis));
 			reportFixes(file, subscriber, fis);
-			subscriber.onCompleted();
+			if (!subscriber.isUnsubscribed())
+				subscriber.onCompleted();
 		} catch (Exception e) {
-			subscriber.onError(e);
-		} finally {
-			closeQuietly(fis);
+			if (!subscriber.isUnsubscribed())
+				subscriber.onError(e);
 		}
+	}
+
+	private Subscription createSubscription(final FileInputStream fis) {
+		return new Subscription() {
+
+			volatile boolean subscribed = true;
+
+			@Override
+			public void unsubscribe() {
+				subscribed = false;
+				try {
+					fis.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+			@Override
+			public boolean isUnsubscribed() {
+				return !subscribed;
+			}
+		};
 	}
 
 	private static void reportFixes(final File file,
@@ -113,15 +137,6 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 				navigationalStatus, speedOverGroundKnots,
 				courseOverGroundDegrees, headingDegrees, aisClass);
 		return fix;
-	}
-
-	private static void closeQuietly(FileInputStream fis) {
-		if (fis != null)
-			try {
-				fis.close();
-			} catch (IOException e) {
-				// ignore
-			}
 	}
 
 	public static long getMmsi(File file) {
