@@ -8,7 +8,7 @@ import rx.Observable;
 public class Main {
 
 	public static void main(String[] args) {
-		Observable<String> lines = Strings.from("mariweb.amsa.gov.au")
+		Observable<String> lines = StringSockets.from("mariweb.amsa.gov.au")
 				.port(9010).quietTimeout(1, TimeUnit.MINUTES)
 				.reconnectDelay(1, TimeUnit.SECONDS)
 				.charset(StandardCharsets.UTF_8).create();
