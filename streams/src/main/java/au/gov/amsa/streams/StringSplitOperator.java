@@ -96,12 +96,14 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onCompleted() {
 			if (requestAll) {
+				// fast path
 				if (leftOver != null)
 					child.onNext(leftOver);
 				if (!isUnsubscribed()) {
 					child.onCompleted();
 				}
 			} else {
+				// backpressure path
 				if (leftOver != null)
 					queue.add(leftOver);
 				queue.add(on.completed());
@@ -112,8 +114,10 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onError(Throwable e) {
 			if (requestAll) {
+				// fast path
 				child.onError(e);
 			} else {
+				// backpressure path
 				queue.add(on.error(e));
 				drainQueue();
 			}
@@ -122,22 +126,29 @@ public class StringSplitOperator implements Operator<String, String> {
 		@Override
 		public void onNext(String s) {
 			String[] parts = pattern.split(s, -1);
-			// can emit all parts except the last part because it hasn't been
-			// terminated by the pattern yet
+			// prepend leftover to the first part
 			if (leftOver != null)
 				parts[0] = leftOver + parts[0];
+
+			// can emit all parts except the last part because it hasn't been
+			// terminated by the pattern yet
 			if (requestAll) {
+				// fast path
 				for (int i = 0; i < parts.length - 1; i++)
 					child.onNext(parts[i]);
 			} else {
+				// backpressure path
 				for (int i = 0; i < parts.length - 1; i++)
 					queue.add(on.next(parts[i]));
 				drainQueue();
 			}
+			// we have to assign the last part as leftOver because we don't know
+			// if it has been terminated yet
 			leftOver = parts[parts.length - 1];
 		}
 
 		private void drainQueue() {
+			// only used by backpressure path
 			while (true) {
 				Object item = queue.peek();
 				if (item == null || isUnsubscribed())
