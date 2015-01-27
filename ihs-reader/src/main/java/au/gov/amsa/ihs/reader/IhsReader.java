@@ -17,7 +17,7 @@ import au.gov.amsa.ihs.model.Ship;
 public class IhsReader {
 
 	public Observable<Ship> from(InputStream is) {
-		return Observable.from(is).lift(new OperatorIhsReader());
+		return Observable.just(is).lift(new OperatorIhsReader());
 	}
 
 	public static Observable<Ship> fromZip(File file) {

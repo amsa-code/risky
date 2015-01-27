@@ -16,24 +16,24 @@
             <version>${slf4j.version}</version>
         </dependency>
 		<dependency>
-		    <groupId>com.netflix.rxjava</groupId>
-		    <artifactId>rxjava-core</artifactId>
-		    <version>0.19.0</version>
-		</dependency>
+            <groupId>io.reactivex</groupId>
+            <artifactId>rxjava</artifactId>
+            <version>${rxjava.version}</version>
+        </dependency>
 		<dependency>
 		    <groupId>joda-time</groupId>
 		    <artifactId>joda-time</artifactId>
-		    <version>2.3</version>
+		    <version>${joda.time.version}</version>
 		</dependency>
 		<dependency>
 		    <groupId>com.google.guava</groupId>
 		    <artifactId>guava</artifactId>
-		    <version>17.0</version>
+		    <version>${guava.version}</version>
 		</dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 	</dependencies>
