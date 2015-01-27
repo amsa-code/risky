@@ -18,7 +18,7 @@ import rx.schedulers.Schedulers;
  * Publishes lines from an Observable&lt;String&gt; source to a
  * {@link ServerSocket}.
  */
-public class StringServer {
+public final class StringServer {
 
 	private static Logger log = LoggerFactory.getLogger(StringServer.class);
 

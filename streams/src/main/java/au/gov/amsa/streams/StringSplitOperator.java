@@ -14,7 +14,7 @@ import rx.internal.operators.NotificationLite;
  * Splits and joins items in a sequence of strings based on a regex pattern.
  * Supports backpressure.
  */
-public class StringSplitOperator implements Operator<String, String> {
+public final class StringSplitOperator implements Operator<String, String> {
 
 	/**
 	 * Pattern to split the strings by.
@@ -131,7 +131,7 @@ public class StringSplitOperator implements Operator<String, String> {
 				parts[0] = leftOver + parts[0];
 
 			// can emit all parts except the last part because it hasn't been
-			// terminated by the pattern yet
+			// terminated by the pattern/end-of-stream yet
 			if (requestAll) {
 				// fast path
 				for (int i = 0; i < parts.length - 1; i++)

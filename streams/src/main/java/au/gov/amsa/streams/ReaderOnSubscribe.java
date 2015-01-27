@@ -6,7 +6,8 @@ import java.io.Reader;
 import rx.Subscriber;
 import rx.observables.AbstractOnSubscribe;
 
-public class ReaderOnSubscribe extends AbstractOnSubscribe<String, Reader> {
+public final class ReaderOnSubscribe extends
+		AbstractOnSubscribe<String, Reader> {
 
 	private final Reader reader;
 	private final int size;

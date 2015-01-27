@@ -7,7 +7,7 @@ import java.util.Arrays;
 import rx.Subscriber;
 import rx.observables.AbstractOnSubscribe;
 
-public class InputStreamOnSubscribe extends
+public final class InputStreamOnSubscribe extends
 		AbstractOnSubscribe<byte[], InputStream> {
 
 	private final InputStream reader;
