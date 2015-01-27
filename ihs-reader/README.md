@@ -1,6 +1,6 @@
 ihs-reader
 ==================
-Reads ship static data from IHS (LLoyds) that AMSA 
+Reads ship static data from [IHS (LLoyds)](http://www.shipfinder.org/) that AMSA 
 receives monthly as a zip file containing multiple xml files.
 
 How to use

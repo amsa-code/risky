@@ -17,7 +17,7 @@ Status: *pre-alpha*
 | [geo-analyzer](geo-analyzer) | distance travelled calculation, traffic density plots
 | [craft-analyzer-wms](craft-analyzer-wms) | visualizations using OpenLayers and Grumpy WMS
 | [formats](formats) | read and write binary formatted vessel positions and static vessel data
-| [ihs-reader](ihs-reader) | read static ship information from IHS LLoyds sourced zipped xml files
+| [ihs-reader](ihs-reader) | read static ship information from [IHS LLoyds](http://www.shipfinder.org/) sourced zipped xml files
 
 Maven site reports are [here](http://amsa-code.github.io/risky/index.html) including [javadoc](http://amsa-code.github.io/risky/apidocs/index.html).
 
