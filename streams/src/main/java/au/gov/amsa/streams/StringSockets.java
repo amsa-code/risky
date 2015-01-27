@@ -29,7 +29,8 @@ import com.google.common.base.Preconditions;
 
 public final class StringSockets {
 
-	private static final Logger log = LoggerFactory.getLogger(StringSockets.class);
+	private static final Logger log = LoggerFactory
+			.getLogger(StringSockets.class);
 
 	/**
 	 * Returns an Observable sequence of lines from the given host and port. If

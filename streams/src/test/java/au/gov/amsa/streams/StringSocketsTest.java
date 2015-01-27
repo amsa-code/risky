@@ -53,7 +53,8 @@ public class StringSocketsTest {
 	public void testSocketObservableFactoryOnException() throws IOException {
 		Socket socket = mock(Socket.class);
 		doThrow(new IOException("hi")).when(socket).getInputStream();
-		StringSockets.socketObservableFactory(StandardCharsets.UTF_8).call(socket);
+		StringSockets.socketObservableFactory(StandardCharsets.UTF_8).call(
+				socket);
 	}
 
 	@Test
@@ -65,6 +66,11 @@ public class StringSocketsTest {
 		doReturn(1234).when(socket).getPort();
 		doThrow(new IOException("hi")).when(socket).close();
 		StringSockets.socketDisposer().call(socket);
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void testSocketCreatorThrowsException() {
+		StringSockets.socketCreator("non-existent-host", 1234).call();
 	}
 
 }
