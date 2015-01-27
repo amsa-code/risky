@@ -11,9 +11,9 @@ import au.gov.amsa.ihs.reader.IhsReader;
 Observable<Ship> ships = IhsReader.fromZip(file);
 ```
 
-Read into memory as a map so you can do lookups:
+Read into memory as a map so you can do lookups by IMO number:
 ```java
-Observable<String, Ship> shipsByImo = IhsReader.fromZipAsMap(file);
+Observable<Map<String, Ship>> shipsByImo = IhsReader.fromZipAsMap(file);
 ```
 
 Performance
