@@ -53,6 +53,7 @@
 		<module>geo-analyzer</module>
 		<module>craft-analyzer-wms</module>
         <module>formats</module>
+		<module>ihs-reader</module>
     </modules>
 
     <build>

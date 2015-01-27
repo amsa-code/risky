@@ -1,0 +1,1005 @@
+<?xml version="1.0" standalone="yes"?>
+<NewDataSet xmlns="http://ShipData.schemas.lrfairplay.com">
+  <xs:schema id="NewDataSet" targetNamespace="http://ShipData.schemas.lrfairplay.com" xmlns:mstns="http://ShipData.schemas.lrfairplay.com" xmlns="http://ShipData.schemas.lrfairplay.com" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" attributeFormDefault="qualified" elementFormDefault="qualified">
+    <xs:element name="NewDataSet" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msdata:EnforceConstraints="False">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element name="ShipData">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="LRIMOShipNo" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="AlterationsDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="AuxilaryGeneratorsDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="AuxiliaryEnginesNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="BaleCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="BoilersDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="BollardPull" type="xs:int" minOccurs="0" />
+                <xs:element name="BowDischargeFacility" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="BowLoadingFacility" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Breadth" type="xs:decimal" minOccurs="0" />
+                <xs:element name="BreadthExtreme" type="xs:decimal" minOccurs="0" />
+                <xs:element name="BreadthMoulded" type="xs:decimal" minOccurs="0" />
+                <xs:element name="BunkersDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CallSign" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="13" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CargoCapacitiesNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CargoTankCoatings" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ChartererLatestReported" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="10" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ClassNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ClassificationSocietyCode" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="15" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ClosedLoadingSystem" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ConstructionDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ContractDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CountryOfBreaking" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CountryOfBuild" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CountryOfBuildCode" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="3" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="CrudeOilWashingCOW" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="DateBreakingCommenced" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Deadweight" type="xs:int" minOccurs="0" />
+                <xs:element name="DeathDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="DeliveryDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="DateOfBuild" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="6" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Depth" type="xs:decimal" minOccurs="0" />
+                <xs:element name="Displacement" type="xs:int" minOccurs="0" />
+                <xs:element name="Draught" type="xs:decimal" minOccurs="0" />
+                <xs:element name="FairplayID" type="xs:int" minOccurs="0" />
+                <xs:element name="FlagCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="3" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="FlagEffectiveDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="6" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="FlagName" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="FlashPointOver60c" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="FlashPointUnder60c" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="FormulaDWT" type="xs:decimal" minOccurs="0" />
+                <xs:element name="FuelType1Capacity" type="xs:decimal" minOccurs="0" />
+                <xs:element name="FuelType1First" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="30" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="FuelType2Capacity" type="xs:decimal" minOccurs="0" />
+                <xs:element name="FuelType2Second" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="30" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GasCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="GearDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="500" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Gearless" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GrainCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="GrossTonnage" type="xs:int" minOccurs="0" />
+                <xs:element name="GroupBeneficialOwner" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GroupBeneficialOwnerCompanyCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GroupBeneficialOwnerCountryOfControl" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GroupBeneficialOwnerCountryofDomicile" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GroupBeneficialOwnerCountryofDomicileCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="3" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="GroupBeneficialOwnerCountryOfRegistration" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="HatchesDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="500" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="HoldsDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="500" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="HullMaterial" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="HullMaterialCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="HullType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="HullTypeCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="6" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="IceCapabilityDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="500" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="IMOChemicalClassI" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="IMOChemicalClassII" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="IMOChemicalClassIII" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="InertGasSystemIGS" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="InmarsatNumberSatCommID" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="10" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="InsulatedCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="KeelLaidDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="LanesDoorsRampsNarrative" msdata:ReadOnly="true" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1502" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="LastUpdateDate" type="xs:dateTime" minOccurs="0" />
+                <xs:element name="LaunchDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="LeadshipinseriesbyIMONumber" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="LengthBetweenPerpendicularsLBP" type="xs:decimal" minOccurs="0" />
+                <xs:element name="LengthOverallLOA" msdata:ReadOnly="true" type="xs:decimal" minOccurs="0" />
+                <xs:element name="LengthRegistered" type="xs:decimal" minOccurs="0" />
+                <xs:element name="LightDisplacementTonnage" type="xs:int" minOccurs="0" />
+                <xs:element name="LiquidCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="MainEngineBuilder" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="255" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MainEngineBuilderCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="9" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MainEngineDesignerCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="3" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MainEngineModel" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="15" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MainEngineNumberofCylinders" type="xs:int" minOccurs="0" />
+                <xs:element name="MainEngineRPM" type="xs:short" minOccurs="0" />
+                <xs:element name="MainEngineStrokeType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MainEngineType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="12" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MaritimeMobileServiceIdentityMMSINumber" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="9" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="MARPOL13GPhaseoutCategory" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="NetTonnage" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberOfAuxiliaryEngines" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberofCabins" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberofDecks" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="2" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="NumberofHatches" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberofHolds" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberofMainEngines" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberOfPropulsionUnits" type="xs:int" minOccurs="0" />
+                <xs:element name="NumberofTanks" type="xs:int" minOccurs="0" />
+                <xs:element name="OfficialNumber" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="30" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PanamaCanalNetTonnagePCNT" type="xs:int" minOccurs="0" />
+                <xs:element name="PandIClub" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="100" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PandIClubCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="20" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PassengerCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="PermanentBallastCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="PhotoPresent" type="xs:boolean" minOccurs="0" />
+                <xs:element name="PortofRegistry" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PortofRegistryFullCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PrimeMoverDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PrimeMoverDescriptiveOverviewNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PropellerType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="30" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PropulsionType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="30" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="PropulsionTypeCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="4" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ReeferPoints" type="xs:short" minOccurs="0" />
+                <xs:element name="SafetyManagementCertificateAuditor" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="20" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="SafetyManagementCertificateDateExpires" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="12" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="SafetyManagementCertificateDateIssued" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="12" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="SafetyManagementCertificateIssuer" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="20" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="SafetyManagementCertificateShipType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="SegregatedBallastCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="ShipName" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShipStatus" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShipStatusCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShipStatusEffectiveDate" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="8" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Shipbuilder" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShipbuilderCompanyCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="9" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShipbuilderFullStyle" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="100" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeGroup" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="60" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="SlopTankCapacity" type="xs:int" minOccurs="0" />
+                <xs:element name="SpecialTanksDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="500" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="Speed" type="xs:decimal" minOccurs="0" />
+                <xs:element name="StandardShipDesign" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="StatCode5" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="TanksDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="500" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="TEU" type="xs:int" minOccurs="0" />
+                <xs:element name="TEUCapacity14tHomogenous" type="xs:int" minOccurs="0" />
+                <xs:element name="ThrustersDescriptiveNarrative" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7000" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="TotalKilowattsofMainEngines" type="xs:int" minOccurs="0" />
+                <xs:element name="TotalPowerOfAllEngines" type="xs:int" minOccurs="0" />
+                <xs:element name="TotalPowerOfAuxiliaryEngines" type="xs:int" minOccurs="0" />
+                <xs:element name="VapourRecoverySystem" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="1" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="YardNumber" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="50" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="RegisteredOwnerCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="DocumentofComplianceDOCCompanyCode" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="7" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel2" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="55" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel3" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="55" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel4" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="55" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel5" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="55" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel5HullType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="100" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel5SubGroup" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="100" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+                <xs:element name="ShiptypeLevel5SubType" minOccurs="0">
+                  <xs:simpleType>
+                    <xs:restriction base="xs:string">
+                      <xs:maxLength value="160" />
+                    </xs:restriction>
+                  </xs:simpleType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <ShipData>
+    <LRIMOShipNo>4500084</LRIMOShipNo>
+    <AuxilaryGeneratorsDescriptiveNarrative>3 x 168kW </AuxilaryGeneratorsDescriptiveNarrative>
+    <AuxiliaryEnginesNarrative />
+    <BaleCapacity>0</BaleCapacity>
+    <BollardPull>0</BollardPull>
+    <Breadth>12.200</Breadth>
+    <BreadthExtreme>12.360</BreadthExtreme>
+    <BreadthMoulded>12.200</BreadthMoulded>
+    <CargoCapacitiesNarrative>Segregated Ballast 305</CargoCapacitiesNarrative>
+    <ClassNarrative />
+    <ClassificationSocietyCode />
+    <ConstructionDescriptiveNarrative>Statcode5:B34P2QV; Hull Material:Steel; Hull Connections:Welded; Decks:1 dk</ConstructionDescriptiveNarrative>
+    <ContractDate>19720101</ContractDate>
+    <CountryOfBreaking />
+    <CountryOfBuild>United Kingdom</CountryOfBuild>
+    <CountryOfBuildCode>GBI</CountryOfBuildCode>
+    <Deadweight>0</Deadweight>
+    <DeliveryDate>19730910</DeliveryDate>
+    <DateOfBuild>197309</DateOfBuild>
+    <Depth>5.500</Depth>
+    <Displacement>0</Displacement>
+    <Draught>4.180</Draught>
+    <FairplayID>57768</FairplayID>
+    <FlagCode>UNK</FlagCode>
+    <FlagEffectiveDate>201110</FlagEffectiveDate>
+    <FlagName>Unknown</FlagName>
+    <FormulaDWT>1445.50</FormulaDWT>
+    <FuelType1First>Yes, But Type Not Known</FuelType1First>
+    <FuelType2Capacity>0.00</FuelType2Capacity>
+    <FuelType2Second>Not Applicable</FuelType2Second>
+    <GasCapacity>0</GasCapacity>
+    <GrainCapacity>0</GrainCapacity>
+    <GrossTonnage>799</GrossTonnage>
+    <GroupBeneficialOwner>UTEC Survey Ltd</GroupBeneficialOwner>
+    <GroupBeneficialOwnerCompanyCode>5211759</GroupBeneficialOwnerCompanyCode>
+    <GroupBeneficialOwnerCountryOfControl>United Kingdom</GroupBeneficialOwnerCountryOfControl>
+    <GroupBeneficialOwnerCountryofDomicile>United Kingdom</GroupBeneficialOwnerCountryofDomicile>
+    <GroupBeneficialOwnerCountryofDomicileCode>GBI</GroupBeneficialOwnerCountryofDomicileCode>
+    <GroupBeneficialOwnerCountryOfRegistration>United Kingdom</GroupBeneficialOwnerCountryOfRegistration>
+    <HullMaterial>Steel (Unspecified)</HullMaterial>
+    <HullMaterialCode>ST</HullMaterialCode>
+    <HullType />
+    <InsulatedCapacity>0</InsulatedCapacity>
+    <KeelLaidDate>19720613</KeelLaidDate>
+    <LanesDoorsRampsNarrative />
+    <LastUpdateDate>2013-10-22T00:00:00+01:00</LastUpdateDate>
+    <LaunchDate>19730412</LaunchDate>
+    <LengthBetweenPerpendicularsLBP>48.800</LengthBetweenPerpendicularsLBP>
+    <LengthOverallLOA>60.250</LengthOverallLOA>
+    <LengthRegistered>51.550</LengthRegistered>
+    <LightDisplacementTonnage>0</LightDisplacementTonnage>
+    <LiquidCapacity>0</LiquidCapacity>
+    <MainEngineBuilder>Paxman Diesels Ltd. - Colchester</MainEngineBuilder>
+    <MainEngineBuilderCode>GBI518568</MainEngineBuilderCode>
+    <MainEngineDesignerCode>PAX</MainEngineDesignerCode>
+    <MainEngineModel>16RPHM</MainEngineModel>
+    <MainEngineNumberofCylinders>16</MainEngineNumberofCylinders>
+    <MainEngineStrokeType>4</MainEngineStrokeType>
+    <MainEngineType>Oil</MainEngineType>
+    <NetTonnage>240</NetTonnage>
+    <NumberofCabins>0</NumberofCabins>
+    <NumberofDecks>1</NumberofDecks>
+    <NumberofMainEngines>1</NumberofMainEngines>
+    <NumberOfPropulsionUnits>1</NumberOfPropulsionUnits>
+    <PanamaCanalNetTonnagePCNT>0</PanamaCanalNetTonnagePCNT>
+    <PandIClub>Shipowners' Protection Ltd</PandIClub>
+    <PandIClubCode>51449</PandIClubCode>
+    <PassengerCapacity>0</PassengerCapacity>
+    <PhotoPresent>true</PhotoPresent>
+    <PortofRegistryFullCode>UNK0000</PortofRegistryFullCode>
+    <PrimeMoverDescriptiveNarrative>1 oil engine driving 1 CP propellerTotal Power:  Mcr 551kW (749hp)Service Speed: 10.00kts</PrimeMoverDescriptiveNarrative>
+    <PrimeMoverDescriptiveOverviewNarrative>Design: Paxman, Engine Builder: Paxman Diesels Ltd. - Colchester1 x 16RPHM, 4 Stroke, Single Acting, Vee16 Cy. 178 x 197, Mcr: 551 kW (749 hp) </PrimeMoverDescriptiveOverviewNarrative>
+    <PropellerType>Controllable Pitch</PropellerType>
+    <PropulsionType>Oil Engine(s), Geared Drive</PropulsionType>
+    <PropulsionTypeCode>DG</PropulsionTypeCode>
+    <ReeferPoints>0</ReeferPoints>
+    <SafetyManagementCertificateAuditor />
+    <SafetyManagementCertificateDateIssued>20120111</SafetyManagementCertificateDateIssued>
+    <SafetyManagementCertificateIssuer />
+    <SafetyManagementCertificateShipType />
+    <SegregatedBallastCapacity>305</SegregatedBallastCapacity>
+    <ShipName>UTEC SURVEYOR</ShipName>
+    <ShipStatus>In Service/Commission</ShipStatus>
+    <ShipStatusCode>S</ShipStatusCode>
+    <ShipStatusEffectiveDate>19730910</ShipStatusEffectiveDate>
+    <Shipbuilder>Robb Caledon</Shipbuilder>
+    <ShipbuilderCompanyCode>GBI075358</ShipbuilderCompanyCode>
+    <ShipbuilderFullStyle>Robb Caledon Shipbuilders Ltd. - Scotland</ShipbuilderFullStyle>
+    <ShiptypeGroup />
+    <Speed>10.00</Speed>
+    <StatCode5>B34P2QV</StatCode5>
+    <TEU>0</TEU>
+    <TEUCapacity14tHomogenous>0</TEUCapacity14tHomogenous>
+    <TotalKilowattsofMainEngines>551</TotalKilowattsofMainEngines>
+    <TotalPowerOfAllEngines>551</TotalPowerOfAllEngines>
+    <YardNumber>513</YardNumber>
+    <RegisteredOwnerCode>5211759</RegisteredOwnerCode>
+    <DocumentofComplianceDOCCompanyCode>5211759</DocumentofComplianceDOCCompanyCode>
+    <ShiptypeLevel2>Miscellaneous</ShiptypeLevel2>
+    <ShiptypeLevel3>Other Activities</ShiptypeLevel3>
+    <ShiptypeLevel4>Salvage Ship</ShiptypeLevel4>
+    <ShiptypeLevel5>Salvage Ship</ShiptypeLevel5>
+    <ShiptypeLevel5HullType>Ship Shape Including Multi-Hulls</ShiptypeLevel5HullType>
+    <ShiptypeLevel5SubGroup>Specialist 2</ShiptypeLevel5SubGroup>
+    <ShiptypeLevel5SubType>Salvage Ship</ShiptypeLevel5SubType>
+  </ShipData>
+  <ShipData>
+    <LRIMOShipNo>4544107</LRIMOShipNo>
+    <AuxiliaryEnginesNarrative />
+    <BaleCapacity>0</BaleCapacity>
+    <BollardPull>0</BollardPull>
+    <Breadth>7.500</Breadth>
+    <BreadthExtreme>0.000</BreadthExtreme>
+    <BreadthMoulded>7.500</BreadthMoulded>
+    <BunkersDescriptiveNarrative />
+    <CallSign>2GWY9</CallSign>
+    <CargoCapacitiesNarrative />
+    <ClassNarrative>Survey Type: Date: 2002-01 </ClassNarrative>
+    <ClassificationSocietyCode>RI</ClassificationSocietyCode>
+    <ConstructionDescriptiveNarrative>Statcode5:B34H2SQ; Hull Material:Steel; Hull Connections:Welded; Decks:1 dk</ConstructionDescriptiveNarrative>
+    <ContractDate>20000101</ContractDate>
+    <CountryOfBreaking />
+    <CountryOfBuild>Finland</CountryOfBuild>
+    <CountryOfBuildCode>FIN</CountryOfBuildCode>
+    <Deadweight>0</Deadweight>
+    <DeliveryDate>20020101</DeliveryDate>
+    <DateOfBuild>200201</DateOfBuild>
+    <Depth>0.000</Depth>
+    <Displacement>0</Displacement>
+    <Draught>3.700</Draught>
+    <FairplayID>235779</FairplayID>
+    <FlagCode>GBI</FlagCode>
+    <FlagEffectiveDate>201308</FlagEffectiveDate>
+    <FlagName>United Kingdom</FlagName>
+    <FuelType1Capacity>0.00</FuelType1Capacity>
+    <FuelType1First>Yes, But Type Not Known</FuelType1First>
+    <FuelType2Capacity>0.00</FuelType2Capacity>
+    <FuelType2Second>Not Applicable</FuelType2Second>
+    <FormulaDWT>1445.0</FormulaDWT>
+    <GasCapacity>0</GasCapacity>
+    <GrainCapacity>0</GrainCapacity>
+    <GrossTonnage>525</GrossTonnage>
+    <GroupBeneficialOwner>United Kingdom Govt</GroupBeneficialOwner>
+    <GroupBeneficialOwnerCompanyCode>0860230</GroupBeneficialOwnerCompanyCode>
+    <GroupBeneficialOwnerCountryOfControl>United Kingdom</GroupBeneficialOwnerCountryOfControl>
+    <GroupBeneficialOwnerCountryofDomicile>United Kingdom</GroupBeneficialOwnerCountryofDomicile>
+    <GroupBeneficialOwnerCountryofDomicileCode>GBI</GroupBeneficialOwnerCountryofDomicileCode>
+    <GroupBeneficialOwnerCountryOfRegistration>United Kingdom</GroupBeneficialOwnerCountryOfRegistration>
+    <HullMaterial>Steel (Unspecified)</HullMaterial>
+    <HullMaterialCode>ST</HullMaterialCode>
+    <HullType />
+    <InsulatedCapacity>0</InsulatedCapacity>
+    <LanesDoorsRampsNarrative />
+    <LastUpdateDate>2014-01-16T14:47:29.78+00:00</LastUpdateDate>
+    <LengthBetweenPerpendicularsLBP>0.000</LengthBetweenPerpendicularsLBP>
+    <LengthOverallLOA>49.700</LengthOverallLOA>
+    <LengthRegistered>0.000</LengthRegistered>
+    <LightDisplacementTonnage>0</LightDisplacementTonnage>
+    <LiquidCapacity>0</LiquidCapacity>
+    <MainEngineBuilder>Wartsila Finland Oy - Finland</MainEngineBuilder>
+    <MainEngineBuilderCode>FIN005580</MainEngineBuilderCode>
+    <MainEngineDesignerCode>WAR</MainEngineDesignerCode>
+    <MainEngineModel>12V200</MainEngineModel>
+    <MainEngineNumberofCylinders>12</MainEngineNumberofCylinders>
+    <MainEngineStrokeType>4</MainEngineStrokeType>
+    <MainEngineType>Oil</MainEngineType>
+    <MaritimeMobileServiceIdentityMMSINumber>235101211</MaritimeMobileServiceIdentityMMSINumber>
+    <NetTonnage>425</NetTonnage>
+    <NumberofCabins>0</NumberofCabins>
+    <NumberofDecks>1</NumberofDecks>
+    <NumberofMainEngines>2</NumberofMainEngines>
+    <NumberOfPropulsionUnits>2</NumberOfPropulsionUnits>
+    <PanamaCanalNetTonnagePCNT>0</PanamaCanalNetTonnagePCNT>
+    <PandIClub>Unknown</PandIClub>
+    <PandIClubCode>9999999</PandIClubCode>
+    <PassengerCapacity>0</PassengerCapacity>
+    <PhotoPresent>false</PhotoPresent>
+    <PortofRegistry xml:space="preserve"> </PortofRegistry>
+    <PrimeMoverDescriptiveNarrative>2 oil engines reduction geared to screw shafts driving 2 Propellers Service Speed: 22.00kts</PrimeMoverDescriptiveNarrative>
+    <PrimeMoverDescriptiveOverviewNarrative>Design: Wartsila, Engine Builder: Wartsila Finland Oy - Finland2 x 12V200, 4 Stroke, Single Acting, Vee12 Cy. 200 x 240 </PrimeMoverDescriptiveOverviewNarrative>
+    <PropellerType>Yes, Type Unknown</PropellerType>
+    <PropulsionType>Oil Engine(s), Geared Drive</PropulsionType>
+    <PropulsionTypeCode>DG</PropulsionTypeCode>
+    <ReeferPoints>0</ReeferPoints>
+    <SafetyManagementCertificateAuditor />
+    <SafetyManagementCertificateDateIssued>20130819</SafetyManagementCertificateDateIssued>
+    <SafetyManagementCertificateIssuer />
+    <SafetyManagementCertificateShipType />
+    <SegregatedBallastCapacity>0</SegregatedBallastCapacity>
+    <ShipName>PROTECTOR</ShipName>
+    <ShipStatus>In Service/Commission</ShipStatus>
+    <ShipStatusCode>S</ShipStatusCode>
+    <ShipStatusEffectiveDate>20020101</ShipStatusEffectiveDate>
+    <Shipbuilder>Uudenkaupungin Tyovene Oy</Shipbuilder>
+    <ShipbuilderCompanyCode>FIN020050</ShipbuilderCompanyCode>
+    <ShipbuilderFullStyle>Uudenkaupungin Tyovene Oy - Uusikaupunki</ShipbuilderFullStyle>
+    <Speed>22.00</Speed>
+    <StatCode5>B34H2SQ</StatCode5>
+    <TEU>0</TEU>
+    <TEUCapacity14tHomogenous>0</TEUCapacity14tHomogenous>
+    <ThrustersDescriptiveNarrative>1 Retract. directional thruster (f) </ThrustersDescriptiveNarrative>
+    <TotalPowerOfAllEngines>0</TotalPowerOfAllEngines>
+    <YardNumber>20125</YardNumber>
+    <RegisteredOwnerCode>5754527</RegisteredOwnerCode>
+    <DocumentofComplianceDOCCompanyCode>9991001</DocumentofComplianceDOCCompanyCode>
+    <ShiptypeLevel2>Miscellaneous</ShiptypeLevel2>
+    <ShiptypeLevel3>Other Activities</ShiptypeLevel3>
+    <ShiptypeLevel4>Patrol Vessel</ShiptypeLevel4>
+    <ShiptypeLevel5>Patrol Vessel</ShiptypeLevel5>
+    <ShiptypeLevel5HullType>Ship Shape Including Multi-Hulls</ShiptypeLevel5HullType>
+    <ShiptypeLevel5SubGroup>Specialist 1</ShiptypeLevel5SubGroup>
+    <ShiptypeLevel5SubType>Patrol Vessel</ShiptypeLevel5SubType>
+  </ShipData>
+</NewDataSet>
