@@ -26,7 +26,7 @@ public class BinaryFixesWriterMain {
 		long t = System.currentTimeMillis();
 
 		int logEvery = 100000;
-		Pattern inputPattern = Pattern.compile("NMEA_ITU_2014.*.gz");
+		Pattern inputPattern = Pattern.compile("NMEA_ITU_(201412|201501).*.gz");
 
 		BinaryFixesWriter.writeFixes(input, inputPattern, output, logEvery);
 
