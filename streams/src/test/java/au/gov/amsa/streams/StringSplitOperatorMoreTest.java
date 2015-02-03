@@ -10,7 +10,8 @@ import com.github.davidmoten.rx.testing.TestingHelper;
 public class StringSplitOperatorMoreTest extends TestCase {
 
 	public static TestSuite suite() {
-
+		// TODO remove this when RxJava does right thing (1.0.5 or later)
+		TestingHelper.includeBackpressureRequestOverflowTest = false;
 		return TestingHelper
 				.function(SPLIT)
 				// test empty
