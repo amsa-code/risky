@@ -17,9 +17,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.GroupedObservable;
+import rx.schedulers.Schedulers;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
@@ -124,8 +126,8 @@ public final class BinaryFixesWriter {
 		writeFixes(input, Pattern.compile("NMEA_ITU_20.*.gz"), output, 10000);
 	}
 
-	public static void writeFixes(File input, Pattern inputPattern,
-			File output, int logEvery) {
+	public static Observable<Integer> writeFixes(File input,
+			Pattern inputPattern, File output, int logEvery) {
 		Observable<File> files = Observable.from(Files
 				.find(input, inputPattern));
 
@@ -135,21 +137,20 @@ public final class BinaryFixesWriter {
 		// log the filename
 				.lift(Logging.<File> log())
 				// extract fixes
-				.flatMap(extractFixesFromNmeaGz())
+				// TODO why doesn't computation scheduler work?
+				.flatMap(extractFixesFromNmeaGz(Schedulers.immediate()))
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
-						.every(logEvery).log());
+						.showRateSince("rate", 1).every(logEvery).log());
 
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 
-		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100)
+		return BinaryFixesWriter.writeFixes(fileMapper, fixes, 100)
 		// count number of fixes
 				.count()
 				// on completion of writing fixes, sort the track files and emit
 				// the count of files
-				.concatWith(sortOutputFilesByTime(output))
-				// go
-				.subscribe();
+				.concatWith(sortOutputFilesByTime(output));
 	}
 
 	private static void deleteDirectory(File output) {
@@ -160,18 +161,20 @@ public final class BinaryFixesWriter {
 		}
 	}
 
-	private static Func1<File, Observable<Fix>> extractFixesFromNmeaGz() {
+	private static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(
+			final Scheduler scheduler) {
 		return new Func1<File, Observable<Fix>>() {
 			@Override
 			public Observable<Fix> call(File file) {
-				return Streams.extractFixes(Streams.nmeaFromGzip(file
-						.getAbsolutePath()));
+				return Streams.extractFixes(
+						Streams.nmeaFromGzip(file.getAbsolutePath()))
+						.subscribeOn(scheduler);
 			}
 		};
 	}
 
 	private static Observable<Integer> sortOutputFilesByTime(File output) {
-		return Observable.just(1)
+		return Observable.just(1).onBackpressureBuffer()
 		// use output lazily
 				.map(Functions.constant(output))
 				// find the track files

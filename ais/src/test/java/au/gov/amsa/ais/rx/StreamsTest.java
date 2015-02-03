@@ -11,6 +11,10 @@ import java.nio.charset.Charset;
 
 import org.junit.Test;
 
+import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Subscriber;
+import rx.schedulers.Schedulers;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
@@ -115,5 +119,23 @@ public class StreamsTest {
 		assertFalse(fix.getLatencySeconds().isPresent());
 		System.out.println(fix);
 		is.close();
+	}
+
+	// @Test
+	public void testMerge() {
+		Observable<Integer> a = Observable.create(new OnSubscribe<Integer>() {
+
+			@Override
+			public void call(Subscriber<? super Integer> child) {
+				for (int i = 1; i <= 1000; i++) {
+					if (child.isUnsubscribed())
+						return;
+					child.onNext(i);
+				}
+				child.onCompleted();
+			}
+		}).subscribeOn(Schedulers.computation());
+		int count = a.mergeWith(a).count().toBlocking().single();
+		assertEquals(2000, count);
 	}
 }

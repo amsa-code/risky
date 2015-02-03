@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -200,15 +201,43 @@ public class Streams {
 	}
 
 	public static Observable<String> nmeaFromGzip(String filename) {
-		// TODO use Observable.using to close resources
-		InputStreamReader isr;
-		try {
-			isr = new InputStreamReader(new GZIPInputStream(
-					new FileInputStream(filename)));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		return Strings.split(Strings.from(isr), "\n");
+		return nmeaFromGzip(new File(filename));
+	}
+
+	public static Observable<String> nmeaFromGzip(final File file) {
+
+		Func0<Reader> resourceFactory = new Func0<Reader>() {
+
+			@Override
+			public Reader call() {
+				try {
+					return new InputStreamReader(new GZIPInputStream(
+							new FileInputStream(file)));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		};
+		Func1<Reader, Observable<String>> observableFactory = new Func1<Reader, Observable<String>>() {
+
+			@Override
+			public Observable<String> call(Reader reader) {
+				return Strings.split(Strings.from(reader), "\n");
+			}
+		};
+		Action1<Reader> disposeAction = new Action1<Reader>() {
+
+			@Override
+			public void call(Reader reader) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					// ignore
+				}
+			}
+		};
+		return Observable.using(resourceFactory, observableFactory,
+				disposeAction);
 	}
 
 	public static void print(Observable<?> stream, final PrintStream out) {
@@ -524,5 +553,4 @@ public class Streams {
 		System.out.println("read " + count + " records, rateMsgsPerSecond = "
 				+ rate);
 	}
-
 }
