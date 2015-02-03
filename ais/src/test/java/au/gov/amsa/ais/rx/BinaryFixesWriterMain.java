@@ -28,19 +28,19 @@ public class BinaryFixesWriterMain {
 		if (args.length > 0)
 			inputFilename = args[0];
 		else
-			// inputFilename = "G:\\mariweb";
-			inputFilename = "/media/analysis/test";
+			inputFilename = "G:\\mariweb";
+		// inputFilename = "/media/analysis/test";
 
 		File input = new File(inputFilename);
 		File output = new File("target/binary");
 		long t = System.currentTimeMillis();
 
 		int logEvery = 100000;
-		// String pattern = "NMEA_ITU_(201412|20150101).*.gz";
-		String pattern = "NMEA.*.gz";
+		String pattern = "NMEA_ITU_(201412|20150101).*.gz";
+		// String pattern = "NMEA.*.gz";
 		Pattern inputPattern = Pattern.compile(pattern);
 
-		if (false) {
+		if (true) {
 
 			BinaryFixesWriter.writeFixes(input, inputPattern, output, logEvery)
 					.observeOn(Schedulers.immediate())

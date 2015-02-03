@@ -137,8 +137,7 @@ public final class BinaryFixesWriter {
 		// log the filename
 				.lift(Logging.<File> log())
 				// extract fixes
-				// TODO why doesn't computation scheduler work?
-				.flatMap(extractFixesFromNmeaGz(Schedulers.immediate()))
+				.flatMap(extractFixesFromNmeaGz(Schedulers.computation()))
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.showRateSince("rate", 1).every(logEvery).log());
@@ -166,9 +165,19 @@ public final class BinaryFixesWriter {
 		return new Func1<File, Observable<Fix>>() {
 			@Override
 			public Observable<Fix> call(File file) {
-				return Streams.extractFixes(
-						Streams.nmeaFromGzip(file.getAbsolutePath()))
-						.subscribeOn(scheduler);
+				return Streams.nmeaFromGzip(file.getAbsolutePath())
+						.buffer(20000)
+						// parse the messages asynchronously using computation
+						// scheduler
+						.flatMap(new Func1<List<String>, Observable<Fix>>() {
+							@Override
+							public Observable<Fix> call(List<String> list) {
+								return Streams.extractFixes(
+										Observable.from(list))
+								// do async
+										.subscribeOn(scheduler);
+							}
+						});
 			}
 		};
 	}
