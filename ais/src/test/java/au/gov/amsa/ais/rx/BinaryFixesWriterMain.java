@@ -41,9 +41,9 @@ public class BinaryFixesWriterMain {
 			pattern = "NMEA_ITU_(201412|20150101).*.gz";
 		// pattern = "NMEA.*.gz";
 
-		System.out.println("Converting NMEA files in " + inputFilename);
-		System.out.println("to BinaryFixes format in " + outputFilename);
-		System.out.println("using pattern='" + pattern + "'");
+		log.info("Converting NMEA files in " + inputFilename);
+		log.info("to BinaryFixes format in " + outputFilename);
+		log.info("using pattern='" + pattern + "'");
 
 		File input = new File(inputFilename);
 		File output = new File(outputFilename);
