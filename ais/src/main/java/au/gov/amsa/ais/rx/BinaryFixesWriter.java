@@ -141,7 +141,7 @@ public final class BinaryFixesWriter {
 				.flatMap(extractFixesFromNmeaGz(Schedulers.computation()))
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
-						.showRateSince("rate", 1).every(logEvery).log());
+						.showRateSince("rate", 5000).every(logEvery).log());
 
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 
