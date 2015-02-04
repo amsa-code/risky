@@ -144,7 +144,7 @@ public final class BinaryFixesWriter {
 
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 
-		return BinaryFixesWriter.writeFixes(fileMapper, fixes, 100)
+		return BinaryFixesWriter.writeFixes(fileMapper, fixes, 1000)
 		// count number of fixes
 				.count()
 				// on completion of writing fixes, sort the track files and emit
