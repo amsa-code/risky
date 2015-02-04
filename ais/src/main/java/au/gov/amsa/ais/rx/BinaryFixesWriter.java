@@ -123,11 +123,12 @@ public final class BinaryFixesWriter {
 	}
 
 	public static void writeFixes(File input, File output) {
-		writeFixes(input, Pattern.compile("NMEA_ITU_20.*.gz"), output, 10000);
+		writeFixes(input, Pattern.compile("NMEA_ITU_20.*.gz"), output, 10000,
+				1000);
 	}
 
 	public static Observable<Integer> writeFixes(File input,
-			Pattern inputPattern, File output, int logEvery) {
+			Pattern inputPattern, File output, int logEvery, int writeBufferSize) {
 		Observable<File> files = Observable.from(Files
 				.find(input, inputPattern));
 
@@ -144,7 +145,7 @@ public final class BinaryFixesWriter {
 
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 
-		return BinaryFixesWriter.writeFixes(fileMapper, fixes, 1000)
+		return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize)
 		// count number of fixes
 				.count()
 				// on completion of writing fixes, sort the track files and emit

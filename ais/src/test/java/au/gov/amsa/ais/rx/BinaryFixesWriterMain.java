@@ -29,21 +29,35 @@ public class BinaryFixesWriterMain {
 			inputFilename = args[0];
 		else
 			inputFilename = "G:\\mariweb";
-		// inputFilename = "/media/analysis/test";
+		final String outputFilename;
+		if (args.length >= 2)
+			outputFilename = args[1];
+		else
+			outputFilename = "target/binary";
+		final String pattern;
+		if (args.length >= 3)
+			pattern = args[2];
+		else
+			pattern = "NMEA_ITU_(201412|20150101).*.gz";
+		// pattern = "NMEA.*.gz";
+
+		System.out.println("Converting NMEA files in " + inputFilename);
+		System.out.println("to BinaryFixes format in " + outputFilename);
+		System.out.println("using pattern='" + pattern + "'");
 
 		File input = new File(inputFilename);
-		File output = new File("target/binary");
+		File output = new File(outputFilename);
 		long t = System.currentTimeMillis();
 
 		int logEvery = 100000;
-		String pattern = "NMEA_ITU_(201412|20150101).*.gz";
-		// String pattern = "NMEA.*.gz";
+		int writeBufferSize = 1000;
 		Pattern inputPattern = Pattern.compile(pattern);
 
 		if (true) {
 
-			BinaryFixesWriter.writeFixes(input, inputPattern, output, logEvery)
-					.observeOn(Schedulers.immediate())
+			BinaryFixesWriter
+					.writeFixes(input, inputPattern, output, logEvery,
+							writeBufferSize).observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
 						@Override
