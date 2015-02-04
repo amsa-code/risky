@@ -47,7 +47,7 @@ public class BinaryFixesWriterMain {
 
 			BinaryFixesWriter
 					.writeFixes(input, inputPattern, output, logEvery,
-							writeBufferSize, Schedulers.computation())
+							writeBufferSize, Schedulers.immediate())
 					.observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
