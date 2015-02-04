@@ -194,9 +194,24 @@
                         <configuration>
                             <classpathScope>test</classpathScope>
                             <mainClass>au.gov.amsa.ais.rx.BinaryFixesWriterMain</mainClass>
-                            <argument>${input}</argument>
-                            <argument>${output}</argument>
-                            <argument>${pattern}</argument>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>input</key>
+                                    <value>${input}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>output</key>
+                                    <value>${output}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>pattern</key>
+                                    <value>${pattern}</value>
+                                </systemProperty>
+                            </systemProperties>
                         </configuration>
                     </plugin>
                 </plugins>
