@@ -24,10 +24,10 @@ public class BinaryFixesWriterMain {
 
 	public static void main(String[] args) throws IOException {
 		log.info("starting");
+		final int ringBufferSize = 16 * 8192;
+		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
 
-		System.getProperty("rx.ring-buffer.size", "8192");
-
-		final String inputFilename = prop("input", "/media/analysis/test");
+		final String inputFilename = prop("input", "/home/dxm/temp");
 		final String outputFilename = prop("output", "target/binary");
 		final String pattern = prop("pattern", "NMEA_ITU_.*.gz");
 
@@ -41,13 +41,15 @@ public class BinaryFixesWriterMain {
 
 		int logEvery = 100000;
 		int writeBufferSize = 1000;
+		int linesPerProcessor = ringBufferSize / 2;
 		Pattern inputPattern = Pattern.compile(pattern);
 
 		if (true) {
 
 			BinaryFixesWriter
 					.writeFixes(input, inputPattern, output, logEvery,
-							writeBufferSize, Schedulers.immediate())
+							writeBufferSize, Schedulers.computation(),
+							linesPerProcessor)
 					.observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
@@ -59,6 +61,7 @@ public class BinaryFixesWriterMain {
 						@Override
 						public void onError(Throwable e) {
 							e.printStackTrace();
+							throw new RuntimeException(e);
 						}
 
 						@Override

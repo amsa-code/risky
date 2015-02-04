@@ -123,7 +123,7 @@ public final class BinaryFixesWriter {
 
 	public static Observable<Integer> writeFixes(File input,
 			Pattern inputPattern, File output, int logEvery,
-			int writeBufferSize, Scheduler scheduler) {
+			int writeBufferSize, Scheduler scheduler, int linesPerProcessor) {
 		Observable<File> files = Observable.from(Files
 				.find(input, inputPattern));
 
@@ -133,7 +133,7 @@ public final class BinaryFixesWriter {
 				// log the filename
 				.lift(Logging.<File> log())
 				// extract fixes
-				.flatMap(extractFixesFromNmeaGz(scheduler))
+				.flatMap(extractFixesFromNmeaGz(linesPerProcessor, scheduler))
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.showRateSince("rate", 5000).every(logEvery).log())
@@ -158,12 +158,12 @@ public final class BinaryFixesWriter {
 	}
 
 	private static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(
-			final Scheduler scheduler) {
+			final int linesPerProcessor, final Scheduler scheduler) {
 		return new Func1<File, Observable<Fix>>() {
 			@Override
 			public Observable<Fix> call(File file) {
 				return Streams.nmeaFromGzip(file.getAbsolutePath())
-						.buffer(20000)
+						.buffer(linesPerProcessor)
 						// parse the messages asynchronously using computation
 						// scheduler
 						.flatMap(new Func1<List<String>, Observable<Fix>>() {
