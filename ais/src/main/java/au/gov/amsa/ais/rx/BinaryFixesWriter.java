@@ -21,7 +21,6 @@ import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.GroupedObservable;
-import rx.schedulers.Schedulers;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
@@ -122,13 +121,9 @@ public final class BinaryFixesWriter {
 
 	}
 
-	public static void writeFixes(File input, File output) {
-		writeFixes(input, Pattern.compile("NMEA_ITU_20.*.gz"), output, 10000,
-				1000);
-	}
-
 	public static Observable<Integer> writeFixes(File input,
-			Pattern inputPattern, File output, int logEvery, int writeBufferSize) {
+			Pattern inputPattern, File output, int logEvery,
+			int writeBufferSize, Scheduler scheduler) {
 		Observable<File> files = Observable.from(Files
 				.find(input, inputPattern));
 
@@ -138,7 +133,7 @@ public final class BinaryFixesWriter {
 				// log the filename
 				.lift(Logging.<File> log())
 				// extract fixes
-				.flatMap(extractFixesFromNmeaGz(Schedulers.computation()))
+				.flatMap(extractFixesFromNmeaGz(scheduler))
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.showRateSince("rate", 5000).every(logEvery).log())
