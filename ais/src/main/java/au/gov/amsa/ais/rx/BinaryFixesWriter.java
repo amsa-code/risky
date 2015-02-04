@@ -135,13 +135,14 @@ public final class BinaryFixesWriter {
 		deleteDirectory(output);
 
 		Observable<Fix> fixes = files
-		// log the filename
+				// log the filename
 				.lift(Logging.<File> log())
 				// extract fixes
 				.flatMap(extractFixesFromNmeaGz(Schedulers.computation()))
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
-						.showRateSince("rate", 5000).every(logEvery).log());
+						.showRateSince("rate", 5000).every(logEvery).log())
+				.onBackpressureBlock(1000000);
 
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 
