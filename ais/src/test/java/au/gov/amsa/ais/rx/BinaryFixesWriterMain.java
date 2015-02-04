@@ -24,9 +24,12 @@ public class BinaryFixesWriterMain {
 
 	public static void main(String[] args) throws IOException {
 		log.info("starting");
-		final String inputFilename = prop("input", "G:\\mariweb");
+
+		System.getProperty("rx.ring-buffer.size", "1024");
+
+		final String inputFilename = prop("input", "/media/analysis/test");
 		final String outputFilename = prop("output", "target/binary");
-		final String pattern = prop("pattern", "NMEA_ITU_2014.*.gz");
+		final String pattern = prop("pattern", "NMEA_ITU_.*.gz");
 
 		log.info("Converting NMEA files in " + inputFilename);
 		log.info("to BinaryFixes format in " + outputFilename);

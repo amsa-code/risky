@@ -45,7 +45,6 @@ import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
-import au.gov.amsa.streams.Ob;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
@@ -146,7 +145,7 @@ public class Streams {
 					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(),
 							a.getLongitude().floatValue(), m.time(), latency,
 							src, nav, sog, cog, heading, aisClass);
-					return Ob.justOne(f);
+					return Observable.just(f);
 				}
 			} else
 				return Observable.empty();
@@ -271,7 +270,7 @@ public class Streams {
 			@Override
 			public Observable<NmeaMessage> call(String line) {
 				try {
-					return Ob.justOne(NmeaUtil.parseNmea(line));
+					return Observable.just(NmeaUtil.parseNmea(line));
 				} catch (NmeaMessageParseException e) {
 					if (logWarnings) {
 						log.warn(e.getMessage());
@@ -299,7 +298,7 @@ public class Streams {
 					if (t == null)
 						return Observable.empty();
 					else
-						return Ob.justOne(new LineAndTime(line, t));
+						return Observable.just(new LineAndTime(line, t));
 				} catch (NmeaMessageParseException e) {
 					return Observable.empty();
 				} catch (RuntimeException e) {
@@ -370,7 +369,7 @@ public class Streams {
 							log.warn("line=" + n.getNmea().toLine());
 						}
 					}
-					return Ob.justOne(m);
+					return Observable.just(m);
 				} catch (AisParseException e) {
 					return Observable.empty();
 				}
@@ -429,7 +428,7 @@ public class Streams {
 					Optional<NmeaMessage> concat = AisNmeaBuffer
 							.concatenateMessages(list.get());
 					if (concat.isPresent())
-						return Ob.justOne(concat.get());
+						return Observable.just(concat.get());
 					else
 						return Observable.empty();
 				}
