@@ -178,11 +178,6 @@
         </profile>
         <profile>
             <id>bin</id>
-            <properties>
-                <input>G:\mariweb</input>
-                <output>${project.build.directory}/binary</output>
-                <pattern>NMEA_ITU_(201412|20150101).*.gz</pattern>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
