@@ -24,22 +24,9 @@ public class BinaryFixesWriterMain {
 
 	public static void main(String[] args) throws IOException {
 		log.info("starting");
-		final String inputFilename;
-		if (args.length > 0)
-			inputFilename = args[0];
-		else
-			inputFilename = "G:\\mariweb";
-		final String outputFilename;
-		if (args.length >= 2)
-			outputFilename = args[1];
-		else
-			outputFilename = "target/binary";
-		final String pattern;
-		if (args.length >= 3)
-			pattern = args[2];
-		else
-			pattern = "NMEA_ITU_(201412|20150101).*.gz";
-		// pattern = "NMEA.*.gz";
+		final String inputFilename = prop("input", "G:\\mariweb");
+		final String outputFilename = prop("output", "target/binary");
+		final String pattern = prop("pattern", "NMEA_ITU_2014.*.gz");
 
 		log.info("Converting NMEA files in " + inputFilename);
 		log.info("to BinaryFixes format in " + outputFilename);
@@ -127,5 +114,9 @@ public class BinaryFixesWriterMain {
 
 		log.info("finished in " + (System.currentTimeMillis() - t) / 1000.0
 				+ "s");
+	}
+
+	private static String prop(String name, String defaultValue) {
+		return System.getProperty(name, defaultValue);
 	}
 }
