@@ -25,7 +25,7 @@ public class BinaryFixesWriterMain {
 	public static void main(String[] args) throws IOException {
 		log.info("starting");
 
-		System.getProperty("rx.ring-buffer.size", "1024");
+		System.getProperty("rx.ring-buffer.size", "8192");
 
 		final String inputFilename = prop("input", "/media/analysis/test");
 		final String outputFilename = prop("output", "target/binary");
