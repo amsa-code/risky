@@ -3,6 +3,7 @@ package au.gov.amsa.ais.rx;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -22,7 +23,8 @@ public class BinaryFixesWriterMain {
 	private static final Logger log = LoggerFactory
 			.getLogger(BinaryFixesWriterMain.class);
 
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException,
+			InterruptedException {
 		log.info("starting");
 		final int ringBufferSize = 16 * 8192;
 		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
@@ -41,15 +43,17 @@ public class BinaryFixesWriterMain {
 
 		int logEvery = 100000;
 		int writeBufferSize = 1000;
+		// Note that the ring buffer size
 		int linesPerProcessor = ringBufferSize / 2;
+		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
 		if (true) {
 
 			BinaryFixesWriter
 					.writeFixes(input, inputPattern, output, logEvery,
-							writeBufferSize, Schedulers.computation(),
-							linesPerProcessor)
+							writeBufferSize, Schedulers.immediate(),
+							linesPerProcessor, downSampleIntervalMs)
 					.observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
@@ -70,6 +74,7 @@ public class BinaryFixesWriterMain {
 
 						}
 					});
+			Thread.sleep(3000);
 		} else {
 			// read 11 million NMEA lines
 			Streams.nmeaFromGzip("/media/analysis/test/NMEA_ITU_20150101.gz")
@@ -92,8 +97,8 @@ public class BinaryFixesWriterMain {
 							})
 					// log stuff
 					.lift(Logging.<Timestamped<AisMessage>> logger()
-							.showRateSince("rate=", 1000).showCount()
-							.every(100000).log())
+							.showMemory().showRateSince("rate", 1000)
+							.showCount().every(100000).log())
 					// count emitted
 					.count()
 					// observer results in current thread
@@ -103,7 +108,6 @@ public class BinaryFixesWriterMain {
 
 						@Override
 						public void onCompleted() {
-
 						}
 
 						@Override
@@ -117,6 +121,7 @@ public class BinaryFixesWriterMain {
 							System.out.println(n + " items");
 						}
 					});
+			Thread.sleep(3000);
 		}
 
 		log.info("finished in " + (System.currentTimeMillis() - t) / 1000.0

@@ -93,62 +93,68 @@ public class Streams {
 
 		@Override
 		public Observable<Fix> call(Timestamped<AisMessage> m) {
-			if (m.message() instanceof AisPosition) {
-				AisPosition a = (AisPosition) m.message();
-				if (a.getLatitude() == null || a.getLongitude() == null)
-					return Observable.empty();
-				else {
-					final Optional<NavigationalStatus> nav;
-					if (a instanceof AisPositionA) {
-						AisPositionA p = (AisPositionA) a;
-						if (p.getNavigationalStatus() == 15
-								|| p.getNavigationalStatus() > NavigationalStatus
-										.values().length - 1)
+			try {
+				if (m.message() instanceof AisPosition) {
+					AisPosition a = (AisPosition) m.message();
+					if (a.getLatitude() == null || a.getLongitude() == null)
+						return Observable.empty();
+					else {
+						final Optional<NavigationalStatus> nav;
+						if (a instanceof AisPositionA) {
+							AisPositionA p = (AisPositionA) a;
+							if (p.getNavigationalStatus() == 15
+									|| p.getNavigationalStatus() > NavigationalStatus
+											.values().length - 1)
+								nav = absent();
+							else
+								nav = of(NavigationalStatus.values()[p
+										.getNavigationalStatus()]);
+						} else
 							nav = absent();
+
+						final Optional<Float> sog;
+						if (a.getSpeedOverGroundKnots() == null)
+							sog = absent();
 						else
-							nav = of(NavigationalStatus.values()[p
-									.getNavigationalStatus()]);
-					} else
-						nav = absent();
+							sog = of((a.getSpeedOverGroundKnots().floatValue()));
+						final Optional<Float> cog;
+						if (a.getCourseOverGround() == null)
+							cog = absent();
+						else
+							cog = of((a.getCourseOverGround().floatValue()));
+						final Optional<Float> heading;
+						if (a.getTrueHeading() == null)
+							heading = absent();
+						else
+							heading = of((a.getTrueHeading().floatValue()));
 
-					final Optional<Float> sog;
-					if (a.getSpeedOverGroundKnots() == null)
-						sog = absent();
-					else
-						sog = of((a.getSpeedOverGroundKnots().floatValue()));
-					final Optional<Float> cog;
-					if (a.getCourseOverGround() == null)
-						cog = absent();
-					else
-						cog = of((a.getCourseOverGround().floatValue()));
-					final Optional<Float> heading;
-					if (a.getTrueHeading() == null)
-						heading = absent();
-					else
-						heading = of((a.getTrueHeading().floatValue()));
+						final AisClass aisClass;
+						if (a instanceof AisPositionA)
+							aisClass = AisClass.A;
+						else
+							aisClass = AisClass.B;
+						final Optional<Short> src;
+						if (a.getSource() != null) {
+							// TODO decode
+							src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
+						} else
+							src = absent();
 
-					final AisClass aisClass;
-					if (a instanceof AisPositionA)
-						aisClass = AisClass.A;
-					else
-						aisClass = AisClass.B;
-					final Optional<Short> src;
-					if (a.getSource() != null) {
-						// TODO decode
-						src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
-					} else
-						src = absent();
+						// TODO latency
+						Optional<Integer> latency = absent();
 
-					// TODO latency
-					Optional<Integer> latency = absent();
-
-					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(),
-							a.getLongitude().floatValue(), m.time(), latency,
-							src, nav, sog, cog, heading, aisClass);
-					return Observable.just(f);
-				}
-			} else
+						Fix f = new Fix(a.getMmsi(), a.getLatitude()
+								.floatValue(), a.getLongitude().floatValue(),
+								m.time(), latency, src, nav, sog, cog, heading,
+								aisClass);
+						return Observable.just(f);
+					}
+				} else
+					return Observable.empty();
+			} catch (RuntimeException e) {
+				log.warn(e.getMessage(), e);
 				return Observable.empty();
+			}
 		}
 
 	};
@@ -410,6 +416,9 @@ public class Streams {
 				return new TimestampedAndLine<AisMessage>(
 						Optional.<Timestamped<AisMessage>> absent(), line,
 						e.getMessage());
+			} catch (RuntimeException e) {
+				log.warn(e.getMessage(), e);
+				throw e;
 			}
 		}
 	};
@@ -421,16 +430,21 @@ public class Streams {
 
 			@Override
 			public Observable<NmeaMessage> call(NmeaMessage nmea) {
-				Optional<List<NmeaMessage>> list = buffer.add(nmea);
-				if (!list.isPresent())
-					return Observable.empty();
-				else {
-					Optional<NmeaMessage> concat = AisNmeaBuffer
-							.concatenateMessages(list.get());
-					if (concat.isPresent())
-						return Observable.just(concat.get());
-					else
+				try {
+					Optional<List<NmeaMessage>> list = buffer.add(nmea);
+					if (!list.isPresent())
 						return Observable.empty();
+					else {
+						Optional<NmeaMessage> concat = AisNmeaBuffer
+								.concatenateMessages(list.get());
+						if (concat.isPresent())
+							return Observable.just(concat.get());
+						else
+							return Observable.empty();
+					}
+				} catch (RuntimeException e) {
+					log.warn(e.getMessage(), e);
+					return Observable.empty();
 				}
 			}
 		};

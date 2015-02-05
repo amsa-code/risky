@@ -6,6 +6,9 @@ import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Func2;
 
+/**
+ * Assumes input stream is in time order.
+ */
 public class Downsample implements Transformer<Fix, Fix> {
 
 	private long maxTimeBetweenFixesMs;
@@ -28,7 +31,7 @@ public class Downsample implements Transformer<Fix, Fix> {
 				else if (fix.getMmsi() != latest.getMmsi())
 					throw new RuntimeException(
 							"can only downsample a single vessel");
-				else if (fix.getTime() - latest.getTime() > maxTimeBetweenFixesMs)
+				else if (fix.getTime() - latest.getTime() >= maxTimeBetweenFixesMs)
 					return fix;
 				else
 					return latest;

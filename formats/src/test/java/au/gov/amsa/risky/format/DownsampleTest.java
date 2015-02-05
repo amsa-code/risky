@@ -62,6 +62,17 @@ public class DownsampleTest {
 		assertEquals(Arrays.asList(f, f3), fixes);
 	}
 
+	@Test
+	public void testDownSampleOf0ForItemsWithSameTimeReturnsAll() {
+		Fix f = createFix(50);
+		Fix f2 = createFix(50);
+		Fix f3 = createFix(50);
+		List<Fix> fixes = Observable.just(f, f2, f3)
+				.compose(minTimeStep(0, TimeUnit.MILLISECONDS)).toList()
+				.toBlocking().single();
+		assertEquals(Arrays.asList(f, f2, f3), fixes);
+	}
+
 	private static Fix createFix(long time) {
 		return new Fix(213456789, -10f, 135f, time, of(12), of((short) 1),
 				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),

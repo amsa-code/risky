@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
@@ -22,6 +23,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.GroupedObservable;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
 
@@ -123,7 +125,8 @@ public final class BinaryFixesWriter {
 
 	public static Observable<Integer> writeFixes(File input,
 			Pattern inputPattern, File output, int logEvery,
-			int writeBufferSize, Scheduler scheduler, int linesPerProcessor) {
+			int writeBufferSize, Scheduler scheduler, int linesPerProcessor,
+			long downSampleIntervalMs) {
 		Observable<File> files = Observable.from(Files
 				.find(input, inputPattern));
 
@@ -145,7 +148,7 @@ public final class BinaryFixesWriter {
 				.count()
 				// on completion of writing fixes, sort the track files and emit
 				// the count of files
-				.concatWith(sortOutputFilesByTime(output));
+				.concatWith(sortOutputFilesByTime(output, downSampleIntervalMs));
 	}
 
 	private static void deleteDirectory(File output) {
@@ -178,30 +181,40 @@ public final class BinaryFixesWriter {
 		};
 	}
 
-	private static Observable<Integer> sortOutputFilesByTime(File output) {
+	private static Observable<Integer> sortOutputFilesByTime(File output,
+			final long downSampleIntervalMs) {
 		return Observable.just(1).onBackpressureBuffer()
 		// use output lazily
 				.map(Functions.constant(output))
 				// find the track files
 				.flatMap(findTrackFiles())
 				// sort the fixes in each one and rewrite
-				.flatMap(sortFileFixes())
+				.flatMap(sortFileFixes(downSampleIntervalMs))
 				// return the count
 				.count();
 	}
 
-	private static Func1<File, Observable<Integer>> sortFileFixes() {
+	private static Func1<File, Observable<Integer>> sortFileFixes(
+			final long downSampleIntervalMs) {
 		return new Func1<File, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(final File file) {
-				return BinaryFixes
-						.from(file)
-						// ensure file is closed in case we want to rewrite
-						// downstream
+				return BinaryFixes.from(file)
+				// ensure file is closed in case we want to rewrite
+				// downstream
 						.lift(OperatorUnsubscribeEagerly.<Fix> instance())
+						// to list
 						.toList()
 						// sort each list
 						.map(sortFixes())
+						// flatten
+						.flatMapIterable(Functions.<List<Fix>> identity())
+						// downsample the sorted fixes
+						.compose(
+								Downsample.minTimeStep(downSampleIntervalMs,
+										TimeUnit.MILLISECONDS))
+						// make into a list again
+						.toList()
 						// replace the file with sorted fixes
 						.doOnNext(writeFixes(file))
 						// count the fixes
