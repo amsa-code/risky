@@ -45,7 +45,7 @@ public class BinaryFixesWriterMain {
 		int writeBufferSize = 1000;
 		// Note that the ring buffer size
 		int linesPerProcessor = ringBufferSize / 2;
-		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
+		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(5);
 		Pattern inputPattern = Pattern.compile(pattern);
 
 		if (true) {
