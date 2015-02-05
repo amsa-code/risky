@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
+import rx.Observable.Transformer;
 import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
@@ -46,7 +47,6 @@ import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.Timestamped;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
-import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
@@ -86,16 +86,51 @@ public class Streams {
 
 	public static Observable<TimestampedAndLine<AisMessage>> extract(
 			Observable<String> rawAisNmea) {
-		return rawAisNmea.flatMap(toNmeaMessage())
-				.flatMap(aggregateMultiLineNmea(BUFFER_SIZE))
+		return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
+				.compose(Streams.<NmeaMessage> valueIfPresent())
+				.map(aggregateMultiLineNmea(BUFFER_SIZE))
+				.compose(Streams.<NmeaMessage> valueIfPresent())
 				.map(TO_AIS_MESSAGE_AND_LINE);
 	}
 
 	public static Observable<Timestamped<AisMessage>> extractMessages(
 			Observable<String> rawAisNmea) {
-		return rawAisNmea.flatMap(toNmeaMessage())
-				.flatMap(aggregateMultiLineNmea(BUFFER_SIZE))
-				.flatMap(toAisMessage());
+		return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
+				.compose(Streams.<NmeaMessage> valueIfPresent())
+				.map(aggregateMultiLineNmea(BUFFER_SIZE))
+				.compose(Streams.<NmeaMessage> valueIfPresent())
+				.map(TO_AIS_MESSAGE)
+				.compose(Streams.<Timestamped<AisMessage>> valueIfPresent());
+
+	}
+
+	public static <T> Func1<Optional<T>, Boolean> isPresent() {
+		return new Func1<Optional<T>, Boolean>() {
+			@Override
+			public Boolean call(Optional<T> value) {
+				return value.isPresent();
+			}
+		};
+	}
+
+	public static <T> Func1<Optional<T>, T> toValue() {
+		return new Func1<Optional<T>, T>() {
+			@Override
+			public T call(Optional<T> value) {
+				return value.get();
+			}
+		};
+	}
+
+	public static <T> Transformer<Optional<T>, T> valueIfPresent() {
+		return new Transformer<Optional<T>, T>() {
+
+			@Override
+			public Observable<T> call(Observable<Optional<T>> o) {
+				return o.filter(Streams.<T> isPresent()).map(
+						Streams.<T> toValue());
+			}
+		};
 	}
 
 	public static Observable<Fix> extractFixes(Observable<String> rawAisNmea) {
@@ -282,30 +317,48 @@ public class Streams {
 		print(stream, System.out);
 	}
 
-	public static final Func1<String, Observable<NmeaMessage>> toNmeaMessage(
-			final boolean logWarnings) {
-		return new Func1<String, Observable<NmeaMessage>>() {
+	public static final Func1<String, Optional<NmeaMessage>> LINE_TO_NMEA_MESSAGE = new Func1<String, Optional<NmeaMessage>>() {
 
-			@Override
-			public Observable<NmeaMessage> call(String line) {
-				try {
-					return Observable.just(NmeaUtil.parseNmea(line));
-				} catch (NmeaMessageParseException e) {
-					if (logWarnings) {
-						log.warn(e.getMessage());
-						log.warn("LINE=" + line);
-					}
-					return Observable.empty();
-				} catch (RuntimeException e) {
-					if (logWarnings) {
-						log.warn(e.getMessage());
-						log.warn("LINE=" + line);
-					}
-					return Observable.empty();
-				}
+		@Override
+		public Optional<NmeaMessage> call(String line) {
+			try {
+				return Optional.of(NmeaUtil.parseNmea(line));
+			} catch (RuntimeException e) {
+				return Optional.absent();
 			}
-		};
-	}
+		}
+
+	};
+
+	// public static final Func1<String, Observable<NmeaMessage>>
+	// toNmeaMessage() {
+	// return toNmeaMessage(false);
+	// }
+	//
+	// public static final Func1<String, Observable<NmeaMessage>> toNmeaMessage(
+	// final boolean logWarnings) {
+	// return new Func1<String, Observable<NmeaMessage>>() {
+	//
+	// @Override
+	// public Observable<NmeaMessage> call(String line) {
+	// try {
+	// return Observable.just(NmeaUtil.parseNmea(line));
+	// } catch (NmeaMessageParseException e) {
+	// if (logWarnings) {
+	// log.warn(e.getMessage());
+	// log.warn("LINE=" + line);
+	// }
+	// return Observable.empty();
+	// } catch (RuntimeException e) {
+	// if (logWarnings) {
+	// log.warn(e.getMessage());
+	// log.warn("LINE=" + line);
+	// }
+	// return Observable.empty();
+	// }
+	// }
+	// };
+	// }
 
 	public static final Func1<String, Observable<LineAndTime>> toLineAndTime() {
 		return new Func1<String, Observable<LineAndTime>>() {
@@ -326,10 +379,6 @@ public class Streams {
 
 			}
 		};
-	}
-
-	public static final Func1<String, Observable<NmeaMessage>> toNmeaMessage() {
-		return toNmeaMessage(false);
 	}
 
 	public static class TimestampedAndLine<T extends AisMessage> {
@@ -370,36 +419,61 @@ public class Streams {
 
 	}
 
-	public static final Func1<NmeaMessage, Observable<Timestamped<AisMessage>>> toAisMessage(
-			final boolean logWarnings) {
-		return new Func1<NmeaMessage, Observable<Timestamped<AisMessage>>>() {
+	// public static final Func1<NmeaMessage,
+	// Observable<Timestamped<AisMessage>>> toAisMessage(
+	// final boolean logWarnings) {
+	// return new Func1<NmeaMessage, Observable<Timestamped<AisMessage>>>() {
+	//
+	// @Override
+	// public Observable<Timestamped<AisMessage>> call(NmeaMessage nmea) {
+	// try {
+	// AisNmeaMessage n = new AisNmeaMessage(nmea);
+	// Timestamped<AisMessage> m = n.getTimestampedMessage();
+	// if (m.message() instanceof AisShipStaticA) {
+	// AisShipStaticA s = (AisShipStaticA) m.message();
+	// if (logWarnings
+	// && containsWeirdCharacters(s.getDestination())) {
+	// log.warn("weird destination '" + s.getDestination()
+	// + "'");
+	// log.warn("line=" + n.getNmea().toLine());
+	// }
+	// }
+	// return Observable.just(m);
+	// } catch (AisParseException e) {
+	// return Observable.empty();
+	// }
+	// }
+	//
+	// };
+	// }
 
-			@Override
-			public Observable<Timestamped<AisMessage>> call(NmeaMessage nmea) {
-				try {
-					AisNmeaMessage n = new AisNmeaMessage(nmea);
-					Timestamped<AisMessage> m = n.getTimestampedMessage();
-					if (m.message() instanceof AisShipStaticA) {
-						AisShipStaticA s = (AisShipStaticA) m.message();
-						if (logWarnings
-								&& containsWeirdCharacters(s.getDestination())) {
-							log.warn("weird destination '" + s.getDestination()
-									+ "'");
-							log.warn("line=" + n.getNmea().toLine());
-						}
-					}
-					return Observable.just(m);
-				} catch (AisParseException e) {
-					return Observable.empty();
-				}
+	public static final Func1<NmeaMessage, Optional<Timestamped<AisMessage>>> TO_AIS_MESSAGE = new Func1<NmeaMessage, Optional<Timestamped<AisMessage>>>() {
+
+		@Override
+		public Optional<Timestamped<AisMessage>> call(NmeaMessage nmea) {
+			try {
+				AisNmeaMessage n = new AisNmeaMessage(nmea);
+				Timestamped<AisMessage> m = n.getTimestampedMessage();
+				// if (m.message() instanceof AisShipStaticA) {
+				// AisShipStaticA s = (AisShipStaticA) m.message();
+				// if (logWarnings
+				// && containsWeirdCharacters(s.getDestination())) {
+				// log.warn("weird destination '" + s.getDestination()
+				// + "'");
+				// log.warn("line=" + n.getNmea().toLine());
+				// }
+				// }
+				return Optional.of(m);
+			} catch (AisParseException e) {
+				return Optional.absent();
 			}
+		}
+	};
 
-		};
-	}
-
-	public static final Func1<NmeaMessage, Observable<Timestamped<AisMessage>>> toAisMessage() {
-		return toAisMessage(false);
-	}
+	// public static final Func1<NmeaMessage,
+	// Observable<Timestamped<AisMessage>>> toAisMessage() {
+	// return toAisMessage(false);
+	// }
 
 	private static boolean containsWeirdCharacters(String s) {
 		if (s == null)
@@ -436,28 +510,58 @@ public class Streams {
 		}
 	};
 
-	public static final Func1<NmeaMessage, Observable<NmeaMessage>> aggregateMultiLineNmea(
+	// public static final Func1<NmeaMessage, Observable<NmeaMessage>>
+	// aggregateMultiLineNmea(
+	// final int bufferSize) {
+	// return new Func1<NmeaMessage, Observable<NmeaMessage>>() {
+	// private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+	//
+	// @Override
+	// public Observable<NmeaMessage> call(NmeaMessage nmea) {
+	// try {
+	// Optional<List<NmeaMessage>> list = buffer.add(nmea);
+	// if (!list.isPresent())
+	// return Observable.empty();
+	// else {
+	// Optional<NmeaMessage> concat = AisNmeaBuffer
+	// .concatenateMessages(list.get());
+	// if (concat.isPresent())
+	// return Observable.just(concat.get());
+	// else
+	// return Observable.empty();
+	// }
+	// } catch (RuntimeException e) {
+	// log.warn(e.getMessage(), e);
+	// return Observable.empty();
+	// }
+	// }
+	// };
+	// }
+
+	public static final Func1<NmeaMessage, Optional<NmeaMessage>> aggregateMultiLineNmea(
 			final int bufferSize) {
-		return new Func1<NmeaMessage, Observable<NmeaMessage>>() {
+		return new Func1<NmeaMessage, Optional<NmeaMessage>>() {
+
 			private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
 
 			@Override
-			public Observable<NmeaMessage> call(NmeaMessage nmea) {
+			public Optional<NmeaMessage> call(NmeaMessage nmea) {
+
 				try {
 					Optional<List<NmeaMessage>> list = buffer.add(nmea);
 					if (!list.isPresent())
-						return Observable.empty();
+						return absent();
 					else {
 						Optional<NmeaMessage> concat = AisNmeaBuffer
 								.concatenateMessages(list.get());
 						if (concat.isPresent())
-							return Observable.just(concat.get());
+							return of(concat.get());
 						else
-							return Observable.empty();
+							return absent();
 					}
 				} catch (RuntimeException e) {
 					log.warn(e.getMessage(), e);
-					return Observable.empty();
+					return absent();
 				}
 			}
 		};
@@ -570,7 +674,7 @@ public class Streams {
 		}
 	}
 
-	private static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(
+	public static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(
 			final int linesPerProcessor, final Scheduler scheduler) {
 		return new Func1<File, Observable<Fix>>() {
 			@Override

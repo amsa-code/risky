@@ -48,7 +48,7 @@ public class NmeaGzToBinaryFixesMain {
 		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
-		if (true) {
+		if (false) {
 
 			Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
 					writeBufferSize, Schedulers.immediate(), linesPerProcessor,
