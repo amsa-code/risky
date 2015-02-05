@@ -15,17 +15,23 @@ import java.io.Reader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
 import rx.Observer;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -43,13 +49,20 @@ import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.BinaryFixesWriter;
+import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
+import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
+import au.gov.amsa.util.Files;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
+import com.github.davidmoten.rx.Functions;
+import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
+import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 
 public class Streams {
@@ -556,6 +569,147 @@ public class Streams {
 			throw new RuntimeException(e);
 		}
 	}
+
+	private static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(
+			final int linesPerProcessor, final Scheduler scheduler) {
+		return new Func1<File, Observable<Fix>>() {
+			@Override
+			public Observable<Fix> call(File file) {
+				return Streams.nmeaFromGzip(file.getAbsolutePath())
+						.buffer(linesPerProcessor)
+						// parse the messages asynchronously using computation
+						// scheduler
+						.flatMap(new Func1<List<String>, Observable<Fix>>() {
+							@Override
+							public Observable<Fix> call(List<String> list) {
+								return Streams.extractFixes(
+										Observable.from(list))
+								// do async
+										.subscribeOn(scheduler);
+							}
+						});
+			}
+		};
+	}
+
+	public static Observable<Integer> writeFixesFromNmeaGz(File input,
+			Pattern inputPattern, File output, int logEvery,
+			int writeBufferSize, Scheduler scheduler, int linesPerProcessor,
+			long downSampleIntervalMs) {
+		Observable<File> files = Observable.from(Files
+				.find(input, inputPattern));
+
+		deleteDirectory(output);
+
+		Observable<Fix> fixes = files
+		// log the filename
+				.lift(Logging.<File> log())
+				// extract fixes
+				.flatMap(extractFixesFromNmeaGz(linesPerProcessor, scheduler))
+				// log
+				.lift(Logging.<Fix> logger().showCount().showMemory()
+						.showRateSince("rate", 5000).every(logEvery).log());
+
+		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
+
+		return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize)
+		// count number of fixes
+				.count()
+				// on completion of writing fixes, sort the track files and emit
+				// the count of files
+				.concatWith(sortOutputFilesByTime(output, downSampleIntervalMs));
+	}
+
+	private static void deleteDirectory(File output) {
+		try {
+			FileUtils.deleteDirectory(output);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static Observable<Integer> sortOutputFilesByTime(File output,
+			final long downSampleIntervalMs) {
+		return Observable.just(1).onBackpressureBuffer()
+		// use output lazily
+				.map(Functions.constant(output))
+				// log
+				.lift(Logging.<File> logger().prefix("sorting ").log())
+				// find the track files
+				.flatMap(findTrackFiles())
+				// sort the fixes in each one and rewrite
+				.flatMap(sortFileFixes(downSampleIntervalMs))
+				// return the count
+				.count();
+	}
+
+	private static Func1<File, Observable<Integer>> sortFileFixes(
+			final long downSampleIntervalMs) {
+		return new Func1<File, Observable<Integer>>() {
+			@Override
+			public Observable<Integer> call(final File file) {
+				return BinaryFixes.from(file)
+				// ensure file is closed in case we want to rewrite
+				// downstream
+						.lift(OperatorUnsubscribeEagerly.<Fix> instance())
+						// to list
+						.toList()
+						// sort each list
+						.map(sortFixes())
+						// flatten
+						.flatMapIterable(Functions.<List<Fix>> identity())
+						// downsample the sorted fixes
+						.compose(
+								Downsample.minTimeStep(downSampleIntervalMs,
+										TimeUnit.MILLISECONDS))
+						// make into a list again
+						.toList()
+						// replace the file with sorted fixes
+						.doOnNext(writeFixes(file))
+						// count the fixes
+						.count();
+			}
+
+		};
+	}
+
+	private static Func1<File, Observable<File>> findTrackFiles() {
+		return new Func1<File, Observable<File>>() {
+			@Override
+			public Observable<File> call(File output) {
+				return Observable.from(Files.find(output,
+						Pattern.compile("\\d+\\.track")));
+			}
+		};
+	}
+
+	private static Action1<List<Fix>> writeFixes(final File file) {
+		return new Action1<List<Fix>>() {
+			@Override
+			public void call(List<Fix> list) {
+				BinaryFixesWriter.writeFixes(list, file, false);
+			}
+		};
+	}
+
+	private static Func1<List<Fix>, List<Fix>> sortFixes() {
+		return new Func1<List<Fix>, List<Fix>>() {
+
+			@Override
+			public List<Fix> call(List<Fix> list) {
+				ArrayList<Fix> temp = new ArrayList<Fix>(list);
+				Collections.sort(temp, FIX_ORDER_BY_TIME);
+				return temp;
+			}
+		};
+	}
+
+	private static final Comparator<Fix> FIX_ORDER_BY_TIME = new Comparator<Fix>() {
+		@Override
+		public int compare(Fix a, Fix b) {
+			return ((Long) a.getTime()).compareTo(b.getTime());
+		}
+	};
 
 	public static void main(String[] args) {
 		// print(connectAndExtract("mariweb", 9010).take(10));

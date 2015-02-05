@@ -18,10 +18,10 @@ import au.gov.amsa.ais.Timestamped;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 
-public class BinaryFixesWriterMain {
+public class NmeaGzToBinaryFixesMain {
 
 	private static final Logger log = LoggerFactory
-			.getLogger(BinaryFixesWriterMain.class);
+			.getLogger(NmeaGzToBinaryFixesMain.class);
 
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
@@ -50,11 +50,9 @@ public class BinaryFixesWriterMain {
 
 		if (true) {
 
-			BinaryFixesWriter
-					.writeFixes(input, inputPattern, output, logEvery,
-							writeBufferSize, Schedulers.immediate(),
-							linesPerProcessor, downSampleIntervalMs)
-					.observeOn(Schedulers.immediate())
+			Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
+					writeBufferSize, Schedulers.immediate(), linesPerProcessor,
+					downSampleIntervalMs).observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
 						@Override
