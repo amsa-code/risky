@@ -76,7 +76,9 @@ mvn exec:java -P bin -Dinput=/media/analysis/nmea -Doutput=target/binary -Dpatte
 Effect of downsampling AIS
 -------------------------------
 
-one day of AIS reports in BinaryFix format is 2.7MB, 12.8MB, 234MB for downsampling of 1 hour, 5 minutes, none, respectively.
+one day of AIS reports in BinaryFix format unzipped is 2.7MB, 12.8MB, 234MB for downsampling of 
+1 hour, 5 minutes, none, respectively. 
+For a year that equals 1GB, 4.7GB and 85GB respectively.
 
 Notes
 ---------
