@@ -186,6 +186,8 @@ public final class BinaryFixesWriter {
 		return Observable.just(1).onBackpressureBuffer()
 		// use output lazily
 				.map(Functions.constant(output))
+				// log
+				.lift(Logging.<File> logger().prefix("sorting ").log())
 				// find the track files
 				.flatMap(findTrackFiles())
 				// sort the fixes in each one and rewrite

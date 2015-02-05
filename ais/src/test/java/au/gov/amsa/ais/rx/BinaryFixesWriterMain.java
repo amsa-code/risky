@@ -26,8 +26,6 @@ public class BinaryFixesWriterMain {
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
 		log.info("starting");
-		final int ringBufferSize = 16 * 8192;
-		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
 
 		final String inputFilename = prop("input", "/home/dxm/temp");
 		final String outputFilename = prop("output", "target/binary");
@@ -44,8 +42,10 @@ public class BinaryFixesWriterMain {
 		int logEvery = 100000;
 		int writeBufferSize = 1000;
 		// Note that the ring buffer size
+		final int ringBufferSize = 16 * 8192;
+		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
 		int linesPerProcessor = ringBufferSize / 2;
-		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(5);
+		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
 		if (true) {
