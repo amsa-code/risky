@@ -75,6 +75,13 @@ Observable<Fix> fixes = BinaryFixes.from(new File("123.track"));
 Observable<Fix> sampled = fixes.compose(Downsample.minTimeStep(5, TimeUnit.MINUTES));
 ```
 
+Given a directory with nested .track files you can make a downsampled copy (interval of 5 minutes) using the following command:
+
+```java
+cd formats
+mvn compile exec:java -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track" -Dms=300000
+```
+
 How to process many files concurrently
 --------------------------------------
 Given that one of the file arrangements being used is one BinaryFix file 
