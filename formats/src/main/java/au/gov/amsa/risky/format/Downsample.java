@@ -15,6 +15,8 @@ import au.gov.amsa.util.Files;
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
 import com.github.davidmoten.rx.slf4j.Logging;
+import com.github.davidmoten.util.Preconditions;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Assumes input stream is in time order.
@@ -51,17 +53,24 @@ public class Downsample implements Transformer<Fix, Fix> {
 				.distinct();
 	}
 
-	public static Observable<Integer> downsample(File directory,
-			Pattern pattern, final long duration, final TimeUnit unit) {
+	public static Observable<Integer> downsample(final File input,
+			final File output, Pattern pattern, final long duration,
+			final TimeUnit unit) {
+		Preconditions.checkNotNull(input);
+		Preconditions.checkNotNull(output);
+		Preconditions.checkNotNull(pattern);
+		Preconditions.checkNotNull(unit);
 
 		return Observable
 		// get the files matching the pattern from the directory
-				.from(Files.find(directory, pattern))
+				.from(Files.find(input, pattern))
 				// replace the file with a downsampled version
 				.flatMap(new Func1<File, Observable<Integer>>() {
 
 					@Override
 					public Observable<Integer> call(File file) {
+						File outputFile = rebase(file, input, output);
+						outputFile.getParentFile().mkdirs();
 						return BinaryFixes.from(file)
 								// ensure file is closed in case we want to
 								// rewrite downstream
@@ -77,7 +86,7 @@ public class Downsample implements Transformer<Fix, Fix> {
 								// make into a list again
 								.toList()
 								// replace the file with sorted fixes
-								.doOnNext(writeFixes(file))
+								.doOnNext(writeFixes(outputFile))
 								// count the fixes
 								.count()
 								// log completion of rewrite
@@ -89,6 +98,15 @@ public class Downsample implements Transformer<Fix, Fix> {
 					}
 				});
 
+	}
+
+	@VisibleForTesting
+	static File rebase(File file, File existingParent, File newParent) {
+		if (file.getAbsolutePath().equals(existingParent.getAbsolutePath()))
+			return newParent;
+		else
+			return new File(rebase(file.getParentFile(), existingParent,
+					newParent), file.getName());
 	}
 
 	private static Action1<List<Fix>> writeFixes(final File file) {

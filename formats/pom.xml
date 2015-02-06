@@ -35,7 +35,7 @@
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
             <version>${joda.time.version}</version>
@@ -52,4 +52,54 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>downsample</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>au.gov.amsa.risky.format.DownsampleMain</mainClass>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>input</key>
+                                    <value>${input}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>output</key>
+                                    <value>${output}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>pattern</key>
+                                    <value>${pattern}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>ms</key>
+                                    <value>${ms}</value>
+                                </systemProperty>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
