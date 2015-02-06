@@ -12,8 +12,10 @@ public class DownsampleMain {
 			File output = new File(System.getProperty("output"));
 			Pattern pattern = Pattern.compile(System.getProperty("pattern"));
 			long intervalMs = Long.parseLong(System.getProperty("ms"));
-			Downsample.downsample(input, output, pattern, intervalMs,
-					TimeUnit.MILLISECONDS);
+			Downsample
+					.downsample(input, output, pattern, intervalMs,
+							TimeUnit.MILLISECONDS).count().toBlocking()
+					.single();
 		} catch (RuntimeException e) {
 			System.out
 					.println("Usage: -Dinput=<input directory> -Doutput=<output directory> -Dpattern=<filename pattern> -Dms=<downsample interval ms>");
