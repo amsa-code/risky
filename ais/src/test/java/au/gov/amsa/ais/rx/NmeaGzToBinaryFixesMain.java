@@ -1,5 +1,7 @@
 package au.gov.amsa.ais.rx;
 
+import static rx.Observable.from;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -49,7 +51,6 @@ public class NmeaGzToBinaryFixesMain {
 		Pattern inputPattern = Pattern.compile(pattern);
 
 		if (false) {
-
 			Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
 					writeBufferSize, Schedulers.immediate(), linesPerProcessor,
 					downSampleIntervalMs).observeOn(Schedulers.immediate())
@@ -75,9 +76,11 @@ public class NmeaGzToBinaryFixesMain {
 			Thread.sleep(3000);
 		} else {
 			// read 11 million NMEA lines
-			Streams.nmeaFromGzip("/media/analysis/test/NMEA_ITU_20150101.gz")
+			Streams.nmeaFromGzip("/home/dxm/temp/NMEA_ITU_20150101.gz")
+			// Streams.nmeaFromGzip("/home/dxm/temp/temp.txt.gz")
 			// buffer in groups of 20,000 to assign to computation
 			// threads
+			// buffer
 					.buffer(20000)
 					// parse the messages asynchronously using computation
 					// scheduler
@@ -86,9 +89,10 @@ public class NmeaGzToBinaryFixesMain {
 								@Override
 								public Observable<Timestamped<AisMessage>> call(
 										List<String> list) {
-									return Streams.extractMessages(
-											Observable.from(list))
-									// do async
+									return Streams
+									// extract the messages from a list
+											.extractMessages(from(list))
+											// do async
 											.subscribeOn(
 													Schedulers.computation());
 								}
@@ -99,26 +103,11 @@ public class NmeaGzToBinaryFixesMain {
 							.showCount().every(100000).log())
 					// count emitted
 					.count()
-					// observer results in current thread
-					.observeOn(Schedulers.immediate())
+					// log count
+					.lift(Logging.<Integer> logger().prefix("count=").log())
 					// go
-					.subscribe(new Observer<Integer>() {
+					.toBlocking().single();
 
-						@Override
-						public void onCompleted() {
-						}
-
-						@Override
-						public void onError(Throwable e) {
-							e.printStackTrace();
-							throw new RuntimeException(e);
-						}
-
-						@Override
-						public void onNext(Integer n) {
-							System.out.println(n + " items");
-						}
-					});
 			Thread.sleep(3000);
 		}
 

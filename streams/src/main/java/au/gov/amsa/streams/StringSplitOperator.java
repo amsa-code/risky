@@ -54,7 +54,7 @@ public final class StringSplitOperator implements Operator<String, String> {
 		private final Subscriber<? super String> child;
 
 		// fast path or not
-		private boolean requestAll = false;
+		private volatile boolean requestAll = false;
 
 		// number of items being waited for (not used if fast path selected)
 		private volatile long expected = 0;

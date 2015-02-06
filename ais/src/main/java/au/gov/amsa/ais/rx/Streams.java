@@ -68,6 +68,7 @@ import com.google.common.base.Optional;
 public class Streams {
 
 	public static final int BUFFER_SIZE = 100;
+	private static final Charset UTF8 = Charset.forName("UTF-8");
 
 	private static Logger log = LoggerFactory.getLogger(Streams.class);
 
@@ -238,8 +239,8 @@ public class Streams {
 	}
 
 	public static Observable<String> nmeaFrom(InputStream is) {
-		return Strings.split(Strings.from(new InputStreamReader(is, Charset
-				.forName("UTF-8"))), "\n");
+		return Strings.split(Strings.from(new InputStreamReader(is, UTF8)),
+				"\n");
 	}
 
 	public static Observable<Observable<String>> nmeasFromGzip(
@@ -266,7 +267,7 @@ public class Streams {
 			public Reader call() {
 				try {
 					return new InputStreamReader(new GZIPInputStream(
-							new FileInputStream(file)));
+							new FileInputStream(file)), UTF8);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -276,6 +277,7 @@ public class Streams {
 
 			@Override
 			public Observable<String> call(Reader reader) {
+				// return StringObservable.split(Strings.from(reader), "\n");
 				return Strings.split(Strings.from(reader), "\n");
 			}
 		};
@@ -588,8 +590,7 @@ public class Streams {
 					log.info("waiting one second before attempting connect");
 					Thread.sleep(1000);
 					InputStream is = socket.getInputStream();
-					reader = new BufferedReader(new InputStreamReader(is,
-							Charset.forName("UTF-8")));
+					reader = new BufferedReader(new InputStreamReader(is, UTF8));
 					subscriber.add(createSubscription());
 					while (!subscriber.isUnsubscribed()) {
 						String line;
