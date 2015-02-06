@@ -94,7 +94,7 @@ public class Downsample implements Transformer<Fix, Fix> {
 										.<Integer> logger()
 										.prefix("downsampled by " + duration
 												+ " " + unit + " file=" + file
-												+ " ").log());
+												+ " to " + outputFile).log());
 					}
 				});
 
