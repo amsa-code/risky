@@ -1,0 +1,38 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>au.gov.amsa.risky</groupId>
+		<artifactId>parent</artifactId>
+		<version>0.3.4-SNAPSHOT</version>
+	</parent>
+	<artifactId>h2spatial</artifactId>
+	<name>${project.artifactId}</name>
+	<description />
+	<properties>
+		<slf4jVersion>${slf4j.version}</slf4jVersion>
+	</properties>
+	<dependencies>
+        <dependency>
+            <groupId>org.orbisgis</groupId>
+            <artifactId>h2spatial-ext</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4jVersion}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>${slf4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>
