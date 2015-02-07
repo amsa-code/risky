@@ -11,7 +11,6 @@
     <description>Utilities for parsing AIS NMEA and XML messages and for processing AIS message streams.</description>
     <properties>
         <jmh.version>1.3.3</jmh.version>
-        <exec.version>1.3.2</exec.version>
     </properties>
     <dependencies>
         <dependency>
@@ -79,11 +78,6 @@
             <version>${rxjava.slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>${joda.time.version}</version>
-        </dependency>
-        <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>streams</artifactId>
             <version>${project.parent.version}</version>
@@ -94,11 +88,6 @@
             <artifactId>formats</artifactId>
             <version>${project.parent.version}</version>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>1.3.2</version>
         </dependency>
 
         <!-- test/benchmark deps -->
@@ -193,7 +182,7 @@
                         </executions>
                         <configuration>
                             <classpathScope>test</classpathScope>
-                            <mainClass>au.gov.amsa.ais.rx.BinaryFixesWriterMain</mainClass>
+                            <mainClass>au.gov.amsa.ais.rx.NmeaGzToBinaryFixesMain</mainClass>
                             <systemProperties>
                                 <systemProperty>
                                     <key>input</key>

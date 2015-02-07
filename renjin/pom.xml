@@ -1,0 +1,37 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>au.gov.amsa.risky</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.3.4-SNAPSHOT</version>
+    </parent>
+    <artifactId>renjin</artifactId>
+    <name>${project.artifactId}</name>
+    <description />
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+		  <dependency>
+			<groupId>org.renjin</groupId>
+			<artifactId>renjin-script-engine</artifactId>
+			<version>0.7.0-SNAPSHOT</version>
+		  </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+	<repositories>
+	  <repository>
+		<id>bedatadriven</id>
+		<name>bedatadriven public repo</name>
+		<url>http://nexus.bedatadriven.com/content/groups/public/</url>
+	  </repository>
+	</repositories>
+</project>

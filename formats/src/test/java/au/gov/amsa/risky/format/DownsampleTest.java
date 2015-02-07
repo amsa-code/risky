@@ -4,6 +4,7 @@ import static au.gov.amsa.risky.format.Downsample.minTimeStep;
 import static com.google.common.base.Optional.of;
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -62,10 +63,30 @@ public class DownsampleTest {
 		assertEquals(Arrays.asList(f, f3), fixes);
 	}
 
+	@Test
+	public void testDownSampleOf0ForItemsWithSameTimeReturnsAll() {
+		Fix f = createFix(50);
+		Fix f2 = createFix(50);
+		Fix f3 = createFix(50);
+		List<Fix> fixes = Observable.just(f, f2, f3)
+				.compose(minTimeStep(0, TimeUnit.MILLISECONDS)).toList()
+				.toBlocking().single();
+		assertEquals(Arrays.asList(f, f2, f3), fixes);
+	}
+
 	private static Fix createFix(long time) {
 		return new Fix(213456789, -10f, 135f, time, of(12), of((short) 1),
 				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),
 				of(46f), AisClass.B);
+	}
+
+	@Test
+	public void testRebase() {
+		File f = new File("target/rebase/a/b/c/d");
+		File input = new File("target/rebase");
+		File output = new File("target/rebase2");
+		assertEquals(new File("target/rebase2/a/b/c/d").getAbsolutePath(),
+				Downsample.rebase(f, input, output).getAbsolutePath());
 	}
 
 }

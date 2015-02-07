@@ -73,6 +73,13 @@ input directory */media/analysis/test* processing all files matching the pattern
 mvn exec:java -P bin -Dinput=/media/analysis/nmea -Doutput=target/binary -Dpattern='NMEA_ITU_20.*.gz'
 ```
 
+Effect of downsampling AIS
+-------------------------------
+
+one day of AIS reports in BinaryFix format unzipped is 2.7MB, 12.8MB, 234MB for downsampling of 
+1 hour, 5 minutes, none, respectively. 
+For a year that equals 1GB, 4.7GB and 85GB respectively.
+
 Notes
 ---------
 To analyze timestamped (TAG BLOCK) ais reports in file many.txt:

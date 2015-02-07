@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
@@ -17,15 +18,16 @@ public class AisNmeaBuffer {
 
 	private static final int AIS_MESSAGE_COL_NO = 5;
 	private static final int MIN_NUM_COLS_FOR_LINE_TO_BE_AGGREGATED = 6;
-	private static final int COLUMN_TO_AGGREGATE= AIS_MESSAGE_COL_NO;
+	private static final int COLUMN_TO_AGGREGATE = AIS_MESSAGE_COL_NO;
 	private final int maxBufferSize;
 	private final LinkedHashMultimap<String, NmeaMessage> buffer;
+	private final AtomicBoolean adding = new AtomicBoolean();
 
 	public AisNmeaBuffer(int maxBufferSize) {
 		this.maxBufferSize = maxBufferSize;
 		this.buffer = LinkedHashMultimap.create();
 	}
-	
+
 	/**
 	 * Returns the complete message only once the whole group of messages has
 	 * arrived otherwise returns null.
@@ -33,7 +35,20 @@ public class AisNmeaBuffer {
 	 * @param nmea
 	 * @return
 	 */
-	public synchronized Optional<List<NmeaMessage>> add(NmeaMessage nmea) {
+	public Optional<List<NmeaMessage>> add(NmeaMessage nmea) {
+		// use compare-and-swap semantics instead of synchronizing to squeak a
+		// bit more performance out of this. Contention is expected to be low so
+		// this should help.
+		while (true) {
+			if (adding.compareAndSet(false, true)) {
+				Optional<List<NmeaMessage>> result = doAdd(nmea);
+				adding.set(false);
+				return result;
+			}
+		}
+	}
+
+	private Optional<List<NmeaMessage>> doAdd(NmeaMessage nmea) {
 		List<String> items = nmea.getItems();
 		if (items.size() < MIN_NUM_COLS_FOR_LINE_TO_BE_AGGREGATED)
 			return Optional.of(Collections.singletonList(nmea));
@@ -50,7 +65,7 @@ public class AisNmeaBuffer {
 			if (numGroupMessagesSoFar == numGroupMessages) {
 				// we have all messages in that group now so concatenate
 				List<NmeaMessage> list = orderMessages(buffer.get(groupId));
-//				NmeaMessage concatenatedMessage = concatenateMessages(list);
+				// NmeaMessage concatenatedMessage = concatenateMessages(list);
 				buffer.removeAll(groupId);
 				return Optional.of(list);
 			} else
@@ -65,10 +80,11 @@ public class AisNmeaBuffer {
 	 * @param list
 	 * @return
 	 */
-	public static Optional<NmeaMessage> concatenateMessages(List<NmeaMessage> list) {
-		if (list.size()==1)
+	public static Optional<NmeaMessage> concatenateMessages(
+			List<NmeaMessage> list) {
+		if (list.size() == 1)
 			return Optional.of(list.get(0));
-			
+
 		NmeaMessage first = list.get(0);
 		// concatenate column 5 and use row 1 tag block
 

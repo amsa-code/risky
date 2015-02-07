@@ -15,17 +15,24 @@ import java.io.Reader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
+import rx.Observable.Transformer;
 import rx.Observer;
+import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.functions.Action1;
@@ -40,21 +47,28 @@ import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.Timestamped;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
-import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.BinaryFixesWriter;
+import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
+import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
+import au.gov.amsa.util.Files;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
+import com.github.davidmoten.rx.Functions;
+import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
+import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 
 public class Streams {
 
 	public static final int BUFFER_SIZE = 100;
+	private static final Charset UTF8 = Charset.forName("UTF-8");
 
 	private static Logger log = LoggerFactory.getLogger(Streams.class);
 
@@ -73,16 +87,51 @@ public class Streams {
 
 	public static Observable<TimestampedAndLine<AisMessage>> extract(
 			Observable<String> rawAisNmea) {
-		return rawAisNmea.flatMap(toNmeaMessage())
-				.flatMap(aggregateMultiLineNmea(BUFFER_SIZE))
+		return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
+				.compose(Streams.<NmeaMessage> valueIfPresent())
+				.map(aggregateMultiLineNmea(BUFFER_SIZE))
+				.compose(Streams.<NmeaMessage> valueIfPresent())
 				.map(TO_AIS_MESSAGE_AND_LINE);
 	}
 
 	public static Observable<Timestamped<AisMessage>> extractMessages(
 			Observable<String> rawAisNmea) {
-		return rawAisNmea.flatMap(toNmeaMessage())
-				.flatMap(aggregateMultiLineNmea(BUFFER_SIZE))
-				.flatMap(toAisMessage());
+		return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
+				.compose(Streams.<NmeaMessage> valueIfPresent())
+				.map(aggregateMultiLineNmea(BUFFER_SIZE))
+				.compose(Streams.<NmeaMessage> valueIfPresent())
+				.map(TO_AIS_MESSAGE)
+				.compose(Streams.<Timestamped<AisMessage>> valueIfPresent());
+
+	}
+
+	public static <T> Func1<Optional<T>, Boolean> isPresent() {
+		return new Func1<Optional<T>, Boolean>() {
+			@Override
+			public Boolean call(Optional<T> value) {
+				return value.isPresent();
+			}
+		};
+	}
+
+	public static <T> Func1<Optional<T>, T> toValue() {
+		return new Func1<Optional<T>, T>() {
+			@Override
+			public T call(Optional<T> value) {
+				return value.get();
+			}
+		};
+	}
+
+	public static <T> Transformer<Optional<T>, T> valueIfPresent() {
+		return new Transformer<Optional<T>, T>() {
+
+			@Override
+			public Observable<T> call(Observable<Optional<T>> o) {
+				return o.filter(Streams.<T> isPresent()).map(
+						Streams.<T> toValue());
+			}
+		};
 	}
 
 	public static Observable<Fix> extractFixes(Observable<String> rawAisNmea) {
@@ -93,62 +142,68 @@ public class Streams {
 
 		@Override
 		public Observable<Fix> call(Timestamped<AisMessage> m) {
-			if (m.message() instanceof AisPosition) {
-				AisPosition a = (AisPosition) m.message();
-				if (a.getLatitude() == null || a.getLongitude() == null)
-					return Observable.empty();
-				else {
-					final Optional<NavigationalStatus> nav;
-					if (a instanceof AisPositionA) {
-						AisPositionA p = (AisPositionA) a;
-						if (p.getNavigationalStatus() == 15
-								|| p.getNavigationalStatus() > NavigationalStatus
-										.values().length - 1)
+			try {
+				if (m.message() instanceof AisPosition) {
+					AisPosition a = (AisPosition) m.message();
+					if (a.getLatitude() == null || a.getLongitude() == null)
+						return Observable.empty();
+					else {
+						final Optional<NavigationalStatus> nav;
+						if (a instanceof AisPositionA) {
+							AisPositionA p = (AisPositionA) a;
+							if (p.getNavigationalStatus() == 15
+									|| p.getNavigationalStatus() > NavigationalStatus
+											.values().length - 1)
+								nav = absent();
+							else
+								nav = of(NavigationalStatus.values()[p
+										.getNavigationalStatus()]);
+						} else
 							nav = absent();
+
+						final Optional<Float> sog;
+						if (a.getSpeedOverGroundKnots() == null)
+							sog = absent();
 						else
-							nav = of(NavigationalStatus.values()[p
-									.getNavigationalStatus()]);
-					} else
-						nav = absent();
+							sog = of((a.getSpeedOverGroundKnots().floatValue()));
+						final Optional<Float> cog;
+						if (a.getCourseOverGround() == null)
+							cog = absent();
+						else
+							cog = of((a.getCourseOverGround().floatValue()));
+						final Optional<Float> heading;
+						if (a.getTrueHeading() == null)
+							heading = absent();
+						else
+							heading = of((a.getTrueHeading().floatValue()));
 
-					final Optional<Float> sog;
-					if (a.getSpeedOverGroundKnots() == null)
-						sog = absent();
-					else
-						sog = of((a.getSpeedOverGroundKnots().floatValue()));
-					final Optional<Float> cog;
-					if (a.getCourseOverGround() == null)
-						cog = absent();
-					else
-						cog = of((a.getCourseOverGround().floatValue()));
-					final Optional<Float> heading;
-					if (a.getTrueHeading() == null)
-						heading = absent();
-					else
-						heading = of((a.getTrueHeading().floatValue()));
+						final AisClass aisClass;
+						if (a instanceof AisPositionA)
+							aisClass = AisClass.A;
+						else
+							aisClass = AisClass.B;
+						final Optional<Short> src;
+						if (a.getSource() != null) {
+							// TODO decode
+							src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
+						} else
+							src = absent();
 
-					final AisClass aisClass;
-					if (a instanceof AisPositionA)
-						aisClass = AisClass.A;
-					else
-						aisClass = AisClass.B;
-					final Optional<Short> src;
-					if (a.getSource() != null) {
-						// TODO decode
-						src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
-					} else
-						src = absent();
+						// TODO latency
+						Optional<Integer> latency = absent();
 
-					// TODO latency
-					Optional<Integer> latency = absent();
-
-					Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(),
-							a.getLongitude().floatValue(), m.time(), latency,
-							src, nav, sog, cog, heading, aisClass);
-					return Observable.just(f);
-				}
-			} else
+						Fix f = new Fix(a.getMmsi(), a.getLatitude()
+								.floatValue(), a.getLongitude().floatValue(),
+								m.time(), latency, src, nav, sog, cog, heading,
+								aisClass);
+						return Observable.just(f);
+					}
+				} else
+					return Observable.empty();
+			} catch (RuntimeException e) {
+				log.warn(e.getMessage(), e);
 				return Observable.empty();
+			}
 		}
 
 	};
@@ -184,8 +239,8 @@ public class Streams {
 	}
 
 	public static Observable<String> nmeaFrom(InputStream is) {
-		return Strings.split(Strings.from(new InputStreamReader(is, Charset
-				.forName("UTF-8"))), "\n");
+		return Strings.split(Strings.from(new InputStreamReader(is, UTF8)),
+				"\n");
 	}
 
 	public static Observable<Observable<String>> nmeasFromGzip(
@@ -212,7 +267,7 @@ public class Streams {
 			public Reader call() {
 				try {
 					return new InputStreamReader(new GZIPInputStream(
-							new FileInputStream(file)));
+							new FileInputStream(file)), UTF8);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -222,6 +277,7 @@ public class Streams {
 
 			@Override
 			public Observable<String> call(Reader reader) {
+				// return StringObservable.split(Strings.from(reader), "\n");
 				return Strings.split(Strings.from(reader), "\n");
 			}
 		};
@@ -263,30 +319,48 @@ public class Streams {
 		print(stream, System.out);
 	}
 
-	public static final Func1<String, Observable<NmeaMessage>> toNmeaMessage(
-			final boolean logWarnings) {
-		return new Func1<String, Observable<NmeaMessage>>() {
+	public static final Func1<String, Optional<NmeaMessage>> LINE_TO_NMEA_MESSAGE = new Func1<String, Optional<NmeaMessage>>() {
 
-			@Override
-			public Observable<NmeaMessage> call(String line) {
-				try {
-					return Observable.just(NmeaUtil.parseNmea(line));
-				} catch (NmeaMessageParseException e) {
-					if (logWarnings) {
-						log.warn(e.getMessage());
-						log.warn("LINE=" + line);
-					}
-					return Observable.empty();
-				} catch (RuntimeException e) {
-					if (logWarnings) {
-						log.warn(e.getMessage());
-						log.warn("LINE=" + line);
-					}
-					return Observable.empty();
-				}
+		@Override
+		public Optional<NmeaMessage> call(String line) {
+			try {
+				return Optional.of(NmeaUtil.parseNmea(line));
+			} catch (RuntimeException e) {
+				return Optional.absent();
 			}
-		};
-	}
+		}
+
+	};
+
+	// public static final Func1<String, Observable<NmeaMessage>>
+	// toNmeaMessage() {
+	// return toNmeaMessage(false);
+	// }
+	//
+	// public static final Func1<String, Observable<NmeaMessage>> toNmeaMessage(
+	// final boolean logWarnings) {
+	// return new Func1<String, Observable<NmeaMessage>>() {
+	//
+	// @Override
+	// public Observable<NmeaMessage> call(String line) {
+	// try {
+	// return Observable.just(NmeaUtil.parseNmea(line));
+	// } catch (NmeaMessageParseException e) {
+	// if (logWarnings) {
+	// log.warn(e.getMessage());
+	// log.warn("LINE=" + line);
+	// }
+	// return Observable.empty();
+	// } catch (RuntimeException e) {
+	// if (logWarnings) {
+	// log.warn(e.getMessage());
+	// log.warn("LINE=" + line);
+	// }
+	// return Observable.empty();
+	// }
+	// }
+	// };
+	// }
 
 	public static final Func1<String, Observable<LineAndTime>> toLineAndTime() {
 		return new Func1<String, Observable<LineAndTime>>() {
@@ -307,10 +381,6 @@ public class Streams {
 
 			}
 		};
-	}
-
-	public static final Func1<String, Observable<NmeaMessage>> toNmeaMessage() {
-		return toNmeaMessage(false);
 	}
 
 	public static class TimestampedAndLine<T extends AisMessage> {
@@ -351,36 +421,61 @@ public class Streams {
 
 	}
 
-	public static final Func1<NmeaMessage, Observable<Timestamped<AisMessage>>> toAisMessage(
-			final boolean logWarnings) {
-		return new Func1<NmeaMessage, Observable<Timestamped<AisMessage>>>() {
+	// public static final Func1<NmeaMessage,
+	// Observable<Timestamped<AisMessage>>> toAisMessage(
+	// final boolean logWarnings) {
+	// return new Func1<NmeaMessage, Observable<Timestamped<AisMessage>>>() {
+	//
+	// @Override
+	// public Observable<Timestamped<AisMessage>> call(NmeaMessage nmea) {
+	// try {
+	// AisNmeaMessage n = new AisNmeaMessage(nmea);
+	// Timestamped<AisMessage> m = n.getTimestampedMessage();
+	// if (m.message() instanceof AisShipStaticA) {
+	// AisShipStaticA s = (AisShipStaticA) m.message();
+	// if (logWarnings
+	// && containsWeirdCharacters(s.getDestination())) {
+	// log.warn("weird destination '" + s.getDestination()
+	// + "'");
+	// log.warn("line=" + n.getNmea().toLine());
+	// }
+	// }
+	// return Observable.just(m);
+	// } catch (AisParseException e) {
+	// return Observable.empty();
+	// }
+	// }
+	//
+	// };
+	// }
 
-			@Override
-			public Observable<Timestamped<AisMessage>> call(NmeaMessage nmea) {
-				try {
-					AisNmeaMessage n = new AisNmeaMessage(nmea);
-					Timestamped<AisMessage> m = n.getTimestampedMessage();
-					if (m.message() instanceof AisShipStaticA) {
-						AisShipStaticA s = (AisShipStaticA) m.message();
-						if (logWarnings
-								&& containsWeirdCharacters(s.getDestination())) {
-							log.warn("weird destination '" + s.getDestination()
-									+ "'");
-							log.warn("line=" + n.getNmea().toLine());
-						}
-					}
-					return Observable.just(m);
-				} catch (AisParseException e) {
-					return Observable.empty();
-				}
+	public static final Func1<NmeaMessage, Optional<Timestamped<AisMessage>>> TO_AIS_MESSAGE = new Func1<NmeaMessage, Optional<Timestamped<AisMessage>>>() {
+
+		@Override
+		public Optional<Timestamped<AisMessage>> call(NmeaMessage nmea) {
+			try {
+				AisNmeaMessage n = new AisNmeaMessage(nmea);
+				Timestamped<AisMessage> m = n.getTimestampedMessage();
+				// if (m.message() instanceof AisShipStaticA) {
+				// AisShipStaticA s = (AisShipStaticA) m.message();
+				// if (logWarnings
+				// && containsWeirdCharacters(s.getDestination())) {
+				// log.warn("weird destination '" + s.getDestination()
+				// + "'");
+				// log.warn("line=" + n.getNmea().toLine());
+				// }
+				// }
+				return Optional.of(m);
+			} catch (AisParseException e) {
+				return Optional.absent();
 			}
+		}
+	};
 
-		};
-	}
-
-	public static final Func1<NmeaMessage, Observable<Timestamped<AisMessage>>> toAisMessage() {
-		return toAisMessage(false);
-	}
+	// public static final Func1<NmeaMessage,
+	// Observable<Timestamped<AisMessage>>> toAisMessage() {
+	// return toAisMessage(false);
+	// }
 
 	private static boolean containsWeirdCharacters(String s) {
 		if (s == null)
@@ -410,27 +505,65 @@ public class Streams {
 				return new TimestampedAndLine<AisMessage>(
 						Optional.<Timestamped<AisMessage>> absent(), line,
 						e.getMessage());
+			} catch (RuntimeException e) {
+				log.warn(e.getMessage(), e);
+				throw e;
 			}
 		}
 	};
 
-	public static final Func1<NmeaMessage, Observable<NmeaMessage>> aggregateMultiLineNmea(
+	// public static final Func1<NmeaMessage, Observable<NmeaMessage>>
+	// aggregateMultiLineNmea(
+	// final int bufferSize) {
+	// return new Func1<NmeaMessage, Observable<NmeaMessage>>() {
+	// private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+	//
+	// @Override
+	// public Observable<NmeaMessage> call(NmeaMessage nmea) {
+	// try {
+	// Optional<List<NmeaMessage>> list = buffer.add(nmea);
+	// if (!list.isPresent())
+	// return Observable.empty();
+	// else {
+	// Optional<NmeaMessage> concat = AisNmeaBuffer
+	// .concatenateMessages(list.get());
+	// if (concat.isPresent())
+	// return Observable.just(concat.get());
+	// else
+	// return Observable.empty();
+	// }
+	// } catch (RuntimeException e) {
+	// log.warn(e.getMessage(), e);
+	// return Observable.empty();
+	// }
+	// }
+	// };
+	// }
+
+	public static final Func1<NmeaMessage, Optional<NmeaMessage>> aggregateMultiLineNmea(
 			final int bufferSize) {
-		return new Func1<NmeaMessage, Observable<NmeaMessage>>() {
+		return new Func1<NmeaMessage, Optional<NmeaMessage>>() {
+
 			private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
 
 			@Override
-			public Observable<NmeaMessage> call(NmeaMessage nmea) {
-				Optional<List<NmeaMessage>> list = buffer.add(nmea);
-				if (!list.isPresent())
-					return Observable.empty();
-				else {
-					Optional<NmeaMessage> concat = AisNmeaBuffer
-							.concatenateMessages(list.get());
-					if (concat.isPresent())
-						return Observable.just(concat.get());
-					else
-						return Observable.empty();
+			public Optional<NmeaMessage> call(NmeaMessage nmea) {
+
+				try {
+					Optional<List<NmeaMessage>> list = buffer.add(nmea);
+					if (!list.isPresent())
+						return absent();
+					else {
+						Optional<NmeaMessage> concat = AisNmeaBuffer
+								.concatenateMessages(list.get());
+						if (concat.isPresent())
+							return of(concat.get());
+						else
+							return absent();
+					}
+				} catch (RuntimeException e) {
+					log.warn(e.getMessage(), e);
+					return absent();
 				}
 			}
 		};
@@ -457,8 +590,7 @@ public class Streams {
 					log.info("waiting one second before attempting connect");
 					Thread.sleep(1000);
 					InputStream is = socket.getInputStream();
-					reader = new BufferedReader(new InputStreamReader(is,
-							Charset.forName("UTF-8")));
+					reader = new BufferedReader(new InputStreamReader(is, UTF8));
 					subscriber.add(createSubscription());
 					while (!subscriber.isUnsubscribed()) {
 						String line;
@@ -542,6 +674,147 @@ public class Streams {
 			throw new RuntimeException(e);
 		}
 	}
+
+	public static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(
+			final int linesPerProcessor, final Scheduler scheduler) {
+		return new Func1<File, Observable<Fix>>() {
+			@Override
+			public Observable<Fix> call(File file) {
+				return Streams.nmeaFromGzip(file.getAbsolutePath())
+						.buffer(linesPerProcessor)
+						// parse the messages asynchronously using computation
+						// scheduler
+						.flatMap(new Func1<List<String>, Observable<Fix>>() {
+							@Override
+							public Observable<Fix> call(List<String> list) {
+								return Streams.extractFixes(
+										Observable.from(list))
+								// do async
+										.subscribeOn(scheduler);
+							}
+						});
+			}
+		};
+	}
+
+	public static Observable<Integer> writeFixesFromNmeaGz(File input,
+			Pattern inputPattern, File output, int logEvery,
+			int writeBufferSize, Scheduler scheduler, int linesPerProcessor,
+			long downSampleIntervalMs) {
+		Observable<File> files = Observable.from(Files
+				.find(input, inputPattern));
+
+		deleteDirectory(output);
+
+		Observable<Fix> fixes = files
+		// log the filename
+				.lift(Logging.<File> log())
+				// extract fixes
+				.flatMap(extractFixesFromNmeaGz(linesPerProcessor, scheduler))
+				// log
+				.lift(Logging.<Fix> logger().showCount().showMemory()
+						.showRateSince("rate", 5000).every(logEvery).log());
+
+		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
+
+		return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize)
+		// count number of fixes
+				.count()
+				// on completion of writing fixes, sort the track files and emit
+				// the count of files
+				.concatWith(sortOutputFilesByTime(output, downSampleIntervalMs));
+	}
+
+	private static void deleteDirectory(File output) {
+		try {
+			FileUtils.deleteDirectory(output);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private static Observable<Integer> sortOutputFilesByTime(File output,
+			final long downSampleIntervalMs) {
+		return Observable.just(1).onBackpressureBuffer()
+		// use output lazily
+				.map(Functions.constant(output))
+				// log
+				.lift(Logging.<File> logger().prefix("sorting ").log())
+				// find the track files
+				.flatMap(findTrackFiles())
+				// sort the fixes in each one and rewrite
+				.flatMap(sortFileFixes(downSampleIntervalMs))
+				// return the count
+				.count();
+	}
+
+	private static Func1<File, Observable<Integer>> sortFileFixes(
+			final long downSampleIntervalMs) {
+		return new Func1<File, Observable<Integer>>() {
+			@Override
+			public Observable<Integer> call(final File file) {
+				return BinaryFixes.from(file)
+				// ensure file is closed in case we want to rewrite
+				// downstream
+						.lift(OperatorUnsubscribeEagerly.<Fix> instance())
+						// to list
+						.toList()
+						// sort each list
+						.map(sortFixes())
+						// flatten
+						.flatMapIterable(Functions.<List<Fix>> identity())
+						// downsample the sorted fixes
+						.compose(
+								Downsample.minTimeStep(downSampleIntervalMs,
+										TimeUnit.MILLISECONDS))
+						// make into a list again
+						.toList()
+						// replace the file with sorted fixes
+						.doOnNext(writeFixes(file))
+						// count the fixes
+						.count();
+			}
+
+		};
+	}
+
+	private static Func1<File, Observable<File>> findTrackFiles() {
+		return new Func1<File, Observable<File>>() {
+			@Override
+			public Observable<File> call(File output) {
+				return Observable.from(Files.find(output,
+						Pattern.compile("\\d+\\.track")));
+			}
+		};
+	}
+
+	private static Action1<List<Fix>> writeFixes(final File file) {
+		return new Action1<List<Fix>>() {
+			@Override
+			public void call(List<Fix> list) {
+				BinaryFixesWriter.writeFixes(list, file, false);
+			}
+		};
+	}
+
+	private static Func1<List<Fix>, List<Fix>> sortFixes() {
+		return new Func1<List<Fix>, List<Fix>>() {
+
+			@Override
+			public List<Fix> call(List<Fix> list) {
+				ArrayList<Fix> temp = new ArrayList<Fix>(list);
+				Collections.sort(temp, FIX_ORDER_BY_TIME);
+				return temp;
+			}
+		};
+	}
+
+	private static final Comparator<Fix> FIX_ORDER_BY_TIME = new Comparator<Fix>() {
+		@Override
+		public int compare(Fix a, Fix b) {
+			return ((Long) a.getTime()).compareTo(b.getTime());
+		}
+	};
 
 	public static void main(String[] args) {
 		// print(connectAndExtract("mariweb", 9010).take(10));
