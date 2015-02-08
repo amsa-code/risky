@@ -66,15 +66,15 @@ public final class OnSubscribeUsing2<T, Resource> implements OnSubscribe<T> {
 	}
 
 	private Throwable call(final Action0 disposeOnceOnly) {
-		Throwable disposeError = null;
 		if (disposeEagerly)
 			try {
 				disposeOnceOnly.call();
+				return null;
 			} catch (Throwable e) {
-				// add the dispose error to the reported error
-				disposeError = e;
+				return e;
 			}
-		return disposeError;
+		else
+			return null;
 	}
 
 	private Action0 createOnceOnlyDisposeAction(final Resource resource) {
