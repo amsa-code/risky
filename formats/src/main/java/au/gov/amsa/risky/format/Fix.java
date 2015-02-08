@@ -79,6 +79,10 @@ public final class Fix {
 		return source;
 	}
 
+	public Optional<Byte> getRateOfTurn() {
+		return Optional.absent();
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();

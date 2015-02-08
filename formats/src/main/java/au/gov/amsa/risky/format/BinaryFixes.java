@@ -5,7 +5,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import org.joda.time.DateTime;
+
 import rx.Observable;
+import rx.functions.Func1;
 
 public final class BinaryFixes {
 
@@ -18,9 +21,38 @@ public final class BinaryFixes {
 	public static final short SOURCE_ABSENT = 0;
 	public static final byte ROT_ABSENT = Byte.MIN_VALUE;
 	public static final byte SOURCE_PRESENT_BUT_UNKNOWN = 1;
+	protected static final char COMMA = ',';
+	protected static final byte RATE_OF_TURN_ABSENT = -128;
 
 	public static Observable<Fix> from(File file) {
 		return Observable.create(new BinaryFixesOnSubscribe(file));
+	}
+
+	public static Observable<String> csv(Observable<Fix> fixes) {
+		return fixes.map(new Func1<Fix, String>() {
+
+			@Override
+			public String call(Fix f) {
+				StringBuilder s = new StringBuilder();
+				s.append(f.getLat());
+				s.append(COMMA);
+				s.append(f.getLon());
+				s.append(COMMA);
+				s.append(new DateTime(f.getTime()).toString());
+				s.append(COMMA);
+				s.append(f.getSource().or(SOURCE_ABSENT));
+				s.append(COMMA);
+				s.append(f.getLatencySeconds().or(LATENCY_ABSENT));
+				s.append(COMMA);
+				s.append(f.getNavigationalStatus().or(
+						NavigationalStatus.values()[NAV_STATUS_ABSENT]));
+				s.append(COMMA);
+				s.append(f.getRateOfTurn().or(RATE_OF_TURN_ABSENT));
+				s.append(COMMA);
+				// TODO add the rest of the fields
+				return s.toString();
+			}
+		});
 	}
 
 	public static void write(Fix fix, OutputStream os) {
