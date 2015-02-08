@@ -4,7 +4,6 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
-import rx.internal.operators.OnSubscribeUsing;
 
 public class Ob {
 
@@ -15,9 +14,11 @@ public class Ob {
 	public final static <T, Resource> Observable<T> using(
 			final Func0<Resource> resourceFactory,
 			final Func1<? super Resource, ? extends Observable<? extends T>> observableFactory,
-			final Action1<? super Resource> disposeAction) {
-		return Observable.create(new OnSubscribeUsing<T, Resource>(
-				resourceFactory, observableFactory, disposeAction));
+			final Action1<? super Resource> disposeAction,
+			boolean disposeEagerly) {
+		return Observable.create(new OnSubscribeUsing2<T, Resource>(
+				resourceFactory, observableFactory, disposeAction,
+				disposeEagerly));
 	}
 
 }
