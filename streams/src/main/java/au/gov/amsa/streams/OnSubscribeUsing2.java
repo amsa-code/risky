@@ -51,24 +51,30 @@ public final class OnSubscribeUsing2<T, Resource> implements OnSubscribe<T> {
 				// start
 				observable.unsafeSubscribe(subscriber);
 			} catch (Throwable e) {
-				Throwable ex;
-				if (disposeEagerly)
-					try {
-						disposeOnceOnly.call();
-						ex = e;
-					} catch (Throwable e2) {
-						// add the dispose error to the reported error
-						ex = new CompositeException(Arrays.asList(e, e2));
-					}
+				Throwable disposeError = call(disposeOnceOnly);
+				if (disposeError != null)
+					subscriber.onError(new CompositeException(Arrays.asList(e,
+							disposeError)));
 				else
-					ex = e;
-				// then propagate error
-				subscriber.onError(ex);
+					// then propagate error
+					subscriber.onError(e);
 			}
 		} catch (Throwable e) {
 			// then propagate error
 			subscriber.onError(e);
 		}
+	}
+
+	private Throwable call(final Action0 disposeOnceOnly) {
+		Throwable disposeError = null;
+		if (disposeEagerly)
+			try {
+				disposeOnceOnly.call();
+			} catch (Throwable e) {
+				// add the dispose error to the reported error
+				disposeError = e;
+			}
+		return disposeError;
 	}
 
 	private Action0 createOnceOnlyDisposeAction(final Resource resource) {
