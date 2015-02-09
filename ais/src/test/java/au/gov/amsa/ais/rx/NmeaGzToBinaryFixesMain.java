@@ -43,17 +43,18 @@ public class NmeaGzToBinaryFixesMain {
 
 		int logEvery = 100000;
 		int writeBufferSize = 1000;
-		// Note that the ring buffer size
+		// Note that the ring buffer size is twice the linesPerProcessor
 		final int ringBufferSize = 16 * 8192;
 		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
 		int linesPerProcessor = ringBufferSize / 2;
 		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
-		if (false) {
+		if (true) {
 			Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
-					writeBufferSize, Schedulers.immediate(), linesPerProcessor,
-					downSampleIntervalMs).observeOn(Schedulers.immediate())
+					writeBufferSize, Schedulers.computation(),
+					linesPerProcessor, downSampleIntervalMs)
+					.observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
 						@Override
