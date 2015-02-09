@@ -44,19 +44,22 @@ public final class OnSubscribeUsing2<T, Resource> implements OnSubscribe<T> {
 			// dispose on unsubscription
 			subscriber.add(Subscriptions.create(disposeOnceOnly));
 			// create the observable
-			Observable<? extends T> observable = observableFactory
+			final Observable<? extends T> source = observableFactory
 			// create the observable
 					.call(resource);
+			final Observable<? extends T> observable;
 			// supplement with on termination disposal if requested
 			if (disposeEagerly)
-				observable = observable
+				observable = source
 				// dispose on completion or error
 						.doOnTerminate(disposeOnceOnly);
+			else
+				observable = source;
 			try {
 				// start
 				observable.unsafeSubscribe(subscriber);
 			} catch (Throwable e) {
-				Throwable disposeError = call(disposeOnceOnly);
+				Throwable disposeError = disposeEagerlyIfRequested(disposeOnceOnly);
 				if (disposeError != null)
 					subscriber.onError(new CompositeException(Arrays.asList(e,
 							disposeError)));
@@ -70,7 +73,7 @@ public final class OnSubscribeUsing2<T, Resource> implements OnSubscribe<T> {
 		}
 	}
 
-	private Throwable call(final Action0 disposeOnceOnly) {
+	private Throwable disposeEagerlyIfRequested(final Action0 disposeOnceOnly) {
 		if (disposeEagerly)
 			try {
 				disposeOnceOnly.call();
