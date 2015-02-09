@@ -54,6 +54,7 @@ import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
 import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
+import au.gov.amsa.streams.Ob;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.Files;
 import au.gov.amsa.util.nmea.NmeaMessage;
@@ -209,7 +210,7 @@ public class Streams {
 	};
 
 	public static Observable<String> nmeaFrom(final File file) {
-		return Observable.using(new Func0<InputStream>() {
+		return Ob.using(new Func0<InputStream>() {
 
 			@Override
 			public InputStream call() {
@@ -235,7 +236,7 @@ public class Streams {
 					// don't care
 				}
 			}
-		});
+		}, true);
 	}
 
 	public static Observable<String> nmeaFrom(InputStream is) {
@@ -292,8 +293,8 @@ public class Streams {
 				}
 			}
 		};
-		return Observable.using(resourceFactory, observableFactory,
-				disposeAction);
+		return Ob
+				.using(resourceFactory, observableFactory, disposeAction, true);
 	}
 
 	public static void print(Observable<?> stream, final PrintStream out) {

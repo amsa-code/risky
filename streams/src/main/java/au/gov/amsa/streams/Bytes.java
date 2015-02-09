@@ -48,7 +48,7 @@ public class Bytes {
 				}
 			}
 		};
-		return Observable.using(resourceFactory, observableFactory,
-				disposeAction);
+		return Ob
+				.using(resourceFactory, observableFactory, disposeAction, true);
 	}
 }
