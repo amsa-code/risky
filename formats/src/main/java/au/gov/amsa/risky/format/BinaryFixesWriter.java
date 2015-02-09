@@ -108,4 +108,28 @@ public final class BinaryFixesWriter {
 
 	}
 
+	public static class ByYear implements Func1<Fix, String> {
+
+		private final String base;
+
+		public ByYear(File directory) {
+			base = directory.getAbsolutePath();
+		}
+
+		@Override
+		public String call(Fix fix) {
+			DateTime d = new DateTime(fix.getTime(), DateTimeZone.UTC);
+			int year = d.getYear();
+			StringBuilder s = new StringBuilder();
+			s.append(base);
+			s.append(File.separator);
+			s.append(year);
+			s.append(File.separator);
+			s.append(fix.getMmsi());
+			s.append(".track");
+			return s.toString();
+		}
+
+	}
+
 }

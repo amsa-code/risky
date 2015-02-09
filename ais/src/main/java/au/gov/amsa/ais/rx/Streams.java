@@ -50,7 +50,6 @@ import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
-import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
 import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
@@ -701,7 +700,7 @@ public class Streams {
 	public static Observable<Integer> writeFixesFromNmeaGz(File input,
 			Pattern inputPattern, File output, int logEvery,
 			int writeBufferSize, Scheduler scheduler, int linesPerProcessor,
-			long downSampleIntervalMs) {
+			long downSampleIntervalMs, Func1<Fix, String> fileMapper) {
 		Observable<File> files = Observable.from(Files
 				.find(input, inputPattern));
 
@@ -715,8 +714,6 @@ public class Streams {
 				// log
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.showRateSince("rate", 5000).every(logEvery).log());
-
-		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(output);
 
 		return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize)
 		// count number of fixes

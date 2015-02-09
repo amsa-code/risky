@@ -17,11 +17,15 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.Timestamped;
+import au.gov.amsa.risky.format.BinaryFixesWriter;
+import au.gov.amsa.risky.format.Fix;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 
 public class NmeaGzToBinaryFixesMain {
 
+	private static final String BY_MONTH = "month";
+	private static final String BY_YEAR = "year";
 	private static final Logger log = LoggerFactory
 			.getLogger(NmeaGzToBinaryFixesMain.class);
 
@@ -32,6 +36,7 @@ public class NmeaGzToBinaryFixesMain {
 		final String inputFilename = prop("input", "/home/dxm/temp");
 		final String outputFilename = prop("output", "target/binary");
 		final String pattern = prop("pattern", "NMEA_ITU_.*.gz");
+		final String by = prop("by", BY_MONTH);
 
 		log.info("Converting NMEA files in " + inputFilename);
 		log.info("to BinaryFixes format in " + outputFilename);
@@ -50,10 +55,18 @@ public class NmeaGzToBinaryFixesMain {
 		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
+		final Func1<Fix, String> fileMapper;
+		if (BY_MONTH.equals(by))
+			fileMapper = new BinaryFixesWriter.ByMonth(output);
+		else if (BY_YEAR.equals(by))
+			fileMapper = new BinaryFixesWriter.ByYear(output);
+		else
+			throw new RuntimeException("unknown file mapper (by):" + by);
+
 		if (true) {
 			Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
 					writeBufferSize, Schedulers.computation(),
-					linesPerProcessor, downSampleIntervalMs)
+					linesPerProcessor, downSampleIntervalMs, fileMapper)
 					.observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
