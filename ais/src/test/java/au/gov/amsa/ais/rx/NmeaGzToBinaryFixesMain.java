@@ -65,8 +65,8 @@ public class NmeaGzToBinaryFixesMain {
 
 		if (true) {
 			Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
-					writeBufferSize, Schedulers.computation(),
-					linesPerProcessor, downSampleIntervalMs, fileMapper)
+					writeBufferSize, Schedulers.immediate(), linesPerProcessor,
+					downSampleIntervalMs, fileMapper)
 					.observeOn(Schedulers.immediate())
 					.subscribe(new Observer<Integer>() {
 
