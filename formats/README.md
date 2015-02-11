@@ -6,6 +6,8 @@ Java routines for manipulating binary formatted files of vessel positions and st
 The *BinaryFixes* format provides very good read rates from Java code, up to 7m records per second from SSD 
 which beats the hell out of decoding raw NMEA at about 75K records/second.
 
+The *Netcdf* format is another binary format option to hold fixes.
+
 BinaryFixes format (.track)
 --------------------------------
 All values use *Big Endian* bit order.
@@ -50,7 +52,8 @@ mvn test
 
 This generates these files in the *target* directory:
 * ```123456789.track``` - 100,000 identical fixes
-* ```123456790.track``` - 2 fixes with different positions and time
+* ```123456790.track``` - 2 fixes with different positions and times
+* ```test.nc``` - 2 fixes with different positions and times in Netcdf format
 
 How to convert an NMEA stream to BinaryFixes
 --------------------------------------------
