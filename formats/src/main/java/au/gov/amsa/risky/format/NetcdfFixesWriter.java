@@ -5,7 +5,11 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
+import rx.Observable;
+import rx.functions.Action2;
+import rx.functions.Func1;
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -23,6 +27,9 @@ public class NetcdfFixesWriter {
 			// TODO evaluate use of NetCdf structures
 			NetcdfFileWriter f = NetcdfFileWriter.createNew(Version.netcdf3,
 					file.getPath());
+
+			// add version attribute
+			f.addGroupAttribute(null, new Attribute("version", "0.1"));
 
 			// Create netCDF dimensions
 			Dimension dimTime = f.addUnlimitedDimension("time");
@@ -156,7 +163,7 @@ public class NetcdfFixesWriter {
 							.get() * 10);
 				else
 					cog = 3600;
-				dataCourseOverGround.setShort(i, sog);
+				dataCourseOverGround.setShort(i, cog);
 				final short heading;
 				if (fix.getCourseOverGroundDegrees().isPresent())
 					heading = (short) Math.floor(fix
@@ -171,7 +178,6 @@ public class NetcdfFixesWriter {
 					aisClass = (byte) 1;
 				dataAisClass.setByte(i, aisClass);
 			}
-
 			f.write(varLat, dataLat);
 			f.write(varLon, dataLon);
 			f.write(varTime, dataTime);
@@ -188,5 +194,26 @@ public class NetcdfFixesWriter {
 		} catch (InvalidRangeException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static final Action2<List<Fix>, File> FIXES_WRITER = new Action2<List<Fix>, File>() {
+
+		@Override
+		public void call(List<Fix> list, File file) {
+			NetcdfFixesWriter.writeFixes(list, file);
+		}
+	};
+
+	public static Observable<Integer> convertToNetcdf(File input, File output,
+			Pattern pattern) {
+		return Formats.transform(input, output, pattern,
+				Transformers.<Fix> identity(), FIXES_WRITER,
+				new Func1<String, String>() {
+					@Override
+					public String call(String name) {
+						return name.replaceFirst("\\.track", ".nc");
+					}
+				});
+
 	}
 }

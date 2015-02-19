@@ -118,6 +118,47 @@
                 </plugins>
             </build>
         </profile>
+         <profile>
+            <id>nc</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>au.gov.amsa.risky.format.NetcdfFixesWriterMain</mainClass>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>input</key>
+                                    <value>${input}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>output</key>
+                                    <value>${output}</value>
+                                </systemProperty>
+                            </systemProperties>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>pattern</key>
+                                    <value>${pattern}</value>
+                                </systemProperty>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
     <repositories>
         <repository>

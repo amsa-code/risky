@@ -79,7 +79,7 @@ public final class BinaryFixesTest {
 
 	@Test
 	public void testWriteTwoBinaryFixes() throws IOException {
-		writeTwoBinaryFixes();
+		TestingUtil.writeTwoBinaryFixes("target/123456790.track");
 	}
 
 	@Test
@@ -122,21 +122,6 @@ public final class BinaryFixesTest {
 				return BinaryFixes.from(file).count();
 			}
 		};
-	}
-
-	static void writeTwoBinaryFixes() throws IOException {
-		OutputStream os = new BufferedOutputStream(new FileOutputStream(
-				"target/123456790.track"));
-		long t = 1421708455237L;
-		Fix fix1 = new Fix(213456789, -10f, 135f, t, of(12), of((short) 1),
-				of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f),
-				of(46f), AisClass.B);
-		Fix fix2 = new Fix(213456789, -10.1f, 135.2f, t + 1000 * 3600 * 2L,
-				of(13), of((short) 2), of(NavigationalStatus.AT_ANCHOR),
-				of(4.5f), of(20f), of(30f), AisClass.B);
-		BinaryFixes.write(fix1, os);
-		BinaryFixes.write(fix2, os);
-		os.close();
 	}
 
 }
