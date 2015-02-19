@@ -135,28 +135,47 @@ public class NetcdfFixesWriter {
 
 			for (int i = 0; i < fixes.size(); i++) {
 				Fix fix = fixes.get(i);
+
+				// latitude
 				dataLat.setFloat(i, fix.getLat());
+
+				// longitude
 				dataLon.setFloat(i, fix.getLon());
+
+				// time
 				double days = (double) fix.getTime()
 						/ TimeUnit.DAYS.toMillis(1);
 				dataTime.setDouble(i, days);
+
+				// source
 				dataSource.setShort(i,
 						fix.getSource().or(BinaryFixes.SOURCE_ABSENT));
+
+				// latency
 				dataLatency.setInt(i,
 						fix.getLatencySeconds().or(BinaryFixes.LATENCY_ABSENT));
+
+				// navigational status
 				int navStatus;
 				if (fix.getNavigationalStatus().isPresent())
 					navStatus = fix.getNavigationalStatus().get().ordinal();
 				else
 					navStatus = BinaryFixes.NAV_STATUS_ABSENT;
 				dataNavStatus.setByte(i, (byte) navStatus);
+
+				// rate of turn
 				dataRateOfTurn.setByte(i, BinaryFixes.RATE_OF_TURN_ABSENT);
+
+				// SOG
 				final short sog;
 				if (fix.getSpeedOverGroundKnots().isPresent())
 					sog = (short) Math.round(fix.getSpeedOverGroundKnots()
 							.get() * 10);
 				else
 					sog = 1023;
+				dataSpeedOverGround.setShort(i, sog);
+
+				// COG
 				final short cog;
 				if (fix.getCourseOverGroundDegrees().isPresent())
 					cog = (short) Math.round(fix.getCourseOverGroundDegrees()
@@ -164,6 +183,8 @@ public class NetcdfFixesWriter {
 				else
 					cog = 3600;
 				dataCourseOverGround.setShort(i, cog);
+
+				// heading
 				final short heading;
 				if (fix.getCourseOverGroundDegrees().isPresent())
 					heading = (short) Math.floor(fix
@@ -171,6 +192,8 @@ public class NetcdfFixesWriter {
 				else
 					heading = (short) 360;
 				dataHeading.setShort(i, heading);
+
+				// ais class
 				byte aisClass;
 				if (fix.getAisClass() == AisClass.A)
 					aisClass = (byte) 0;
