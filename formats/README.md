@@ -80,10 +80,21 @@ Observable<Fix> sampled = fixes.compose(Downsample.minTimeStep(5, TimeUnit.MINUT
 
 Given a directory with nested .track files you can make a downsampled copy (interval of 5 minutes) using the following command:
 
-```java
+```bash
 cd formats
 mvn compile exec:java -Pdownsample -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track" -Dms=300000
 ```
+
+How to convert to netcdf
+---------------------------
+To convert a directory structure of ```.track``` files (BinaryFixes) to ```.nc``` (NetCDF) format, here is an example:
+
+```bash
+cd formats
+mvn compile exec:java -Pnc -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track"
+```
+
+The output directory will have the same filenames but will have extension ```.nc``` instead of ```.track```.
 
 How to process many files concurrently
 --------------------------------------
