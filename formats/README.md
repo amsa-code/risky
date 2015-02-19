@@ -82,7 +82,7 @@ Given a directory with nested .track files you can make a downsampled copy (inte
 
 ```java
 cd formats
-mvn compile exec:java -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track" -Dms=300000
+mvn compile exec:java -Pdownsample -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track" -Dms=300000
 ```
 
 How to process many files concurrently
