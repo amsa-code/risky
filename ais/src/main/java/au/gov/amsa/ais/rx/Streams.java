@@ -715,8 +715,9 @@ public class Streams {
 				.lift(Logging.<Fix> logger().showCount().showMemory()
 						.showRateSince("rate", 5000).every(logEvery).log());
 
-		return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize)
-		// count number of fixes
+		return BinaryFixesWriter
+				.writeFixes(fileMapper, fixes, writeBufferSize, false)
+				// count number of fixes
 				.count()
 				// on completion of writing fixes, sort the track files and emit
 				// the count of files
@@ -790,7 +791,7 @@ public class Streams {
 		return new Action1<List<Fix>>() {
 			@Override
 			public void call(List<Fix> list) {
-				BinaryFixesWriter.writeFixes(list, file, false);
+				BinaryFixesWriter.writeFixes(list, file, false, false);
 			}
 		};
 	}

@@ -148,7 +148,7 @@ public class StreamsTest {
 		File directory = new File(base);
 		FileUtils.deleteDirectory(directory);
 		ByMonth fileMapper = new BinaryFixesWriter.ByMonth(directory);
-		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100).subscribe();
+		BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false).subscribe();
 		is.close();
 		File f = new File(base + File.separator + "2014" + File.separator
 				+ "12");
