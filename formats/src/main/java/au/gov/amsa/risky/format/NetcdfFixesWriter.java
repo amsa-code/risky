@@ -189,6 +189,8 @@ public class NetcdfFixesWriter {
 			f.write(varCourseOverGround, dataCourseOverGround);
 			f.write(varHeading, dataHeading);
 
+			f.close();
+
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		} catch (InvalidRangeException e) {

@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Action1;
@@ -13,11 +16,12 @@ import au.gov.amsa.util.Files;
 
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
-import com.github.davidmoten.rx.slf4j.Logging;
 import com.github.davidmoten.util.Preconditions;
 import com.google.common.annotations.VisibleForTesting;
 
 public final class Formats {
+
+	private static final Logger log = LoggerFactory.getLogger(Formats.class);
 
 	public static Observable<Integer> transform(final File input,
 			final File output, Pattern pattern,
@@ -32,11 +36,11 @@ public final class Formats {
 		return Observable
 		// get the files matching the pattern from the directory
 				.from(Files.find(input, pattern))
-				// replace the file with a downsampled version
+				// replace the file with a transformed version
 				.flatMap(new Func1<File, Observable<Integer>>() {
 
 					@Override
-					public Observable<Integer> call(File file) {
+					public Observable<Integer> call(final File file) {
 						final File outputFile = rebase(file, input, output);
 						outputFile.getParentFile().mkdirs();
 						return BinaryFixes.from(file)
@@ -49,7 +53,7 @@ public final class Formats {
 								// flatten
 								.flatMapIterable(
 										Functions.<List<Fix>> identity())
-								// downsample the sorted fixes
+								// transform the fixes
 								.compose(transformer)
 								// make into a list again
 								.toList()
@@ -57,19 +61,16 @@ public final class Formats {
 								.doOnNext(new Action1<List<Fix>>() {
 									@Override
 									public void call(List<Fix> list) {
-										File file = new File(outputFile
+										File f = new File(outputFile
 												.getParentFile(), renamer
 												.call(outputFile.getName()));
-										fixesWriter.call(list, file);
+										fixesWriter.call(list, f);
+										log.info("transformed " + file + " to "
+												+ f);
 									}
-								})// writeFixes(outputFile)
-									// count the fixes
-								.count()
-								// log completion of rewrite
-								.lift(Logging
-										.<Integer> logger()
-										.prefix("transformed file=" + file
-												+ " to " + outputFile).log());
+								})
+								// count the fixes
+								.count();
 					}
 				});
 
