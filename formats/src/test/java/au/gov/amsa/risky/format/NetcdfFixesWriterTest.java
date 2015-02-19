@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class NetcdfFixesWriterTest {
@@ -20,6 +21,13 @@ public class NetcdfFixesWriterTest {
 		Fix f2 = createFix(TimeUnit.DAYS.toMillis(2), -10.8f, 136f);
 		List<Fix> fixes = Arrays.asList(f1, f2);
 		NetcdfFixesWriter.writeFixes(fixes, new File("target/test.nc"));
+	}
+
+	@Test
+	@Ignore
+	public void testReading() {
+		// read nc file and ensure everything makes it across
+		// TODO implement reading test
 	}
 
 	@Test
