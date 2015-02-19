@@ -96,6 +96,17 @@ mvn compile exec:java -Pnc -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY>
 
 The output directory will have the same filenames but will have extension ```.nc``` instead of ```.track```.
 
+How to zip all .track or .nc files in directory structure
+----------------------------------------------------------------
+To convert a directory structure of ```.track``` files (BinaryFixes) to ```.track.zip``` GZipped format, here is an example:
+
+```bash
+cd formats
+mvn compile exec:java -Pzip -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track"
+```
+
+The output directory will have the same filenames suffixed with ```.zip```.
+
 How to process many files concurrently
 --------------------------------------
 Given that one of the file arrangements being used is one BinaryFix file 
