@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.zip.GZIPOutputStream;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -16,18 +17,20 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.observables.GroupedObservable;
 
+import com.google.common.base.Preconditions;
+
 public final class BinaryFixesWriter {
 
 	public static Observable<List<Fix>> writeFixes(
 			final Func1<Fix, String> fileMapper, Observable<Fix> fixes,
-			int bufferSize) {
+			int bufferSize, boolean zip) {
 		return fixes
 		// group by filename
 				.groupBy(fileMapper)
 				// buffer fixes by filename
 				.flatMap(buffer(bufferSize))
 				// write each list to a file
-				.doOnNext(writeFixList(fileMapper));
+				.doOnNext(writeFixList(fileMapper, zip));
 	}
 
 	private static Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>> buffer(
@@ -42,7 +45,7 @@ public final class BinaryFixesWriter {
 	}
 
 	private static Action1<List<Fix>> writeFixList(
-			final Func1<Fix, String> fileMapper) {
+			final Func1<Fix, String> fileMapper, final boolean zip) {
 		return new Action1<List<Fix>>() {
 
 			@Override
@@ -50,17 +53,26 @@ public final class BinaryFixesWriter {
 				if (fixes.size() == 0)
 					return;
 				String filename = fileMapper.call(fixes.get(0));
-				writeFixes(fixes, new File(filename), true);
+				writeFixes(fixes, new File(filename), false, zip);
 			}
 
 		};
 	}
 
-	public static void writeFixes(List<Fix> fixes, File file, boolean append) {
+	public static void writeFixes(List<Fix> fixes, File file, boolean append,
+			boolean zip) {
+		Preconditions.checkArgument(!zip || !append,
+				"cannot perform append and zip at same time");
 		OutputStream os = null;
 		try {
 			file.getParentFile().mkdirs();
-			os = new BufferedOutputStream(new FileOutputStream(file, append));
+			FileOutputStream fos = new FileOutputStream(file, append);
+			OutputStream s;
+			if (zip)
+				s = new GZIPOutputStream(fos);
+			else
+				s = fos;
+			os = new BufferedOutputStream(s);
 			ByteBuffer bb = BinaryFixes.createFixByteBuffer();
 			for (Fix fix : fixes) {
 				bb.rewind();

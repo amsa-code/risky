@@ -58,7 +58,7 @@ public class Downsample implements Transformer<Fix, Fix> {
 	private static Action2<List<Fix>, File> FIXES_WRITER = new Action2<List<Fix>, File>() {
 		@Override
 		public void call(List<Fix> list, File file) {
-			BinaryFixesWriter.writeFixes(list, file, false);
+			BinaryFixesWriter.writeFixes(list, file, false, false);
 		}
 	};
 
