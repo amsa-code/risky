@@ -21,7 +21,7 @@ public class BinaryFixesMain {
 		final ConcurrentHashMap<Long, List<Fix>> map = new ConcurrentHashMap<Long, List<Fix>>();
 		// -downsample-5-mins
 		List<File> files = Files.find(new File(
-				"/media/an/binary-fixes/2014-year"), Pattern
+				"/media/an/binary-fixes/2014-year-downsample-5-mins"), Pattern
 				.compile(".*\\.track"));
 		long t = System.currentTimeMillis();
 		long count = Observable
