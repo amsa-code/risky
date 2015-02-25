@@ -3,8 +3,7 @@ formats
 
 Java routines for manipulating binary formatted files of vessel positions and static vessel data. 
 
-The *BinaryFixes* format provides very good read rates from Java code, up to 7m records per second from SSD 
-which beats the hell out of decoding raw NMEA at about 75K records/second.
+The *BinaryFixes* format provides very good read rates from Java code, up to 9m records per second from one SSD (and up to 30m per second in parallel) which beats the hell out of decoding raw NMEA at about 75K records/second.
 
 The *Netcdf* format is another binary format option to hold fixes.
 
