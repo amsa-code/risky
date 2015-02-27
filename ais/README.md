@@ -64,7 +64,7 @@ NmeaSaver saver = new NmeaSaver(nmea, new FileFactoryPerDay(directory));
 saver.start();
 ```
 
-Extract BinaryFixes (.trace) from NMEA zip files
+Extract BinaryFixes (.track) from NMEA zip files
 -------------------------------------------------
 The command below will create binary format versions of the NMEA files under *target/binary* and recurses the 
 input directory */media/analysis/test* processing all files matching the pattern ```NMEA_ITU_20.*.gz```. 
