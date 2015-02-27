@@ -20,7 +20,6 @@ import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 
 import com.google.common.base.Optional;
-import com.sleepycat.je.rep.elections.Utils;
 
 public class AisVesselPositions {
 
