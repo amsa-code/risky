@@ -70,7 +70,7 @@ The command below will create binary format versions of the NMEA files under *ta
 input directory */media/analysis/test* processing all files matching the pattern ```NMEA_ITU_20.*.gz```. 
 
 ```bash
-mvn exec:java -P bin -Dinput=/media/analysis/nmea -Doutput=target/binary -Dpattern='NMEA_ITU_20.*.gz'
+mvn exec:java -P bin -Dinput=/media/analysis/nmea -Doutput=target/binary -Dpattern='NMEA_ITU_20.*.gz' -Dby=month|year
 ```
 
 Effect of downsampling AIS
