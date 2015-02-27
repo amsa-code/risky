@@ -1,9 +1,11 @@
 package au.gov.amsa.risky.format;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 
 public final class Fix {
 
+	public static boolean validate = true;
 	private final long mmsi;
 	private final float lat;
 	private final float lon;
@@ -22,6 +24,19 @@ public final class Fix {
 			Optional<Float> speedOverGroundKnots,
 			Optional<Float> courseOverGroundDegrees,
 			Optional<Float> headingDegrees, AisClass aisClass) {
+
+		if (validate) {
+			if (courseOverGroundDegrees.isPresent()) {
+				Preconditions.checkArgument(courseOverGroundDegrees.get() < 360
+						&& courseOverGroundDegrees.get() >= 0, "cog="+ courseOverGroundDegrees.get());
+			}
+			if (headingDegrees.isPresent()) {
+				Preconditions.checkArgument(headingDegrees.get() < 360
+						&& headingDegrees.get() >= 0, "heading="+ headingDegrees.get());
+			}
+			Preconditions.checkArgument(lat>=-90 && lat <=90, "lat="+ lat);
+			Preconditions.checkArgument(lon>=-180 && lon <=180, "lon="+ lon);
+		}
 		this.mmsi = mmsi;
 		this.lat = lat;
 		this.lon = lon;
