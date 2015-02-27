@@ -10,8 +10,14 @@ import com.google.common.base.Preconditions;
 
 public class VesselPosition {
 	
-	public static enum NavigationalStatus {AT_ANCHOR, MOORED, UNKNOWN }
 
+	public enum NavigationalStatus {
+		// order of these should reflect numerical order in nav status int returned
+		// from ITU standard ais position report A
+		UNDER_WAY_USING_ENGINE, AT_ANCHOR, NOT_UNDER_COMMAND, RESTRICTED_MANOEUVRABILITY, CONSTRAINED_BY_HER_DRAUGHT, MOORED, AGROUND, ENGAGED_IN_FISHING, UNDER_WAY, RESERVED_1, RESERVED_2, FUTURE_1, FUTURE_2, FUTURE_3, AIS_SART, NOT_DEFINED;
+	}
+
+	
 	private static final double EARTH_RADIUS_KM = 6378.1;
 	private static final int maxDimensionMetresWhenUnknown = 30;
 	private final double lat;

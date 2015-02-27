@@ -29,7 +29,7 @@ public class VesselPositions {
 				.navigationalStatus(
 						fix.getNavigationalStatus().isPresent() ? NavigationalStatus
 								.values()[fix.getNavigationalStatus().get()
-								.ordinal()] : NavigationalStatus.UNKNOWN)
+								.ordinal()] : NavigationalStatus.NOT_DEFINED)
 				// build
 				.build();
 	}

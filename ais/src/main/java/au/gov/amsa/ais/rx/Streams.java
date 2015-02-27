@@ -151,13 +151,8 @@ public class Streams {
 						final Optional<NavigationalStatus> nav;
 						if (a instanceof AisPositionA) {
 							AisPositionA p = (AisPositionA) a;
-							if (p.getNavigationalStatus() == 15
-									|| p.getNavigationalStatus() > NavigationalStatus
-											.values().length - 1)
-								nav = absent();
-							else
-								nav = of(NavigationalStatus.values()[p
-										.getNavigationalStatus()]);
+							nav = of(NavigationalStatus.values()[p
+									.getNavigationalStatus().ordinal()]);
 						} else
 							nav = absent();
 

@@ -121,8 +121,8 @@ public class AisPositionA implements AisPosition, HasCommunications {
 		return mmsi;
 	}
 
-	public int getNavigationalStatus() {
-		return extractor.getValue(38, 42);
+	public NavigationalStatus getNavigationalStatus() {
+		return NavigationalStatus.values()[extractor.getValue(38, 42)];
 	}
 
 	public Integer getRateOfTurn() {
@@ -180,14 +180,6 @@ public class AisPositionA implements AisPosition, HasCommunications {
 	@Override
 	public Communications getCommunications() {
 		return new Communications(extractor, 149);
-	}
-
-	public boolean isAtAnchor() {
-		return getNavigationalStatus() == 1;
-	}
-
-	public boolean isMoored() {
-		return getNavigationalStatus() == 5;
 	}
 
 	@Override
