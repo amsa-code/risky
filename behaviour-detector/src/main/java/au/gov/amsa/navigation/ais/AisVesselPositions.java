@@ -123,14 +123,15 @@ public class AisVesselPositions {
 
 					final NavigationalStatus navigationalStatus;
 					if (p instanceof AisPositionA) {
-						if (((AisPositionA) p).isAtAnchor())
+						AisPositionA a = (AisPositionA) p;
+						if (Util.equals( a.getNavigationalStatus(),au.gov.amsa.ais.message.NavigationalStatus.AT_ANCHOR))
 							navigationalStatus = NavigationalStatus.AT_ANCHOR;
-						else if (((AisPositionA) p).isMoored()) {
+						else if (Util.equals(a.getNavigationalStatus(),au.gov.amsa.ais.message.NavigationalStatus.MOORED)) {
 							navigationalStatus = NavigationalStatus.MOORED;
 						} else
-							navigationalStatus = NavigationalStatus.UNKNOWN;
+							navigationalStatus = NavigationalStatus.NOT_DEFINED;
 					} else
-						navigationalStatus = NavigationalStatus.UNKNOWN;
+						navigationalStatus = NavigationalStatus.NOT_DEFINED;
 
 
 					Optional<String> positionAisNmea;

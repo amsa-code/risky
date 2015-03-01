@@ -13,6 +13,8 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import com.google.common.base.Optional;
+
 import rx.Observable;
 import rx.functions.Func1;
 import au.gov.amsa.risky.format.AisClass;
@@ -89,7 +91,8 @@ public class StreamsTest {
 						.getBytes(Charset.forName("UTF-8")));
 		Fix fix = Streams.extractFixes(Streams.nmeaFrom(is)).toBlocking()
 				.single();
-		assertFalse(fix.getNavigationalStatus().isPresent());
+		assertTrue(fix.getNavigationalStatus().isPresent());
+		assertEquals(Optional.of(NavigationalStatus.NOT_DEFINED), fix.getNavigationalStatus());
 		is.close();
 	}
 

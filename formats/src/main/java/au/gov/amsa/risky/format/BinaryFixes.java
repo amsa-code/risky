@@ -104,7 +104,7 @@ public final class BinaryFixes {
 			bb.putShort(COG_ABSENT);
 
 		if (fix.getHeadingDegrees().isPresent())
-			bb.putShort((short) Math.round(fix.getHeadingDegrees().get()));
+			bb.putShort((short) Math.round(10 * fix.getHeadingDegrees().get()));
 		else
 			bb.putShort(HEADING_ABSENT);
 		if (fix.getAisClass() == AisClass.A)

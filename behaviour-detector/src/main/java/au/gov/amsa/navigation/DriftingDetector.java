@@ -43,6 +43,7 @@ public class DriftingDetector {
 							.get());
 					return diff >= HEADING_COG_DIFFERENCE_MIN
 							&& diff <= HEADING_COG_DIFFERENCE_MAX
+							&& p.speedMetresPerSecond().isPresent()
 							&& p.speedMetresPerSecond().get() <= MAX_DRIFTING_SPEED_KNOTS * 0.5144444
 							&& p.speedMetresPerSecond().get() > MIN_DRIFTING_SPEED_KNOTS;
 				} else

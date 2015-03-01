@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>au.gov.amsa.risky</groupId>
     <artifactId>parent</artifactId>
-    <version>0.3.4.1-SNAPSHOT</version>
+    <version>0.3.5.1-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <description>Parent pom for risky project modules</description>
     <packaging>pom</packaging>
@@ -14,7 +14,7 @@
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
         <compiler.source>1.7</compiler.source>
         <compiler.target>1.7</compiler.target>
-        <rxjava.version>1.0.5</rxjava.version>
+        <rxjava.version>1.0.7</rxjava.version>
         <rxjava.string.version>0.22.0</rxjava.string.version>
 		<rxjava.math.version>1.0.0</rxjava.math.version>
         <rxjava.extras.version>0.4.8</rxjava.extras.version>
@@ -55,6 +55,8 @@
 		<module>craft-analyzer-wms</module>
         <module>formats</module>
 		<module>ihs-reader</module>
+		<module>renjin</module>
+		<module>h2spatial</module>
     </modules>
 
     <build>

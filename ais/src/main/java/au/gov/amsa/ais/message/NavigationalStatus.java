@@ -1,4 +1,4 @@
-package au.gov.amsa.risky.format;
+package au.gov.amsa.ais.message;
 
 public enum NavigationalStatus {
 	// order of these should reflect numerical order in nav status int returned

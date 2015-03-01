@@ -3,9 +3,6 @@ package au.gov.amsa.navigation.ais;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
@@ -16,15 +13,12 @@ import au.gov.amsa.navigation.VesselPosition;
 
 public class DriftingDetectorMain {
 
-	private static Logger log = LoggerFactory
-			.getLogger(DriftingDetectorMain.class);
-
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException {
 		String filename = "/media/analysis/nmea/2013/NMEA_ITU_20130108.gz";
-		
 		Observable<VesselPosition> aisPositions = AisVesselPositions
 				.positions(Streams.nmeaFromGzip(filename));
+
 		new DriftingDetector()
 				.getCandidates(aisPositions)
 				.groupBy(new Func1<VesselPosition, Long>() {
@@ -45,8 +39,8 @@ public class DriftingDetectorMain {
 
 					@Override
 					public void call(VesselPosition p) {
-//						System.out.println(p.lat() + "\t" + p.lon() + "\t"
-//								+ p.id().uniqueId());
+						// System.out.println(p.lat() + "\t" + p.lon() + "\t"
+						// + p.id().uniqueId());
 						System.out.println(p);
 					}
 				}).subscribe();

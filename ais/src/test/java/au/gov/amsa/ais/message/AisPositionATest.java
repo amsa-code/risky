@@ -28,7 +28,7 @@ public class AisPositionATest {
 		assertEquals(1, p.getMessageId());
 		assertEquals(0, p.getRepeatIndicator());
 		assertEquals(366730000, p.getMmsi());
-		assertEquals(5, p.getNavigationalStatus());
+		assertEquals(NavigationalStatus.MOORED, p.getNavigationalStatus());
 		assertEquals(null, p.getRateOfTurn());
 		assertEquals(20.8, p.getSpeedOverGroundKnots(), PRECISION);
 		assertFalse(p.isHighAccuracyPosition());

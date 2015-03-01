@@ -10,6 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rx.Observable.OnSubscribe;
 import rx.Subscriber;
 import rx.Subscription;
@@ -17,6 +20,9 @@ import rx.Subscription;
 import com.google.common.base.Optional;
 
 public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
+
+	private static final Logger log = LoggerFactory
+			.getLogger(BinaryFixesOnSubscribe.class);
 
 	private File file;
 
@@ -74,8 +80,12 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 				if (subscriber.isUnsubscribed())
 					return;
 				ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
-				Fix fix = toFix(mmsi, bb);
-				subscriber.onNext(fix);
+				try {
+					Fix fix = toFix(mmsi, bb);
+					subscriber.onNext(fix);
+				} catch (RuntimeException e) {
+					log.warn(e.getMessage());
+				}
 			}
 		}
 	}
@@ -108,31 +118,30 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 
 		short sog = bb.getShort();
 		final Optional<Float> speedOverGroundKnots;
-		if (sog == 1023)
+		if (sog == BinaryFixes.SOG_ABSENT)
 			speedOverGroundKnots = absent();
 		else
 			speedOverGroundKnots = of(sog / 10f);
 
 		short cog = bb.getShort();
 		final Optional<Float> courseOverGroundDegrees;
-		if (cog == 3600)
+		if (cog == BinaryFixes.COG_ABSENT)
 			courseOverGroundDegrees = absent();
 		else
 			courseOverGroundDegrees = of(cog / 10f);
 
 		short heading = bb.getShort();
 		final Optional<Float> headingDegrees;
-		if (heading == 360)
+		if (heading == BinaryFixes.HEADING_ABSENT)
 			headingDegrees = absent();
 		else
-			headingDegrees = of((float) heading);
+			headingDegrees = of((float) heading / 10f);
 		byte cls = bb.get();
 		final AisClass aisClass;
 		if (cls == 0)
 			aisClass = AisClass.A;
 		else
 			aisClass = AisClass.B;
-
 		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source,
 				navigationalStatus, speedOverGroundKnots,
 				courseOverGroundDegrees, headingDegrees, aisClass);
