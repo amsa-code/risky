@@ -13,7 +13,7 @@ public class BinaryFixesPrinterMain {
             public void call(Fix fix) {
                 System.out.println(fix);
             }
-        });
+        }).subscribe();
     }
 
 }
