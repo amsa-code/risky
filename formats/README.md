@@ -55,6 +55,12 @@ This generates these files in the *target* directory:
 * ```123456790.track``` - 2 fixes with different positions and times
 * ```test.nc``` - 2 fixes with different positions and times in Netcdf format
 
+How to print the contents of .track in human readable form to stdout
+----------------------------------------------------------------------
+```bash
+mvn compile exec:java -Pprint -Dfile=<FILENAME>
+```
+
 How to convert an NMEA stream to BinaryFixes
 --------------------------------------------
 You need the *ais* dependency for this:
