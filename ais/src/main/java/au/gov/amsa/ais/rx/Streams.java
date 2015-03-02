@@ -85,9 +85,17 @@ public class Streams {
     }
 
     public static Observable<TimestampedAndLine<AisMessage>> extract(Observable<String> rawAisNmea) {
-        return rawAisNmea.map(LINE_TO_NMEA_MESSAGE).compose(Streams.<NmeaMessage> valueIfPresent())
-                .map(aggregateMultiLineNmea(BUFFER_SIZE))
-                .compose(Streams.<NmeaMessage> valueIfPresent()).map(TO_AIS_MESSAGE_AND_LINE);
+        return rawAisNmea
+        		// parse nmea
+        		.map(LINE_TO_NMEA_MESSAGE)
+        		// if error filter out
+        		.compose(Streams.<NmeaMessage> valueIfPresent())
+                // aggregate multi line nmea
+        		.map(aggregateMultiLineNmea(BUFFER_SIZE))
+                //if error filter out
+        		.compose(Streams.<NmeaMessage> valueIfPresent())
+        		// parse ais message and include line
+        		.map(TO_AIS_MESSAGE_AND_LINE);
     }
 
     public static Observable<Timestamped<AisMessage>> extractMessages(Observable<String> rawAisNmea) {
