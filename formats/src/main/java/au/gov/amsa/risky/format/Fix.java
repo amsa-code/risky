@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 public final class Fix {
 
 	public static boolean validate = true;
+
 	private final long mmsi;
 	private final float lat;
 	private final float lon;
@@ -18,24 +19,30 @@ public final class Fix {
 	private final Optional<Integer> latencySeconds;
 	private final Optional<Short> source;
 
-	public Fix(long mmsi, float lat, float lon, long time,
-			Optional<Integer> latencySeconds, Optional<Short> source,
-			Optional<NavigationalStatus> navigationalStatus,
-			Optional<Float> speedOverGroundKnots,
-			Optional<Float> courseOverGroundDegrees,
-			Optional<Float> headingDegrees, AisClass aisClass) {
+	public Fix(long mmsi, float lat, float lon, long time, Optional<Integer> latencySeconds,
+	        Optional<Short> source, Optional<NavigationalStatus> navigationalStatus,
+	        Optional<Float> speedOverGroundKnots, Optional<Float> courseOverGroundDegrees,
+	        Optional<Float> headingDegrees, AisClass aisClass) {
 
 		if (validate) {
+			Preconditions.checkNotNull(navigationalStatus);
+			Preconditions.checkNotNull(courseOverGroundDegrees);
+			Preconditions.checkNotNull(headingDegrees);
+			Preconditions.checkNotNull(aisClass);
+			Preconditions.checkNotNull(latencySeconds);
+			Preconditions.checkNotNull(source);
 			if (courseOverGroundDegrees.isPresent()) {
 				Preconditions.checkArgument(courseOverGroundDegrees.get() < 360
-						&& courseOverGroundDegrees.get() >= 0, "cog="+ courseOverGroundDegrees.get());
+				        && courseOverGroundDegrees.get() >= 0,
+				        "cog=" + courseOverGroundDegrees.get());
 			}
 			if (headingDegrees.isPresent()) {
-				Preconditions.checkArgument(headingDegrees.get() < 360
-						&& headingDegrees.get() >= 0, "heading="+ headingDegrees.get());
+				Preconditions.checkArgument(
+				        headingDegrees.get() < 360 && headingDegrees.get() >= 0, "heading="
+				                + headingDegrees.get());
 			}
-			Preconditions.checkArgument(lat>=-90 && lat <=90, "lat="+ lat);
-			Preconditions.checkArgument(lon>=-180 && lon <=180, "lon="+ lon);
+			Preconditions.checkArgument(lat >= -90 && lat <= 90, "lat=" + lat);
+			Preconditions.checkArgument(lon >= -180 && lon <= 180, "lon=" + lon);
 		}
 		this.mmsi = mmsi;
 		this.lat = lat;
