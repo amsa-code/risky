@@ -64,6 +64,7 @@ import au.gov.amsa.util.nmea.NmeaUtil;
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
 import com.github.davidmoten.rx.slf4j.Logging;
+import com.github.davidmoten.rx.slf4j.OperatorLogging;
 import com.google.common.base.Optional;
 
 public class Streams {
@@ -667,13 +668,14 @@ public class Streams {
 
 	public static Func1<List<File>, Observable<Integer>> extractFixesFromNmeaGzAndAppendToFile(
 	        final int linesPerProcessor, final Scheduler scheduler,
-	        final Func1<Fix, String> fileMapper, final int writeBufferSize) {
+	        final Func1<Fix, String> fileMapper, final int writeBufferSize,
+	        final OperatorLogging<File> logger) {
 		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(List<File> files) {
 				Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
 				// log
-				        .lift(Logging.<File> logger().showCount().showValue().log())
+				        .lift(logger)
 				        // one file at a time
 				        .concatMap(new Func1<File, Observable<String>>() {
 					        @Override
@@ -706,6 +708,9 @@ public class Streams {
 		List<File> fileList = Files.find(input, inputPattern);
 		Observable<File> files = Observable.from(fileList);
 
+		// count files across parallel streams
+		OperatorLogging<File> logger = Logging.<File> logger().showCount().showValue().log();
+
 		deleteDirectory(output);
 
 		return files
@@ -714,7 +719,7 @@ public class Streams {
 		        // extract fixes
 		        .flatMap(
 		                extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
-		                        fileMapper, writeBufferSize))
+		                        fileMapper, writeBufferSize, logger))
 		        // count number written fixes
 		        .scan(0, new Func2<Integer, Integer, Integer>() {
 			        @Override
