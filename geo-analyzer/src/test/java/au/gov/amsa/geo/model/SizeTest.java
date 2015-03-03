@@ -53,13 +53,12 @@ public class SizeTest {
 
 	@Test
 	public void dummy() {
-		Observable.range(1, 2).lift(new OperatorSkip(1)).subscribe();
+		Observable.range(1, 2).lift(new OperatorSkip<Integer>(1)).subscribe();
 	}
 
 	private void logMem() {
 		System.out.println("mem="
-				+ (Runtime.getRuntime().totalMemory() - Runtime.getRuntime()
-						.freeMemory()));
+		        + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
 	}
 
 }
