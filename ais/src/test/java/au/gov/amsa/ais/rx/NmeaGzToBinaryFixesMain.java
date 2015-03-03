@@ -57,7 +57,7 @@ public class NmeaGzToBinaryFixesMain {
 			throw new RuntimeException("unknown file mapper (by):" + by);
 
 		Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery, writeBufferSize,
-		        Schedulers.immediate(), linesPerProcessor, downSampleIntervalMs, fileMapper)
+		        Schedulers.computation(), linesPerProcessor, downSampleIntervalMs, fileMapper)
 		        .count().toBlocking().single();
 		Thread.sleep(1000);
 		// else {

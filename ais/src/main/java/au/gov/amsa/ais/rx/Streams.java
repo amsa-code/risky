@@ -38,6 +38,7 @@ import rx.Subscription;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.AisNmeaBuffer;
@@ -664,19 +665,32 @@ public class Streams {
 		}
 	}
 
-	public static Func1<File, Observable<Fix>> extractFixesFromNmeaGz(final int linesPerProcessor,
-	        final Scheduler scheduler) {
-		return new Func1<File, Observable<Fix>>() {
+	public static Func1<File, Observable<Integer>> extractFixesFromNmeaGz(
+	        final int linesPerProcessor, final Scheduler scheduler,
+	        final Func1<Fix, String> fileMapper, final int writeBufferSize) {
+		return new Func1<File, Observable<Integer>>() {
 			@Override
-			public Observable<Fix> call(File file) {
-				return Streams.nmeaFromGzip(file.getAbsolutePath()).buffer(linesPerProcessor)
-				// parse the messages asynchronously using computation
-				// scheduler
-				        .flatMap(new Func1<List<String>, Observable<Fix>>() {
+			public Observable<Integer> call(File file) {
+				return Streams.nmeaFromGzip(file.getAbsolutePath())
+				//
+				        .buffer(linesPerProcessor)
+				        // parse the messages asynchronously using computation
+				        // scheduler
+				        .flatMap(new Func1<List<String>, Observable<Integer>>() {
 					        @Override
-					        public Observable<Fix> call(List<String> list) {
-						        return Streams.extractFixes(Observable.from(list))
-						        // do async
+					        public Observable<Integer> call(List<String> list) {
+						        return BinaryFixesWriter
+						                .writeFixes(fileMapper,
+						                        Streams.extractFixes(Observable.from(list)),
+						                        writeBufferSize, false)
+						                // total counts
+						                .reduce(0, new Func2<Integer, List<Fix>, Integer>() {
+							                @Override
+							                public Integer call(Integer count, List<Fix> fixes) {
+								                return count + fixes.size();
+							                }
+						                })
+						                // do async
 						                .subscribeOn(scheduler);
 					        }
 				        });
@@ -687,22 +701,30 @@ public class Streams {
 	public static Observable<Integer> writeFixesFromNmeaGz(File input, Pattern inputPattern,
 	        File output, int logEvery, int writeBufferSize, Scheduler scheduler,
 	        int linesPerProcessor, long downSampleIntervalMs, Func1<Fix, String> fileMapper) {
+
 		Observable<File> files = Observable.from(Files.find(input, inputPattern));
 
 		deleteDirectory(output);
 
-		Observable<Fix> fixes = files
+		return files
 		// log the filename
 		        .lift(Logging.<File> logger().showCount().showValue().log())
-		        // extract fixess
-		        .flatMap(extractFixesFromNmeaGz(linesPerProcessor, scheduler))
+		        // extract fixes
+		        .flatMap(
+		                extractFixesFromNmeaGz(linesPerProcessor, scheduler, fileMapper,
+		                        writeBufferSize))
+		        // count number written fixes
+		        .scan(0, new Func2<Integer, Integer, Integer>() {
+			        @Override
+			        public Integer call(Integer a, Integer b) {
+				        return a + b;
+			        }
+		        })
 		        // log
-		        .lift(Logging.<Fix> logger().showCount().showMemory().showRateSince("rate", 5000)
-		                .every(logEvery).log());
-
-		return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false)
-		// count number of fixes
-		        .count()
+		        .lift(Logging.<Integer> logger().showCount().showMemory()
+		                .showRateSince("rate", 5000).every(logEvery).log())
+		        // get the final count
+		        .last()
 		        // on completion of writing fixes, sort the track files and emit
 		        // the count of files
 		        .concatWith(sortOutputFilesByTime(output, downSampleIntervalMs));
