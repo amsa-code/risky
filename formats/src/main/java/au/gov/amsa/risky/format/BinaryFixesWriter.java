@@ -21,31 +21,29 @@ import com.google.common.base.Preconditions;
 
 public final class BinaryFixesWriter {
 
-	public static Observable<List<Fix>> writeFixes(
-			final Func1<Fix, String> fileMapper, Observable<Fix> fixes,
-			int bufferSize, boolean zip) {
+	public static Observable<List<Fix>> writeFixes(final Func1<Fix, String> fileMapper,
+	        Observable<Fix> fixes, int bufferSize, boolean zip) {
 		return fixes
 		// group by filename
-				.groupBy(fileMapper)
-				// buffer fixes by filename
-				.flatMap(buffer(bufferSize))
-				// write each list to a file
-				.doOnNext(writeFixList(fileMapper, zip));
+		        .groupBy(fileMapper)
+		        // buffer fixes by filename
+		        .flatMap(buffer(bufferSize))
+		        // write each list to a file
+		        .doOnNext(writeFixList(fileMapper, zip));
 	}
 
 	private static Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>> buffer(
-			final int bufferSize) {
+	        final int bufferSize) {
 		return new Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>>() {
 			@Override
-			public Observable<List<Fix>> call(
-					GroupedObservable<String, Fix> fileFixes) {
+			public Observable<List<Fix>> call(GroupedObservable<String, Fix> fileFixes) {
 				return fileFixes.buffer(bufferSize);
 			}
 		};
 	}
 
-	private static Action1<List<Fix>> writeFixList(
-			final Func1<Fix, String> fileMapper, final boolean zip) {
+	private static Action1<List<Fix>> writeFixList(final Func1<Fix, String> fileMapper,
+	        final boolean zip) {
 		return new Action1<List<Fix>>() {
 
 			@Override
@@ -53,16 +51,14 @@ public final class BinaryFixesWriter {
 				if (fixes.size() == 0)
 					return;
 				String filename = fileMapper.call(fixes.get(0));
-				writeFixes(fixes, new File(filename), false, zip);
+				writeFixes(fixes, new File(filename), true, zip);
 			}
 
 		};
 	}
 
-	public static void writeFixes(List<Fix> fixes, File file, boolean append,
-			boolean zip) {
-		Preconditions.checkArgument(!zip || !append,
-				"cannot perform append and zip at same time");
+	public static void writeFixes(List<Fix> fixes, File file, boolean append, boolean zip) {
+		Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
 		OutputStream os = null;
 		try {
 			file.getParentFile().mkdirs();

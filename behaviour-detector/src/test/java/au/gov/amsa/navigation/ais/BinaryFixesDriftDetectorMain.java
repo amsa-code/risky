@@ -21,7 +21,7 @@ public class BinaryFixesDriftDetectorMain {
 		// perform a speed test for loading BinaryFixes from disk
 
 		// -downsample-5-mins
-		List<File> files = Files.find(new File("/media/an/binary-fixes-all/2014"),
+		List<File> files = Files.find(new File("/media/an/binary-fixes/2014-year"),
 		        Pattern.compile(".*\\.track"));
 		int count = Observable
 		// list files

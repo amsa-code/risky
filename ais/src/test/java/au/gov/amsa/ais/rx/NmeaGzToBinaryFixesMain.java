@@ -1,37 +1,25 @@
 package au.gov.amsa.ais.rx;
 
-import static rx.Observable.from;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.Observer;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.ais.AisMessage;
-import au.gov.amsa.ais.Timestamped;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
 import au.gov.amsa.risky.format.Fix;
-
-import com.github.davidmoten.rx.slf4j.Logging;
 
 public class NmeaGzToBinaryFixesMain {
 
 	private static final String BY_MONTH = "month";
 	private static final String BY_YEAR = "year";
-	private static final Logger log = LoggerFactory
-			.getLogger(NmeaGzToBinaryFixesMain.class);
+	private static final Logger log = LoggerFactory.getLogger(NmeaGzToBinaryFixesMain.class);
 
-	public static void main(String[] args) throws IOException,
-			InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		log.info("starting");
 
 		final String inputFilename = prop("input", "/home/dxm/temp");
@@ -48,10 +36,10 @@ public class NmeaGzToBinaryFixesMain {
 		long t = System.currentTimeMillis();
 
 		int logEvery = 100000;
-		
-		//append fixes to a file once you have this many for the one mmsi
+
+		// append fixes to a file once you have this many for the one mmsi
 		int writeBufferSize = 100;
-		
+
 		// Note that the ring buffer size is twice the linesPerProcessor
 		final int ringBufferSize = 16 * 8192;
 		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
@@ -67,9 +55,9 @@ public class NmeaGzToBinaryFixesMain {
 		else
 			throw new RuntimeException("unknown file mapper (by):" + by);
 
-		Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery,
-				writeBufferSize, Schedulers.immediate(), linesPerProcessor,
-				downSampleIntervalMs, fileMapper).count().toBlocking().single();
+		Streams.writeFixesFromNmeaGz(input, inputPattern, output, logEvery, writeBufferSize,
+		        Schedulers.immediate(), linesPerProcessor, downSampleIntervalMs, fileMapper)
+		        .count().toBlocking().single();
 		Thread.sleep(1000);
 		// else {
 		// // read 11 million NMEA lines
@@ -108,8 +96,7 @@ public class NmeaGzToBinaryFixesMain {
 		// Thread.sleep(3000);
 		// }
 
-		log.info("finished in " + (System.currentTimeMillis() - t) / 1000.0
-				+ "s");
+		log.info("finished in " + (System.currentTimeMillis() - t) / 1000.0 + "s");
 	}
 
 	private static String prop(String name, String defaultValue) {

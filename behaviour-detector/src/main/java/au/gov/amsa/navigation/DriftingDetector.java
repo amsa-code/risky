@@ -23,6 +23,10 @@ public class DriftingDetector {
 		return o.filter(IS_CANDIDATE);
 	}
 
+	public static DriftingTransformer detectDrift() {
+		return new DriftingTransformer();
+	}
+
 	private static class DriftingTransformer implements Transformer<VesselPosition, VesselPosition> {
 
 		private DriftingDetector d = new DriftingDetector();
@@ -31,10 +35,6 @@ public class DriftingDetector {
 		public Observable<VesselPosition> call(Observable<VesselPosition> o) {
 			return d.getCandidates(o);
 		}
-	}
-
-	public static DriftingTransformer detectDrift() {
-		return new DriftingTransformer();
 	}
 
 	@VisibleForTesting
