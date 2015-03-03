@@ -21,7 +21,7 @@ public class BinaryFixesDriftDetectorMain {
 		// perform a speed test for loading BinaryFixes from disk
 
 		// -downsample-5-mins
-		List<File> files = Files.find(new File("/media/an/binary-fixes/2014-year"),
+		List<File> files = Files.find(new File("/media/an/binary-fixes-all/2012"),
 		        Pattern.compile(".*\\.track"));
 		int count = Observable
 		// list files
@@ -37,10 +37,28 @@ public class BinaryFixesDriftDetectorMain {
 
 					                @Override
 					                public Observable<VesselPosition> call(File file) {
-						                return new DriftingDetector().getCandidates(
-						                        BinaryFixes.from(file).map(
-						                                VesselPositions.TO_VESSEL_POSITION))
-						                // log
+						                return new DriftingDetector()
+						                        .getCandidates(
+						                                BinaryFixes
+						                                        .from(file)
+						                                        .map(VesselPositions.TO_VESSEL_POSITION)
+						                                        .filter(new Func1<VesselPosition, Boolean>() {
+
+							                                        @Override
+							                                        public Boolean call(
+							                                                VesselPosition p) {
+								                                        return p.cogDegrees()
+								                                                .isPresent()
+								                                                && p.headingDegrees()
+								                                                        .isPresent()
+								                                                && p.speedMetresPerSecond()
+								                                                        .isPresent();
+							                                        }
+
+						                                        })
+						                                        .lift(Logging
+						                                                .<VesselPosition> log()))
+						                        // log
 						                        .lift(Logging.<VesselPosition> logger().showValue()
 						                                .log());
 
