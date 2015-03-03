@@ -62,8 +62,8 @@ public final class BinaryFixesWriter {
 
 	public static void writeFixes(List<Fix> fixes, File file, boolean append, boolean zip) {
 		Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
-		Object monitor = fileMonitors.putIfAbsent(file, new Object());
-		synchronized (monitor) {
+		fileMonitors.putIfAbsent(file, new Object());
+		synchronized (fileMonitors.get(file)) {
 			OutputStream os = null;
 			try {
 				file.getParentFile().mkdirs();
