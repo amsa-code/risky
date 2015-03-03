@@ -13,8 +13,6 @@ import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.util.Files;
 
-import com.github.davidmoten.rx.slf4j.Logging;
-
 public class BinaryFixesDriftDetectorMain {
 
 	public static void main(String[] args) {
@@ -38,30 +36,8 @@ public class BinaryFixesDriftDetectorMain {
 					                @Override
 					                public Observable<VesselPosition> call(File file) {
 						                return new DriftingDetector()
-						                        .getCandidates(
-						                                BinaryFixes
-						                                        .from(file)
-						                                        .map(VesselPositions.TO_VESSEL_POSITION)
-						                                        .filter(new Func1<VesselPosition, Boolean>() {
-
-							                                        @Override
-							                                        public Boolean call(
-							                                                VesselPosition p) {
-								                                        return p.cogDegrees()
-								                                                .isPresent()
-								                                                && p.headingDegrees()
-								                                                        .isPresent()
-								                                                && p.speedMetresPerSecond()
-								                                                        .isPresent();
-							                                        }
-
-						                                        })
-						                                        .lift(Logging
-						                                                .<VesselPosition> log()))
-						                        // log
-						                        .lift(Logging.<VesselPosition> logger().showValue()
-						                                .log());
-
+						                        .getCandidates(BinaryFixes.from(file).map(
+						                                VesselPositions.TO_VESSEL_POSITION));
 					                }
 				                })
 				                // schedule

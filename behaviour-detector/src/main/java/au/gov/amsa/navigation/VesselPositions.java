@@ -11,32 +11,29 @@ import com.google.common.base.Optional;
 
 public class VesselPositions {
 
-	private static final long KNOTS_TO_METRES_PER_SECOND = 1852 / TimeUnit.HOURS
-			.toSeconds(1);
+	private static final double KNOTS_TO_METRES_PER_SECOND = 1852.0 / TimeUnit.HOURS.toSeconds(1);
 
 	// TODO unit test
 	public static VesselPosition toVesselPosition(Fix fix) {
 		return VesselPosition
-				.builder()
-				.id(new Mmsi(fix.getMmsi()))
-				.lat(fix.getLat())
-				.lon(fix.getLon())
-				.time(fix.getTime())
-				.cls(fix.getAisClass() == AisClass.A ? VesselClass.A
-						: VesselClass.B)
-				.cogDegrees(toDouble(fix.getCourseOverGroundDegrees()))
-				.headingDegrees(toDouble(fix.getHeadingDegrees()))
-				.speedMetresPerSecond(
-						multiply(fix.getSpeedOverGroundKnots(),
-								KNOTS_TO_METRES_PER_SECOND))
-				.navigationalStatus(
-						fix.getNavigationalStatus().isPresent() ? NavigationalStatus
-								.values()[fix.getNavigationalStatus().get()
-								.ordinal()] : NavigationalStatus.NOT_DEFINED)
-				.positionAisNmea(Optional.<String> absent())
-				.shipStaticAisNmea(Optional.<String>absent())
-				// build
-				.build();
+		        .builder()
+		        .id(new Mmsi(fix.getMmsi()))
+		        .lat(fix.getLat())
+		        .lon(fix.getLon())
+		        .time(fix.getTime())
+		        .cls(fix.getAisClass() == AisClass.A ? VesselClass.A : VesselClass.B)
+		        .cogDegrees(toDouble(fix.getCourseOverGroundDegrees()))
+		        .headingDegrees(toDouble(fix.getHeadingDegrees()))
+		        .speedMetresPerSecond(
+		                multiply(fix.getSpeedOverGroundKnots(), KNOTS_TO_METRES_PER_SECOND))
+		        .navigationalStatus(
+		                fix.getNavigationalStatus().isPresent() ? NavigationalStatus.values()[fix
+		                        .getNavigationalStatus().get().ordinal()]
+		                        : NavigationalStatus.NOT_DEFINED)
+		        .positionAisNmea(Optional.<String> absent())
+		        .shipStaticAisNmea(Optional.<String> absent())
+		        // build
+		        .build();
 	}
 
 	public static Func1<Fix, VesselPosition> TO_VESSEL_POSITION = new Func1<Fix, VesselPosition>() {

@@ -20,51 +20,47 @@ public class BinaryFixesMain {
 
 		final ConcurrentHashMap<Long, List<Fix>> map = new ConcurrentHashMap<Long, List<Fix>>();
 		// -downsample-5-mins
-		List<File> files = Files.find(new File(
-				"/media/an/binary-fixes/2014-year-downsample-5-mins"), Pattern
-				.compile(".*\\.track"));
+		List<File> files = Files.find(
+		        new File("/media/an/binary-fixes/2014-year-downsample-5-mins"),
+		        Pattern.compile(".*\\.track"));
 		long t = System.currentTimeMillis();
 		long count = Observable
 		// list files
-				.from(files)
-				// share the load between processors
-				.buffer(Math.max(1, files.size()
-						/ Runtime.getRuntime().availableProcessors()))
-				// count each file asynchronously
-				.flatMap(new Func1<List<File>, Observable<Long>>() {
-					@Override
-					public Observable<Long> call(List<File> list) {
-						return Observable.from(list)
-								.concatMap(new Func1<File, Observable<Long>>() {
-
-									@Override
-									public Observable<Long> call(File file) {
-										return BinaryFixes.from(file)
-												.countLong();
-									}
-								})
-								// schedule
-								.subscribeOn(Schedulers.computation());
-					}
-				})
-				// total counts
-				.scan(0L, new Func2<Long, Long, Long>() {
-					@Override
-					public Long call(Long a, Long b) {
-						return a + b;
-					}
-				})
-				// log count so far
-				.lift(Logging.<Long> logger().showCount().prefix("records=")
-						.showMemory().every(1000).log())
-				// get last count (total)
-				.last()
-				// block and get
-				.toBlocking().single();
+		        .from(files)
+		        // share the load between processors
+		        .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()))
+		        // count each file asynchronously
+		        .flatMap(new Func1<List<File>, Observable<Long>>() {
+			        @Override
+			        public Observable<Long> call(List<File> list) {
+				        return Observable.from(list).concatMap(new Func1<File, Observable<Long>>() {
+					        @Override
+					        public Observable<Long> call(File file) {
+						        return BinaryFixes.from(file).countLong();
+					        }
+				        })
+				        // schedule
+				                .subscribeOn(Schedulers.computation());
+			        }
+		        })
+		        // total counts
+		        .scan(0L, new Func2<Long, Long, Long>() {
+			        @Override
+			        public Long call(Long a, Long b) {
+				        return a + b;
+			        }
+		        })
+		        // log count so far
+		        .lift(Logging.<Long> logger().showCount().prefix("records=").showMemory()
+		                .every(1000).log())
+		        // get last count (total)
+		        .last()
+		        // block and get
+		        .toBlocking().single();
 		long elapsed = System.currentTimeMillis() - t;
 		System.out.println("Map size = " + map.size());
-		System.out.println("Total records = " + count + ", numPerSecond="
-				+ count * 1000.0 / elapsed + ", timeMs=" + elapsed);
+		System.out.println("Total records = " + count + ", numPerSecond=" + count * 1000.0
+		        / elapsed + ", timeMs=" + elapsed);
 	}
 
 }
