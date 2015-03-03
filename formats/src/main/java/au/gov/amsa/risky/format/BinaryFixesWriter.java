@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPOutputStream;
 
 import org.joda.time.DateTime;
@@ -57,35 +58,40 @@ public final class BinaryFixesWriter {
 		};
 	}
 
+	private static ConcurrentHashMap<File, Object> fileMonitors = new ConcurrentHashMap<File, Object>();
+
 	public static void writeFixes(List<Fix> fixes, File file, boolean append, boolean zip) {
 		Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
-		OutputStream os = null;
-		try {
-			file.getParentFile().mkdirs();
-			FileOutputStream fos = new FileOutputStream(file, append);
-			OutputStream s;
-			if (zip)
-				s = new GZIPOutputStream(fos);
-			else
-				s = fos;
-			os = new BufferedOutputStream(s);
-			ByteBuffer bb = BinaryFixes.createFixByteBuffer();
-			for (Fix fix : fixes) {
-				bb.rewind();
-				BinaryFixes.write(fix, bb);
-				os.write(bb.array());
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		} finally {
-			if (os != null)
-				try {
-					os.close();
-				} catch (IOException e) {
-					// we care because we are writing
-					throw new RuntimeException(e);
+		Object monitor = fileMonitors.putIfAbsent(file, new Object());
+		synchronized (monitor) {
+			OutputStream os = null;
+			try {
+				file.getParentFile().mkdirs();
+				FileOutputStream fos = new FileOutputStream(file, append);
+				OutputStream s;
+				if (zip)
+					s = new GZIPOutputStream(fos);
+				else
+					s = fos;
+				os = new BufferedOutputStream(s);
+				ByteBuffer bb = BinaryFixes.createFixByteBuffer();
+				for (Fix fix : fixes) {
+					bb.rewind();
+					BinaryFixes.write(fix, bb);
+					os.write(bb.array());
 				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			} finally {
+				if (os != null)
+					try {
+						os.close();
+					} catch (IOException e) {
+						// we care because we are writing
+						throw new RuntimeException(e);
+					}
+			}
 		}
 	}
 

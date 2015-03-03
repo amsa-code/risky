@@ -665,7 +665,7 @@ public class Streams {
 		}
 	}
 
-	public static Func1<File, Observable<Integer>> extractFixesFromNmeaGz(
+	public static Func1<File, Observable<Integer>> extractFixesFromNmeaGzAndAppendToFile(
 	        final int linesPerProcessor, final Scheduler scheduler,
 	        final Func1<Fix, String> fileMapper, final int writeBufferSize) {
 		return new Func1<File, Observable<Integer>>() {
@@ -711,7 +711,7 @@ public class Streams {
 		        .lift(Logging.<File> logger().showCount().showValue().log())
 		        // extract fixes
 		        .flatMap(
-		                extractFixesFromNmeaGz(linesPerProcessor, scheduler, fileMapper,
+		                extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler, fileMapper,
 		                        writeBufferSize))
 		        // count number written fixes
 		        .scan(0, new Func2<Integer, Integer, Integer>() {
