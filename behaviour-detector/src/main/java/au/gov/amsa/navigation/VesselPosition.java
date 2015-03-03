@@ -9,15 +9,14 @@ import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 public class VesselPosition {
-	
 
 	public enum NavigationalStatus {
-		// order of these should reflect numerical order in nav status int returned
+		// order of these should reflect numerical order in nav status int
+		// returned
 		// from ITU standard ais position report A
 		UNDER_WAY_USING_ENGINE, AT_ANCHOR, NOT_UNDER_COMMAND, RESTRICTED_MANOEUVRABILITY, CONSTRAINED_BY_HER_DRAUGHT, MOORED, AGROUND, ENGAGED_IN_FISHING, UNDER_WAY, RESERVED_1, RESERVED_2, FUTURE_1, FUTURE_2, FUTURE_3, AIS_SART, NOT_DEFINED;
 	}
 
-	
 	private static final double EARTH_RADIUS_KM = 6378.1;
 	private static final int maxDimensionMetresWhenUnknown = 30;
 	private final double lat;
@@ -38,18 +37,14 @@ public class VesselPosition {
 	private static AtomicLong counter = new AtomicLong();
 	private long messageId;
 
-	private VesselPosition(long messageId, Identifier id, double lat,
-			double lon, Optional<Integer> lengthMetres,
-			Optional<Integer> widthMetres, Optional<Double> cog,
-			Optional<Double> heading, Optional<Double> speedMetresPerSecond,
-			VesselClass cls, NavigationalStatus navigationalStatus, long time,
-			Optional<Integer> shipType, Optional<String> positionAisNmea,
-			Optional<String> shipStaticAisNmea) {
+	private VesselPosition(long messageId, Identifier id, double lat, double lon,
+	        Optional<Integer> lengthMetres, Optional<Integer> widthMetres, Optional<Double> cog,
+	        Optional<Double> heading, Optional<Double> speedMetresPerSecond, VesselClass cls,
+	        NavigationalStatus navigationalStatus, long time, Optional<Integer> shipType,
+	        Optional<String> positionAisNmea, Optional<String> shipStaticAisNmea) {
 
-		Preconditions.checkArgument(lat >= -90 && lat <= 90, "unexpected lat "
-				+ lat);
-		Preconditions.checkArgument(lon >= -180 && lon <= 180,
-				"unexpected lon " + lon);
+		Preconditions.checkArgument(lat >= -90 && lat <= 90, "unexpected lat " + lat);
+		Preconditions.checkArgument(lon >= -180 && lon <= 180, "unexpected lon " + lon);
 		Preconditions.checkNotNull(id);
 		Preconditions.checkNotNull(lengthMetres);
 		Preconditions.checkNotNull(widthMetres);
@@ -203,8 +198,7 @@ public class VesselPosition {
 			return this;
 		}
 
-		public Builder speedMetresPerSecond(
-				Optional<Double> speedMetresPerSecond) {
+		public Builder speedMetresPerSecond(Optional<Double> speedMetresPerSecond) {
 			this.speedMetresPerSecond = speedMetresPerSecond;
 			return this;
 		}
@@ -233,17 +227,16 @@ public class VesselPosition {
 			this.shipStaticAisNmea = nmea;
 			return this;
 		}
-		
+
 		public Builder navigationalStatus(NavigationalStatus status) {
-			this.navigationalStatus= status;
+			this.navigationalStatus = status;
 			return this;
 		}
 
 		public VesselPosition build() {
-			return new VesselPosition(counter.incrementAndGet(), id, lat, lon,
-					lengthMetres, widthMetres, cogDegrees, headingDegrees,
-					speedMetresPerSecond, cls, navigationalStatus, time, shipType,
-					positionAisNmea, shipStaticAisNmea);
+			return new VesselPosition(counter.incrementAndGet(), id, lat, lon, lengthMetres,
+			        widthMetres, cogDegrees, headingDegrees, speedMetresPerSecond, cls,
+			        navigationalStatus, time, shipType, positionAisNmea, shipStaticAisNmea);
 		}
 
 	}
@@ -267,10 +260,8 @@ public class VesselPosition {
 
 	public Vector position(VesselPosition relativeTo) {
 		// TODO longitude wrapping check
-		double xMetres = (lon - relativeTo.lon())
-				* relativeTo.metresPerDegreeLongitude();
-		double yMetres = (lat - relativeTo.lat())
-				* relativeTo.metresPerDegreeLatitude();
+		double xMetres = (lon - relativeTo.lon()) * relativeTo.metresPerDegreeLongitude();
+		double yMetres = (lat - relativeTo.lat()) * relativeTo.metresPerDegreeLatitude();
 		return new Vector(xMetres, yMetres);
 	}
 
@@ -282,29 +273,26 @@ public class VesselPosition {
 
 	public Optional<VesselPosition> predict(long t) {
 		if (!speedMetresPerSecond.isPresent() || !cogDegrees.isPresent()
-				|| navigationalStatus == NavigationalStatus.AT_ANCHOR|| navigationalStatus == NavigationalStatus.MOORED)
+		        || navigationalStatus == NavigationalStatus.AT_ANCHOR
+		        || navigationalStatus == NavigationalStatus.MOORED)
 			return Optional.absent();
 		else {
-			double lat = this.lat - speedMetresPerSecond.get()
-					/ metresPerDegreeLatitude() * (t - time) / 1000.0
-					* Math.cos(Math.toRadians(cogDegrees.get()));
-			double lon = this.lon + speedMetresPerSecond.get()
-					/ metresPerDegreeLongitude() * (t - time) / 1000.0
-					* Math.sin(Math.toRadians(cogDegrees.get()));
+			double lat = this.lat - speedMetresPerSecond.get() / metresPerDegreeLatitude()
+			        * (t - time) / 1000.0 * Math.cos(Math.toRadians(cogDegrees.get()));
+			double lon = this.lon + speedMetresPerSecond.get() / metresPerDegreeLongitude()
+			        * (t - time) / 1000.0 * Math.sin(Math.toRadians(cogDegrees.get()));
 
-			return Optional.of(new VesselPosition(messageId, id, lat, lon,
-					lengthMetres, widthMetres, cogDegrees, headingDegrees,
-					speedMetresPerSecond, cls, navigationalStatus, time, shipType,
-					positionAisNmea, shipStaticAisNmea));
+			return Optional.of(new VesselPosition(messageId, id, lat, lon, lengthMetres,
+			        widthMetres, cogDegrees, headingDegrees, speedMetresPerSecond, cls,
+			        navigationalStatus, time, shipType, positionAisNmea, shipStaticAisNmea));
 		}
 	}
 
 	private Optional<Vector> velocity() {
 		if (speedMetresPerSecond.isPresent() && cogDegrees.isPresent())
 			return Optional.of(new Vector(speedMetresPerSecond.get()
-					* Math.sin(Math.toRadians(cogDegrees.get())),
-					speedMetresPerSecond.get()
-							* Math.cos(Math.toRadians(cogDegrees.get()))));
+			        * Math.sin(Math.toRadians(cogDegrees.get())), speedMetresPerSecond.get()
+			        * Math.cos(Math.toRadians(cogDegrees.get()))));
 		else
 			return Optional.absent();
 	}
@@ -327,11 +315,8 @@ public class VesselPosition {
 
 		// imagine a ring around the vessel centroid with maxDimensionMetres/2
 		// radius. This is the ring we are going to test for collision.
-		double r = p.get().maxDimensionMetres()
-				.or(maxDimensionMetresWhenUnknown)
-				/ 2
-				+ maxDimensionMetres().or(maxDimensionMetresWhenUnknown)
-				/ 2;
+		double r = p.get().maxDimensionMetres().or(maxDimensionMetresWhenUnknown) / 2
+		        + maxDimensionMetres().or(maxDimensionMetresWhenUnknown) / 2;
 
 		if (deltaP.dot(deltaP) <= r)
 			return of(new Times(p.get().time()));
@@ -351,10 +336,8 @@ public class VesselPosition {
 			if (discriminant == 0) {
 				return of(new Times(Math.round(-b / 2 / a)));
 			} else {
-				long alpha1 = Math
-						.round((-b + Math.sqrt(discriminant)) / 2 / a);
-				long alpha2 = Math
-						.round((-b - Math.sqrt(discriminant)) / 2 / a);
+				long alpha1 = Math.round((-b + Math.sqrt(discriminant)) / 2 / a);
+				long alpha2 = Math.round((-b - Math.sqrt(discriminant)) / 2 / a);
 				return of(new Times(alpha1, alpha2));
 			}
 		}

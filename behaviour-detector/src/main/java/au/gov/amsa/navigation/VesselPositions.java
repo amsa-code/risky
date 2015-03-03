@@ -27,7 +27,7 @@ public class VesselPositions {
 				.cogDegrees(toDouble(fix.getCourseOverGroundDegrees()))
 				.headingDegrees(toDouble(fix.getHeadingDegrees()))
 				.speedMetresPerSecond(
-						times(fix.getSpeedOverGroundKnots(),
+						multiply(fix.getSpeedOverGroundKnots(),
 								KNOTS_TO_METRES_PER_SECOND))
 				.navigationalStatus(
 						fix.getNavigationalStatus().isPresent() ? NavigationalStatus
@@ -53,7 +53,7 @@ public class VesselPositions {
 			return Optional.of((double) value.get());
 	}
 
-	private static Optional<Double> times(Optional<Float> value, double factor) {
+	private static Optional<Double> multiply(Optional<Float> value, double factor) {
 		if (!value.isPresent())
 			return Optional.absent();
 		else
