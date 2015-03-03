@@ -44,6 +44,7 @@ public class NmeaGzToBinaryFixesMain {
 		final int ringBufferSize = 16 * 8192;
 		System.getProperty("rx.ring-buffer.size", ringBufferSize + "");
 		int linesPerProcessor = ringBufferSize / 2;
+		// don't downsample
 		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
