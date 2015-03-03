@@ -672,7 +672,9 @@ public class Streams {
 			@Override
 			public Observable<Integer> call(List<File> files) {
 				Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
-				// one file at a time
+				// log
+				        .lift(Logging.<File> logger().showCount().showValue().log())
+				        // one file at a time
 				        .concatMap(new Func1<File, Observable<String>>() {
 					        @Override
 					        public Observable<String> call(File file) {
@@ -707,8 +709,7 @@ public class Streams {
 		deleteDirectory(output);
 
 		return files
-		        // log the filename
-		        .lift(Logging.<File> logger().showCount().showValue().log())
+		// log the filename
 		        .buffer(fileList.size() / Runtime.getRuntime().availableProcessors())
 		        // extract fixes
 		        .flatMap(
