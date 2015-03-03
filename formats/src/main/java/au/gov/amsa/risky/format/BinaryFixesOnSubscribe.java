@@ -21,8 +21,7 @@ import com.google.common.base.Optional;
 
 public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(BinaryFixesOnSubscribe.class);
+	private static final Logger log = LoggerFactory.getLogger(BinaryFixesOnSubscribe.class);
 
 	private File file;
 
@@ -36,7 +35,7 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		try {
 			fis = new FileInputStream(file);
 			subscriber.add(createSubscription(fis));
-			reportFixes(file, subscriber, fis);
+			reportFixes(getMmsi(file), subscriber, fis);
 			if (!subscriber.isUnsubscribed())
 				subscriber.onCompleted();
 		} catch (Exception e) {
@@ -67,14 +66,12 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 		};
 	}
 
-	private static void reportFixes(final File file,
-			Subscriber<? super Fix> subscriber, InputStream fis)
-			throws IOException {
+	private static void reportFixes(long mmsi, Subscriber<? super Fix> subscriber, InputStream fis)
+	        throws IOException {
 		byte[] bytes = new byte[4096 * BINARY_FIX_BYTES];
 		int length = 0;
 		if (subscriber.isUnsubscribed())
 			return;
-		long mmsi = getMmsi(file);
 		while ((length = fis.read(bytes)) > 0) {
 			for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
 				if (subscriber.isUnsubscribed())
@@ -142,9 +139,8 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 			aisClass = AisClass.A;
 		else
 			aisClass = AisClass.B;
-		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source,
-				navigationalStatus, speedOverGroundKnots,
-				courseOverGroundDegrees, headingDegrees, aisClass);
+		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source, navigationalStatus,
+		        speedOverGroundKnots, courseOverGroundDegrees, headingDegrees, aisClass);
 		return fix;
 	}
 

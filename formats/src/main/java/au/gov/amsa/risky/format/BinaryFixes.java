@@ -25,7 +25,8 @@ public final class BinaryFixes {
 	protected static final byte RATE_OF_TURN_ABSENT = -128;
 
 	public static Observable<Fix> from(File file) {
-		return Observable.create(new BinaryFixesOnSubscribe(file));
+		// return Observable.create(new BinaryFixesOnSubscribe(file));
+		return BinaryFixesOnSubscribe2.from(file);
 	}
 
 	public static Observable<String> csv(Observable<Fix> fixes) {
@@ -45,7 +46,7 @@ public final class BinaryFixes {
 				s.append(f.getLatencySeconds().or(LATENCY_ABSENT));
 				s.append(COMMA);
 				s.append(f.getNavigationalStatus().or(
-						NavigationalStatus.values()[NAV_STATUS_ABSENT]));
+				        NavigationalStatus.values()[NAV_STATUS_ABSENT]));
 				s.append(COMMA);
 				s.append(f.getRateOfTurn().or(RATE_OF_TURN_ABSENT));
 				s.append(COMMA);
@@ -92,14 +93,12 @@ public final class BinaryFixes {
 		bb.put(ROT_ABSENT);
 
 		if (fix.getSpeedOverGroundKnots().isPresent())
-			bb.putShort((short) Math.round(10 * fix.getSpeedOverGroundKnots()
-					.get()));
+			bb.putShort((short) Math.round(10 * fix.getSpeedOverGroundKnots().get()));
 		else
 			bb.putShort(SOG_ABSENT);
 
 		if (fix.getCourseOverGroundDegrees().isPresent())
-			bb.putShort((short) Math.round(10 * fix
-					.getCourseOverGroundDegrees().get()));
+			bb.putShort((short) Math.round(10 * fix.getCourseOverGroundDegrees().get()));
 		else
 			bb.putShort(COG_ABSENT);
 

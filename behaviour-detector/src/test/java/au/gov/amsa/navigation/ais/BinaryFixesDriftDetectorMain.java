@@ -13,6 +13,8 @@ import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.util.Files;
 
+import com.github.davidmoten.rx.slf4j.Logging;
+
 public class BinaryFixesDriftDetectorMain {
 
 	public static void main(String[] args) {
@@ -43,7 +45,9 @@ public class BinaryFixesDriftDetectorMain {
 				                // schedule
 				                .subscribeOn(Schedulers.computation());
 			        }
-		        }).count().toBlocking().single();
+		        }).lift(Logging.<VesselPosition> logger().showCount().every(1000).log())
+		        // count
+		        .count().toBlocking().single();
 		System.out.println("drift detections = " + count);
 	}
 }
