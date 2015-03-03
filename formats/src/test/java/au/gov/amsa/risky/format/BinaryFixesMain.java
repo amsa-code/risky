@@ -18,6 +18,7 @@ public class BinaryFixesMain {
 	public static void main(String[] args) {
 		// perform a speed test for loading BinaryFixes from disk
 
+		Fix.validate = false;
 		final ConcurrentHashMap<Long, List<Fix>> map = new ConcurrentHashMap<Long, List<Fix>>();
 		// -downsample-5-mins
 		List<File> files = Files.find(
