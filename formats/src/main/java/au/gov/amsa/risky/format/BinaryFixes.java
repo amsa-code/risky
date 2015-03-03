@@ -25,9 +25,14 @@ public final class BinaryFixes {
 	protected static final byte RATE_OF_TURN_ABSENT = -128;
 
 	public static Observable<Fix> from(File file) {
-		return Observable.create(new BinaryFixesOnSubscribe(file));
-		// use backpressure
-		// return BinaryFixesOnSubscribe2.from(file);
+		return from(file, false);
+	}
+
+	public static Observable<Fix> from(File file, boolean backpressure) {
+		if (backpressure)
+			return BinaryFixesOnSubscribe2.from(file);
+		else
+			return BinaryFixesOnSubscribe.from(file);
 	}
 
 	public static Observable<String> csv(Observable<Fix> fixes) {

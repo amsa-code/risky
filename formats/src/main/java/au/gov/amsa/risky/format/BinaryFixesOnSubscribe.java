@@ -13,6 +13,7 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
 import rx.Observable.OnSubscribe;
 import rx.Subscriber;
 import rx.Subscription;
@@ -27,6 +28,10 @@ public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
 
 	public BinaryFixesOnSubscribe(File file) {
 		this.file = file;
+	}
+
+	public static Observable<Fix> from(File file) {
+		return Observable.create(new BinaryFixesOnSubscribe(file));
 	}
 
 	@Override

@@ -1,8 +1,6 @@
 package au.gov.amsa.risky.format;
 
 import static au.gov.amsa.risky.format.BinaryFixes.BINARY_FIX_BYTES;
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,8 +18,6 @@ import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.observables.AbstractOnSubscribe;
 import au.gov.amsa.risky.format.BinaryFixesOnSubscribe2.State;
-
-import com.google.common.base.Optional;
 
 public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
 
@@ -46,12 +42,6 @@ public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
 
 	}
 
-	private static long getMmsi(File file) {
-		int finish = file.getName().indexOf('.');
-		String id = file.getName().substring(0, finish);
-		return Long.parseLong(id);
-	}
-
 	public static Observable<Fix> from(final File file) {
 
 		Func0<InputStream> resourceFactory = new Func0<InputStream>() {
@@ -70,7 +60,8 @@ public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
 
 			@Override
 			public Observable<Fix> call(InputStream is) {
-				return Observable.create(new BinaryFixesOnSubscribe2(is, getMmsi(file)));
+				return Observable.create(new BinaryFixesOnSubscribe2(is, BinaryFixesUtil
+				        .getMmsi(file)));
 			}
 		};
 		Action1<InputStream> disposeAction = new Action1<InputStream>() {
@@ -105,7 +96,7 @@ public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
 				if ((length = state.state().is.read(bytes)) > 0) {
 					for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
 						ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
-						Fix fix = toFix(state.state().mmsi, bb);
+						Fix fix = BinaryFixesUtil.toFix(state.state().mmsi, bb);
 						state.state().queue.add(fix);
 					}
 					state.onNext(state.state().queue.remove());
@@ -116,63 +107,6 @@ public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
 			}
 		}
 
-	}
-
-	private static Fix toFix(long mmsi, ByteBuffer bb) {
-		float lat = bb.getFloat();
-		float lon = bb.getFloat();
-		long time = bb.getLong();
-		int latency = bb.getInt();
-		final Optional<Integer> latencySeconds;
-		if (latency == -1)
-			latencySeconds = absent();
-		else
-			latencySeconds = of(latency);
-		short src = bb.getShort();
-		final Optional<Short> source;
-		if (src == 0)
-			source = absent();
-		else
-			source = of(src);
-		byte nav = bb.get();
-		final Optional<NavigationalStatus> navigationalStatus;
-		if (nav == Byte.MAX_VALUE)
-			navigationalStatus = absent();
-		else
-			navigationalStatus = of(NavigationalStatus.values()[nav]);
-
-		// rate of turn
-		bb.get();
-
-		short sog = bb.getShort();
-		final Optional<Float> speedOverGroundKnots;
-		if (sog == BinaryFixes.SOG_ABSENT)
-			speedOverGroundKnots = absent();
-		else
-			speedOverGroundKnots = of(sog / 10f);
-
-		short cog = bb.getShort();
-		final Optional<Float> courseOverGroundDegrees;
-		if (cog == BinaryFixes.COG_ABSENT)
-			courseOverGroundDegrees = absent();
-		else
-			courseOverGroundDegrees = of(cog / 10f);
-
-		short heading = bb.getShort();
-		final Optional<Float> headingDegrees;
-		if (heading == BinaryFixes.HEADING_ABSENT)
-			headingDegrees = absent();
-		else
-			headingDegrees = of((float) heading / 10f);
-		byte cls = bb.get();
-		final AisClass aisClass;
-		if (cls == 0)
-			aisClass = AisClass.A;
-		else
-			aisClass = AisClass.B;
-		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source, navigationalStatus,
-		        speedOverGroundKnots, courseOverGroundDegrees, headingDegrees, aisClass);
-		return fix;
 	}
 
 }
