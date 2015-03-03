@@ -709,7 +709,8 @@ public class Streams {
 		Observable<File> files = Observable.from(fileList);
 
 		// count files across parallel streams
-		OperatorLogging<File> logger = Logging.<File> logger().showCount().showValue().log();
+		OperatorLogging<File> logger = Logging.<File> logger().showCount()
+		        .showRateSinceStart("rateFilesPerSecond").showValue().log();
 
 		deleteDirectory(output);
 
