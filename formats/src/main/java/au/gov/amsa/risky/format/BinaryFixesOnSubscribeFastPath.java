@@ -16,18 +16,18 @@ import rx.Observable.OnSubscribe;
 import rx.Subscriber;
 import rx.Subscription;
 
-public class BinaryFixesOnSubscribe implements OnSubscribe<Fix> {
+public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
 
-	private static final Logger log = LoggerFactory.getLogger(BinaryFixesOnSubscribe.class);
+	private static final Logger log = LoggerFactory.getLogger(BinaryFixesOnSubscribeFastPath.class);
 
 	private File file;
 
-	public BinaryFixesOnSubscribe(File file) {
+	public BinaryFixesOnSubscribeFastPath(File file) {
 		this.file = file;
 	}
 
 	public static Observable<Fix> from(File file) {
-		return Observable.create(new BinaryFixesOnSubscribe(file));
+		return Observable.create(new BinaryFixesOnSubscribeFastPath(file));
 	}
 
 	@Override

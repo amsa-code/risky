@@ -30,9 +30,9 @@ public final class BinaryFixes {
 
 	public static Observable<Fix> from(File file, boolean backpressure) {
 		if (backpressure)
-			return BinaryFixesOnSubscribe2.from(file);
+			return BinaryFixesOnSubscribeWithBackp.from(file);
 		else
-			return BinaryFixesOnSubscribe.from(file);
+			return BinaryFixesOnSubscribeFastPath.from(file);
 	}
 
 	public static Observable<String> csv(Observable<Fix> fixes) {

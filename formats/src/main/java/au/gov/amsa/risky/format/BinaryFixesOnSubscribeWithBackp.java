@@ -17,14 +17,14 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.observables.AbstractOnSubscribe;
-import au.gov.amsa.risky.format.BinaryFixesOnSubscribe2.State;
+import au.gov.amsa.risky.format.BinaryFixesOnSubscribeWithBackp.State;
 
-public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
+public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, State> {
 
 	private InputStream is;
 	private long mmsi;
 
-	public BinaryFixesOnSubscribe2(InputStream is, long mmsi) {
+	public BinaryFixesOnSubscribeWithBackp(InputStream is, long mmsi) {
 		this.is = is;
 		this.mmsi = mmsi;
 	}
@@ -60,7 +60,7 @@ public class BinaryFixesOnSubscribe2 extends AbstractOnSubscribe<Fix, State> {
 
 			@Override
 			public Observable<Fix> call(InputStream is) {
-				return Observable.create(new BinaryFixesOnSubscribe2(is, BinaryFixesUtil
+				return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, BinaryFixesUtil
 				        .getMmsi(file)));
 			}
 		};
