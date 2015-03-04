@@ -749,7 +749,7 @@ public class Streams {
 	        final long downSampleIntervalMs, Scheduler scheduler) {
 		return Observable.just(output).onBackpressureBuffer()
 		// log
-		        .lift(Logging.<File> logger().prefix("sorting files in ").log())
+		        .lift(Logging.<File> logger().prefix("sorting=").log())
 		        // find the track files
 		        .concatMap(findTrackFiles())
 		        // sort the fixes in each file in each list and rewrite files
@@ -763,7 +763,6 @@ public class Streams {
 		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(final List<File> files) {
-				System.out.println("files.size=" + files.size());
 				return Observable
 				// from list of files
 				        .from(files)
