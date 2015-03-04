@@ -734,7 +734,7 @@ public class Streams {
 		        .last()
 		        // on completion of writing fixes, sort the track files and emit
 		        // the count of files
-		        .concatWith(sortOutputFilesByTime(output, downSampleIntervalMs, scheduler));
+		        .concatWith(sortBinaryFixFilesByTime(output, downSampleIntervalMs, scheduler));
 	}
 
 	private static void deleteDirectory(File output) {
@@ -745,7 +745,7 @@ public class Streams {
 		}
 	}
 
-	public static Observable<Integer> sortOutputFilesByTime(File output,
+	public static Observable<Integer> sortBinaryFixFilesByTime(File output,
 	        final long downSampleIntervalMs, Scheduler scheduler) {
 		return Observable.just(output).onBackpressureBuffer()
 		// log
