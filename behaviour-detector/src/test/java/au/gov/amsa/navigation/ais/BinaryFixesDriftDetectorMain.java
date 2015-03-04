@@ -14,14 +14,13 @@ import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.util.Files;
 
 import com.github.davidmoten.rx.slf4j.Logging;
+import com.github.davidmoten.rx.slf4j.Logging.Level;
 
 public class BinaryFixesDriftDetectorMain {
 
 	public static void main(String[] args) {
-		// perform a speed test for loading BinaryFixes from disk
 
-		// -downsample-5-mins
-		List<File> files = Files.find(new File("/media/an/binary-fixes-all/2012"),
+		List<File> files = Files.find(new File("/media/an/binary-fixes-2012"),
 		        Pattern.compile(".*\\.track"));
 		int count = Observable
 		// list files
@@ -37,9 +36,14 @@ public class BinaryFixesDriftDetectorMain {
 
 					                @Override
 					                public Observable<VesselPosition> call(File file) {
-						                return new DriftingDetector()
-						                        .getCandidates(BinaryFixes.from(file).map(
-						                                VesselPositions.TO_VESSEL_POSITION));
+						                return BinaryFixes
+						                        .from(file)
+						                        .map(VesselPositions.TO_VESSEL_POSITION)
+						                        .lift(Logging.<VesselPosition> logger()
+						                                .onCompleted(Level.TRACE).showCount()
+						                                .every(1000000).log())
+						                        .compose(DriftingDetector.detectDrift())
+						                        .onBackpressureBuffer();
 					                }
 				                })
 				                // schedule

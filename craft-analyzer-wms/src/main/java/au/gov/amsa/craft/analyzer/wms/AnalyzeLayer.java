@@ -63,17 +63,27 @@ public class AnalyzeLayer implements Layer {
                 filenames.add(filename);
         }
 
-        Observable<VesselPosition> aisPositions = Observable.from(filenames).flatMap(
-                new Func1<String, Observable<VesselPosition>>() {
+        Observable.from(filenames)
+                .buffer(Math.max(1, filenames.size() / Runtime.getRuntime().availableProcessors()))
+                // TODO should not round robin on files!
+                .flatMap(new Func1<List<String>, Observable<VesselPosition>>() {
                     @Override
-                    public Observable<VesselPosition> call(String filename) {
-                        return AisVesselPositions.positions(Streams.nmeaFromGzip(filename))
-                                .subscribeOn(Schedulers.computation());
+                    public Observable<VesselPosition> call(List<String> filenames) {
+                        return Observable.from(filenames).concatMap(
+                                new Func1<String, Observable<VesselPosition>>() {
+                                    @Override
+                                    public Observable<VesselPosition> call(String filename) {
+                                        return Streams.nmeaFromGzip(filename)
+                                                // extract positions from nmea
+                                                .compose(AisVesselPositions.positions())
+                                                // detect drift
+                                                .compose(DriftingDetector.detectDrift())
+                                                .subscribeOn(Schedulers.computation());
+                                    }
+                                });
                     }
-                });
+                })
 
-        new DriftingDetector()
-                .getCandidates(aisPositions)
                 // group by id and date
                 .groupBy(new Func1<VesselPosition, String>() {
                     @Override

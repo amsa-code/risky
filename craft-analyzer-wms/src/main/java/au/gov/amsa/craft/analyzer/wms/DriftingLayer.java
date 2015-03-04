@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -49,7 +48,6 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
-import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Preconditions;
 
@@ -103,7 +101,7 @@ public class DriftingLayer implements Layer {
                 .filter(onlyClassA())
                 // ignore vessels at anchor
                 .filter(not(atAnchor()))
-                                // ignore vessels at moorings
+                // ignore vessels at moorings
                 .filter(not(isMoored()))
                 // ignore vessels that might be fishing
                 .filter(not(isShipType(SHIP_TYPE_FISHING)))
@@ -127,7 +125,8 @@ public class DriftingLayer implements Layer {
             @Override
             public Boolean call(VesselPosition vp) {
                 return vp.shipType().isPresent() && vp.shipType().get() == shipType;
-            }};
+            }
+        };
     }
 
     public static <T> Func1<T, Boolean> not(final Func1<T, Boolean> f) {
@@ -138,7 +137,7 @@ public class DriftingLayer implements Layer {
             }
         };
     }
-    
+
     private static Observable<String> getFilenames() {
         List<String> filenames = new ArrayList<String>();
         final String filenameBase = "/media/analysis/nmea/2014/sorted-NMEA_ITU_201407";
@@ -174,16 +173,16 @@ public class DriftingLayer implements Layer {
         return new Func1<VesselPosition, Boolean>() {
             @Override
             public Boolean call(VesselPosition p) {
-                return p.navigationalStatus()== NavigationalStatus.AT_ANCHOR;
+                return p.navigationalStatus() == NavigationalStatus.AT_ANCHOR;
             }
         };
     }
-    
+
     private static Func1<VesselPosition, Boolean> isMoored() {
         return new Func1<VesselPosition, Boolean>() {
             @Override
             public Boolean call(VesselPosition p) {
-                return p.navigationalStatus()== NavigationalStatus.MOORED;
+                return p.navigationalStatus() == NavigationalStatus.MOORED;
             }
         };
     }
@@ -194,9 +193,9 @@ public class DriftingLayer implements Layer {
         return new Func1<String, Observable<VesselPosition>>() {
             @Override
             public Observable<VesselPosition> call(final String filename) {
-                return AisVesselPositions
-                // read positions
-                        .positions(Streams.nmeaFromGzip(filename))
+                return Streams.nmeaFromGzip(filename)
+                // extract positions
+                        .compose(AisVesselPositions.positions())
                         // log requests
                         .doOnRequest(new Action1<Long>() {
                             @Override
@@ -207,6 +206,7 @@ public class DriftingLayer implements Layer {
                             final long startTime = System.currentTimeMillis();
                             long lastTime = System.currentTimeMillis();
                             DecimalFormat df = new DecimalFormat("0");
+
                             @Override
                             public void call(VesselPosition vp) {
                                 long n = 100000;
@@ -222,10 +222,12 @@ public class DriftingLayer implements Layer {
                                     final double rateSinceStart;
                                     if (now == startTime)
                                         rateSinceStart = -1;
-                                    else 
-                                        rateSinceStart = totalCount.get()/(double)(now - startTime) * 1000d;
+                                    else
+                                        rateSinceStart = totalCount.get()
+                                                / (double) (now - startTime) * 1000d;
                                     log.info("totalCount=" + totalCount.get() + ", msgsPerSecond="
-                                            + df.format(rate) + ", msgPerSecondOverall=" + df.format(rateSinceStart));
+                                            + df.format(rate) + ", msgPerSecondOverall="
+                                            + df.format(rateSinceStart));
                                 }
                             }
                         })
@@ -283,6 +285,7 @@ public class DriftingLayer implements Layer {
     private static Func1<VesselPosition, String> byIdAndDay() {
         return new Func1<VesselPosition, String>() {
             final DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
+
             @Override
             public String call(VesselPosition p) {
                 return p.id().uniqueId() + format.print(p.time());
@@ -453,7 +456,7 @@ public class DriftingLayer implements Layer {
             InterruptedException {
 
         getDrifters()
-                // log
+        // log
                 .lift(Logging.<VesselPosition> logger().showCount()
                         .showRateSinceStart("msgPerSecond").showMemory().every(5000).log())
                 // subscribe

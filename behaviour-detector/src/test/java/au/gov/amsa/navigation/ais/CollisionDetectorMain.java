@@ -19,40 +19,41 @@ import com.github.davidmoten.rx.slf4j.Logging;
 
 public class CollisionDetectorMain {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(CollisionDetectorMain.class);
+	private static final Logger log = LoggerFactory.getLogger(CollisionDetectorMain.class);
 
-	public static void main(String[] args) throws IOException,
-			InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		CollisionDetector c = new CollisionDetector();
 		String filename = "/media/analysis/nmea/2013/NMEA_ITU_20130108.gz";
-		Observable<String> nmea = Streams.nmeaFromGzip(filename)
+		Observable<VesselPosition> aisPositions =
+		// nmea from file
+		Streams.nmeaFromGzip(filename)
 		// do some logging
-				.lift(Logging.<String> logger().showCount().showMemory()
-						.every(100000).log());
-		Observable<VesselPosition> aisPositions = AisVesselPositions.positions(
-				nmea).filter(onlyClassA);
+		        .lift(Logging.<String> logger().showCount().showMemory().every(100000).log())
+		        // extract positions
+		        .compose(AisVesselPositions.positions())
+		        // only class A
+		        .filter(onlyClassA);
 
 		CountDownLatch latch = new CountDownLatch(1);
 
 		c.getCandidates(aisPositions)
-				// filter
-				.filter(candidatesMovingWithAtLeastSpeedMetresPerSecond(5 * 0.5144444))
-				// log
-				.lift(Logging.<CollisionCandidate> logger().showCount()
-						.every(1).showValue().showMemory().log())
-				// subscribe
-				.subscribe(createSubscriber(latch));
+		        // filter
+		        .filter(candidatesMovingWithAtLeastSpeedMetresPerSecond(5 * 0.5144444))
+		        // log
+		        .lift(Logging.<CollisionCandidate> logger().showCount().every(1).showValue()
+		                .showMemory().log())
+		        // subscribe
+		        .subscribe(createSubscriber(latch));
 		latch.await();
 	}
 
 	private static Func1<CollisionCandidate, Boolean> candidatesMovingWithAtLeastSpeedMetresPerSecond(
-			final double minSpeedMetresPerSecond) {
+	        final double minSpeedMetresPerSecond) {
 		return new Func1<CollisionCandidate, Boolean>() {
 			@Override
 			public Boolean call(CollisionCandidate c) {
 				return c.position1().speedMetresPerSecond().get() >= minSpeedMetresPerSecond
-						&& c.position2().speedMetresPerSecond().get() >= minSpeedMetresPerSecond;
+				        && c.position2().speedMetresPerSecond().get() >= minSpeedMetresPerSecond;
 			}
 		};
 	}
@@ -65,8 +66,7 @@ public class CollisionDetectorMain {
 		}
 	};
 
-	private static Observer<CollisionCandidate> createSubscriber(
-			final CountDownLatch latch) {
+	private static Observer<CollisionCandidate> createSubscriber(final CountDownLatch latch) {
 		return new Observer<CollisionCandidate>() {
 
 			@Override
