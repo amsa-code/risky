@@ -63,7 +63,6 @@ import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.github.davidmoten.rx.slf4j.Logging.Level;
 import com.github.davidmoten.rx.slf4j.OperatorLogging;
 import com.google.common.base.Optional;
 
@@ -748,14 +747,12 @@ public class Streams {
 
 	public static Observable<Integer> sortOutputFilesByTime(File output,
 	        final long downSampleIntervalMs, Scheduler scheduler) {
-		return Observable.just(1).onBackpressureBuffer()
-		// use output lazily
-		        .map(Functions.constant(output))
-		        // log
-		        .lift(Logging.<File> logger().prefix("sorting ").log())
+		return Observable.just(output).onBackpressureBuffer()
+		// log
+		        .lift(Logging.<File> logger().prefix("sorting files in ").log())
 		        // find the track files
 		        .concatMap(findTrackFiles())
-		        // sort the fixes in each one and rewrite
+		        // sort the fixes in each file in each list and rewrite files
 		        .flatMap(sortFileFixes(downSampleIntervalMs, scheduler))
 		        // return the count
 		        .count();
@@ -763,23 +760,17 @@ public class Streams {
 
 	private static Func1<List<File>, Observable<Integer>> sortFileFixes(
 	        final long downSampleIntervalMs, final Scheduler scheduler) {
-		final OperatorLogging<File> logger = Logging.<File> logger().showCount().prefix("sorting ")
-		        .onCompleted(Level.TRACE).log();
 		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(final List<File> files) {
+				System.out.println("files.size=" + files.size());
 				return Observable
 				// from list of files
 				        .from(files)
 				        // process one file after another
-				        .concatMap(new Func1<File, Observable<Integer>>() {
-					        @Override
-					        public Observable<Integer> call(File file) {
-						        return Observable.just(file).lift(logger)
-						                .concatMap(sortFileFixes(downSampleIntervalMs));
-					        }
-
-				        }).subscribeOn(scheduler);
+				        .concatMap(sortFileFixes(downSampleIntervalMs))
+				        // async
+				        .subscribeOn(scheduler);
 			}
 		};
 	}
@@ -816,6 +807,7 @@ public class Streams {
 			@Override
 			public Observable<List<File>> call(File output) {
 				List<File> files = Files.find(output, Pattern.compile("\\d+\\.track"));
+				System.out.println("found files " + files.size());
 				return Observable.from(files).buffer(
 				        Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()));
 			}

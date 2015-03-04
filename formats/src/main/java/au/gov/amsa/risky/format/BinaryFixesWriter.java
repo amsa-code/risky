@@ -80,6 +80,7 @@ public final class BinaryFixesWriter {
 					BinaryFixes.write(fix, bb);
 					os.write(bb.array());
 				}
+				System.out.println("wrote " + fixes.size() + " fixes to " + file);
 			} catch (IOException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
