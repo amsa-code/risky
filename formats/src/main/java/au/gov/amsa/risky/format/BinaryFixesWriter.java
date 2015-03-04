@@ -59,16 +59,27 @@ public final class BinaryFixesWriter {
 		};
 	}
 
-	private static final Striped<Lock> locks = Striped.lock(2000);
+	private static final int NUMBER_FILE_LOCKS = 200;
+
+	/**
+	 * A guava cache of locks so that file writes can happen simultaneously
+	 * (SSD) but not go too crazy (one lock per file). This maps files to a
+	 * limited set of locks using the file hash keys.
+	 */
+	private static final Striped<Lock> fileLocks = Striped.lock(NUMBER_FILE_LOCKS);
 
 	public static void writeFixes(List<Fix> fixes, File file, boolean append, boolean zip) {
 		Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
 
-		Lock lock = locks.get(file);
+		// get the lock for the file
+		final Lock lock = fileLocks.get(file);
 
 		OutputStream os = null;
 		try {
+			// open the lock for the file
 			lock.lock();
+
+			// open an output stream
 			file.getParentFile().mkdirs();
 			FileOutputStream fos = new FileOutputStream(file, append);
 			OutputStream s;
@@ -77,6 +88,8 @@ public final class BinaryFixesWriter {
 			else
 				s = fos;
 			os = new BufferedOutputStream(s);
+
+			// write the fixes to the output stream
 			ByteBuffer bb = BinaryFixes.createFixByteBuffer();
 			for (Fix fix : fixes) {
 				bb.rewind();
@@ -96,6 +109,7 @@ public final class BinaryFixesWriter {
 						throw new RuntimeException(e);
 					}
 			} finally {
+				// must unlock no matter what happens
 				lock.unlock();
 			}
 		}
