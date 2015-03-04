@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
 import java.util.zip.GZIPOutputStream;
 
 import org.joda.time.DateTime;
@@ -19,6 +19,7 @@ import rx.functions.Func1;
 import rx.observables.GroupedObservable;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.Striped;
 
 public final class BinaryFixesWriter {
 
@@ -58,32 +59,35 @@ public final class BinaryFixesWriter {
 		};
 	}
 
-	private static ConcurrentHashMap<File, Object> fileMonitors = new ConcurrentHashMap<File, Object>();
+	private static final Striped<Lock> locks = Striped.lock(2000);
 
 	public static void writeFixes(List<Fix> fixes, File file, boolean append, boolean zip) {
 		Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
-		fileMonitors.putIfAbsent(file, new Object());
-		synchronized (fileMonitors.get(file)) {
-			OutputStream os = null;
+
+		Lock lock = locks.get(file);
+
+		OutputStream os = null;
+		try {
+			lock.lock();
+			file.getParentFile().mkdirs();
+			FileOutputStream fos = new FileOutputStream(file, append);
+			OutputStream s;
+			if (zip)
+				s = new GZIPOutputStream(fos);
+			else
+				s = fos;
+			os = new BufferedOutputStream(s);
+			ByteBuffer bb = BinaryFixes.createFixByteBuffer();
+			for (Fix fix : fixes) {
+				bb.rewind();
+				BinaryFixes.write(fix, bb);
+				os.write(bb.array());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} finally {
 			try {
-				file.getParentFile().mkdirs();
-				FileOutputStream fos = new FileOutputStream(file, append);
-				OutputStream s;
-				if (zip)
-					s = new GZIPOutputStream(fos);
-				else
-					s = fos;
-				os = new BufferedOutputStream(s);
-				ByteBuffer bb = BinaryFixes.createFixByteBuffer();
-				for (Fix fix : fixes) {
-					bb.rewind();
-					BinaryFixes.write(fix, bb);
-					os.write(bb.array());
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			} finally {
 				if (os != null)
 					try {
 						os.close();
@@ -91,6 +95,8 @@ public final class BinaryFixesWriter {
 						// we care because we are writing
 						throw new RuntimeException(e);
 					}
+			} finally {
+				lock.unlock();
 			}
 		}
 	}
