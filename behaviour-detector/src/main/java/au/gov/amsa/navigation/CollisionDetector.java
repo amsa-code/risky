@@ -12,11 +12,10 @@ import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.Observable.Transformer;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import rx.functions.Functions;
 import rx.observables.GroupedObservable;
-import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.geometry.Point;
@@ -26,18 +25,16 @@ import com.google.common.base.Optional;
 
 public class CollisionDetector {
 
-	private static final long MAX_TIME_INTERVAL_MS = TimeUnit.MINUTES
-			.toMillis(5);
+	private static final long MAX_TIME_INTERVAL_MS = TimeUnit.MINUTES.toMillis(5);
 	private static final double MAX_VESSEL_SPEED_METRES_PER_SECOND = 24;
 
-	private static final double LATITUDE_DELTA = 2 * MAX_TIME_INTERVAL_MS
-			/ 1000 * MAX_VESSEL_SPEED_METRES_PER_SECOND / (60 * 1852);
+	private static final double LATITUDE_DELTA = 2 * MAX_TIME_INTERVAL_MS / 1000
+	        * MAX_VESSEL_SPEED_METRES_PER_SECOND / (60 * 1852);
 
 	// TODO use this?
 	// private static final long STEP_MS = TimeUnit.SECONDS.toMillis(1);
 
-	public Observable<CollisionCandidate> getCandidates(
-			Observable<VesselPosition> o) {
+	public Observable<CollisionCandidate> getCandidates(Observable<VesselPosition> o) {
 
 		return getCandidatesForAStream(o);
 
@@ -49,6 +46,15 @@ public class CollisionDetector {
 
 	}
 
+	public static Transformer<VesselPosition, CollisionCandidate> detectCollisionCandidates() {
+		return new Transformer<VesselPosition, CollisionCandidate>() {
+			@Override
+			public Observable<CollisionCandidate> call(Observable<VesselPosition> o) {
+				return new CollisionDetector().getCandidates(o);
+			}
+		};
+	}
+
 	private static Func1<VesselPosition, Region> toRegion() {
 		return new Func1<VesselPosition, Region>() {
 
@@ -58,48 +64,43 @@ public class CollisionDetector {
 				double minLat = -50;
 				double minLon = -70;
 				double maxLon = 179;
-				int numRegions = Runtime.getRuntime().availableProcessors();;
-				int x = (int) Math.floor((p.lon() - minLon) / (maxLon - minLon)
-						* numRegions);
+				int numRegions = Runtime.getRuntime().availableProcessors();
+				;
+				int x = (int) Math.floor((p.lon() - minLon) / (maxLon - minLon) * numRegions);
 				double lonCellSize = (maxLon - minLon) / numRegions;
 				double longitudeDelta;
 				if (Math.abs(minLat) > Math.abs(maxLat))
 					longitudeDelta = longitudeDelta(minLat);
 				else
 					longitudeDelta = longitudeDelta(maxLat);
-				return new Region(maxLat, minLon + x * lonCellSize
-						- longitudeDelta, minLat, minLon + (x + 1)
-						* lonCellSize + longitudeDelta);
+				return new Region(maxLat, minLon + x * lonCellSize - longitudeDelta, minLat, minLon
+				        + (x + 1) * lonCellSize + longitudeDelta);
 			}
 		};
 	}
 
 	public static Observable<CollisionCandidate> getCandidatesForAStream(
-			Observable<VesselPosition> o) {
+	        Observable<VesselPosition> o) {
 		// make a window of recent positions indexed spatially
 		return o.scan(new State(), nextState())
-				// log
-				.lift(Logging
-						.<State> logger()
-						.showCount("positions")
-						.showRateSince("rate (pos/s)",
-								TimeUnit.SECONDS.toMillis(10))
-						.showRateSinceStart("overall rate").every(10000)
-						.showValue().value(new Func1<State, String>() {
-							@Override
-							public String call(State state) {
-								return "state.map.size=" + state.mapSize()
-										+ ", state.rtree.size="
-										+ state.tree().size();
-							}
-						}).log())
-				// report collision candidates from each window for the latest
-				// reported position
-				.flatMap(toCollisionCandidatesForPosition())
-				// group by id of first candidate
-				.groupBy(byIdPair())
-				// only show if repeated
-				.flatMap(onlyRepeating());
+		        // log
+		        .lift(Logging.<State> logger().showCount("positions")
+		                .showRateSince("rate (pos/s)", TimeUnit.SECONDS.toMillis(10))
+		                .showRateSinceStart("overall rate").every(10000).showValue()
+		                .value(new Func1<State, String>() {
+			                @Override
+			                public String call(State state) {
+				                return "state.map.size=" + state.mapSize() + ", state.rtree.size="
+				                        + state.tree().size();
+			                }
+		                }).log())
+		        // report collision candidates from each window for the latest
+		        // reported position
+		        .flatMap(toCollisionCandidatesForPosition())
+		        // group by id of first candidate
+		        .groupBy(byIdPair())
+		        // only show if repeated
+		        .flatMap(onlyRepeating());
 	}
 
 	private static Func2<State, VesselPosition, State> nextState() {
@@ -125,8 +126,7 @@ public class CollisionDetector {
 
 	}
 
-	private static Observable<CollisionCandidate> toCollisionCandidatesForPosition(
-			State state) {
+	private static Observable<CollisionCandidate> toCollisionCandidatesForPosition(State state) {
 		final VesselPosition p = state.last().get();
 		final Optional<VesselPosition> next = state.nextPosition();
 
@@ -136,40 +136,39 @@ public class CollisionDetector {
 		// setup a region around the latest position report to search with a
 		// decent delta).
 		double longitudeDelta = longitudeDelta(p.lat());
-		Rectangle searchRegion = rectangle(p.lon() - longitudeDelta, p.lat()
-				- LATITUDE_DELTA, p.lon() + longitudeDelta, p.lat()
-				+ LATITUDE_DELTA);
+		Rectangle searchRegion = rectangle(p.lon() - longitudeDelta, p.lat() - LATITUDE_DELTA,
+		        p.lon() + longitudeDelta, p.lat() + LATITUDE_DELTA);
 
 		// find nearby vessels within time constraints and cache them
 		Observable<VesselPosition> near = state.tree()
 		// search the R-tree
-				.search(searchRegion)
-				// get just the vessel position
-				.map(toVesselPosition)
-				// only accept positions with time close to p
-				.filter(aroundInTime(p, MAX_TIME_INTERVAL_MS));
+		        .search(searchRegion)
+		        // get just the vessel position
+		        .map(toVesselPosition)
+		        // only accept positions with time close to p
+		        .filter(aroundInTime(p, MAX_TIME_INTERVAL_MS));
 
 		final Observable<TreeSet<VesselPosition>> othersByVessel = near
 		// only those vessels with different id as latest position report
-				.filter(not(isVessel(p.id())))
-				// group by individual vessel
-				.groupBy(byId())
-				// sort the positions by time
-				.flatMap(toSortedSet());
+		        .filter(not(isVessel(p.id())))
+		        // group by individual vessel
+		        .groupBy(byId())
+		        // sort the positions by time
+		        .flatMap(toSortedSet());
 
 		Observable<CollisionCandidate> collisionCandidates = othersByVessel
-				.flatMap(toCollisionCandidates2(p, next));
+		        .flatMap(toCollisionCandidates2(p, next));
 
 		return collisionCandidates;
 	}
 
-	private static <T> Func1<T, Boolean> not(
-			final Func1<T, Boolean> f) {
-		return new Func1<T, Boolean>(){
+	private static <T> Func1<T, Boolean> not(final Func1<T, Boolean> f) {
+		return new Func1<T, Boolean>() {
 			@Override
 			public Boolean call(T t) {
 				return !f.call(t);
-			}};
+			}
+		};
 	}
 
 	private static double longitudeDelta(double lat) {
@@ -181,7 +180,7 @@ public class CollisionDetector {
 
 			@Override
 			public Observable<CollisionCandidate> call(
-					GroupedObservable<IdentifierPair, CollisionCandidate> g) {
+			        GroupedObservable<IdentifierPair, CollisionCandidate> g) {
 				return g.buffer(2).flatMap(isSmallTimePeriod());
 			}
 		};
@@ -190,8 +189,7 @@ public class CollisionDetector {
 	private static Func1<List<CollisionCandidate>, Observable<CollisionCandidate>> isSmallTimePeriod() {
 		return new Func1<List<CollisionCandidate>, Observable<CollisionCandidate>>() {
 			@Override
-			public Observable<CollisionCandidate> call(
-					List<CollisionCandidate> list) {
+			public Observable<CollisionCandidate> call(List<CollisionCandidate> list) {
 				Optional<Long> min = Optional.absent();
 				Optional<Long> max = Optional.absent();
 				for (CollisionCandidate c : list) {
@@ -212,41 +210,32 @@ public class CollisionDetector {
 		return new Func1<CollisionCandidate, IdentifierPair>() {
 			@Override
 			public IdentifierPair call(CollisionCandidate c) {
-				return new IdentifierPair(c.position1().id(), c.position2()
-						.id());
+				return new IdentifierPair(c.position1().id(), c.position2().id());
 			}
 		};
 	}
 
 	private static Func1<TreeSet<VesselPosition>, Observable<CollisionCandidate>> toCollisionCandidates2(
-			final VesselPosition p, final Optional<VesselPosition> next) {
+	        final VesselPosition p, final Optional<VesselPosition> next) {
 		return new Func1<TreeSet<VesselPosition>, Observable<CollisionCandidate>>() {
 
 			@Override
-			public Observable<CollisionCandidate> call(
-					TreeSet<VesselPosition> set) {
-				Optional<VesselPosition> other = Optional.fromNullable(set
-						.lower(p));
+			public Observable<CollisionCandidate> call(TreeSet<VesselPosition> set) {
+				Optional<VesselPosition> other = Optional.fromNullable(set.lower(p));
 				if (other.isPresent()) {
 					Optional<Times> times = p.intersectionTimes(other.get());
 					if (times.isPresent()) {
-						Optional<Long> tCollision = plus(times.get()
-								.leastPositive(), p.time());
+						Optional<Long> tCollision = plus(times.get().leastPositive(), p.time());
 						if (tCollision.isPresent()
-								&& tCollision.get() < p.time()
-										+ MAX_TIME_INTERVAL_MS) {
-							Optional<VesselPosition> otherNext = Optional
-									.fromNullable(set.higher(other.get()));
-							if (otherNext.isPresent()
-									&& otherNext.get().time() < tCollision
-											.get())
+						        && tCollision.get() < p.time() + MAX_TIME_INTERVAL_MS) {
+							Optional<VesselPosition> otherNext = Optional.fromNullable(set
+							        .higher(other.get()));
+							if (otherNext.isPresent() && otherNext.get().time() < tCollision.get())
 								return empty();
-							else if (next.isPresent()
-									&& next.get().time() < tCollision.get())
+							else if (next.isPresent() && next.get().time() < tCollision.get())
 								return empty();
 							else
-								return just(new CollisionCandidate(p,
-										other.get(), tCollision.get()));
+								return just(new CollisionCandidate(p, other.get(), tCollision.get()));
 						} else
 							return empty();
 					} else
@@ -270,19 +259,17 @@ public class CollisionDetector {
 
 			@Override
 			public Observable<TreeSet<VesselPosition>> call(
-					GroupedObservable<Identifier, VesselPosition> g) {
-				return g.toList()
-						.map(new Func1<List<VesselPosition>, TreeSet<VesselPosition>>() {
+			        GroupedObservable<Identifier, VesselPosition> g) {
+				return g.toList().map(new Func1<List<VesselPosition>, TreeSet<VesselPosition>>() {
 
-							@Override
-							public TreeSet<VesselPosition> call(
-									List<VesselPosition> singleVesselPositions) {
-								TreeSet<VesselPosition> set = new TreeSet<VesselPosition>(
-										Comparators.timeIdMessageIdComparator);
-								set.addAll(singleVesselPositions);
-								return set;
-							}
-						});
+					@Override
+					public TreeSet<VesselPosition> call(List<VesselPosition> singleVesselPositions) {
+						TreeSet<VesselPosition> set = new TreeSet<VesselPosition>(
+						        Comparators.timeIdMessageIdComparator);
+						set.addAll(singleVesselPositions);
+						return set;
+					}
+				});
 			}
 		};
 	}
@@ -297,8 +284,8 @@ public class CollisionDetector {
 		};
 	}
 
-	private static Func1<VesselPosition, Boolean> aroundInTime(
-			final VesselPosition position, final long maxTimeIntervalMs) {
+	private static Func1<VesselPosition, Boolean> aroundInTime(final VesselPosition position,
+	        final long maxTimeIntervalMs) {
 		return new Func1<VesselPosition, Boolean>() {
 
 			@Override
@@ -318,10 +305,10 @@ public class CollisionDetector {
 		};
 	}
 
-	private static Func1<Entry<VesselPosition,Point>, VesselPosition> toVesselPosition = new Func1<Entry<VesselPosition,Point>, VesselPosition>() {
+	private static Func1<Entry<VesselPosition, Point>, VesselPosition> toVesselPosition = new Func1<Entry<VesselPosition, Point>, VesselPosition>() {
 
 		@Override
-		public VesselPosition call(Entry<VesselPosition,Point> entry) {
+		public VesselPosition call(Entry<VesselPosition, Point> entry) {
 			return entry.value();
 		}
 	};
