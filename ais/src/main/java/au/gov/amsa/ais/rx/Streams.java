@@ -39,6 +39,7 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.AisNmeaBuffer;
 import au.gov.amsa.ais.AisNmeaMessage;
@@ -242,6 +243,16 @@ public class Streams {
 
     public static Observable<String> nmeaFromGzip(String filename) {
         return nmeaFromGzip(new File(filename));
+    }
+
+    public static Observable<Observable<String>> nmeasFromGzip(Observable<File> files) {
+        return files.map(new Func1<File, Observable<String>>() {
+
+            @Override
+            public Observable<String> call(File f) {
+                return nmeaFromGzip(f.getPath()).subscribeOn(Schedulers.computation());
+            }
+        });
     }
 
     public static Observable<String> nmeaFromGzip(final File file) {
