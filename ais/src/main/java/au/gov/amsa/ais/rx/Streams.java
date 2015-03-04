@@ -63,6 +63,7 @@ import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
+import com.github.davidmoten.rx.slf4j.Logging.Level;
 import com.github.davidmoten.rx.slf4j.OperatorLogging;
 import com.google.common.base.Optional;
 
@@ -762,6 +763,8 @@ public class Streams {
 
 	private static Func1<List<File>, Observable<Integer>> sortFileFixes(
 	        final long downSampleIntervalMs, final Scheduler scheduler) {
+		final OperatorLogging<File> logger = Logging.<File> logger().showCount().prefix("sorting ")
+		        .onCompleted(Level.TRACE).log();
 		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(final List<File> files) {
@@ -772,25 +775,38 @@ public class Streams {
 				        .concatMap(new Func1<File, Observable<Integer>>() {
 					        @Override
 					        public Observable<Integer> call(File file) {
-						        return BinaryFixes.from(file)
-						        // to list
-						                .toList()
-						                // sort each list
-						                .map(sortFixes())
-						                // flatten
-						                .flatMapIterable(Functions.<List<Fix>> identity())
-						                // downsample the sorted fixes
-						                .compose(
-						                        Downsample.minTimeStep(downSampleIntervalMs,
-						                                TimeUnit.MILLISECONDS))
-						                // make into a list again
-						                .toList()
-						                // replace the file with sorted fixes
-						                .doOnNext(writeFixes(file))
-						                // count the fixes
-						                .count();
+						        return Observable.just(file).lift(logger)
+						                .concatMap(sortFileFixes(downSampleIntervalMs));
 					        }
+
 				        }).subscribeOn(scheduler);
+			}
+		};
+	}
+
+	private static Func1<File, Observable<Integer>> sortFileFixes(final long downSampleIntervalMs) {
+		return new Func1<File, Observable<Integer>>() {
+			@Override
+			public Observable<Integer> call(File file) {
+				return BinaryFixes.from(file)
+				// to list
+				        .toList()
+				        // sort each list
+				        .map(sortFixes())
+				        // flatten
+				        .flatMapIterable(Functions.<List<Fix>> identity())
+				        // downsample the sorted
+				        // fixes
+				        .compose(
+				                Downsample.minTimeStep(downSampleIntervalMs, TimeUnit.MILLISECONDS))
+				        // make into a list
+				        // again
+				        .toList()
+				        // replace the file with
+				        // sorted fixes
+				        .doOnNext(writeFixes(file))
+				        // count the fixes
+				        .count();
 			}
 		};
 	}
