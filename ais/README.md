@@ -73,7 +73,8 @@ input directory */media/analysis/test* processing all files matching the pattern
 mvn exec:java -P bin -Dinput=/media/analysis/nmea -Doutput=target/binary -Dpattern='NMEA_ITU_20.*.gz' -Dby=month|year
 ```
 Using 6 cores on a Xeon E5-1650@3.20GHz, the above command extracted and wrote 228K fixes/second. 
-```input``` and ```output``` were different directories on a single SSD.
+```input``` and ```output``` were different directories on a single SSD. Conversion of a year's worth of AMSA AIS NMEA lines 
+takes about 2.25 hours.
 
 Effect of downsampling AIS
 -------------------------------
