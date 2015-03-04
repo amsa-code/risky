@@ -15,6 +15,7 @@ import au.gov.amsa.util.Files;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.github.davidmoten.rx.slf4j.Logging.Level;
+import com.github.davidmoten.rx.slf4j.OperatorLogging;
 
 public class BinaryFixesDriftDetectorMain {
 
@@ -22,6 +23,8 @@ public class BinaryFixesDriftDetectorMain {
 
 		List<File> files = Files.find(new File("/media/an/binary-fixes-2012"),
 		        Pattern.compile(".*\\.track"));
+		final OperatorLogging<VesselPosition> logger = Logging.<VesselPosition> logger()
+		        .onCompleted(Level.TRACE).showCount().every(1000000).log();
 		int count = Observable
 		// list files
 		        .from(files)
@@ -36,12 +39,9 @@ public class BinaryFixesDriftDetectorMain {
 
 					                @Override
 					                public Observable<VesselPosition> call(File file) {
-						                return BinaryFixes
-						                        .from(file)
+						                return BinaryFixes.from(file)
 						                        .map(VesselPositions.TO_VESSEL_POSITION)
-						                        .lift(Logging.<VesselPosition> logger()
-						                                .onCompleted(Level.TRACE).showCount()
-						                                .every(1000000).log())
+						                        .lift(logger)
 						                        .compose(DriftingDetector.detectDrift())
 						                        .onBackpressureBuffer();
 					                }
@@ -49,7 +49,7 @@ public class BinaryFixesDriftDetectorMain {
 				                // schedule
 				                .subscribeOn(Schedulers.computation());
 			        }
-		        }).lift(Logging.<VesselPosition> logger().showCount().every(1000).log())
+		        }).lift(Logging.<VesselPosition> logger().showCount().every(100000).log())
 		        // count
 		        .count().toBlocking().single();
 		System.out.println("drift detections = " + count);

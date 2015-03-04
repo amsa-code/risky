@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,19 +34,24 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
 	@Override
 	public void call(Subscriber<? super Fix> subscriber) {
 		FileInputStream fis = null;
+		AtomicBoolean closed = new AtomicBoolean(false);
 		try {
 			fis = new FileInputStream(file);
-			subscriber.add(createSubscription(fis));
+			subscriber.add(createSubscription(fis, closed));
 			reportFixes(BinaryFixesUtil.getMmsi(file), subscriber, fis);
-			if (!subscriber.isUnsubscribed())
+			if (!subscriber.isUnsubscribed()) {
+				// eagerly close
+				if (closed.compareAndSet(false, true))
+					fis.close();
 				subscriber.onCompleted();
+			}
 		} catch (Exception e) {
 			if (!subscriber.isUnsubscribed())
 				subscriber.onError(e);
 		}
 	}
 
-	private Subscription createSubscription(final FileInputStream fis) {
+	private Subscription createSubscription(final FileInputStream fis, final AtomicBoolean closed) {
 		return new Subscription() {
 
 			volatile boolean subscribed = true;
@@ -54,7 +60,8 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
 			public void unsubscribe() {
 				subscribed = false;
 				try {
-					fis.close();
+					if (closed.compareAndSet(false, true))
+						fis.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

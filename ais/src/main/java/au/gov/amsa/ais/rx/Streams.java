@@ -62,7 +62,6 @@ import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.github.davidmoten.rx.Functions;
-import com.github.davidmoten.rx.operators.OperatorUnsubscribeEagerly;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.github.davidmoten.rx.slf4j.OperatorLogging;
 import com.google.common.base.Optional;
@@ -735,7 +734,7 @@ public class Streams {
 		        .last()
 		        // on completion of writing fixes, sort the track files and emit
 		        // the count of files
-		        .concatWith(sortOutputFilesByTime(output, downSampleIntervalMs));
+		        .concatWith(sortOutputFilesByTime(output, downSampleIntervalMs, scheduler));
 	}
 
 	private static void deleteDirectory(File output) {
@@ -746,54 +745,63 @@ public class Streams {
 		}
 	}
 
-	private static Observable<Integer> sortOutputFilesByTime(File output,
-	        final long downSampleIntervalMs) {
+	public static Observable<Integer> sortOutputFilesByTime(File output,
+	        final long downSampleIntervalMs, Scheduler scheduler) {
 		return Observable.just(1).onBackpressureBuffer()
 		// use output lazily
 		        .map(Functions.constant(output))
 		        // log
 		        .lift(Logging.<File> logger().prefix("sorting ").log())
 		        // find the track files
-		        .flatMap(findTrackFiles())
+		        .concatMap(findTrackFiles())
 		        // sort the fixes in each one and rewrite
-		        .flatMap(sortFileFixes(downSampleIntervalMs))
+		        .flatMap(sortFileFixes(downSampleIntervalMs, scheduler))
 		        // return the count
 		        .count();
 	}
 
-	private static Func1<File, Observable<Integer>> sortFileFixes(final long downSampleIntervalMs) {
-		return new Func1<File, Observable<Integer>>() {
+	private static Func1<List<File>, Observable<Integer>> sortFileFixes(
+	        final long downSampleIntervalMs, final Scheduler scheduler) {
+		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
-			public Observable<Integer> call(final File file) {
-				return BinaryFixes.from(file)
-				// ensure file is closed in case we want to rewrite
-				// downstream
-				        .lift(OperatorUnsubscribeEagerly.<Fix> instance())
-				        // to list
-				        .toList()
-				        // sort each list
-				        .map(sortFixes())
-				        // flatten
-				        .flatMapIterable(Functions.<List<Fix>> identity())
-				        // downsample the sorted fixes
-				        .compose(
-				                Downsample.minTimeStep(downSampleIntervalMs, TimeUnit.MILLISECONDS))
-				        // make into a list again
-				        .toList()
-				        // replace the file with sorted fixes
-				        .doOnNext(writeFixes(file))
-				        // count the fixes
-				        .count();
+			public Observable<Integer> call(final List<File> files) {
+				return Observable
+				// from list of files
+				        .from(files)
+				        // process one file after another
+				        .concatMap(new Func1<File, Observable<Integer>>() {
+					        @Override
+					        public Observable<Integer> call(File file) {
+						        return BinaryFixes.from(file)
+						        // to list
+						                .toList()
+						                // sort each list
+						                .map(sortFixes())
+						                // flatten
+						                .flatMapIterable(Functions.<List<Fix>> identity())
+						                // downsample the sorted fixes
+						                .compose(
+						                        Downsample.minTimeStep(downSampleIntervalMs,
+						                                TimeUnit.MILLISECONDS))
+						                // make into a list again
+						                .toList()
+						                // replace the file with sorted fixes
+						                .doOnNext(writeFixes(file))
+						                // count the fixes
+						                .count();
+					        }
+				        }).subscribeOn(scheduler);
 			}
-
 		};
 	}
 
-	private static Func1<File, Observable<File>> findTrackFiles() {
-		return new Func1<File, Observable<File>>() {
+	private static Func1<File, Observable<List<File>>> findTrackFiles() {
+		return new Func1<File, Observable<List<File>>>() {
 			@Override
-			public Observable<File> call(File output) {
-				return Observable.from(Files.find(output, Pattern.compile("\\d+\\.track")));
+			public Observable<List<File>> call(File output) {
+				List<File> files = Files.find(output, Pattern.compile("\\d+\\.track"));
+				return Observable.from(files).buffer(
+				        Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()));
 			}
 		};
 	}
