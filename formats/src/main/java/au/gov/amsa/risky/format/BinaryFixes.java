@@ -205,7 +205,7 @@ public final class BinaryFixes {
 				List<File> files = Files.find(output, Pattern.compile("\\d+\\.track"));
 				System.out.println("found files " + files.size());
 				return Observable.from(files).buffer(
-				        Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()));
+				        Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1));
 			}
 		};
 	}

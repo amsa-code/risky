@@ -3,6 +3,7 @@ package au.gov.amsa.navigation;
 import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Func1;
+import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -43,7 +44,9 @@ public class DriftingDetector {
 		@Override
 		public Boolean call(VesselPosition p) {
 			if (p.cogDegrees().isPresent() && p.headingDegrees().isPresent()
-			        && p.speedMetresPerSecond().isPresent()) {
+			        && p.speedMetresPerSecond().isPresent()
+			        && p.navigationalStatus() != NavigationalStatus.AT_ANCHOR
+			        && p.navigationalStatus() != NavigationalStatus.MOORED) {
 				double diff = diff(p.cogDegrees().get(), p.headingDegrees().get());
 				return diff >= HEADING_COG_DIFFERENCE_MIN
 				        && diff <= HEADING_COG_DIFFERENCE_MAX
