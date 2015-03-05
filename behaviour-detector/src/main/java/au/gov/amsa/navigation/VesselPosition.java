@@ -10,6 +10,8 @@ import com.google.common.base.Preconditions;
 
 public class VesselPosition {
 
+	public static boolean validate = true;
+
 	public enum NavigationalStatus {
 		// order of these should reflect numerical order in nav status int
 		// returned
@@ -43,15 +45,17 @@ public class VesselPosition {
 	        NavigationalStatus navigationalStatus, long time, Optional<Integer> shipType,
 	        Optional<String> positionAisNmea, Optional<String> shipStaticAisNmea) {
 
-		Preconditions.checkArgument(lat >= -90 && lat <= 90, "unexpected lat " + lat);
-		Preconditions.checkArgument(lon >= -180 && lon <= 180, "unexpected lon " + lon);
-		Preconditions.checkNotNull(id);
-		Preconditions.checkNotNull(lengthMetres);
-		Preconditions.checkNotNull(widthMetres);
-		Preconditions.checkNotNull(shipType);
-		Preconditions.checkNotNull(positionAisNmea);
-		Preconditions.checkNotNull(shipStaticAisNmea);
-		Preconditions.checkNotNull(navigationalStatus);
+		if (validate) {
+			Preconditions.checkArgument(lat >= -90 && lat <= 90);
+			Preconditions.checkArgument(lon >= -180 && lon <= 180);
+			Preconditions.checkNotNull(id);
+			Preconditions.checkNotNull(lengthMetres);
+			Preconditions.checkNotNull(widthMetres);
+			Preconditions.checkNotNull(shipType);
+			Preconditions.checkNotNull(positionAisNmea);
+			Preconditions.checkNotNull(shipStaticAisNmea);
+			Preconditions.checkNotNull(navigationalStatus);
+		}
 
 		this.messageId = messageId;
 		this.cls = cls;

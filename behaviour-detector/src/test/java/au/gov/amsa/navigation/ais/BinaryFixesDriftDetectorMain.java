@@ -17,6 +17,7 @@ import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
 
 public class BinaryFixesDriftDetectorMain {
@@ -25,7 +26,9 @@ public class BinaryFixesDriftDetectorMain {
 
 	public static void main(String[] args) {
 
-		List<File> files = Files.find(new File("/media/an/binary-fixes-2014-5-minutes"),
+		VesselPosition.validate = false;
+		Fix.validate = false;
+		List<File> files = Files.find(new File("/media/an/binary-fixes-2014"),
 		        Pattern.compile(".*\\.track"));
 		log.info("files=" + files.size());
 		final AtomicLong num = new AtomicLong();

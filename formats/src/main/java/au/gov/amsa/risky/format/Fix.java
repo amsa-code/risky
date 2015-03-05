@@ -37,12 +37,11 @@ public final class Fix {
 				        "cog=" + courseOverGroundDegrees.get());
 			}
 			if (headingDegrees.isPresent()) {
-				Preconditions.checkArgument(
-				        headingDegrees.get() < 360 && headingDegrees.get() >= 0, "heading="
-				                + headingDegrees.get());
+				Preconditions
+				        .checkArgument(headingDegrees.get() < 360 && headingDegrees.get() >= 0);
 			}
-			Preconditions.checkArgument(lat >= -90 && lat <= 90, "lat=" + lat);
-			Preconditions.checkArgument(lon >= -180 && lon <= 180, "lon=" + lon);
+			Preconditions.checkArgument(lat >= -90 && lat <= 90);
+			Preconditions.checkArgument(lon >= -180 && lon <= 180);
 		}
 		this.mmsi = mmsi;
 		this.lat = lat;

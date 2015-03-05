@@ -60,8 +60,8 @@ public class DriftingDetector {
 	};
 
 	static double diff(double a, double b) {
-		Preconditions.checkArgument(a >= 0 && a < 360, "must be between 0 and 360" + a);
-		Preconditions.checkArgument(b >= 0 && b < 360, "must be between 0 and 360: " + b);
+		Preconditions.checkArgument(a >= 0 && a < 360);
+		Preconditions.checkArgument(b >= 0 && b < 360);
 		double value;
 		if (a < b)
 			value = a + 360 - b;
