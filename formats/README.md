@@ -90,6 +90,14 @@ cd formats
 mvn compile exec:java -Pdownsample -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY> -Dpattern=".*.track" -Dms=300000
 ```
 
+How to sort
+-----------------------
+To sort a set of .track files in a directory (in-situ):
+
+```bash
+mvn compile exec:java -Psort -Doutput=/media/an/binary-fixes
+```
+
 How to convert to netcdf
 ---------------------------
 To convert a directory structure of ```.track``` files (BinaryFixes) to ```.nc``` (NetCDF) format, here is an example:
