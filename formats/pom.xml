@@ -232,7 +232,7 @@
 						</executions>
 						<configuration>
 							<classpathScope>test</classpathScope>
-							<mainClass>au.gov.amsa.ais.risky.format.SorterMain</mainClass>
+							<mainClass>au.gov.amsa.risky.format.SorterMain</mainClass>
 							<systemProperties>
 								<systemProperty>
 									<key>output</key>
