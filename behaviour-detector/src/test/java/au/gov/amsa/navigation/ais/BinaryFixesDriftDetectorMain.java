@@ -13,9 +13,8 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.navigation.DriftingDetector;
+import au.gov.amsa.navigation.DriftingDetectorFix;
 import au.gov.amsa.navigation.VesselPosition;
-import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
@@ -28,7 +27,7 @@ public class BinaryFixesDriftDetectorMain {
 
 		VesselPosition.validate = false;
 		Fix.validate = false;
-		List<File> files = Files.find(new File("/media/an/binary-fixes-2014"),
+		List<File> files = Files.find(new File("/media/an/binary-fixes-2014-5-minutes"),
 		        Pattern.compile(".*\\.track"));
 		log.info("files=" + files.size());
 		final AtomicLong num = new AtomicLong();
@@ -39,9 +38,6 @@ public class BinaryFixesDriftDetectorMain {
 		        .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
 		        // search each list of files for drift detections
 		        .flatMap(detectDrift(num))
-		        // log
-		        // .lift(Logging.<VesselPosition>
-		        // logger().showCount().showValue().every(10000).log())
 		        // count
 		        .reduce(0, new Func2<Integer, Integer, Integer>() {
 			        @Override
@@ -59,9 +55,8 @@ public class BinaryFixesDriftDetectorMain {
 				return Observable.from(list).concatMap(new Func1<File, Observable<Integer>>() {
 					@Override
 					public Observable<Integer> call(File file) {
-						return BinaryFixes.from(file).map(VesselPositions.TO_VESSEL_POSITION)
-						        .doOnNext(logCount(num)).compose(DriftingDetector.detectDrift())
-						        .count();
+						return BinaryFixes.from(file).doOnNext(logCount(num))
+						        .compose(DriftingDetectorFix.detectDrift()).count();
 					}
 				})
 				// schedule
@@ -70,10 +65,10 @@ public class BinaryFixesDriftDetectorMain {
 		};
 	}
 
-	private static Action1<VesselPosition> logCount(final AtomicLong num) {
-		return new Action1<VesselPosition>() {
+	private static Action1<Fix> logCount(final AtomicLong num) {
+		return new Action1<Fix>() {
 			@Override
-			public void call(VesselPosition p) {
+			public void call(Fix p) {
 				long n = num.incrementAndGet();
 				if (n % 1000000 == 0)
 					log.info((n / 1000000.0) + "m");
