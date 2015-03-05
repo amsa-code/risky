@@ -84,8 +84,8 @@ public final class Strings {
 				}
 			}
 		};
-		return Ob
-				.using(resourceFactory, observableFactory, disposeAction, true);
+		return Observable.using(resourceFactory, observableFactory,
+				disposeAction, true);
 	}
 
 }

@@ -149,7 +149,7 @@ public final class StringSockets {
 		return new Func1<Integer, Observable<String>>() {
 			@Override
 			public Observable<String> call(Integer n) {
-				return Ob
+				return Observable
 				// create a stream from a socket and dispose of socket
 				// appropriately
 						.using(socketCreator(host, port),
