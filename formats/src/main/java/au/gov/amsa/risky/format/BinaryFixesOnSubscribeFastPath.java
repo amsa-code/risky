@@ -89,7 +89,7 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
                     Fix fix = BinaryFixesUtil.toFix(mmsi, bb);
                     subscriber.onNext(fix);
                 } catch (RuntimeException e) {
-                    log.warn(e.getMessage(), e);
+                    subscriber.onError(e);
                 }
             }
         }
