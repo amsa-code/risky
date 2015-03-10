@@ -42,8 +42,8 @@ public class RingBufferTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testPushThree() {
-        RingBuffer<Integer> q = RingBuffer.create(3);
+    public void testPushThreeOverflows() {
+        RingBuffer<Integer> q = RingBuffer.create(2);
         q.push(1);
         q.push(2);
         q.push(3);
@@ -54,8 +54,8 @@ public class RingBufferTest {
         assertEquals(3, (int) q.pop());
     }
 
-    public void testPushThreeInSizeFour() {
-        RingBuffer<Integer> q = RingBuffer.create(4);
+    public void testPushThreeInSizeThree() {
+        RingBuffer<Integer> q = RingBuffer.create(3);
         q.push(1);
         q.push(2);
         q.push(3);

@@ -15,7 +15,7 @@ public class RingBuffer<T> {
 
     @SuppressWarnings("unchecked")
     private RingBuffer(int size) {
-        list = (T[]) new Object[size];
+        list = (T[]) new Object[size + 1];
     }
 
     public static <T> RingBuffer<T> create(int size) {
