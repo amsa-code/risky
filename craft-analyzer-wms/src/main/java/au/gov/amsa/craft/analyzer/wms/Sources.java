@@ -37,14 +37,14 @@ public class Sources {
     }
 
     private static Func1<List<File>, Observable<au.gov.amsa.risky.format.Fix>> detectDrift(
-            AtomicLong num, Scheduler computation) {
+            AtomicLong num, final Scheduler scheduler) {
         return new Func1<List<File>, Observable<au.gov.amsa.risky.format.Fix>>() {
 
             @Override
             public Observable<au.gov.amsa.risky.format.Fix> call(List<File> files) {
-                return BinaryFixes.from(files).compose(DriftingDetectorFix.detectDrift());
+                return BinaryFixes.from(files).compose(DriftingDetectorFix.detectDrift())
+                        .subscribeOn(scheduler);
             }
         };
     }
-
 }
