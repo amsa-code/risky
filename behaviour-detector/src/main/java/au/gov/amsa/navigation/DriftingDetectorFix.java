@@ -77,8 +77,6 @@ public class DriftingDetectorFix {
                                 if ((double) count / q.size() >= MIN_PROPORTION) {
                                     en = q.values();
                                     while (en.hasMoreElements()) {
-                                        if (q.isEmpty())
-                                            log.info("empty!");
                                         Fix x = en.nextElement();
                                         q.pop();
                                         if (IS_CANDIDATE.call(x))
