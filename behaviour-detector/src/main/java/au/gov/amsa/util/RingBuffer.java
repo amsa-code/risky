@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation;
+package au.gov.amsa.util;
 
 import java.util.Enumeration;
 

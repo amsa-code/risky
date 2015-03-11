@@ -9,6 +9,7 @@ import rx.Subscriber;
 import rx.functions.Func1;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
+import au.gov.amsa.util.RingBuffer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

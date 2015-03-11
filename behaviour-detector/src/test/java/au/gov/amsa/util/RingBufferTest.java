@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation;
+package au.gov.amsa.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.Enumeration;
 
 import org.junit.Test;
+
+import au.gov.amsa.util.RingBuffer;
 
 public class RingBufferTest {
 
@@ -75,8 +77,11 @@ public class RingBufferTest {
         q.push(3);
         Enumeration<Integer> en = q.values();
         assertEquals(1, (int) en.nextElement());
+        assertEquals(1, (int) q.pop());
         assertEquals(2, (int) en.nextElement());
+        assertEquals(2, (int) q.pop());
         assertEquals(3, (int) en.nextElement());
+        assertEquals(3, (int) q.pop());
         assertFalse(en.hasMoreElements());
     }
 }
