@@ -40,7 +40,7 @@ public class BinaryFixesDriftDetectorMain {
                 // share the load between processors
                 .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
                 // search each list of files for drift detections
-                .flatMap(detectDrift(num, Schedulers.immediate()))
+                .flatMap(detectDrift(num, Schedulers.computation()))
                 // count
                 .reduce(0, BinaryFixesDriftDetectorMain.<Integer> add()).toBlocking().single();
         System.out.println("drift detections = " + count);
