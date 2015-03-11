@@ -33,6 +33,11 @@ public class RingBuffer<T> {
         return this;
     }
 
+    public RingBuffer<T> clear() {
+        finish = start;
+        return this;
+    }
+
     public Enumeration<T> values() {
         final int _start = start;
         final int _finish = finish;
@@ -58,6 +63,8 @@ public class RingBuffer<T> {
             throw new RuntimeException("no element present");
         } else {
             T value = list[start];
+            // don't hold a reference to a popped value
+            list[start] = null;
             start = (start + 1) % list.length;
             return value;
         }

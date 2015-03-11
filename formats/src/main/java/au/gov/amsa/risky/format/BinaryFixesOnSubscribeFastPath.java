@@ -85,14 +85,15 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
                 if (subscriber.isUnsubscribed())
                     return;
                 ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
+                Fix fix = null;
                 try {
-                    Fix fix = BinaryFixesUtil.toFix(mmsi, bb);
-                    subscriber.onNext(fix);
+                    fix = BinaryFixesUtil.toFix(mmsi, bb);
                 } catch (RuntimeException e) {
-                    subscriber.onError(e);
+                    log.warn(e.getMessage());
                 }
+                if (fix != null)
+                    subscriber.onNext(fix);
             }
         }
     }
-
 }

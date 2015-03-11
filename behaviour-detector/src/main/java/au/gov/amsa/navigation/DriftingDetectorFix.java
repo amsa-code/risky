@@ -2,6 +2,9 @@ package au.gov.amsa.navigation;
 
 import java.util.Enumeration;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rx.Observable;
 import rx.Observable.Operator;
 import rx.Observable.Transformer;
@@ -15,6 +18,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
 public class DriftingDetectorFix {
+
+    private static final Logger log = LoggerFactory.getLogger(DriftingDetectorFix.class);
 
     static final double KNOTS_TO_METRES_PER_SECOND = 0.5144444;
     @VisibleForTesting
@@ -50,11 +55,19 @@ public class DriftingDetectorFix {
 
                     @Override
                     public void onNext(Fix f) {
+                        log.info("fix=" + f);
                         if (q.isEmpty()) {
                             if (IS_CANDIDATE.call(f))
                                 q.push(f);
+                        } else if (q.peek().getMmsi() != f.getMmsi()) {
+                            q.clear().push(f);
                         } else {
-                            q.push(f);
+                            try {
+                                q.push(f);
+                            } catch (RuntimeException e) {
+                                log.error("fix=" + f);
+                                throw e;
+                            }
                             if (f.getTime() - q.peek().getTime() > WINDOW_SIZE_MS) {
                                 int count = 0;
                                 Enumeration<Fix> en = q.values();
@@ -65,7 +78,10 @@ public class DriftingDetectorFix {
                                 if ((double) count / q.size() >= MIN_PROPORTION) {
                                     en = q.values();
                                     while (en.hasMoreElements()) {
-                                        Fix x = q.pop();
+                                        if (q.isEmpty())
+                                            log.info("empty!");
+                                        Fix x = en.nextElement();
+                                        q.pop();
                                         if (IS_CANDIDATE.call(x))
                                             child.onNext(x);
                                     }
