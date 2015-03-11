@@ -25,7 +25,6 @@ import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.geo.BinaryFixesObservable;
 import au.gov.amsa.geo.consensus.Consensus;
 import au.gov.amsa.geo.consensus.ConsensusValue;
@@ -34,9 +33,7 @@ import au.gov.amsa.geo.consensus.Options.Builder;
 import au.gov.amsa.geo.distance.EffectiveSpeedChecker;
 import au.gov.amsa.geo.model.Fix;
 import au.gov.amsa.geo.model.SegmentOptions;
-import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselPosition;
-import au.gov.amsa.navigation.ais.AisVesselPositions;
 
 import com.github.davidmoten.grumpy.projection.Projector;
 import com.github.davidmoten.grumpy.wms.Layer;
@@ -63,27 +60,29 @@ public class AnalyzeLayer implements Layer {
                 filenames.add(filename);
         }
 
-        Observable.from(filenames)
-                .buffer(Math.max(1, filenames.size() / Runtime.getRuntime().availableProcessors()))
-                // TODO should not round robin on files!
-                .flatMap(new Func1<List<String>, Observable<VesselPosition>>() {
-                    @Override
-                    public Observable<VesselPosition> call(List<String> filenames) {
-                        return Observable.from(filenames).concatMap(
-                                new Func1<String, Observable<VesselPosition>>() {
-                                    @Override
-                                    public Observable<VesselPosition> call(String filename) {
-                                        return Streams.nmeaFromGzip(filename)
-                                                // extract positions from nmea
-                                                .compose(AisVesselPositions.positions())
-                                                // detect drift
-                                                .compose(DriftingDetector.detectDrift())
-                                                .subscribeOn(Schedulers.computation());
-                                    }
-                                });
-                    }
-                })
+        // Observable.from(filenames)
+        // .buffer(Math.max(1, filenames.size() /
+        // Runtime.getRuntime().availableProcessors()))
+        // // TODO should not round robin on files!
+        // .flatMap(new Func1<List<String>, Observable<VesselPosition>>() {
+        // @Override
+        // public Observable<VesselPosition> call(List<String> filenames) {
+        // return Observable.from(filenames).concatMap(
+        // new Func1<String, Observable<VesselPosition>>() {
+        // @Override
+        // public Observable<VesselPosition> call(String filename) {
+        // return Streams.nmeaFromGzip(filename)
+        // // extract positions from nmea
+        // .compose(AisVesselPositions.positions())
+        // // detect drift
+        // .compose(DriftingDetector.detectDrift())
+        // .subscribeOn(Schedulers.computation());
+        // }
+        // });
+        // }
+        // })
 
+        Sources.fixes()
                 // group by id and date
                 .groupBy(new Func1<VesselPosition, String>() {
                     @Override
