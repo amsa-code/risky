@@ -55,11 +55,10 @@ public class DriftingDetectorFix {
 
                     @Override
                     public void onNext(Fix f) {
-                        log.info("fix=" + f);
                         if (q.isEmpty()) {
                             if (IS_CANDIDATE.call(f))
                                 q.push(f);
-                        } else if (q.peek().getMmsi() != f.getMmsi()) {
+                        } else if (q.peek().getMmsi() != f.getMmsi() || q.size() == q.maxSize()) {
                             q.clear().push(f);
                         } else {
                             try {

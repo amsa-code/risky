@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -39,7 +40,7 @@ public class BinaryFixesDriftDetectorMain {
                 // share the load between processors
                 .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
                 // search each list of files for drift detections
-                .flatMap(detectDrift(num))
+                .flatMap(detectDrift(num, Schedulers.immediate()))
                 // count
                 .reduce(0, BinaryFixesDriftDetectorMain.<Integer> add()).toBlocking().single();
         System.out.println("drift detections = " + count);
@@ -47,6 +48,7 @@ public class BinaryFixesDriftDetectorMain {
 
     private static <T extends Number> Func2<T, T, T> add() {
         return new Func2<T, T, T>() {
+            @SuppressWarnings("unchecked")
             @Override
             public T call(T a, T b) {
                 if (a instanceof Integer)
@@ -67,7 +69,8 @@ public class BinaryFixesDriftDetectorMain {
         };
     }
 
-    private static Func1<List<File>, Observable<Integer>> detectDrift(final AtomicLong num) {
+    private static Func1<List<File>, Observable<Integer>> detectDrift(final AtomicLong num,
+            final Scheduler scheduler) {
         return new Func1<List<File>, Observable<Integer>>() {
             @Override
             public Observable<Integer> call(List<File> list) {
@@ -85,7 +88,7 @@ public class BinaryFixesDriftDetectorMain {
 
                 })
                 // schedule
-                        .subscribeOn(Schedulers.computation());
+                        .subscribeOn(scheduler);
             }
         };
     }

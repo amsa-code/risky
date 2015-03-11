@@ -87,4 +87,8 @@ public class RingBuffer<T> {
         else
             return finish - start + list.length;
     }
+
+    public int maxSize() {
+        return list.length - 1;
+    }
 }
