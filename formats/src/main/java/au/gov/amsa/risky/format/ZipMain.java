@@ -13,9 +13,9 @@ public class ZipMain {
 		final File input = new File(System.getProperty("input"));
 		final File output = new File(System.getProperty("output"));
 		Pattern pattern = Pattern.compile(System.getProperty("pattern"));
-		Action2<List<Fix>, File> fixesWriter = new Action2<List<Fix>, File>() {
+		Action2<List<HasFix>, File> fixesWriter = new Action2<List<HasFix>, File>() {
 			@Override
-			public void call(List<Fix> fixes, File file) {
+			public void call(List<HasFix> fixes, File file) {
 				BinaryFixesWriter.writeFixes(fixes, file, false, true);
 			}
 		};
@@ -25,9 +25,8 @@ public class ZipMain {
 				return name + ".zip";
 			}
 		};
-		Formats.transform(input, output, pattern,
-				Transformers.<Fix> identity(), fixesWriter, renamer).count()
-				.toBlocking().single();
+		Formats.transform(input, output, pattern, Transformers.<HasFix> identity(), fixesWriter,
+		        renamer).count().toBlocking().single();
 	}
 
 }

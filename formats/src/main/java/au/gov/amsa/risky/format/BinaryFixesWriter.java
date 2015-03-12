@@ -48,12 +48,13 @@ public final class BinaryFixesWriter {
 	        final boolean zip) {
 		return new Action1<List<Fix>>() {
 
+			@SuppressWarnings("unchecked")
 			@Override
 			public void call(List<Fix> fixes) {
 				if (fixes.size() == 0)
 					return;
 				String filename = fileMapper.call(fixes.get(0));
-				writeFixes(fixes, new File(filename), true, zip);
+				writeFixes((List<HasFix>) (List<?>) fixes, new File(filename), true, zip);
 			}
 
 		};
@@ -68,7 +69,7 @@ public final class BinaryFixesWriter {
 	 */
 	private static final Striped<Lock> fileLocks = Striped.lock(NUMBER_FILE_LOCKS);
 
-	public static void writeFixes(List<Fix> fixes, File file, boolean append, boolean zip) {
+	public static void writeFixes(List<HasFix> fixes, File file, boolean append, boolean zip) {
 		Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
 
 		// get the lock for the file
@@ -91,9 +92,9 @@ public final class BinaryFixesWriter {
 
 			// write the fixes to the output stream
 			ByteBuffer bb = BinaryFixes.createFixByteBuffer();
-			for (Fix fix : fixes) {
+			for (HasFix fix : fixes) {
 				bb.rewind();
-				BinaryFixes.write(fix, bb);
+				BinaryFixes.write(fix.fix(), bb);
 				os.write(bb.array());
 			}
 		} catch (IOException e) {

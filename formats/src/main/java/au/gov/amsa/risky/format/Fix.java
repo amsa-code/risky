@@ -3,7 +3,7 @@ package au.gov.amsa.risky.format;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
-public final class Fix {
+public final class Fix implements HasFix {
 
 	public static boolean validate = true;
 
@@ -131,6 +131,11 @@ public final class Fix {
 		b.append(source);
 		b.append("]");
 		return b.toString();
+	}
+
+	@Override
+	public Fix fix() {
+		return this;
 	}
 
 }
