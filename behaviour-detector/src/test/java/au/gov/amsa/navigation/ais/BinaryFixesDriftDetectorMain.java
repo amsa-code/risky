@@ -45,8 +45,7 @@ public class BinaryFixesDriftDetectorMain {
 		        .flatMap(detectDrift(num, Schedulers.computation()))
 		        // count
 		        .reduce(0, BinaryFixesDriftDetectorMain.<Integer> add()).toBlocking().single();
-		System.out.println("drift detections = " + count);
-		main(new String[] {});
+		log.info("drift detections = " + count);
 	}
 
 	private static Func1<? super File, Boolean> onlyValidMmsis() {
