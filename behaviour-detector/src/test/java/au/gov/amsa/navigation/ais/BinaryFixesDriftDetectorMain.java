@@ -1,6 +1,9 @@
 package au.gov.amsa.navigation.ais;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -26,10 +29,11 @@ import au.gov.amsa.util.identity.MmsiValidator2;
 
 public class BinaryFixesDriftDetectorMain {
 
+	private static final String DRIFT_CANDIDATES_TXT = "target/drift-candidates.txt";
 	private static final Logger log = LoggerFactory.getLogger(BinaryFixesDriftDetectorMain.class);
 
 	public static void main(String[] args) {
-
+		new File(DRIFT_CANDIDATES_TXT).delete();
 		VesselPosition.validate = false;
 		Fix.validate = false;
 		List<File> files = Files.find(new File("/media/an/binary-fixes-2014"),
@@ -96,11 +100,11 @@ public class BinaryFixesDriftDetectorMain {
 						        // detect drift
 						        .compose(DriftingDetectorFix.detectDrift())
 						        // downsample to min 5 minutes between reports
-						        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES))
-						        // cast
-						        .cast(DriftCandidate.class)
+						        .compose(
+						                Downsample
+						                        .<DriftCandidate> minTimeStep(5, TimeUnit.MINUTES))
 						        // onNext
-						        .doOnNext(onEach())
+						        .doOnNext(ON_NEXT)
 						        // count
 						        .count();
 					}
@@ -112,15 +116,45 @@ public class BinaryFixesDriftDetectorMain {
 		};
 	}
 
-	private static Action1<DriftCandidate> onEach() {
-		return new Action1<DriftCandidate>() {
+	private static final Action1<DriftCandidate> ON_NEXT = new Action1<DriftCandidate>() {
+		final char COMMA = ',';
+		final Charset UTF8 = Charset.forName("UTF-8");
 
-			@Override
-			public void call(DriftCandidate c) {
-				log.info(c.toString());
+		@Override
+		public synchronized void call(DriftCandidate c) {
+			try {
+				FileOutputStream os = new FileOutputStream(DRIFT_CANDIDATES_TXT, true);
+				Fix f = c.fix();
+				StringBuilder s = new StringBuilder();
+				s.append(f.getMmsi());
+				s.append(COMMA);
+				s.append(f.getLat());
+				s.append(COMMA);
+				s.append(f.getLon());
+				s.append(COMMA);
+				s.append(f.getTime());
+				s.append(COMMA);
+				s.append(f.getAisClass());
+				s.append(COMMA);
+				s.append(f.getCourseOverGroundDegrees().get());
+				s.append(COMMA);
+				s.append(f.getHeadingDegrees().get());
+				s.append(COMMA);
+				s.append(f.getSpeedOverGroundKnots().get());
+				s.append(COMMA);
+				s.append(f.getNavigationalStatus().isPresent() ? f.getNavigationalStatus().get()
+				        .toString() : "");
+				s.append(COMMA);
+				s.append(c.driftingSince());
+				s.append(COMMA);
+				s.append('\n');
+				os.write(s.toString().getBytes(UTF8));
+				os.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
-		};
-	}
+		}
+	};
 
 	private static Action1<Fix> logCount(final AtomicLong num) {
 		return new Action1<Fix>() {
