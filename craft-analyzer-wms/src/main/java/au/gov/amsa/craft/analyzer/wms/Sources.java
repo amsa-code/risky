@@ -12,10 +12,12 @@ import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
+import au.gov.amsa.navigation.DriftCandidate;
 import au.gov.amsa.navigation.DriftingDetectorFix;
 import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
 
 public class Sources {
@@ -36,14 +38,20 @@ public class Sources {
                 .map(VesselPositions.TO_VESSEL_POSITION);
     }
 
-    private static Func1<List<File>, Observable<au.gov.amsa.risky.format.Fix>> detectDrift(
-            AtomicLong num, final Scheduler scheduler) {
-        return new Func1<List<File>, Observable<au.gov.amsa.risky.format.Fix>>() {
+    private static Func1<List<File>, Observable<Fix>> detectDrift(AtomicLong num,
+            final Scheduler scheduler) {
+        return new Func1<List<File>, Observable<Fix>>() {
 
             @Override
-            public Observable<au.gov.amsa.risky.format.Fix> call(List<File> files) {
+            public Observable<Fix> call(List<File> files) {
                 return BinaryFixes.from(files).compose(DriftingDetectorFix.detectDrift())
-                        .subscribeOn(scheduler);
+                        .map(new Func1<DriftCandidate, Fix>() {
+
+                            @Override
+                            public Fix call(DriftCandidate c) {
+                                return c.fix();
+                            }
+                        }).subscribeOn(scheduler);
             }
         };
     }
