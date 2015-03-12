@@ -15,7 +15,7 @@ import com.github.davidmoten.rx.Functions;
 /**
  * Assumes input stream is in time order.
  */
-public class Downsample implements Transformer<HasFix, HasFix> {
+public class Downsample<T extends HasFix> implements Transformer<T, T> {
 
 	private long maxTimeBetweenFixesMs;
 
@@ -23,15 +23,15 @@ public class Downsample implements Transformer<HasFix, HasFix> {
 		this.maxTimeBetweenFixesMs = minTimeBetweenFixesMs;
 	}
 
-	public static Downsample minTimeStep(long duration, TimeUnit unit) {
-		return new Downsample(unit.toMillis(duration));
+	public static <T extends HasFix> Downsample<T> minTimeStep(long duration, TimeUnit unit) {
+		return new Downsample<T>(unit.toMillis(duration));
 	}
 
 	@Override
-	public Observable<HasFix> call(Observable<HasFix> fixes) {
-		return fixes.scan(new Func2<HasFix, HasFix, HasFix>() {
+	public Observable<T> call(Observable<T> fixes) {
+		return fixes.scan(new Func2<T, T, T>() {
 			@Override
-			public HasFix call(HasFix latest, HasFix fix) {
+			public T call(T latest, T fix) {
 				if (fix.fix().getTime() < latest.fix().getTime())
 					throw new RuntimeException("not in ascending time order!");
 				else if (fix.fix().getMmsi() != latest.fix().getMmsi())

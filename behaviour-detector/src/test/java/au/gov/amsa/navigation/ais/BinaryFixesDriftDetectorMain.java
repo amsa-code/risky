@@ -95,11 +95,12 @@ public class BinaryFixesDriftDetectorMain {
 						        .doOnNext(logCount(num))
 						        // detect drift
 						        .compose(DriftingDetectorFix.detectDrift())
-						        // to fix
-						        .map(DriftCandidate.TO_FIX)
 						        // downsample to min 5 minutes between reports
 						        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES))
-						        // .doOnNext(onEach())
+						        // cast
+						        .cast(DriftCandidate.class)
+						        // onNext
+						        .doOnNext(onEach())
 						        // count
 						        .count();
 					}

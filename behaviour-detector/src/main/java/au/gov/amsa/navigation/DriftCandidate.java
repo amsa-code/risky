@@ -1,9 +1,9 @@
 package au.gov.amsa.navigation;
 
-import rx.functions.Func1;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.HasFix;
 
-public class DriftCandidate {
+public class DriftCandidate implements HasFix {
 
 	private final Fix fix;
 	private final long driftingSince;
@@ -13,6 +13,7 @@ public class DriftCandidate {
 		this.driftingSince = driftingSince;
 	}
 
+	@Override
 	public Fix fix() {
 		return fix;
 	}
@@ -20,13 +21,6 @@ public class DriftCandidate {
 	public long driftingSince() {
 		return driftingSince;
 	}
-
-	public static final Func1<DriftCandidate, Fix> TO_FIX = new Func1<DriftCandidate, Fix>() {
-		@Override
-		public Fix call(DriftCandidate c) {
-			return c.fix();
-		}
-	};
 
 	@Override
 	public String toString() {
