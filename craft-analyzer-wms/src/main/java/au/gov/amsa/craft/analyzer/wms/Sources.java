@@ -19,6 +19,7 @@ import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.util.Files;
 
 import com.google.common.base.Optional;
@@ -42,9 +43,16 @@ public class Sources {
     }
 
     public static Observable<VesselPosition> fixes2() {
-        return DriftCandidates.fromCsv(
-                new File("../behaviour-detector/target/drift-candidates.txt")).map(
-                VesselPositions.toVesselPosition(new Func1<DriftCandidate, Optional<?>>() {
+        return DriftCandidates
+                .fromCsv(new File("../behaviour-detector/target/drift-candidates.txt"))
+                .filter(new Func1<DriftCandidate, Boolean>() {
+
+                    @Override
+                    public Boolean call(DriftCandidate c) {
+                        return !c.fix().getNavigationalStatus().isPresent()
+                                || c.fix().getNavigationalStatus().get() != NavigationalStatus.ENGAGED_IN_FISHING;
+                    }
+                }).map(VesselPositions.toVesselPosition(new Func1<DriftCandidate, Optional<?>>() {
                     @Override
                     public Optional<Long> call(DriftCandidate c) {
                         return Optional.of(c.driftingSince());

@@ -70,6 +70,12 @@ public class DriftingLayer implements Layer {
         Sources.fixes2()
                 // log
                 .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(10000).log())
+                // only class A vessels
+                .filter(onlyClassA())
+                // ignore vessels at anchor
+                .filter(not(atAnchor()))
+                // ignore vessels at moorings
+                .filter(not(isMoored()))
                 // group by id and date
                 .distinct(byIdAndHour())
                 // add to queue
