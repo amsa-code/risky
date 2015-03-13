@@ -100,9 +100,11 @@ public class BinaryFixesDriftDetectorMain {
 						        // detect drift
 						        .compose(DriftingDetectorFix.detectDrift())
 						        // downsample to min 5 minutes between reports
+						        // but ensure that start of drift is always
+						        // included
 						        .compose(
-						                Downsample
-						                        .<DriftCandidate> minTimeStep(5, TimeUnit.MINUTES))
+						                Downsample.<DriftCandidate> minTimeStep(5,
+						                        TimeUnit.MINUTES, isStartOfDrift()))
 						        // onNext
 						        .doOnNext(ON_NEXT)
 						        // count
@@ -112,6 +114,15 @@ public class BinaryFixesDriftDetectorMain {
 				})
 				// schedule
 				        .subscribeOn(scheduler);
+			}
+		};
+	}
+
+	private static Func1<DriftCandidate, Boolean> isStartOfDrift() {
+		return new Func1<DriftCandidate, Boolean>() {
+			@Override
+			public Boolean call(DriftCandidate c) {
+				return c.driftingSince() == c.fix().getTime();
 			}
 		};
 	}

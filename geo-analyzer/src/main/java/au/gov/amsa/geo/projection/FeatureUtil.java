@@ -38,18 +38,18 @@ public class FeatureUtil {
 
 			if (epsg.equals(EPSG_900913)) {
 				String wkt = IOUtils.toString(FeatureUtil.class
-						.getResourceAsStream("/epsg/EPSG_900913.txt"));
+				        .getResourceAsStream("/epsg/EPSG_900913.txt"));
 				crs.put(epsg, CRS.parseWKT(wkt));
 			} else if (epsg.equals(EPSG_102100)) {
 				String wkt = IOUtils.toString(FeatureUtil.class
-						.getResourceAsStream("/epsg/EPSG_102100.txt"));
+				        .getResourceAsStream("/epsg/EPSG_102100.txt"));
 				crs.put(epsg, CRS.parseWKT(wkt));
 			} else if (epsg.equals(EPSG_3857)) {
 				String wkt = IOUtils.toString(FeatureUtil.class
-						.getResourceAsStream("/epsg/EPSG_3857.txt"));
+				        .getResourceAsStream("/epsg/EPSG_3857.txt"));
 				crs.put(epsg, CRS.parseWKT(wkt));
 			} else
-				crs.put(epsg, CRS.decode(epsg));
+				crs.put(epsg, CRS.decode(epsg, true));
 			return crs.get(epsg);
 		} catch (FactoryException e) {
 			throw new RuntimeException("could not load " + epsg, e);
@@ -65,8 +65,7 @@ public class FeatureUtil {
 
 		try {
 			if (!srsName.equals(EPSG_4326)) {
-				MathTransform transform = CRS.findMathTransform(
-						getCrs(EPSG_4326), getCrs(srsName));
+				MathTransform transform = CRS.findMathTransform(getCrs(EPSG_4326), getCrs(srsName));
 				point = (Point) JTS.transform(point, transform);
 			}
 			return point;
@@ -89,8 +88,7 @@ public class FeatureUtil {
 
 		try {
 			if (!srsName.equals(EPSG_4326)) {
-				MathTransform transform = CRS.findMathTransform(
-						getCrs(EPSG_4326), getCrs(srsName));
+				MathTransform transform = CRS.findMathTransform(getCrs(EPSG_4326), getCrs(srsName));
 				point = (Point) JTS.transform(point, transform.inverse());
 			}
 			return new Position(point.getY(), point.getX());

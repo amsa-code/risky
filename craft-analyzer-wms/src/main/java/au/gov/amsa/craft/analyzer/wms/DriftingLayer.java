@@ -49,6 +49,7 @@ import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
 import com.github.davidmoten.rx.slf4j.Logging;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 public class DriftingLayer implements Layer {
@@ -64,10 +65,14 @@ public class DriftingLayer implements Layer {
     private final ConcurrentLinkedQueue<VesselPosition> queue = new ConcurrentLinkedQueue<VesselPosition>();
 
     public DriftingLayer() {
-
+        log.info("creating Drifting layer");
         // collect drifting candidates
-        getDrifters()
-        // add to queue
+        Sources.fixes2()
+        // log
+                .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(1000).log())
+                // group by id and date
+                .distinct(byIdAndHour())
+                // add to queue
                 .doOnNext(addToQueue())
                 // run in background
                 .subscribeOn(Schedulers.io())
@@ -116,7 +121,7 @@ public class DriftingLayer implements Layer {
                 // is a big vessel
                 .filter(isBig())
                 // group by id and date
-                .distinct(byIdAndDay());
+                .distinct(byIdAndHour());
     }
 
     private static Func1<VesselPosition, Boolean> isShipType(final int shipType) {
@@ -282,9 +287,9 @@ public class DriftingLayer implements Layer {
         };
     }
 
-    private static Func1<VesselPosition, String> byIdAndDay() {
+    private static Func1<VesselPosition, String> byIdAndHour() {
         return new Func1<VesselPosition, String>() {
-            final DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd");
+            final DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd-HH");
 
             @Override
             public String call(VesselPosition p) {
@@ -354,10 +359,20 @@ public class DriftingLayer implements Layer {
         log.info("request=" + request);
         log.info("drawing " + queue.size() + " positions");
         final Projector projector = WmsUtil.getProjector(request);
+        Optional<VesselPosition> last = Optional.absent();
+        Optional<Point> lastPoint = Optional.absent();
         for (VesselPosition p : queue) {
             Point point = projector.toPoint(p.lat(), p.lon());
+            if (last.isPresent() && p.id().equals(last.get().id()) && !p.data().equals(p.time())) {
+                // join the last position with this one with a line
+                g.setColor(Color.green);
+                g.drawLine(lastPoint.get().x, lastPoint.get().y, point.x, point.y);
+            }
+
             g.setColor(Color.red);
             g.drawRect(point.x, point.y, 1, 1);
+            last = Optional.of(p);
+            lastPoint = Optional.of(point);
         }
         log.info("drawn");
 

@@ -48,6 +48,7 @@ public class AnalyzeLayer implements Layer {
     private final ConcurrentLinkedQueue<VesselPosition> queue = new ConcurrentLinkedQueue<VesselPosition>();
 
     public AnalyzeLayer() {
+        log.info("creating Analyse layer");
 
         // collect drifting candidates
 
@@ -81,7 +82,7 @@ public class AnalyzeLayer implements Layer {
         // }
         // })
 
-        Sources.fixes2()
+        Sources.fixes()
                 // group by id and date
                 .groupBy(new Func1<VesselPosition, String>() {
                     @Override
@@ -112,7 +113,7 @@ public class AnalyzeLayer implements Layer {
                     }
                 })
                 // run in background
-                .subscribeOn(Schedulers.computation())
+                .subscribeOn(Schedulers.newThread())
                 // subscribe
                 .subscribe();
     }

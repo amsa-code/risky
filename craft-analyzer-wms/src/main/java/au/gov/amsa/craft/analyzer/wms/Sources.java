@@ -21,6 +21,8 @@ import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
 
+import com.google.common.base.Optional;
+
 public class Sources {
     private static final Logger log = LoggerFactory.getLogger(Sources.class);
 
@@ -42,7 +44,12 @@ public class Sources {
     public static Observable<VesselPosition> fixes2() {
         return DriftCandidates.fromCsv(
                 new File("../behaviour-detector/target/drift-candidates.txt")).map(
-                VesselPositions.TO_VESSEL_POSITION);
+                VesselPositions.toVesselPosition(new Func1<DriftCandidate, Optional<?>>() {
+                    @Override
+                    public Optional<Long> call(DriftCandidate c) {
+                        return Optional.of(c.driftingSince());
+                    }
+                }));
     }
 
     private static Func1<List<File>, Observable<Fix>> detectDrift(AtomicLong num,

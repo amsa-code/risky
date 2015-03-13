@@ -38,12 +38,13 @@ public class VesselPosition {
 
 	private static AtomicLong counter = new AtomicLong();
 	private long messageId;
+	private Optional<?> data;
 
 	private VesselPosition(long messageId, Identifier id, double lat, double lon,
 	        Optional<Integer> lengthMetres, Optional<Integer> widthMetres, Optional<Double> cog,
 	        Optional<Double> heading, Optional<Double> speedMetresPerSecond, VesselClass cls,
 	        NavigationalStatus navigationalStatus, long time, Optional<Integer> shipType,
-	        Optional<String> positionAisNmea, Optional<String> shipStaticAisNmea) {
+	        Optional<String> positionAisNmea, Optional<String> shipStaticAisNmea, Optional<?> data) {
 
 		if (validate) {
 			Preconditions.checkArgument(lat >= -90 && lat <= 90);
@@ -72,6 +73,7 @@ public class VesselPosition {
 		this.shipType = shipType;
 		this.positionAisNmea = positionAisNmea;
 		this.shipStaticAisNmea = shipStaticAisNmea;
+		this.data = data;
 	}
 
 	public long messageId() {
@@ -88,6 +90,10 @@ public class VesselPosition {
 
 	public double lon() {
 		return lon;
+	}
+
+	public Object data() {
+		return data;
 	}
 
 	public Optional<Integer> lengthMetres() {
@@ -163,6 +169,7 @@ public class VesselPosition {
 		private long time;
 		private Optional<Integer> shipType = Optional.absent();
 		private NavigationalStatus navigationalStatus;
+		private Optional<?> data;
 
 		private Builder() {
 		}
@@ -237,10 +244,15 @@ public class VesselPosition {
 			return this;
 		}
 
+		public Builder data(Optional<?> data) {
+			this.data = data;
+			return this;
+		}
+
 		public VesselPosition build() {
 			return new VesselPosition(counter.incrementAndGet(), id, lat, lon, lengthMetres,
 			        widthMetres, cogDegrees, headingDegrees, speedMetresPerSecond, cls,
-			        navigationalStatus, time, shipType, positionAisNmea, shipStaticAisNmea);
+			        navigationalStatus, time, shipType, positionAisNmea, shipStaticAisNmea, data);
 		}
 
 	}
@@ -288,7 +300,7 @@ public class VesselPosition {
 
 			return Optional.of(new VesselPosition(messageId, id, lat, lon, lengthMetres,
 			        widthMetres, cogDegrees, headingDegrees, speedMetresPerSecond, cls,
-			        navigationalStatus, time, shipType, positionAisNmea, shipStaticAisNmea));
+			        navigationalStatus, time, shipType, positionAisNmea, shipStaticAisNmea, data));
 		}
 	}
 

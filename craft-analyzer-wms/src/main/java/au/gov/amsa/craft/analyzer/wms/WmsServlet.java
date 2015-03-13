@@ -21,6 +21,7 @@ public class WmsServlet extends HttpServlet {
     private final WmsServletRequestProcessor processor;
 
     public WmsServlet() {
+        System.setProperty("org.geotools.referencing.forceXY", "true");
 
         // instantiate the layers
         Layer layer = new DriftingLayer();

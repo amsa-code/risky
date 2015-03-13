@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Action2;
+import rx.functions.Func1;
 import rx.functions.Func2;
 
 import com.github.davidmoten.rx.Functions;
@@ -18,13 +19,20 @@ import com.github.davidmoten.rx.Functions;
 public class Downsample<T extends HasFix> implements Transformer<T, T> {
 
 	private long maxTimeBetweenFixesMs;
+	private Func1<T, Boolean> selector;
 
-	public Downsample(long minTimeBetweenFixesMs) {
+	public Downsample(long minTimeBetweenFixesMs, Func1<T, Boolean> selector) {
 		this.maxTimeBetweenFixesMs = minTimeBetweenFixesMs;
+		this.selector = selector;
 	}
 
 	public static <T extends HasFix> Downsample<T> minTimeStep(long duration, TimeUnit unit) {
-		return new Downsample<T>(unit.toMillis(duration));
+		return new Downsample<T>(unit.toMillis(duration), Functions.<T> alwaysFalse());
+	}
+
+	public static <T extends HasFix> Downsample<T> minTimeStep(long duration, TimeUnit unit,
+	        Func1<T, Boolean> selector) {
+		return new Downsample<T>(unit.toMillis(duration), selector);
 	}
 
 	@Override
@@ -36,7 +44,8 @@ public class Downsample<T extends HasFix> implements Transformer<T, T> {
 					throw new RuntimeException("not in ascending time order!");
 				else if (fix.fix().getMmsi() != latest.fix().getMmsi())
 					throw new RuntimeException("can only downsample a single vessel");
-				else if (fix.fix().getTime() - latest.fix().getTime() >= maxTimeBetweenFixesMs)
+				else if (fix.fix().getTime() - latest.fix().getTime() >= maxTimeBetweenFixesMs
+				        || selector.call(fix))
 					return fix;
 				else
 					return latest;
