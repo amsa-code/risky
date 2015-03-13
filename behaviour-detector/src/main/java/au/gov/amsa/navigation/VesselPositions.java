@@ -6,6 +6,7 @@ import rx.functions.Func1;
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.HasFix;
 
 import com.google.common.base.Optional;
 
@@ -36,10 +37,10 @@ public class VesselPositions {
 		        .build();
 	}
 
-	public static Func1<Fix, VesselPosition> TO_VESSEL_POSITION = new Func1<Fix, VesselPosition>() {
+	public static Func1<HasFix, VesselPosition> TO_VESSEL_POSITION = new Func1<HasFix, VesselPosition>() {
 		@Override
-		public VesselPosition call(Fix fix) {
-			return toVesselPosition(fix);
+		public VesselPosition call(HasFix fix) {
+			return toVesselPosition(fix.fix());
 		}
 	};
 

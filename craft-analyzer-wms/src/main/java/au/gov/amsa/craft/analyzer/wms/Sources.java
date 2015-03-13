@@ -13,6 +13,7 @@ import rx.Scheduler;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.navigation.DriftCandidate;
+import au.gov.amsa.navigation.DriftCandidates;
 import au.gov.amsa.navigation.DriftingDetectorFix;
 import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPositions;
@@ -36,6 +37,12 @@ public class Sources {
                 // search each list of files for drift detections
                 .flatMap(detectDrift(num, Schedulers.computation()))
                 .map(VesselPositions.TO_VESSEL_POSITION);
+    }
+
+    public static Observable<VesselPosition> fixes2() {
+        return DriftCandidates.fromCsv(
+                new File("../behaviour-detector/target/drift-candidates.txt")).map(
+                VesselPositions.TO_VESSEL_POSITION);
     }
 
     private static Func1<List<File>, Observable<Fix>> detectDrift(AtomicLong num,

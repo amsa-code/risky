@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
-import rx.Observer;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
@@ -82,7 +81,7 @@ public class AnalyzeLayer implements Layer {
         // }
         // })
 
-        Sources.fixes()
+        Sources.fixes2()
                 // group by id and date
                 .groupBy(new Func1<VesselPosition, String>() {
                     @Override
@@ -115,23 +114,7 @@ public class AnalyzeLayer implements Layer {
                 // run in background
                 .subscribeOn(Schedulers.computation())
                 // subscribe
-                .subscribe(new Observer<VesselPosition>() {
-
-                    @Override
-                    public void onCompleted() {
-                        System.out.println("done");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        e.printStackTrace();
-                    }
-
-                    @Override
-                    public void onNext(VesselPosition t) {
-                        // do nothing
-                    }
-                });
+                .subscribe();
     }
 
     @Override
