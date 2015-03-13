@@ -12,13 +12,13 @@ public class DriftingDetector {
 
 	static final double KNOTS_TO_METRES_PER_SECOND = 0.5144444;
 	@VisibleForTesting
-	static final int HEADING_COG_DIFFERENCE_MIN = 70;
+	static final int HEADING_COG_DIFFERENCE_MIN = 45;
 	@VisibleForTesting
-	static final int HEADING_COG_DIFFERENCE_MAX = 110;
+	static final int HEADING_COG_DIFFERENCE_MAX = 135;
 	@VisibleForTesting
-	static final double MAX_DRIFTING_SPEED_KNOTS = 4;
+	static final double MAX_DRIFTING_SPEED_KNOTS = 20;
 	@VisibleForTesting
-	static final double MIN_DRIFTING_SPEED_KNOTS = 0.3;
+	static final double MIN_DRIFTING_SPEED_KNOTS = 0.25;
 
 	public Observable<VesselPosition> getCandidates(Observable<VesselPosition> o) {
 		return o.filter(IS_CANDIDATE);
