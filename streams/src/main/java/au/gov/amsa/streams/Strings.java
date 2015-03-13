@@ -47,8 +47,11 @@ public final class Strings {
 		return from(reader, 8192);
 	}
 
-	public static Observable<String> split(Observable<String> source,
-			String pattern) {
+	public static Observable<String> lines(Reader reader) {
+		return split(from(reader, 8192), "\n");
+	}
+
+	public static Observable<String> split(Observable<String> source, String pattern) {
 		return source.lift(new StringSplitOperator(Pattern.compile(pattern)));
 	}
 
@@ -61,8 +64,7 @@ public final class Strings {
 			@Override
 			public Reader call() {
 				try {
-					return new InputStreamReader(new FileInputStream(file),
-							charset);
+					return new InputStreamReader(new FileInputStream(file), charset);
 				} catch (FileNotFoundException e) {
 					throw new RuntimeException(e);
 				}
@@ -84,8 +86,7 @@ public final class Strings {
 				}
 			}
 		};
-		return Observable.using(resourceFactory, observableFactory,
-				disposeAction, true);
+		return Observable.using(resourceFactory, observableFactory, disposeAction, true);
 	}
 
 }
