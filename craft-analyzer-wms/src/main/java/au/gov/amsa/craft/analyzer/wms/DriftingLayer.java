@@ -68,8 +68,8 @@ public class DriftingLayer implements Layer {
         log.info("creating Drifting layer");
         // collect drifting candidates
         Sources.fixes2()
-        // log
-                .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(1000).log())
+                // log
+                .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(10000).log())
                 // group by id and date
                 .distinct(byIdAndHour())
                 // add to queue
@@ -363,16 +363,21 @@ public class DriftingLayer implements Layer {
         Optional<Point> lastPoint = Optional.absent();
         for (VesselPosition p : queue) {
             Point point = projector.toPoint(p.lat(), p.lon());
-            if (last.isPresent() && p.id().equals(last.get().id()) && !p.data().equals(p.time())) {
+            if (last.isPresent() && p.id().equals(last.get().id()) && p.data().isPresent()
+                    && !p.data().get().equals(p.time())
+                    && Math.abs(p.lat() - last.get().lat()) < 0.1
+                    && Math.abs(p.lon() - last.get().lon()) < 0.1) {
                 // join the last position with this one with a line
-                g.setColor(Color.green);
+                g.setColor(Color.gray);
                 g.drawLine(lastPoint.get().x, lastPoint.get().y, point.x, point.y);
+
             }
 
             g.setColor(Color.red);
             g.drawRect(point.x, point.y, 1, 1);
             last = Optional.of(p);
             lastPoint = Optional.of(point);
+
         }
         log.info("drawn");
 

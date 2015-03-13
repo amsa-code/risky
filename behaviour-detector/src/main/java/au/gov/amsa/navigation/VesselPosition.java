@@ -92,7 +92,7 @@ public class VesselPosition {
 		return lon;
 	}
 
-	public Object data() {
+	public Optional<?> data() {
 		return data;
 	}
 
@@ -392,6 +392,8 @@ public class VesselPosition {
 		b.append(shipType);
 		b.append(", messageId=");
 		b.append(messageId);
+		b.append(", data=");
+		b.append(data);
 		b.append("]");
 		return b.toString();
 	}
