@@ -51,7 +51,7 @@
 			<artifactId>rxjava-slf4j</artifactId>
 			<version>0.3.1</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
@@ -59,10 +59,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.github.davidmoten</groupId>
+			<artifactId>rxjava-jdbc</artifactId>
+			<version>0.5.2-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+
+		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>ais</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>streams</artifactId>
@@ -104,7 +112,46 @@
 			<scope>test</scope>
 		</dependency>
 
-
-
 	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>oracle</id>
+			<properties>
+				<oracle.jdbc.version>11.2.0.4</oracle.jdbc.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>com.oracle</groupId>
+					<artifactId>ojdbc6</artifactId>
+					<version>${oracle.jdbc.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>com.oracle</groupId>
+					<artifactId>orai18n</artifactId>
+					<version>${oracle.jdbc.version}</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>${exec.version}</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>java</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<classpathScope>test</classpathScope>
+							<mainClass>au.gov.amsa.navigation.DriftCandidatesLoadToDatabaseMain</mainClass>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
