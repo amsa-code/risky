@@ -77,7 +77,7 @@ public class DriftingLayer implements Layer {
                 // ignore vessels at moorings
                 .filter(not(isMoored()))
                 // group by id and date
-                .distinct(byIdAndHour())
+                .distinct(byIdAndTimePattern("yyyy-MM-dd HH"))
                 // add to queue
                 .doOnNext(addToQueue())
                 // run in background
@@ -127,7 +127,7 @@ public class DriftingLayer implements Layer {
                 // is a big vessel
                 .filter(isBig())
                 // group by id and date
-                .distinct(byIdAndHour());
+                .distinct(byIdAndTimePattern("yyyy-MM-dd"));
     }
 
     private static Func1<VesselPosition, Boolean> isShipType(final int shipType) {
@@ -293,9 +293,9 @@ public class DriftingLayer implements Layer {
         };
     }
 
-    private static Func1<VesselPosition, String> byIdAndHour() {
+    private static Func1<VesselPosition, String> byIdAndTimePattern(final String timePattern) {
         return new Func1<VesselPosition, String>() {
-            final DateTimeFormatter format = DateTimeFormat.forPattern("yyyy-MM-dd-HH");
+            final DateTimeFormatter format = DateTimeFormat.forPattern(timePattern);
 
             @Override
             public String call(VesselPosition p) {
