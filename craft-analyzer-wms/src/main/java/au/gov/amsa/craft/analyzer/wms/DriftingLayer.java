@@ -43,11 +43,16 @@ import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.navigation.ais.AisVesselPositions;
 import au.gov.amsa.navigation.ais.SortOperator;
 
+import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.grumpy.projection.Projector;
 import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
+import com.github.davidmoten.rtree.Entry;
+import com.github.davidmoten.rtree.RTree;
+import com.github.davidmoten.rtree.geometry.Geometries;
+import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -63,6 +68,9 @@ public class DriftingLayer implements Layer {
     private static Logger log = LoggerFactory.getLogger(DriftingLayer.class);
 
     private final ConcurrentLinkedQueue<VesselPosition> queue = new ConcurrentLinkedQueue<VesselPosition>();
+
+    private volatile RTree<VesselPosition, com.github.davidmoten.rtree.geometry.Point> tree = RTree
+            .maxChildren(4).star().create();
 
     public DriftingLayer() {
         log.info("creating Drifting layer");
@@ -289,6 +297,7 @@ public class DriftingLayer implements Layer {
                 if (queue.size() % 1000 == 0)
                     System.out.println("queue.size=" + queue.size());
                 queue.add(p);
+                tree = tree.add(p, Geometries.point(p.lon(), p.lat()));
             }
         };
     }
@@ -365,9 +374,24 @@ public class DriftingLayer implements Layer {
         log.info("request=" + request);
         log.info("drawing " + queue.size() + " positions");
         final Projector projector = WmsUtil.getProjector(request);
+        Position a = projector.toPosition(0, 0);
+        Position b = projector.toPosition(request.getWidth(), request.getHeight());
+        Rectangle r = Geometries.rectangle(a.getLon(), b.getLat(), b.getLon(), a.getLat());
+
         Optional<VesselPosition> last = Optional.absent();
         Optional<Point> lastPoint = Optional.absent();
-        for (VesselPosition p : queue) {
+        Iterable<VesselPosition> positions = tree
+                .search(r)
+                .map(new Func1<Entry<VesselPosition, com.github.davidmoten.rtree.geometry.Point>, VesselPosition>() {
+
+                    @Override
+                    public VesselPosition call(
+                            Entry<VesselPosition, com.github.davidmoten.rtree.geometry.Point> entry) {
+                        return entry.value();
+                    }
+
+                }).toBlocking().toIterable();
+        for (VesselPosition p : positions) {
             Point point = projector.toPoint(p.lat(), p.lon());
             if (last.isPresent() && p.id().equals(last.get().id()) && p.data().isPresent()
                     && !p.data().get().equals(p.time())

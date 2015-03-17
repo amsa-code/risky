@@ -52,13 +52,13 @@ public class AnalyzeLayer implements Layer {
 
         // collect drifting candidates
 
-        List<String> filenames = new ArrayList<String>();
-        for (int i = 1; i <= 31; i++) {
-            String filename = "/media/analysis/nmea/2014/NMEA_ITU_201407"
-                    + new DecimalFormat("00").format(i) + ".gz";
-            if (new File(filename).exists())
-                filenames.add(filename);
-        }
+        // List<String> filenames = new ArrayList<String>();
+        // for (int i = 1; i <= 31; i++) {
+        // String filename = "/media/analysis/nmea/2014/NMEA_ITU_201407"
+        // + new DecimalFormat("00").format(i) + ".gz";
+        // if (new File(filename).exists())
+        // filenames.add(filename);
+        // }
 
         // Observable.from(filenames)
         // .buffer(Math.max(1, filenames.size() /
