@@ -61,7 +61,7 @@
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>rxjava-jdbc</artifactId>
-			<version>0.5.2-SNAPSHOT</version>
+			<version>0.5.1</version>
 			<scope>test</scope>
 		</dependency>
 
