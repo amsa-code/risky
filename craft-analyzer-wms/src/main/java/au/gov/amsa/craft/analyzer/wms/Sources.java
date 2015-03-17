@@ -42,22 +42,20 @@ public class Sources {
                 .map(VesselPositions.TO_VESSEL_POSITION);
     }
 
-    public static Observable<VesselPosition> fixes2() {
-        return DriftCandidates
-                .fromCsv(new File("../behaviour-detector/target/drift-candidates.txt"))
-                .filter(new Func1<DriftCandidate, Boolean>() {
+    public static Observable<VesselPosition> fixes2(File file) {
+        return DriftCandidates.fromCsv(file).filter(new Func1<DriftCandidate, Boolean>() {
 
-                    @Override
-                    public Boolean call(DriftCandidate c) {
-                        return !c.fix().getNavigationalStatus().isPresent()
-                                || c.fix().getNavigationalStatus().get() != NavigationalStatus.ENGAGED_IN_FISHING;
-                    }
-                }).map(VesselPositions.toVesselPosition(new Func1<DriftCandidate, Optional<?>>() {
-                    @Override
-                    public Optional<Long> call(DriftCandidate c) {
-                        return Optional.of(c.driftingSince());
-                    }
-                }));
+            @Override
+            public Boolean call(DriftCandidate c) {
+                return !c.fix().getNavigationalStatus().isPresent()
+                        || c.fix().getNavigationalStatus().get() != NavigationalStatus.ENGAGED_IN_FISHING;
+            }
+        }).map(VesselPositions.toVesselPosition(new Func1<DriftCandidate, Optional<?>>() {
+            @Override
+            public Optional<Long> call(DriftCandidate c) {
+                return Optional.of(c.driftingSince());
+            }
+        }));
     }
 
     private static Func1<List<File>, Observable<Fix>> detectDrift(AtomicLong num,

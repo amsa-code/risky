@@ -75,7 +75,9 @@ public class DriftingLayer implements Layer {
     public DriftingLayer() {
         log.info("creating Drifting layer");
         // collect drifting candidates
-        Sources.fixes2()
+        String filename = System.getProperty("drift.candidates",
+                "../behaviour-detector/target/drift-candidates.txt");
+        Sources.fixes2(new File(filename))
                 // log
                 .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(10000).log())
                 // only class A vessels
