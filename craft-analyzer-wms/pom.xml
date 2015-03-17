@@ -12,6 +12,7 @@
 	<properties>
 		<jetty.plugin.version>8.1.15.v20140411</jetty.plugin.version>
 		<drift.candidates>${user.home}/drift-candidates.txt</drift.candidates>
+		<stop.port>9999</stop.port>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -61,7 +62,7 @@
 				<configuration>
 					<scanIntervalSeconds>10</scanIntervalSeconds>
 					<stopKey>foo</stopKey>
-					<stopPort>9998</stopPort>
+					<stopPort>${stop.port}</stopPort>
 					<webAppConfig>
 						<contextPath>/${project.artifactId}</contextPath>
 					</webAppConfig>
