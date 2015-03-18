@@ -40,14 +40,12 @@ public class AisShipStaticA implements AisShipStatic {
 	private final int shipType;
 	private final int dimensionB;
 
-	private AisShipStaticA(String source, int messageId, int repeatIndicator,
-			int mmsi, int aisVersionIndicator, int imo, String callsign,
-			String name, int dimensionA, int dimensionC, int dimensionD,
-			int typeOfElectronicPositionFixingDevice,
-			long expectedTimeOfArrival, long expectedTimeOfArrivalUnprocessed,
-			double maximumPresentStaticDraughtMetres, String destination,
-			boolean dataTerminalAvailable, int spare, int shipType,
-			int dimensionB) {
+	private AisShipStaticA(String source, int messageId, int repeatIndicator, int mmsi,
+	        int aisVersionIndicator, int imo, String callsign, String name, int dimensionA,
+	        int dimensionC, int dimensionD, int typeOfElectronicPositionFixingDevice,
+	        long expectedTimeOfArrival, long expectedTimeOfArrivalUnprocessed,
+	        double maximumPresentStaticDraughtMetres, String destination,
+	        boolean dataTerminalAvailable, int spare, int shipType, int dimensionB) {
 		this.source = source;
 		this.messageId = messageId;
 		this.repeatIndicator = repeatIndicator;
@@ -70,17 +68,15 @@ public class AisShipStaticA implements AisShipStatic {
 		this.dimensionB = dimensionB;
 	}
 
-	public AisShipStaticA(String message, String source) {
-		this(Util.getAisExtractorFactory(), message, source);
+	public AisShipStaticA(String message, String source, int padBits) {
+		this(Util.getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisShipStaticA(AisExtractorFactory factory, String message,
-			String source) {
+	public AisShipStaticA(AisExtractorFactory factory, String message, String source, int padBits) {
 		this.source = source;
-		AisExtractor extractor = factory.create(message, 421);
+		AisExtractor extractor = factory.create(message, 421, padBits);
 		messageId = extractor.getValue(0, 6);
-		Util.checkMessageId(getMessageId(),
-				AisMessageType.STATIC_AND_VOYAGE_RELATED_DATA);
+		Util.checkMessageId(getMessageId(), AisMessageType.STATIC_AND_VOYAGE_RELATED_DATA);
 		repeatIndicator = extractor.getValue(6, 8);
 		mmsi = extractor.getValue(8, 38);
 		aisVersionIndicator = extractor.getValue(38, 40);
@@ -98,8 +94,7 @@ public class AisShipStaticA implements AisShipStatic {
 		int day = extractor.getValue(278, 283);
 		int hour = extractor.getValue(283, 288);
 		int minute = extractor.getValue(288, 294);
-		expectedTimeOfArrival = getExpectedTimeOfArrival(month, day, hour,
-				minute);
+		expectedTimeOfArrival = getExpectedTimeOfArrival(month, day, hour, minute);
 		expectedTimeOfArrivalUnprocessed = extractor.getValue(274, 294);
 		maximumPresentStaticDraughtMetres = extractor.getValue(294, 302);
 		destination = extractor.getString(302, 422);
@@ -180,8 +175,7 @@ public class AisShipStaticA implements AisShipStatic {
 		else {
 			Optional<Integer> c = getDimensionC();
 			Optional<Integer> d = getDimensionD();
-			if (!a.isPresent() && !c.isPresent() && b.isPresent()
-					&& d.isPresent())
+			if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
 				return b;
 			else
 				return Optional.absent();
@@ -196,8 +190,7 @@ public class AisShipStaticA implements AisShipStatic {
 		else {
 			Optional<Integer> a = getDimensionA();
 			Optional<Integer> b = getDimensionB();
-			if (!a.isPresent() && !c.isPresent() && b.isPresent()
-					&& d.isPresent())
+			if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
 				return d;
 			else
 				return Optional.absent();
@@ -208,16 +201,14 @@ public class AisShipStaticA implements AisShipStatic {
 		return typeOfElectronicPositionFixingDevice;
 	}
 
-	private static long getExpectedTimeOfArrival(int month, int day, int hour,
-			int minute) {
+	private static long getExpectedTimeOfArrival(int month, int day, int hour, int minute) {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		int year = cal.get(Calendar.YEAR);
 		return getExpectedTimeOfArrival(year, month, day, hour, minute);
 	}
 
 	@VisibleForTesting
-	static long getExpectedTimeOfArrival(int year, int month, int day,
-			int hour, int minute) {
+	static long getExpectedTimeOfArrival(int year, int month, int day, int hour, int minute) {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		cal.clear();
 		cal.set(year, month - 1, day, hour, minute);
@@ -388,8 +379,7 @@ public class AisShipStaticA implements AisShipStatic {
 			return this;
 		}
 
-		public Builder typeOfElectronicPositionFixingDevice(
-				int typeOfElectronicPositionFixingDevice) {
+		public Builder typeOfElectronicPositionFixingDevice(int typeOfElectronicPositionFixingDevice) {
 			this.typeOfElectronicPositionFixingDevice = typeOfElectronicPositionFixingDevice;
 			return this;
 		}
@@ -399,14 +389,12 @@ public class AisShipStaticA implements AisShipStatic {
 			return this;
 		}
 
-		public Builder expectedTimeOfArrivalUnprocessed(
-				long expectedTimeOfArrivalUnprocessed) {
+		public Builder expectedTimeOfArrivalUnprocessed(long expectedTimeOfArrivalUnprocessed) {
 			this.expectedTimeOfArrivalUnprocessed = expectedTimeOfArrivalUnprocessed;
 			return this;
 		}
 
-		public Builder maximumPresentStaticDraughtMetres(
-				double maximumPresentStaticDraughtMetres) {
+		public Builder maximumPresentStaticDraughtMetres(double maximumPresentStaticDraughtMetres) {
 			this.maximumPresentStaticDraughtMetres = maximumPresentStaticDraughtMetres;
 			return this;
 		}
@@ -438,12 +426,10 @@ public class AisShipStaticA implements AisShipStatic {
 
 		public AisShipStaticA build() {
 			return new AisShipStaticA(source, messageId, repeatIndicator, mmsi,
-					aisVersionIndicator, imo, callsign, name, dimensionA,
-					dimensionC, dimensionD,
-					typeOfElectronicPositionFixingDevice,
-					expectedTimeOfArrival, expectedTimeOfArrivalUnprocessed,
-					maximumPresentStaticDraughtMetres, destination,
-					dataTerminalAvailable, spare, shipType, dimensionB);
+			        aisVersionIndicator, imo, callsign, name, dimensionA, dimensionC, dimensionD,
+			        typeOfElectronicPositionFixingDevice, expectedTimeOfArrival,
+			        expectedTimeOfArrivalUnprocessed, maximumPresentStaticDraughtMetres,
+			        destination, dataTerminalAvailable, spare, shipType, dimensionB);
 		}
 	}
 

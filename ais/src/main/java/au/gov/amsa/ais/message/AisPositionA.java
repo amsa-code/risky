@@ -30,21 +30,20 @@ public class AisPositionA implements AisPosition, HasCommunications {
 	private final Double longitude;
 	private final Double latitude;
 
-	public AisPositionA(String message, String source) {
-		this(Util.getAisExtractorFactory(), message, source);
+	public AisPositionA(String message, String source, int padBits) {
+		this(Util.getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisPositionA(String message) {
-		this(Util.getAisExtractorFactory(), message, null);
+	public AisPositionA(String message, int padBits) {
+		this(Util.getAisExtractorFactory(), message, null, padBits);
 	}
 
-	public AisPositionA(AisExtractorFactory factory, String message,
-			String source) {
+	public AisPositionA(AisExtractorFactory factory, String message, String source, int padBits) {
 		this.source = source;
-		this.extractor = factory.create(message, 137);
+		this.extractor = factory.create(message, 137, padBits);
 		messageId = extractor.getMessageId();
-		Util.checkMessageId(messageId, POSITION_REPORT_SCHEDULED,
-				POSITION_REPORT_ASSIGNED, POSITION_REPORT_SPECIAL);
+		Util.checkMessageId(messageId, POSITION_REPORT_SCHEDULED, POSITION_REPORT_ASSIGNED,
+		        POSITION_REPORT_SPECIAL);
 		mmsi = extractor.getValue(8, 38);
 		longitude = extractLongitude(extractor);
 		latitude = extractLatitude(extractor);

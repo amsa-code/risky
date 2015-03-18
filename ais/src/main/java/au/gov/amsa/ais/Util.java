@@ -53,8 +53,7 @@ public final class Util {
 	 * @return
 	 */
 	protected static String decodeMessage(String encodedMessage) {
-		return getDecodedStr(ascii8To6bitBin(encodedMessage
-				.getBytes(ASCII_8_BIT_CHARSET)));
+		return getDecodedStr(ascii8To6bitBin(encodedMessage.getBytes(ASCII_8_BIT_CHARSET)));
 	}
 
 	/**
@@ -75,19 +74,17 @@ public final class Util {
 			_6bitBin = 0;
 
 			if (toDecBytes[i] < 48) {
-				throw new AisParseException(AisParseException.INVALID_CHARACTER
-						+ " " + (char) toDecBytes[i]);
+				throw new AisParseException(AisParseException.INVALID_CHARACTER + " "
+				        + (char) toDecBytes[i]);
 			} else {
 				if (toDecBytes[i] > 119) {
-					throw new AisParseException(
-							AisParseException.INVALID_CHARACTER + " "
-									+ (char) toDecBytes[i]);
+					throw new AisParseException(AisParseException.INVALID_CHARACTER + " "
+					        + (char) toDecBytes[i]);
 				} else {
 					if (toDecBytes[i] > 87) {
 						if (toDecBytes[i] < 96) {
-							throw new AisParseException(
-									AisParseException.INVALID_CHARACTER + " "
-											+ (char) toDecBytes[i]);
+							throw new AisParseException(AisParseException.INVALID_CHARACTER + " "
+							        + (char) toDecBytes[i]);
 						} else {
 							sum = toDecBytes[i] + 40;
 						}
@@ -240,13 +237,13 @@ public final class Util {
 	private static AisExtractorFactory extractorFactory = new AisExtractorFactory() {
 
 		@Override
-		public AisExtractor create(String message) {
-			return new AisExtractor(message);
+		public AisExtractor create(String message, int padBits) {
+			return new AisExtractor(message, padBits);
 		}
 
 		@Override
-		public AisExtractor create(String message, int minLength) {
-			return new AisExtractor(message, minLength);
+		public AisExtractor create(String message, int minLength, int padBits) {
+			return new AisExtractor(message, minLength, padBits);
 		}
 
 	};
@@ -266,8 +263,7 @@ public final class Util {
 	 * @param messageId
 	 * @param messageTypes
 	 */
-	public static void checkMessageId(int messageId,
-			AisMessageType... messageTypes) {
+	public static void checkMessageId(int messageId, AisMessageType... messageTypes) {
 		boolean found = false;
 		for (AisMessageType messageType : messageTypes) {
 			if (messageType.getId() == messageId)
@@ -280,8 +276,7 @@ public final class Util {
 					s.append(",");
 				s.append(messageType.getId() + "");
 			}
-			checkArgument(found, "messageId must be in [" + s + "]  but was "
-					+ messageId);
+			checkArgument(found, "messageId must be in [" + s + "]  but was " + messageId);
 		}
 	}
 

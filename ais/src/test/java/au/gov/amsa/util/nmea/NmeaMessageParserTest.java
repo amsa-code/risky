@@ -133,7 +133,7 @@ public class NmeaMessageParserTest {
 	public void testGTagDoesNotHaveSufficientPartsThrowsNmeaMessageParseException() {
 		LinkedHashMap<String, String> map = Maps.newLinkedHashMap();
 		map.put("g", "1-2");
-		new NmeaMessage(map, Lists.<String> newArrayList("ABVDN", "2", "2"));
+		new NmeaMessage(map, Lists.<String> newArrayList("ABVDN", "2", "2"), "00");
 	}
 
 	@Test
@@ -157,9 +157,7 @@ public class NmeaMessageParserTest {
 		LinkedHashMap<String, String> tags = n.getTags();
 		assertEquals("rEV06", tags.get("s"));
 		assertEquals("1418371240", tags.get("c"));
-		assertEquals(
-				"|X=1|D=1|T=41985.3864759144|P=10.225.253.129:25479|R=IN|",
-				tags.get("i"));
+		assertEquals("|X=1|D=1|T=41985.3864759144|P=10.225.253.129:25479|R=IN|", tags.get("i"));
 		assertEquals(3, tags.size());
 	}
 

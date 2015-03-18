@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
+import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
@@ -80,8 +81,7 @@ public class AisNmeaBuffer {
 	 * @param list
 	 * @return
 	 */
-	public static Optional<NmeaMessage> concatenateMessages(
-			List<NmeaMessage> list) {
+	public static Optional<NmeaMessage> concatenateMessages(List<NmeaMessage> list) {
 		if (list.size() == 1)
 			return Optional.of(list.get(0));
 
@@ -93,8 +93,7 @@ public class AisNmeaBuffer {
 		List<String> cols = Lists.newArrayList(first.getItems());
 
 		// copy tags so we can modify
-		LinkedHashMap<String, String> tags = new LinkedHashMap<String, String>(
-				first.getTags());
+		LinkedHashMap<String, String> tags = new LinkedHashMap<String, String>(first.getTags());
 
 		StringBuilder s = new StringBuilder();
 		for (NmeaMessage t : list) {
@@ -107,7 +106,8 @@ public class AisNmeaBuffer {
 
 		tags.put("g", "1-1-" + first.getSentenceGroupId());
 		try {
-			NmeaMessage message = new NmeaMessage(tags, cols);
+			String checksum = NmeaUtil.getChecksum(NmeaUtil.createNmeaLine(tags, cols));
+			NmeaMessage message = new NmeaMessage(tags, cols, checksum);
 			return Optional.of(message);
 		} catch (NmeaMessageParseException e) {
 			return Optional.absent();

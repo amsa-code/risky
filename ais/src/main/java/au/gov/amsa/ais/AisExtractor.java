@@ -16,8 +16,8 @@ public class AisExtractor {
 	 * 
 	 * @param message
 	 */
-	public AisExtractor(String message) {
-		this(message, null);
+	public AisExtractor(String message, int padBits) {
+		this(message, null, padBits);
 	}
 
 	/**
@@ -27,13 +27,11 @@ public class AisExtractor {
 	 * @param message
 	 * @param minLength
 	 */
-	public AisExtractor(String message, Integer minLength) {
+	public AisExtractor(String message, Integer minLength, int padBits) {
 		this.decodedMessage = Util.decodeMessage(message);
 		if (minLength != null && decodedMessage.length() < minLength) {
-			throw new AisParseException(
-					AisParseException.NOT_CONSISTENT_DECODED_STRING
-							+ ", length was " + decodedMessage.length()
-							+ " and should be >=" + minLength);
+			throw new AisParseException(AisParseException.NOT_CONSISTENT_DECODED_STRING
+			        + ", length was " + decodedMessage.length() + " and should be >=" + minLength);
 		}
 	}
 
@@ -69,8 +67,7 @@ public class AisExtractor {
 	 */
 	public String getString(int start, int stop) {
 		try {
-			return Util.getAsciiStringFrom6BitStr(decodedMessage.substring(
-					start, stop));
+			return Util.getAsciiStringFrom6BitStr(decodedMessage.substring(start, stop));
 		} catch (RuntimeException e) {
 			throw new AisParseException(e);
 		}
@@ -101,8 +98,7 @@ public class AisExtractor {
 	 */
 	public int getValue(int start, int stop, boolean signed) {
 		try {
-			return Util.getValueByBinStr(decodedMessage.substring(start, stop),
-					signed);
+			return Util.getValueByBinStr(decodedMessage.substring(start, stop), signed);
 		} catch (RuntimeException e) {
 			throw new AisParseException(e);
 		}

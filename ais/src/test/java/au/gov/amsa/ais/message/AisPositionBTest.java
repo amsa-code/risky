@@ -27,11 +27,10 @@ public class AisPositionBTest {
 	@Test
 	public void test() {
 		String s = "B7P@fj00RJVpbIuUhlF93wm5WP06";
-		AisPositionB p = new AisPositionB(s);
+		AisPositionB p = new AisPositionB(s, 0);
 
 		System.out.println(insertNewLines(p));
-		assertEquals(AisMessageType.POSITION_REPORT_CLASS_B.getId(),
-				p.getMessageId());
+		assertEquals(AisMessageType.POSITION_REPORT_CLASS_B.getId(), p.getMessageId());
 		assertEquals(0, p.getRepeatIndicator());
 		assertEquals(503590600, p.getMmsi());
 		assertEquals(0, p.getSpare());
@@ -68,15 +67,14 @@ public class AisPositionBTest {
 		AisExtractorFactory factory = createMock(AisExtractorFactory.class);
 		AisExtractor ex = createMock(AisExtractor.class);
 		String message = "";
-		expect(factory.create(message, AisBaseStation.MIN_LENGTH))
-				.andReturn(ex).once();
+		expect(factory.create(message, AisBaseStation.MIN_LENGTH, 0)).andReturn(ex).once();
 		expect(ex.getSignedValue(107, 134)).andReturn(0).anyTimes();
 		expect(ex.getSignedValue(79, 107)).andReturn(0).anyTimes();
 		expect(ex.getMessageId()).andReturn(0).atLeastOnce();
 		replay(factory, ex);
 
 		try {
-			new AisBaseStation(factory, "", "");
+			new AisBaseStation(factory, "", "", 0);
 			fail();
 		} catch (AisParseException e) {
 			// expected
@@ -123,8 +121,7 @@ public class AisPositionBTest {
 	@Test
 	public void testExtractLongitude() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(108600000)
-				.atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(108600000).atLeastOnce();
 		replay(ex);
 		Double longitude = AisPositionB.extractLongitude(ex);
 		assertEquals(null, longitude);
@@ -133,8 +130,7 @@ public class AisPositionBTest {
 	@Test
 	public void testExtractLatitude() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(54600000)
-				.atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(54600000).atLeastOnce();
 		replay(ex);
 		Double latitude = AisPositionB.extractLatitude(ex);
 		assertEquals(null, latitude);

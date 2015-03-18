@@ -41,18 +41,17 @@ public class AisPositionB implements AisPosition, HasCommunications {
 	private final boolean isITDMACommunicationState;
 	private final Communications communications;
 
-	public AisPositionB(String message, String source) {
-		this(getAisExtractorFactory(), message, source);
+	public AisPositionB(String message, String source, int padBits) {
+		this(getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisPositionB(String message) {
-		this(getAisExtractorFactory(), message, null);
+	public AisPositionB(String message, int padBits) {
+		this(getAisExtractorFactory(), message, null, padBits);
 	}
 
-	public AisPositionB(AisExtractorFactory factory, String message,
-			String source) {
+	public AisPositionB(AisExtractorFactory factory, String message, String source, int padBits) {
 		this.source = source;
-		this.extractor = factory.create(message, 133);
+		this.extractor = factory.create(message, 133, padBits);
 		messageId = extractor.getMessageId();
 		checkMessageId(getMessageId(), AisMessageType.POSITION_REPORT_CLASS_B);
 		repeatIndicator = extractor.getValue(6, 8);
@@ -67,15 +66,12 @@ public class AisPositionB implements AisPosition, HasCommunications {
 		timeSecondsOnly = extractor.getValue(133, 139);
 		spare2 = extractor.getValue(139, 141);
 		isSotdmaUnit = areEqual(extractor.getValue(141, 142), 0);
-		isEquippedWithIntegratedDisplayForMessages12And14 = areEqual(
-				extractor.getValue(142, 143), 1);
+		isEquippedWithIntegratedDisplayForMessages12And14 = areEqual(extractor.getValue(142, 143),
+		        1);
 		isEquippedWithDscFunction = areEqual(extractor.getValue(143, 144), 1);
-		canOperateOverWholeMarineBand = areEqual(extractor.getValue(144, 145),
-				1);
-		canManageFrequenciesViaMessage22 = areEqual(
-				extractor.getValue(145, 146), 1);
-		isStationOperatingInAssignedMode = areEqual(
-				extractor.getValue(146, 147), 1);
+		canOperateOverWholeMarineBand = areEqual(extractor.getValue(144, 145), 1);
+		canManageFrequenciesViaMessage22 = areEqual(extractor.getValue(145, 146), 1);
+		isStationOperatingInAssignedMode = areEqual(extractor.getValue(146, 147), 1);
 		isUsingRAIM = areEqual(extractor.getValue(147, 148), 1);
 		isITDMACommunicationState = areEqual(extractor.getValue(148, 149), 1);
 		communications = new Communications(extractor, 149);

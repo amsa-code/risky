@@ -13,7 +13,7 @@ import au.gov.amsa.util.nmea.Talker;
 public class AisNmeaMessage {
 
 	private static final AisMessageParser aisParser = new AisMessageParser(
-			Util.getAisExtractorFactory());
+	        Util.getAisExtractorFactory());
 
 	private final NmeaMessage nmea;
 
@@ -29,7 +29,7 @@ public class AisNmeaMessage {
 
 	private final String aisMessage;
 
-	private final String checksum;
+	private final int padBits;
 
 	/**
 	 * Constructor.
@@ -44,8 +44,8 @@ public class AisNmeaMessage {
 	private static String validateLine(String line) {
 		try {
 			if (!NmeaUtil.isValid(line))
-				throw new AisParseException("invalid checksum: " + line
-						+ ", calculated checksum=" + NmeaUtil.getChecksum(line));
+				throw new AisParseException("invalid checksum: " + line + ", calculated checksum="
+				        + NmeaUtil.getChecksum(line));
 			return line;
 		} catch (RuntimeException e) {
 			throw new AisParseException(e);
@@ -56,16 +56,15 @@ public class AisNmeaMessage {
 		try {
 			this.nmea = nmea;
 			if (nmea.getItems().size() < 7)
-				throw new AisParseException(
-						"ais nmea line must have at least 7 columns:"
-								+ nmea.getItems());
+				throw new AisParseException("ais nmea line must have at least 7 columns:"
+				        + nmea.getItems());
 			format = getItem(0);
 			fragmentCount = Integer.parseInt(getItem(1));
 			fragmentNumber = Integer.parseInt(getItem(2));
 			sequentialMessageId = getItem(3);
 			channel = getItem(4);
 			aisMessage = getItem(5);
-			checksum = getChecksum(nmea);
+			padBits = Integer.parseInt(nmea.getItems().get(6));
 		} catch (RuntimeException e) {
 			throw new AisParseException(e);
 		}
@@ -157,35 +156,35 @@ public class AisNmeaMessage {
 		return channel;
 	}
 
+	public int getPadBits() {
+		return padBits;
+	}
+
 	/**
 	 * Returns the parsed contents of column 5 of the AIS NMEA line.
 	 * 
 	 * @return
 	 */
 	public AisMessage getMessage() {
-		AisMessage m = aisParser.parse(aisMessage, nmea.getSource());
+		AisMessage m = aisParser.parse(aisMessage, nmea.getSource(), padBits);
 		return m;
 	}
-	
+
 	public Timestamped<AisMessage> getTimestampedMessage(long defaultTime) {
 		Long time = getTime();
-		if (time ==null)
+		if (time == null)
 			return Timestamped.create(getMessage(), defaultTime);
-		else 
+		else
 			return Timestamped.create(getMessage(), getTime());
 	}
-	
+
 	public Timestamped<AisMessage> getTimestampedMessage() {
 		Long time = getTime();
-		if (time ==null)
+		if (time == null)
 			throw new RuntimeException("nmea did not have timestamp");
-		else 
+		else
 			return Timestamped.create(getMessage(), getTime());
 	}
-	
-	
-	
-	
 
 	/**
 	 * Returns the checksum (last field in the NMEA line).
@@ -193,7 +192,7 @@ public class AisNmeaMessage {
 	 * @return
 	 */
 	public String getChecksum() {
-		return checksum;
+		return nmea.getChecksum();
 	}
 
 	public NmeaMessage getNmea() {
