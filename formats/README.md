@@ -100,7 +100,7 @@ mvn compile exec:java -Psort -Doutput=/media/an/binary-fixes
 
 How to convert to netcdf
 ---------------------------
-To convert a directory structure of ```.track``` files (BinaryFixes) to ```.nc``` (NetCDF) format, here is an example:
+To convert a directory structure of ```.track``` or ```.track.gz``` files (BinaryFixes) to ```.nc``` (NetCDF) format, here is an example:
 
 ```bash
 cd formats
@@ -108,6 +108,8 @@ mvn compile exec:java -Pnc -Dinput=<INPUT_DIRECTORY> -Doutput=<OUTPUT_DIRECTORY>
 ```
 
 The output directory will have the same filenames but will have extension ```.nc``` instead of ```.track```.
+
+Not that this command also handles zipped track files by autodetecting the extension ```.gz```. Just remember to adjust the pattern to look for say ```.*.track.gz``` files.
 
 How to zip all .track or .nc files in directory structure
 ----------------------------------------------------------------
