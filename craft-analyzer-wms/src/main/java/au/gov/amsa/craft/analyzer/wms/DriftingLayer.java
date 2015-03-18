@@ -49,7 +49,6 @@ import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.LayerFeatures;
 import com.github.davidmoten.grumpy.wms.WmsRequest;
 import com.github.davidmoten.grumpy.wms.WmsUtil;
-import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Rectangle;
@@ -382,17 +381,20 @@ public class DriftingLayer implements Layer {
 
         Optional<VesselPosition> last = Optional.absent();
         Optional<Point> lastPoint = Optional.absent();
-        Iterable<VesselPosition> positions = tree
-                .search(r)
-                .map(new Func1<Entry<VesselPosition, com.github.davidmoten.rtree.geometry.Point>, VesselPosition>() {
-
-                    @Override
-                    public VesselPosition call(
-                            Entry<VesselPosition, com.github.davidmoten.rtree.geometry.Point> entry) {
-                        return entry.value();
-                    }
-
-                }).toBlocking().toIterable();
+        // Iterable<VesselPosition> positions = tree
+        // .search(r)
+        // .map(new Func1<Entry<VesselPosition,
+        // com.github.davidmoten.rtree.geometry.Point>, VesselPosition>() {
+        //
+        // @Override
+        // public VesselPosition call(
+        // Entry<VesselPosition, com.github.davidmoten.rtree.geometry.Point>
+        // entry) {
+        // return entry.value();
+        // }
+        //
+        // }).toBlocking().toIterable();
+        ConcurrentLinkedQueue<VesselPosition> positions = queue;
         for (VesselPosition p : positions) {
             Point point = projector.toPoint(p.lat(), p.lon());
             if (last.isPresent() && p.id().equals(last.get().id()) && p.data().isPresent()
