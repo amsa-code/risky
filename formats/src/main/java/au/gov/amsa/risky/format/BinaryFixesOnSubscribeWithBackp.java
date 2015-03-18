@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.zip.GZIPInputStream;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -42,6 +43,13 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
 
 	}
 
+	/**
+	 * Returns stream of fixes from the given file. If the file name ends in
+	 * '.gz' then the file is unzipped before being read.
+	 * 
+	 * @param file
+	 * @return fixes stream
+	 */
 	public static Observable<Fix> from(final File file) {
 
 		Func0<InputStream> resourceFactory = new Func0<InputStream>() {
@@ -49,8 +57,13 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
 			@Override
 			public InputStream call() {
 				try {
-					return new FileInputStream(file);
+					if (file.getName().endsWith(".gz"))
+						return new GZIPInputStream(new FileInputStream(file));
+					else
+						return new FileInputStream(file);
 				} catch (FileNotFoundException e) {
+					throw new RuntimeException(e);
+				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
 			}

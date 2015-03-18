@@ -2,6 +2,8 @@ package au.gov.amsa.risky.format;
 
 import static com.google.common.base.Optional.of;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +14,9 @@ import java.util.regex.Pattern;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
+import ucar.nc2.Attribute;
+import ucar.nc2.NetcdfFile;
 
 public class NetcdfFixesWriterTest {
 
@@ -37,6 +42,13 @@ public class NetcdfFixesWriterTest {
 		        .convertToNetcdf(new File("target"), new File("target/nc"),
 		                Pattern.compile("987654321.track")).count().toBlocking().single();
 		assertEquals(1, count);
+		File ncFile = new File("target/nc/987654321.nc");
+		assertTrue(ncFile.exists());
+		assertTrue(ncFile.length() > 0);
+		NetcdfFile nc = NetcdfFile.open(ncFile.getCanonicalPath());
+		List<Attribute> attributes = nc.findGroup(null).getAttributes();
+		System.out.println(attributes);
+		assertFalse(attributes.isEmpty());
 	}
 
 	private static Fix createFix(long time, float lat, float lon) {

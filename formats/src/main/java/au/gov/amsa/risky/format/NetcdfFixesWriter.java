@@ -207,7 +207,7 @@ public class NetcdfFixesWriter {
 		        FIXES_WRITER, new Func1<String, String>() {
 			        @Override
 			        public String call(String name) {
-				        return name.replaceFirst("\\.track", ".nc");
+				        return name.replaceFirst("\\.track(\\.gz)?", ".nc");
 			        }
 		        });
 
