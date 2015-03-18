@@ -30,10 +30,11 @@ public final class Formats {
 		Preconditions.checkNotNull(output);
 		Preconditions.checkNotNull(pattern);
 		Preconditions.checkNotNull(transformer);
-
+		List<File> files = Files.find(input, pattern);
+		log.info("converting " + files.size() + " files");
 		return Observable
 		// get the files matching the pattern from the directory
-		        .from(Files.find(input, pattern))
+		        .from(files)
 		        // replace the file with a transformed version
 		        .flatMap(new Func1<File, Observable<Integer>>() {
 
