@@ -21,6 +21,8 @@ public class WmsServlet extends HttpServlet {
     private final WmsServletRequestProcessor processor;
 
     public WmsServlet() {
+        // TODO use grumpy 0.2.3 when released because sets this property for
+        // you
         System.setProperty("org.geotools.referencing.forceXY", "true");
 
         // instantiate the layers
