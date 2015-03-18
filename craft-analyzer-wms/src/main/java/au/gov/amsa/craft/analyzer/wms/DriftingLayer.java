@@ -396,6 +396,7 @@ public class DriftingLayer implements Layer {
         // }).toBlocking().toIterable();
         ConcurrentLinkedQueue<VesselPosition> positions = queue;
         for (VesselPosition p : positions) {
+            // expecting positions to be in mmsi, time order
             Point point = projector.toPoint(p.lat(), p.lon());
             if (last.isPresent() && p.id().equals(last.get().id()) && p.data().isPresent()
                     && !p.data().get().equals(p.time())
@@ -406,9 +407,13 @@ public class DriftingLayer implements Layer {
                 g.drawLine(lastPoint.get().x, lastPoint.get().y, point.x, point.y);
 
             }
-
-            g.setColor(Color.red);
-            g.drawRect(point.x, point.y, 1, 1);
+            if (p.data().get().equals(p.time())) {
+                g.setColor(Color.red);
+                g.drawRect(point.x, point.y, 1, 1);
+            } else {
+                g.setColor(Color.darkGray);
+                g.drawRect(point.x, point.y, 1, 1);
+            }
             last = Optional.of(p);
             lastPoint = Optional.of(point);
 
