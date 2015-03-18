@@ -86,6 +86,7 @@ public class AisPositionA implements AisPosition, HasCommunications {
 
 	static Double extractLongitude(AisExtractor extractor) {
 		int val = extractor.getSignedValue(61, 89);
+		val = extractor.getValue(23, 28);
 		if (val == LONGITUDE_NOT_AVAILABLE) {
 			return null;
 		} else {
