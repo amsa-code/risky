@@ -26,7 +26,7 @@ public class AisBaseStationTest {
 	@Test
 	public void testNormalInstantionPassesChecks() {
 		String line = "403OviQuMGCqWrRO9>E6fE700@GO";
-		AisBaseStation m = new AisBaseStation(line, 0);
+		AisBaseStation m = new AisBaseStation(line);
 		assertEquals(4, m.getMessageId());
 		assertEquals(0, m.getRepeatIndicator());
 		assertEquals(3669702, m.getMmsi());
@@ -38,7 +38,8 @@ public class AisBaseStationTest {
 		assertEquals(39, m.getSecond());
 		assertEquals("2007-05-14 19:57:39.000Z", formatAsUtc(m.getTimestamp()));
 		assertEquals(1, m.getPositionAccuracy());
-		assertEquals(-76.35236166666666666666666667, m.getLongitude(), PRECISION);
+		assertEquals(-76.35236166666666666666666667, m.getLongitude(),
+				PRECISION);
 		assertEquals(36.88376666666666666666666667, m.getLatitude(), PRECISION);
 		assertNull(m.getSource());
 		assertEquals(7, m.getDeviceType());
@@ -60,14 +61,15 @@ public class AisBaseStationTest {
 		AisExtractorFactory factory = createMock(AisExtractorFactory.class);
 		AisExtractor ex = createMock(AisExtractor.class);
 		String message = "";
-		expect(factory.create(message, AisBaseStation.MIN_LENGTH, 0)).andReturn(ex).once();
+		expect(factory.create(message, AisBaseStation.MIN_LENGTH))
+				.andReturn(ex).once();
 		expect(ex.getSignedValue(107, 134)).andReturn(0).anyTimes();
 		expect(ex.getSignedValue(79, 107)).andReturn(0).anyTimes();
 		expect(ex.getMessageId()).andReturn(0).atLeastOnce();
 		replay(factory, ex);
 
 		try {
-			new AisBaseStation(factory, "", "", 0);
+			new AisBaseStation(factory, "", "");
 			fail();
 		} catch (AisParseException e) {
 			// expected
@@ -78,7 +80,8 @@ public class AisBaseStationTest {
 	@Test
 	public void testSource() {
 		String line = "403OviQuMGCqWrRO9>E6fE700@GO";
-		AisBaseStation m = new AisBaseStation(Util.getAisExtractorFactory(), line, "boo", 0);
+		AisBaseStation m = new AisBaseStation(Util.getAisExtractorFactory(),
+				line,  "boo");
 		assertEquals("boo", m.getSource());
 		m.toString();
 	}

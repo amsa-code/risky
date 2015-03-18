@@ -34,20 +34,22 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
 	private boolean isHighAccuracyPosition;
 	private boolean isUsingRAIM;
 
-	public AisPositionBExtended(String message, int padBits) {
-		this(message, null, padBits);
+	public AisPositionBExtended(String message) {
+		this(message, null);
 	}
 
-	public AisPositionBExtended(String message, String source, int padBits) {
-		this(Util.getAisExtractorFactory(), message, source, padBits);
+	public AisPositionBExtended(String message, String source) {
+		this(Util.getAisExtractorFactory(), message,
+				 source);
 	}
 
-	public AisPositionBExtended(AisExtractorFactory factory, String message, String source,
-	        int padBits) {
+	public AisPositionBExtended(AisExtractorFactory factory, String message,
+			 String source) {
 		this.source = source;
-		this.extractor = factory.create(message, 301, padBits);
+		this.extractor = factory.create(message, 301);
 		messageId = extractor.getMessageId();
-		Util.checkMessageId(getMessageId(), AisMessageType.POSITION_REPORT_CLASS_B_EXTENDED);
+		Util.checkMessageId(getMessageId(),
+				AisMessageType.POSITION_REPORT_CLASS_B_EXTENDED);
 		repeatIndicator = extractor.getValue(6, 8);
 		mmsi = extractor.getValue(8, 38);
 		speedOverGroundKnots = extractSpeedOverGround(extractor);
@@ -214,12 +216,12 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
 	public boolean isHighAccuracyPosition() {
 		return isHighAccuracyPosition;
 	}
-
+	
 	@Override
 	public boolean isUsingRAIM() {
 		return isUsingRAIM;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

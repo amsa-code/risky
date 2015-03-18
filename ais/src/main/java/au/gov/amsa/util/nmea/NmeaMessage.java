@@ -15,7 +15,6 @@ public class NmeaMessage {
 	private final List<String> items;
 	private final Talker talker;
 	private final SentenceInfo sentenceInfo;
-	private String checksum;
 
 	/**
 	 * Constructor.
@@ -27,7 +26,7 @@ public class NmeaMessage {
 	 *            is the list of columns from the NMEA message (not including
 	 *            the tag block) but including the checksum on the final column.
 	 */
-	public NmeaMessage(LinkedHashMap<String, String> tags, List<String> items, String checksum) {
+	public NmeaMessage(LinkedHashMap<String, String> tags, List<String> items) {
 		this.tags = tags;
 		this.items = items;
 		if (items.get(0).length() >= 3)
@@ -35,7 +34,6 @@ public class NmeaMessage {
 		else
 			talker = Talker.UNKNOWN;
 		this.sentenceInfo = getSentenceInfo(tags, items);
-		this.checksum = checksum;
 	}
 
 	/**
@@ -157,25 +155,16 @@ public class NmeaMessage {
 			return null;
 	}
 
-	/**
-	 * Returns a recalculated checksum.
-	 * 
-	 * @return calculated checksum
-	 */
-	public String calculateChecksum() {
+	public String getChecksum() {
 		return NmeaUtil.getChecksum(NmeaUtil.createNmeaLine(tags, items));
 	}
 
-	public String getChecksum() {
-		return checksum;
-	}
-
-	private static SentenceInfo getSentenceInfo(LinkedHashMap<String, String> tags,
-	        List<String> items) {
+	private static SentenceInfo getSentenceInfo(
+			LinkedHashMap<String, String> tags, List<String> items) {
 		try {
 			String g = tags.get("g");
 			if (g == null) {
-				if (items.size() > 2 && isEncapsulationSentence(items)) {
+				if (items.size() >2 && isEncapsulationSentence(items)) {
 					int number = Integer.parseInt(items.get(2));
 					int count = Integer.parseInt(items.get(1));
 					String id = items.get(3);
@@ -185,7 +174,8 @@ public class NmeaMessage {
 			} else {
 				String[] parts = g.split("-");
 				if (parts.length < 3)
-					throw new NmeaMessageParseException("not enough parts available in g tag");
+					throw new NmeaMessageParseException(
+							"not enough parts available in g tag");
 				int number = Integer.parseInt(parts[0]);
 				int count = Integer.parseInt(parts[1]);
 				String id = parts[2];

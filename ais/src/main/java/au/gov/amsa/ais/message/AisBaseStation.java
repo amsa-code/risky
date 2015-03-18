@@ -18,7 +18,7 @@ import com.google.common.annotations.VisibleForTesting;
  * @author dxm
  * 
  */
-public class AisBaseStation implements AisMessage, HasMmsi {
+public class AisBaseStation implements AisMessage,HasMmsi {
 	@VisibleForTesting
 	static final int MIN_LENGTH = 168;
 	private final AisExtractor extractor;
@@ -43,8 +43,8 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 	 * 
 	 * @param message
 	 */
-	public AisBaseStation(String message, int padBits) {
-		this(message, null, padBits);
+	public AisBaseStation(String message) {
+		this(message, null);
 	}
 
 	/**
@@ -53,8 +53,9 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 	 * @param message
 	 *            encapsulated message taken from nmea line.
 	 */
-	public AisBaseStation(String message, String source, int padBits) {
-		this(Util.getAisExtractorFactory(), message, source, padBits);
+	public AisBaseStation(String message, String source) {
+		this(Util.getAisExtractorFactory(), message,
+				 source);
 	}
 
 	/**
@@ -65,9 +66,10 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 	 * @param time
 	 * @param source
 	 */
-	public AisBaseStation(AisExtractorFactory factory, String message, String source, int padBits) {
+	public AisBaseStation(AisExtractorFactory factory, String message,
+			 String source) {
 		this.source = source;
-		this.extractor = factory.create(message, MIN_LENGTH, padBits);
+		this.extractor = factory.create(message, MIN_LENGTH);
 		messageId = extractor.getMessageId();
 		Util.checkMessageId(messageId, AisMessageType.BASE_STATION_REPORT);
 		repeatIndicator = extractor.getValue(6, 8);
@@ -91,6 +93,7 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 	public int getMessageId() {
 		return messageId;
 	}
+
 
 	public int getRepeatIndicator() {
 		return repeatIndicator;

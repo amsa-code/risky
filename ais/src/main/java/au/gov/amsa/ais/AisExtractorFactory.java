@@ -17,7 +17,7 @@ public interface AisExtractorFactory {
 	 * @param message
 	 * @return
 	 */
-	AisExtractor create(String message, int padBit);
+	AisExtractor create(String message);
 
 	/**
 	 * Returns an extractor for the given message. If the decoded message does
@@ -26,8 +26,7 @@ public interface AisExtractorFactory {
 	 * 
 	 * @param message
 	 * @param minLength
-	 * @param padBits
 	 * @return
 	 */
-	AisExtractor create(String message, int minLength, int padBits);
+	AisExtractor create(String message, int minLength);
 }

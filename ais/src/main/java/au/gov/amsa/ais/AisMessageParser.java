@@ -43,8 +43,8 @@ public class AisMessageParser {
 	 * @param message
 	 * @return
 	 */
-	public AisMessage parse(String message, int padBits) {
-		return parse(message, null, padBits);
+	public AisMessage parse(String message) {
+		return parse(message, null);
 	}
 
 	/**
@@ -56,23 +56,23 @@ public class AisMessageParser {
 	 * @param source
 	 * @return
 	 */
-	public AisMessage parse(String message, String source, int padBits) {
-		AisExtractor extractor = factory.create(message, padBits);
+	public AisMessage parse(String message, String source) {
+		AisExtractor extractor = factory.create(message);
 		int id = extractor.getMessageId();
 		if (Util.isClassAPositionReport(id)) {
-			return new AisPositionA(message, source, padBits);
+			return new AisPositionA(message, source);
 		} else if (id == 4)
-			return new AisBaseStation(message, source, padBits);
+			return new AisBaseStation(message, source);
 		else if (id == 5)
-			return new AisShipStaticA(message, source, padBits);
+			return new AisShipStaticA(message, source);
 		else if (id == 18)
-			return new AisPositionB(message, source, padBits);
+			return new AisPositionB(message, source);
 		else if (id == 19)
-			return new AisPositionBExtended(message, source, padBits);
+			return new AisPositionBExtended(message, source);
 		else if (id == 21)
-			return new AisAidToNavigation(message, source, padBits);
+			return new AisAidToNavigation(message, source);
 		else
-			return new AisMessageOther(id, source, padBits);
+			return new AisMessageOther(id, source);
 	}
 
 }

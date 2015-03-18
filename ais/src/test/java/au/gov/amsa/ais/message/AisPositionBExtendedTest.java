@@ -22,7 +22,7 @@ public class AisPositionBExtendedTest {
 		// String line =
 		// "!AIVDM,1,1,,B,C5N3SRgPEnJGEBT>NhWAwwo862PaLELTBJ:V00000000S0D:R220,0*0B";
 		String line = "C5N3SRgPEnJGEBT>NhWAwwo862PaLELTBJ:V00000000S0D:R220";
-		AisPositionBExtended m = new AisPositionBExtended(line, 0);
+		AisPositionBExtended m = new AisPositionBExtended(line);
 		assertEquals(19, m.getMessageId());
 		assertEquals(0, m.getRepeatIndicator());
 		assertEquals(367059850, m.getMmsi());
@@ -85,7 +85,8 @@ public class AisPositionBExtendedTest {
 	@Test
 	public void testExtractLongitude() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(108600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(108600000)
+				.atLeastOnce();
 		replay(ex);
 		Double longitude = AisPositionBExtended.extractLongitude(ex);
 		assertEquals(null, longitude);
@@ -94,7 +95,8 @@ public class AisPositionBExtendedTest {
 	@Test
 	public void testExtractLatitude() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(54600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(54600000)
+				.atLeastOnce();
 		replay(ex);
 		Double latitude = AisPositionBExtended.extractLatitude(ex);
 		assertEquals(null, latitude);

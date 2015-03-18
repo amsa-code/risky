@@ -24,7 +24,7 @@ public class AisPositionATest {
 	public void testAisPosition() {
 		String m = "15MgK45P3@G?fl0E`JbR0OwT0@MS";
 
-		AisPositionA p = new AisPositionA(m, 0);
+		AisPositionA p = new AisPositionA(m);
 		assertEquals(1, p.getMessageId());
 		assertEquals(0, p.getRepeatIndicator());
 		assertEquals(366730000, p.getMmsi());
@@ -57,7 +57,7 @@ public class AisPositionATest {
 	@Test
 	public void testCommicationsWithTime() {
 		String m = "177KQJ5000G?tO`K>RA1wUbN0TKH";
-		AisPositionA p = new AisPositionA(m, 0);
+		AisPositionA p = new AisPositionA(m);
 		Communications comms = p.getCommunications();
 		assertEquals(1, comms.getSyncState());
 		assertEquals(1, comms.getSlotTimeout());
@@ -68,7 +68,7 @@ public class AisPositionATest {
 	@Test
 	public void testNullCommunicationsTime() {
 		String m = "17P;1:0P00bKEn5nDKg9cOw82@De";
-		AisPositionA p = new AisPositionA(m, 0);
+		AisPositionA p = new AisPositionA(m);
 		Communications comms = p.getCommunications();
 		assertNull(comms.getMinuteUtc());
 		assertNull(comms.getHourUtc());
@@ -78,20 +78,21 @@ public class AisPositionATest {
 	@Test
 	public void testConstructorWithMessageAndSource() {
 		String m = "15MgK45P3@G?fl0E`JbR0OwT0@MS";
-		AisPositionA p = new AisPositionA(m, "boo", 0);
+		AisPositionA p = new AisPositionA(m, "boo");
 		assertEquals("boo", p.getSource());
 	}
 
 	@Test(expected = AisParseException.class)
 	public void testConstructorFailsWhenLineHasWrongMessageId() {
 		String m = "B7P@fj00RJVpbIuUhlF93wm5WP06";
-		new AisPositionA(m, 0);
+		new AisPositionA(m);
 	}
 
 	@Test
 	public void testExtractRateOfTurn() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-128).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-128)
+				.atLeastOnce();
 		replay(ex);
 		Integer heading = AisPositionA.extractRateOfTurn(ex);
 		assertEquals(null, heading);
@@ -127,7 +128,8 @@ public class AisPositionATest {
 	@Test
 	public void testExtractLongitude() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(108600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(108600000)
+				.atLeastOnce();
 		replay(ex);
 		Double longitude = AisPositionA.extractLongitude(ex);
 		assertEquals(null, longitude);
@@ -136,7 +138,8 @@ public class AisPositionATest {
 	@Test
 	public void testExtractLatitude() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(54600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(54600000)
+				.atLeastOnce();
 		replay(ex);
 		Double latitude = AisPositionA.extractLatitude(ex);
 		assertEquals(null, latitude);
@@ -145,7 +148,8 @@ public class AisPositionATest {
 	@Test
 	public void testExtractLongitudeBadPos() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(118600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(118600000)
+				.atLeastOnce();
 		replay(ex);
 
 		try {
@@ -160,7 +164,8 @@ public class AisPositionATest {
 	@Test
 	public void testExtractLatitudeBadPos() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(58600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(58600000)
+				.atLeastOnce();
 		replay(ex);
 
 		try {
@@ -175,7 +180,8 @@ public class AisPositionATest {
 	@Test
 	public void testExtractLongitudeBadNeg() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-118600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-118600000)
+				.atLeastOnce();
 		replay(ex);
 
 		try {
@@ -190,7 +196,8 @@ public class AisPositionATest {
 	@Test
 	public void testExtractLatitudeBadNeg() {
 		AisExtractor ex = createMock(AisExtractor.class);
-		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-58600000).atLeastOnce();
+		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-58600000)
+				.atLeastOnce();
 		replay(ex);
 
 		try {
