@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import ucar.nc2.Attribute;
@@ -29,19 +28,13 @@ public class NetcdfFixesWriterTest {
 	}
 
 	@Test
-	@Ignore
-	public void testReading() {
-		// read nc file and ensure everything makes it across
-		// TODO implement reading test
-	}
-
-	@Test
 	public void testNetcdfConverter() throws IOException {
 		TestingUtil.writeTwoBinaryFixes("target/987654321.track");
 		int count = NetcdfFixesWriter
 		        .convertToNetcdf(new File("target"), new File("target/nc"),
 		                Pattern.compile("987654321.track")).count().toBlocking().single();
 		assertEquals(1, count);
+		// test output
 		File ncFile = new File("target/nc/987654321.nc");
 		assertTrue(ncFile.exists());
 		assertTrue(ncFile.length() > 0);
