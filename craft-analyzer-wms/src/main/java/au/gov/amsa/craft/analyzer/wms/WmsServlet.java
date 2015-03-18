@@ -53,8 +53,8 @@ public class WmsServlet extends HttpServlet {
                 // .capabilitiesFromClasspath("/wms-capabilities.xml")
                 // set image cache size
                 .imageCache(200)
-                // add custom layer as cached
-                .addCachedLayer("Analyze", layer)
+                // add custom layer non-cached
+                .addLayer("Drifting", layer)
                 // build it up
                 .build();
     }
