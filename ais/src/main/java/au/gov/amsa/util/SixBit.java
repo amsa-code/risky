@@ -1,6 +1,7 @@
 package au.gov.amsa.util;
 
-public class SixBit {
+public final class SixBit {
+
 	/** Precompiled list of int to six bit mappings. */
 	private static final int[] INT_TO_SIX_BIT = createIntToSixBit();
 
@@ -95,13 +96,8 @@ public class SixBit {
 			throw new RuntimeException(bitSet.length + " is not enough bits. At least " + to
 			        + " expected.");
 		}
-		// TODO chuck this check to improve performance?
-		if (to - from <= 1)
-			throw new RuntimeException("value has too few bits to be signed");
-
 		long val = 0;
 		long powMask = 1;
-		boolean isNegative = bitSet[from];
 
 		for (int i = to - 1; i >= from; i--) {
 			if (bitSet[i]) {
@@ -109,7 +105,7 @@ public class SixBit {
 			}
 			powMask <<= 1;
 		}
-		if (isNegative) {
+		if (bitSet[from]) {
 			val = val - powMask;
 		}
 		return val;
@@ -138,8 +134,7 @@ public class SixBit {
 	public static int intToascii(int val) {
 		if (val > 63) {
 			throw new RuntimeException("Char value " + val + " not allowed");
-		}
-		if (val < 32) {
+		} else if (val < 32) {
 			return val + 64;
 		} else {
 			return val;
