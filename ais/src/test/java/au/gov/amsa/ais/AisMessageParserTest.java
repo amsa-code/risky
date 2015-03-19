@@ -63,12 +63,12 @@ public class AisMessageParserTest {
 		assertTrue(m instanceof AisAidToNavigation);
 		AisAidToNavigation a = (AisAidToNavigation) m;
 		System.out.println(a);
-		assertEquals(a.getMessageId(), 21);
-		assertEquals(a.getRepeatIndicator(), 0);
-		assertEquals(a.getMmsi(), 995031040);
-		assertEquals(a.getAtoNType(), 23);
-		assertEquals(a.getAtonStatus(), "");
-		assertEquals(a.getName(), "QUETTA ROCK");
+		assertEquals(21, a.getMessageId());
+		assertEquals(0, a.getRepeatIndicator());
+		assertEquals(995031040, a.getMmsi());
+		assertEquals(23, a.getAtoNType());
+		assertEquals("QUETTA ROCK", a.getName());
+		assertEquals("", a.getAtonStatus());
 		assertTrue(a.isHighAccuracyPosition());
 	}
 

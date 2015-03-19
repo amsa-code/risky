@@ -25,7 +25,7 @@ public class AisExtractorTest {
 	}
 
 	@Test(expected = AisParseException.class)
-	public void testStringNotLongEnoughtThrowsAisParseExceptionUsingGetString() {
+	public void testStringNotLongEnoughThrowsAisParseExceptionUsingGetString() {
 		String m = "";
 		AisExtractor ex = new AisExtractor(m, 10, 0);
 		ex.getString(1, 2);
@@ -35,6 +35,6 @@ public class AisExtractorTest {
 	public void testStringNotLongEnoughtThrowsAisParseExceptionUsingGetValue() {
 		String m = "";
 		AisExtractor ex = new AisExtractor(m, 10, 0);
-		ex.getValue(1, 2, true);
+		ex.getSignedValue(1, 2);
 	}
 }

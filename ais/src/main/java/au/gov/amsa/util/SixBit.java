@@ -26,9 +26,9 @@ public class SixBit {
 	 * @param str
 	 * @param padBits
 	 */
-	static boolean[] sixBitToBits(String str, int padBits) {
+	public static boolean[] sixBitToBits(String str, int padBits) {
 		if (str.length() == 0) {
-			return new boolean[1024];
+			return new boolean[0];
 		}
 		int len = str.length() * 6 - padBits;
 		boolean[] bitSet = new boolean[len];
@@ -74,7 +74,7 @@ public class SixBit {
 		return bitSet;
 	}
 
-	static long getValue(int from, int to, boolean[] bitSet) {
+	public static long getValue(int from, int to, boolean[] bitSet) {
 		if (to > bitSet.length) {
 			throw new RuntimeException(bitSet.length + " is not enough bits. At least " + to
 			        + " expected.");
@@ -90,7 +90,7 @@ public class SixBit {
 		return val;
 	}
 
-	static long getSignedValue(int from, int to, boolean[] bitSet) {
+	public static long getSignedValue(int from, int to, boolean[] bitSet) {
 		if (to > bitSet.length) {
 			throw new RuntimeException(bitSet.length + " is not enough bits. At least " + to
 			        + " expected.");
@@ -115,11 +115,35 @@ public class SixBit {
 		return val;
 	}
 
-	public static void main(String[] args) {
-		System.out.println(Integer.toBinaryString(3));
-		System.out.println(4 << 1);
-		boolean[] bitSet = { true, true, false };
-		System.out.println(getValue(0, 3, bitSet));
-		System.out.println(getSignedValue(0, 3, bitSet));
+	public static String getString(int from, int to, boolean[] bitSet) {
+		int len = (to - from) / 6;
+		char[] resStr = new char[len];
+		int pos = from;
+		for (int i = 0; i < len; i++) {
+			resStr[i] = (char) intToascii((char) SixBit.getValue(pos, pos + 6, bitSet));
+			pos += 6;
+		}
+		// remove trailing @ characters and spaces
+		while (len > 0 && (resStr[len - 1] == '@' || resStr[len - 1] == ' '))
+			len -= 1;
+		return new String(resStr, 0, len);
 	}
+
+	/**
+	 * Convert six bit int value to character
+	 *
+	 * @param val
+	 * @return
+	 */
+	public static int intToascii(int val) {
+		if (val > 63) {
+			throw new RuntimeException("Char value " + val + " not allowed");
+		}
+		if (val < 32) {
+			return val + 64;
+		} else {
+			return val;
+		}
+	}
+
 }

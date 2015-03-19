@@ -42,4 +42,16 @@ public class SixBitTest {
 		assertEquals(0, SixBit.getSignedValue(0, 3, bits));
 	}
 
+	@Test
+	public void testGetValueMax() {
+		boolean[] bits = { true, true, true };
+		assertEquals(7, SixBit.getValue(0, 3, bits));
+	}
+
+	@Test
+	public void testGetSignedValueMax() {
+		boolean[] bits = { true, true, true };
+		assertEquals(-1, SixBit.getSignedValue(0, 3, bits));
+	}
+
 }
