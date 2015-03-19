@@ -27,10 +27,10 @@ public final class Util {
 	 * @return
 	 * @throws AisParseException
 	 */
-	protected static int getValueByBinStr(String binaryString, boolean signum) {
+	protected static int getValueByBinStr(String binaryString, boolean signed) {
 
 		Integer value = Integer.parseInt(binaryString, 2);
-		if (signum && binaryString.charAt(0) == '1') {
+		if (signed && binaryString.charAt(0) == '1') {
 			char[] invert = new char[binaryString.length()];
 			Arrays.fill(invert, '1');
 			value ^= Integer.parseInt(new String(invert), 2);

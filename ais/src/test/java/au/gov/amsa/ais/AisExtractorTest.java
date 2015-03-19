@@ -27,14 +27,14 @@ public class AisExtractorTest {
 	@Test(expected = AisParseException.class)
 	public void testStringNotLongEnoughtThrowsAisParseExceptionUsingGetString() {
 		String m = "";
-		AisExtractor ex = new AisExtractor(m, 0);
+		AisExtractor ex = new AisExtractor(m, 10, 0);
 		ex.getString(1, 2);
 	}
 
 	@Test(expected = AisParseException.class)
 	public void testStringNotLongEnoughtThrowsAisParseExceptionUsingGetValue() {
 		String m = "";
-		AisExtractor ex = new AisExtractor(m, 0);
+		AisExtractor ex = new AisExtractor(m, 10, 0);
 		ex.getValue(1, 2, true);
 	}
 }

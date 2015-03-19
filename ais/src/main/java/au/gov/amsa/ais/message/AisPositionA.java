@@ -77,16 +77,15 @@ public class AisPositionA implements AisPosition, HasCommunications {
 	}
 
 	static Integer extractRateOfTurn(AisExtractor extractor) {
-		int val = extractor.getSignedValue(42, 50);
+		byte val = (byte) extractor.getSignedValue(42, 50);
 		if (val == ROT_NOT_AVAILABLE)
 			return null;
 		else
-			return val;
+			return (int) val;
 	}
 
 	static Double extractLongitude(AisExtractor extractor) {
 		int val = extractor.getSignedValue(61, 89);
-		val = extractor.getValue(23, 28);
 		if (val == LONGITUDE_NOT_AVAILABLE) {
 			return null;
 		} else {
