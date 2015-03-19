@@ -23,20 +23,7 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 	static final int MIN_LENGTH = 168;
 	private final AisExtractor extractor;
 	private final String source;
-	private final int year;
 	private final int messageId;
-	private final int repeatIndicator;
-	private final int mmsi;
-	private final int month;
-	private final int day;
-	private final int hour;
-	private final int minute;
-	private final int second;
-	private final int positionAccuracy;
-	private final long timestamp;
-	private final double latitude;
-	private final double longitude;
-	private final int deviceType;
 
 	/**
 	 * Constructor.
@@ -70,19 +57,6 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 		this.extractor = factory.create(message, MIN_LENGTH, padBits);
 		messageId = extractor.getMessageId();
 		Util.checkMessageId(messageId, AisMessageType.BASE_STATION_REPORT);
-		repeatIndicator = extractor.getValue(6, 8);
-		mmsi = extractor.getValue(8, 38);
-		year = extractor.getValue(38, 52);
-		month = extractor.getValue(52, 56);
-		day = extractor.getValue(56, 61);
-		hour = extractor.getValue(61, 66);
-		minute = extractor.getValue(66, 72);
-		second = extractor.getValue(72, 78);
-		positionAccuracy = extractor.getValue(78, 79);
-		timestamp = calculateTimestamp();
-		latitude = extractor.getSignedValue(107, 134) / 600000.0;
-		longitude = extractor.getSignedValue(79, 107) / 600000.0;
-		deviceType = extractor.getValue(134, 138);
 		Util.checkLatLong(getLatitude(), getLongitude());
 
 	}
@@ -93,63 +67,63 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 	}
 
 	public int getRepeatIndicator() {
-		return repeatIndicator;
+		return extractor.getValue(6, 8);
 	}
 
 	@Override
 	public long getMmsi() {
-		return mmsi;
+		return extractor.getValue(8, 38);
 	}
 
 	public int getYear() {
-		return year;
+		return extractor.getValue(38, 52);
 	}
 
 	public int getMonth() {
-		return month;
+		return extractor.getValue(52, 56);
 	}
 
 	public int getDay() {
-		return day;
+		return extractor.getValue(56, 61);
 	}
 
 	public int getHour() {
-		return hour;
+		return extractor.getValue(61, 66);
 	}
 
 	public int getMinute() {
-		return minute;
+		return extractor.getValue(66, 72);
 	}
 
 	public int getSecond() {
-		return second;
+		return extractor.getValue(72, 78);
 	}
 
 	public int getPositionAccuracy() {
-		return positionAccuracy;
+		return extractor.getValue(78, 79);
 	}
 
 	private long calculateTimestamp() {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-		cal.set(year, month - 1, day, hour, minute, second);
+		cal.set(getYear(), getMonth() - 1, getDay(), getHour(), getMinute(), getSecond());
 		cal.set(Calendar.MILLISECOND, 0);
 		return cal.getTimeInMillis();
 	}
 
 	public long getTimestamp() {
-		return timestamp;
+		return calculateTimestamp();
 	}
 
 	public double getLatitude() {
-		return latitude;
+		return extractor.getSignedValue(107, 134) / 600000.0;
 	}
 
 	public double getLongitude() {
-		return longitude;
+		return extractor.getSignedValue(79, 107) / 600000.0;
 	}
 
 	public int getDeviceType() {
-		return deviceType;
+		return extractor.getValue(134, 138);
 	}
 
 	@Override
@@ -163,33 +137,33 @@ public class AisBaseStation implements AisMessage, HasMmsi {
 		builder.append("AisBaseStation [source=");
 		builder.append(source);
 		builder.append(", year=");
-		builder.append(year);
+		builder.append(getYear());
 		builder.append(", messageId=");
 		builder.append(messageId);
 		builder.append(", repeatIndicator=");
-		builder.append(repeatIndicator);
+		builder.append(getRepeatIndicator());
 		builder.append(", mmsi=");
-		builder.append(mmsi);
+		builder.append(getMmsi());
 		builder.append(", month=");
-		builder.append(month);
+		builder.append(getMonth());
 		builder.append(", day=");
-		builder.append(day);
+		builder.append(getDay());
 		builder.append(", hour=");
-		builder.append(hour);
+		builder.append(getHour());
 		builder.append(", minute=");
-		builder.append(minute);
+		builder.append(getMinute());
 		builder.append(", second=");
-		builder.append(second);
+		builder.append(getSecond());
 		builder.append(", positionAccuracy=");
-		builder.append(positionAccuracy);
+		builder.append(getPositionAccuracy());
 		builder.append(", timestamp=");
-		builder.append(timestamp);
+		builder.append(getTimestamp());
 		builder.append(", latitude=");
-		builder.append(latitude);
+		builder.append(getLatitude());
 		builder.append(", longitude=");
-		builder.append(longitude);
+		builder.append(getLongitude());
 		builder.append(", deviceType=");
-		builder.append(deviceType);
+		builder.append(getDeviceType());
 		builder.append("]");
 		return builder.toString();
 	}

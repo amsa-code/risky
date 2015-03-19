@@ -20,26 +20,9 @@ public class AisPositionB implements AisPosition, HasCommunications {
 	private final AisExtractor extractor;
 	private final String source;
 	private final int messageId;
-	private final int repeatIndicator;
 	private final int mmsi;
-	private final int spare;
-	private final Double speedOverGroundKnots;
-	private final boolean isHighAccuracyPosition;
 	private final Double longitude;
 	private final Double latitude;
-	private final Double courseOverGround;
-	private final Integer trueHeading;
-	private final int timeSecondsOnly;
-	private final int spare2;
-	private final boolean isSotdmaUnit;
-	private final boolean isEquippedWithIntegratedDisplayForMessages12And14;
-	private final boolean isEquippedWithDscFunction;
-	private final boolean canOperateOverWholeMarineBand;
-	private final boolean canManageFrequenciesViaMessage22;
-	private final boolean isStationOperatingInAssignedMode;
-	private final boolean isUsingRAIM;
-	private final boolean isITDMACommunicationState;
-	private final Communications communications;
 
 	public AisPositionB(String message, String source, int padBits) {
 		this(getAisExtractorFactory(), message, source, padBits);
@@ -54,27 +37,10 @@ public class AisPositionB implements AisPosition, HasCommunications {
 		this.extractor = factory.create(message, 133, padBits);
 		messageId = extractor.getMessageId();
 		checkMessageId(getMessageId(), AisMessageType.POSITION_REPORT_CLASS_B);
-		repeatIndicator = extractor.getValue(6, 8);
+
 		mmsi = extractor.getValue(8, 38);
-		spare = extractor.getValue(38, 46);
-		speedOverGroundKnots = extractSpeedOverGround(extractor);
-		isHighAccuracyPosition = areEqual(extractor.getValue(56, 57), 1);
 		longitude = extractLongitude(extractor);
 		latitude = extractLatitude(extractor);
-		courseOverGround = extractCourseOverGround(extractor);
-		trueHeading = extractTrueHeading(extractor);
-		timeSecondsOnly = extractor.getValue(133, 139);
-		spare2 = extractor.getValue(139, 141);
-		isSotdmaUnit = areEqual(extractor.getValue(141, 142), 0);
-		isEquippedWithIntegratedDisplayForMessages12And14 = areEqual(extractor.getValue(142, 143),
-		        1);
-		isEquippedWithDscFunction = areEqual(extractor.getValue(143, 144), 1);
-		canOperateOverWholeMarineBand = areEqual(extractor.getValue(144, 145), 1);
-		canManageFrequenciesViaMessage22 = areEqual(extractor.getValue(145, 146), 1);
-		isStationOperatingInAssignedMode = areEqual(extractor.getValue(146, 147), 1);
-		isUsingRAIM = areEqual(extractor.getValue(147, 148), 1);
-		isITDMACommunicationState = areEqual(extractor.getValue(148, 149), 1);
-		communications = new Communications(extractor, 149);
 	}
 
 	static Integer extractTrueHeading(AisExtractor extractor) {
@@ -131,7 +97,7 @@ public class AisPositionB implements AisPosition, HasCommunications {
 
 	@Override
 	public int getRepeatIndicator() {
-		return repeatIndicator;
+		return extractor.getValue(6, 8);
 	}
 
 	@Override
@@ -140,17 +106,17 @@ public class AisPositionB implements AisPosition, HasCommunications {
 	}
 
 	public int getSpare() {
-		return spare;
+		return extractor.getValue(38, 46);
 	}
 
 	@Override
 	public Double getSpeedOverGroundKnots() {
-		return speedOverGroundKnots;
+		return extractSpeedOverGround(extractor);
 	}
 
 	@Override
 	public boolean isHighAccuracyPosition() {
-		return isHighAccuracyPosition;
+		return areEqual(extractor.getValue(56, 57), 1);
 	}
 
 	@Override
@@ -165,59 +131,59 @@ public class AisPositionB implements AisPosition, HasCommunications {
 
 	@Override
 	public Double getCourseOverGround() {
-		return courseOverGround;
+		return extractCourseOverGround(extractor);
 	}
 
 	@Override
 	public Integer getTrueHeading() {
-		return trueHeading;
+		return extractTrueHeading(extractor);
 	}
 
 	@Override
 	public int getTimeSecondsOnly() {
-		return timeSecondsOnly;
+		return extractor.getValue(133, 139);
 	}
 
 	public int getSpare2() {
-		return spare2;
+		return extractor.getValue(139, 141);
 	}
 
 	public boolean isSotdmaUnit() {
-		return isSotdmaUnit;
+		return areEqual(extractor.getValue(141, 142), 0);
 	}
 
 	public boolean isEquippedWithIntegratedDisplayForMessages12And14() {
-		return isEquippedWithIntegratedDisplayForMessages12And14;
+		return areEqual(extractor.getValue(142, 143), 1);
 	}
 
 	public boolean isEquippedWithDscFunction() {
-		return isEquippedWithDscFunction;
+		return areEqual(extractor.getValue(143, 144), 1);
 	}
 
 	public boolean canOperateOverWholeMarineBand() {
-		return canOperateOverWholeMarineBand;
+		return areEqual(extractor.getValue(144, 145), 1);
 	}
 
 	public boolean canManageFrequenciesViaMessage22() {
-		return canManageFrequenciesViaMessage22;
+		return areEqual(extractor.getValue(145, 146), 1);
 	}
 
 	public boolean isStationOperatingInAssignedMode() {
-		return isStationOperatingInAssignedMode;
+		return areEqual(extractor.getValue(146, 147), 1);
 	}
 
 	@Override
 	public boolean isUsingRAIM() {
-		return isUsingRAIM;
+		return areEqual(extractor.getValue(147, 148), 1);
 	}
 
 	public boolean isITDMACommunicationState() {
-		return isITDMACommunicationState;
+		return areEqual(extractor.getValue(148, 149), 1);
 	}
 
 	@Override
 	public Communications getCommunications() {
-		return communications;
+		return new Communications(extractor, 149);
 	}
 
 	@Override
@@ -233,45 +199,45 @@ public class AisPositionB implements AisPosition, HasCommunications {
 		builder.append(", messageId=");
 		builder.append(messageId);
 		builder.append(", repeatIndicator=");
-		builder.append(repeatIndicator);
+		builder.append(getRepeatIndicator());
 		builder.append(", mmsi=");
 		builder.append(mmsi);
 		builder.append(", spare=");
-		builder.append(spare);
+		builder.append(getSpare());
 		builder.append(", speedOverGroundKnots=");
-		builder.append(speedOverGroundKnots);
+		builder.append(getSpeedOverGroundKnots());
 		builder.append(", isHighAccuracyPosition=");
-		builder.append(isHighAccuracyPosition);
+		builder.append(isHighAccuracyPosition());
 		builder.append(", longitude=");
 		builder.append(longitude);
 		builder.append(", latitude=");
 		builder.append(latitude);
 		builder.append(", courseOverGround=");
-		builder.append(courseOverGround);
+		builder.append(getCourseOverGround());
 		builder.append(", trueHeading=");
-		builder.append(trueHeading);
+		builder.append(getTrueHeading());
 		builder.append(", timeSecondsOnly=");
-		builder.append(timeSecondsOnly);
+		builder.append(getTimeSecondsOnly());
 		builder.append(", spare2=");
-		builder.append(spare2);
+		builder.append(getSpare2());
 		builder.append(", isSotdmaUnit=");
-		builder.append(isSotdmaUnit);
+		builder.append(isSotdmaUnit());
 		builder.append(", isEquippedWithIntegratedDisplayForMessages12And14=");
-		builder.append(isEquippedWithIntegratedDisplayForMessages12And14);
+		builder.append(isEquippedWithIntegratedDisplayForMessages12And14());
 		builder.append(", isEquippedWithDscFunction=");
-		builder.append(isEquippedWithDscFunction);
+		builder.append(isEquippedWithDscFunction());
 		builder.append(", canOperateOverWholeMarineBand=");
-		builder.append(canOperateOverWholeMarineBand);
+		builder.append(canOperateOverWholeMarineBand());
 		builder.append(", canManageFrequenciesViaMessage22=");
-		builder.append(canManageFrequenciesViaMessage22);
+		builder.append(canManageFrequenciesViaMessage22());
 		builder.append(", isStationOperatingInAssignedMode=");
-		builder.append(isStationOperatingInAssignedMode);
+		builder.append(isStationOperatingInAssignedMode());
 		builder.append(", isUsingRAIM=");
-		builder.append(isUsingRAIM);
+		builder.append(isUsingRAIM());
 		builder.append(", isITDMACommunicationState=");
-		builder.append(isITDMACommunicationState);
+		builder.append(isITDMACommunicationState());
 		builder.append(", communications=");
-		builder.append(communications);
+		builder.append(getCommunications());
 		builder.append("]");
 		return builder.toString();
 	}

@@ -17,6 +17,7 @@ public class BenchmarksAis {
 
 	private static final String shipStaticA = "\\s:rEV02,c:1334337326*5A\\!ABVDM,1,1,0,2,57PBtv01sb5IH`PR221LE986222222222222220l28?554000:kQEhhDm31H20DPSmD`880,2*40";
 	private static final String aisPositionA = "\\s:rEV02,c:1334337326*5A\\!AIVDM,1,1,,B,18JSad001i5gcaArTICimQTT068t,0*4A";
+	private static final String aisPositionB = "\\s:MSQ - Mt Cootha,c:1426803365*73\\!AIVDM,1,1,,A,B7P?n900Irg8IHL4RblF?wRToP06,0*1B";
 	private static final List<String> nmeaLines = Streams
 	        .nmeaFromGzip(new File("src/test/resources/ais.txt.gz")).toList().toBlocking().single();
 
@@ -40,6 +41,12 @@ public class BenchmarksAis {
 	// vdm.parse(aisPositionA);
 	// AisMessage3.getInstance(vdm);
 	// }
+
+	@Benchmark
+	public void parseAisPositionBNmeaMessage() {
+		AisNmeaMessage n = new AisNmeaMessage(aisPositionB);
+		n.getMessage();
+	}
 
 	@Benchmark
 	public void parseMany() throws IOException {
