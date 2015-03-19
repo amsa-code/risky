@@ -11,11 +11,6 @@ import org.openjdk.jmh.annotations.State;
 import rx.Observable;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.util.nmea.NmeaMessage;
-import dk.dma.ais.binary.SixbitException;
-import dk.dma.ais.message.AisMessage3;
-import dk.dma.ais.message.AisMessageException;
-import dk.dma.ais.sentence.SentenceException;
-import dk.dma.ais.sentence.Vdm;
 
 @State(Scope.Benchmark)
 public class BenchmarksAis {
@@ -37,13 +32,14 @@ public class BenchmarksAis {
 		n.getMessage();
 	}
 
-	@Benchmark
-	public void parseAisPositionANmeaMessageUsingDmaLibrary() throws SentenceException,
-	        AisMessageException, SixbitException {
-		Vdm vdm = new Vdm();
-		vdm.parse(aisPositionA);
-		AisMessage3.getInstance(vdm);
-	}
+	// @Benchmark
+	// public void parseAisPositionANmeaMessageUsingDmaLibrary() throws
+	// SentenceException,
+	// AisMessageException, SixbitException {
+	// Vdm vdm = new Vdm();
+	// vdm.parse(aisPositionA);
+	// AisMessage3.getInstance(vdm);
+	// }
 
 	@Benchmark
 	public void parseMany() throws IOException {

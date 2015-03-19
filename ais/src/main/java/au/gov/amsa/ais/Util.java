@@ -208,8 +208,8 @@ public final class Util {
 	 * @param lat
 	 */
 	public static void checkLat(double lat) {
-		checkArgument(lat <= 91.0, "latitude out of range " + lat);
-		checkArgument(lat > -90.0, "latitude out of range " + lat);
+		checkArgument(lat <= 91.0, "latitude out of range ");
+		checkArgument(lat > -90.0, "latitude out of range ");
 	}
 
 	/**
@@ -219,8 +219,8 @@ public final class Util {
 	 * @param lon
 	 */
 	public static void checkLong(double lon) {
-		checkArgument(lon <= 181.0, "longitude out of range " + lon);
-		checkArgument(lon > -180.0, "longitude out of range " + lon);
+		checkArgument(lon <= 181.0, "longitude out of range");
+		checkArgument(lon > -180.0, "longitude out of range");
 	}
 
 	/**
