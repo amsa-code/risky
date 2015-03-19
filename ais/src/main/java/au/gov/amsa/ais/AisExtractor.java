@@ -14,6 +14,9 @@ public class AisExtractor {
 	// private final String decodedMessage;
 
 	private final boolean[] bitSet;
+	private final boolean[] calculated;
+	private final int padBits;
+	private final String message;
 
 	/**
 	 * Constructor. Does not do a minimum length check.
@@ -32,8 +35,12 @@ public class AisExtractor {
 	 * @param minLength
 	 */
 	public AisExtractor(String message, Integer minLength, int padBits) {
-		this.bitSet = SixBit.sixBitToBits(message, padBits);
-		// this.decodedMessage = Util.decodeMessage(message);
+		this.message = message;
+		boolean[] bits = new boolean[message.length() * 6 - padBits];
+		boolean[] calculated = new boolean[message.length()];
+		this.bitSet = bits;
+		this.calculated = calculated;
+		this.padBits = padBits;
 		if (minLength != null && bitSet.length < minLength) {
 			throw new AisParseException(AisParseException.NOT_CONSISTENT_DECODED_STRING
 			        + ", length was " + bitSet.length + " and should be >=" + minLength);
@@ -54,66 +61,31 @@ public class AisExtractor {
 	 * Returns an unsigned integer value using the bits from character position
 	 * start to position stop in the decoded message.
 	 * 
-	 * @param start
-	 * @param stop
+	 * @param from
+	 * @param to
 	 * @return
 	 */
-	public int getValue(int start, int stop) {
-		return (int) SixBit.getValue(start, stop, bitSet);
+	public int getValue(int from, int to) {
+		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+		return (int) SixBit.getValue(from, to, bitSet);
 	}
 
 	/**
 	 * Returns a signed integer value using the bits from character position
 	 * start to position stop in the decoded message.
 	 * 
-	 * @param start
-	 * @param stop
+	 * @param from
+	 * @param to
 	 * @return
 	 */
-	public int getSignedValue(int start, int stop) {
-		return (int) SixBit.getSignedValue(start, stop, bitSet);
+	public int getSignedValue(int from, int to) {
+		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+		return (int) SixBit.getSignedValue(from, to, bitSet);
 	}
-
-	// /**
-	// * Returns the characters from position start to position stop in the
-	// * decoded message.
-	// *
-	// * @param start
-	// * @param stop
-	// * @return
-	// */
-	// public String getStringOld(int start, int stop) {
-	// try {
-	// return Util.getAsciiStringFrom6BitStr(decodedMessage.substring(start,
-	// stop));
-	// } catch (RuntimeException e) {
-	// throw new AisParseException(e);
-	// }
-	// }
 
 	public String getString(int from, int to) {
+		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
 		return SixBit.getString(from, to, bitSet);
 	}
-
-	// /**
-	// * Returns an integer value using the bits from character position start
-	// to
-	// * position stop in the decoded message. The returned value is a signed
-	// * integer if the parameter <code>signed</code> is true otherwise the
-	// * returned value is an unsigned integer.
-	// *
-	// * @param start
-	// * @param stop
-	// * @param signed
-	// * @return
-	// */
-	// public int getValue(int start, int stop, boolean signed) {
-	// try {
-	// return Util.getValueByBinStr(decodedMessage.substring(start, stop),
-	// signed);
-	// } catch (RuntimeException e) {
-	// throw new AisParseException(e);
-	// }
-	// }
 
 }

@@ -9,6 +9,7 @@ import org.openjdk.jmh.annotations.Scope;
 import org.openjdk.jmh.annotations.State;
 
 import rx.Observable;
+import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.util.nmea.NmeaMessage;
 
@@ -25,6 +26,19 @@ public class BenchmarksAis {
 	public void parseShipStaticNmeaMessage() {
 		AisNmeaMessage n = new AisNmeaMessage(shipStaticA);
 		n.getMessage();
+	}
+
+	@Benchmark
+	public void parseShipStaticNmeaMessageAndExtractBitsOfInterest() {
+		AisNmeaMessage n = new AisNmeaMessage(shipStaticA);
+		AisShipStaticA m = (AisShipStaticA) n.getMessage();
+		m.getName();
+		m.getShipType();
+		m.getImo();
+		m.getLengthMetres();
+		m.getWidthMetres();
+		m.getCallsign();
+		m.getMmsi();
 	}
 
 	@Benchmark
