@@ -70,11 +70,11 @@ The command below will create binary format versions of the NMEA files under *ta
 input directory */media/analysis/test* processing all files matching the pattern ```NMEA_ITU_20.*.gz```. 
 
 ```bash
-mvn exec:java -P bin -Dinput=/media/analysis/nmea -Doutput=target/binary -Dpattern='NMEA_ITU_20.*.gz' -Dby=month|year
+mvn exec:java -P bin -Dinput=/media/an/nmea -Doutput=/media/an/binary-fixes-all -Dpattern='NMEA_ITU_20.*.gz' -Dby=month|year
 ```
-Using 6 cores on a Xeon E5-1650@3.20GHz, the above command extracted and wrote 228K fixes/second. 
+Using 6 cores on a Xeon E5-1650@3.20GHz, the above command extracted and wrote 252K fixes/second. 
 ```input``` and ```output``` were different directories on a single SSD. Conversion of a year's worth of AMSA AIS NMEA lines 
-takes about 2.25 hours.
+takes 22 minutes.
 
 Effect of downsampling AIS
 -------------------------------
