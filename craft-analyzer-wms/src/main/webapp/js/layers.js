@@ -8,9 +8,9 @@ function addLayers(map) {
 
     var wmsUrl = "wms";
     
-    var layer1 = new OpenLayers.Layer.WMS( "Drifting",
+    var layer1 = new OpenLayers.Layer.WMS( "Analyze",
                 wmsUrl, 
-                {layers: 'Drifting',transparent: "true", format: "image/png",styles:"Standard"},
+                {layers: 'Analyze',transparent: "true", format: "image/png",styles:"Standard"},
                 {gutter:15,singleTile:true, visibility:true,opacity: 0.5,animationEnabled: false});
                 
     map.addLayer(layer1);

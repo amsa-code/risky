@@ -21,6 +21,8 @@ public class WmsServlet extends HttpServlet {
     private final WmsServletRequestProcessor processor;
 
     public WmsServlet() {
+        // TODO use grumpy 0.2.3 when released because sets this property for
+        // you
         System.setProperty("org.geotools.referencing.forceXY", "true");
 
         // instantiate the layers
@@ -53,8 +55,8 @@ public class WmsServlet extends HttpServlet {
                 // .capabilitiesFromClasspath("/wms-capabilities.xml")
                 // set image cache size
                 .imageCache(200)
-                // add custom layer non-cached
-                .addLayer("Drifting", layer)
+                // add custom layer as cached
+                .addCachedLayer("Analyze", layer)
                 // build it up
                 .build();
     }

@@ -14,7 +14,7 @@ public class AisShipStaticATest {
 	public void test() {
 
 		String m = "577JNW02BLa=I8`cN20t=@98DE`F0U<h4pB22216C@J>@4M20FlRCp11H2PCQBDSp888880";
-		AisShipStaticA s = new AisShipStaticA(m, "source");
+		AisShipStaticA s = new AisShipStaticA(m, "source", 0);
 		System.out.println(s.toString().replaceAll(",", ",\n"));
 		assertEquals(5, s.getMessageId());
 		assertEquals(0, s.getRepeatIndicator());
@@ -39,13 +39,13 @@ public class AisShipStaticATest {
 		assertTrue(s.getDataTerminalAvailable());
 		assertEquals("source", s.getSource());
 	}
-	
+
 	@Test
 	public void testDimensionsOnlyNoReferencePoint() {
 		String m = "57ldaq@1`57M0u9P000DM>1=E9HETu800000001J00g086u60=@C@SkP000000000000000";
-		AisShipStaticA s = new AisShipStaticA(m, "source");
+		AisShipStaticA s = new AisShipStaticA(m, "source", 0);
 		System.out.println(s.toString().replaceAll(",", ",\n"));
-	
+
 		assertFalse(s.getDimensionA().isPresent());
 		assertEquals(47, (int) s.getDimensionB().get());
 		assertFalse(s.getDimensionC().isPresent());
@@ -53,16 +53,16 @@ public class AisShipStaticATest {
 		assertEquals(47, (int) s.getLengthMetres().get());
 		assertEquals(8, (int) s.getWidthMetres().get());
 	}
-	
+
 	@Test
 	public void testDestination() {
 		String m = "55DaI402;uLs<H<gV21=@Dhh5:0p5HTL5@u:2216LprDI6Gn0EA0CD2ADc0EDm4PC2@H880";
-		AisShipStaticA s = new AisShipStaticA(m, "source");
+		AisShipStaticA s = new AisShipStaticA(m, "source", 0);
 		assertEquals("DAMPIER,AUSTRALIA", s.getDestination());
 	}
-	
+
 	@Test
 	public void testExpectedTimeOfArrival() {
-		assertEquals(1359165600000L, AisShipStaticA.getExpectedTimeOfArrival(2013,1,26,2,0));
+		assertEquals(1359165600000L, AisShipStaticA.getExpectedTimeOfArrival(2013, 1, 26, 2, 0));
 	}
 }

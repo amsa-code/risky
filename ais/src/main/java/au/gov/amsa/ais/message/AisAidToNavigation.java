@@ -40,14 +40,14 @@ public class AisAidToNavigation implements AisMessage, HasMmsi {
 	private final int atonType;
 	private final boolean isUsingRAIM;
 
-	public AisAidToNavigation(String message, String source) {
-		this(Util.getAisExtractorFactory(), message, source);
+	public AisAidToNavigation(String message, String source, int padBits) {
+		this(Util.getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisAidToNavigation(AisExtractorFactory factory, String message,
-			String source) {
+	public AisAidToNavigation(AisExtractorFactory factory, String message, String source,
+	        int padBits) {
 		this.source = source;
-		extractor = factory.create(message, 172);
+		extractor = factory.create(message, 172, padBits);
 		messageId = extractor.getValue(0, 6);
 		Util.checkMessageId(getMessageId(), AisMessageType.ATON_REPORT);
 		repeatIndicator = extractor.getValue(6, 8);
@@ -140,7 +140,6 @@ public class AisAidToNavigation implements AisMessage, HasMmsi {
 	public int getTypeOfElectronicPositionFixingDevice() {
 		return typeOfElectronicPositionFixingDevice;
 	}
-
 
 	@Override
 	public String getSource() {

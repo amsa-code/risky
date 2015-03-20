@@ -30,21 +30,21 @@ public class NmeaMessageParser {
 		if (line.startsWith("\\")) {
 			int tagFinish = line.indexOf("\\", 1);
 			if (tagFinish == -1)
-				throw new NmeaMessageParseException(
-						"no matching \\ symbol to finish tag block: " + line);
+				throw new NmeaMessageParseException("no matching \\ symbol to finish tag block: "
+				        + line);
 			tags = extractTags(line.substring(1, tagFinish));
 			remaining = line.substring(tagFinish + 1);
 		} else
 			remaining = line;
 
 		if (!remaining.contains("*"))
-			throw new NmeaMessageParseException(
-					"checksum delimiter * not found");
+			throw new NmeaMessageParseException("checksum delimiter * not found");
 
 		String[] items = getNmeaItems(remaining);
 
 		// TODO validate message using checksum
-		return new NmeaMessage(tags, Arrays.asList(items));
+		String checksum = line.substring(line.indexOf('*') + 1);
+		return new NmeaMessage(tags, Arrays.asList(items), checksum);
 	}
 
 	/**
@@ -56,8 +56,8 @@ public class NmeaMessageParser {
 	 * @return
 	 */
 	private static String[] getNmeaItems(String line) {
-		String[] items = StringUtils.splitByWholeSeparatorPreserveAllTokens(
-				line, PARAMETER_DELIMITER);
+		String[] items = StringUtils.splitByWholeSeparatorPreserveAllTokens(line,
+		        PARAMETER_DELIMITER);
 		// remove the checksum from the end
 		String last = items[items.length - 1];
 		if (last.contains("*"))
@@ -79,8 +79,8 @@ public class NmeaMessageParser {
 		for (String item : items) {
 			int i = item.indexOf(CODE_DELIMITER);
 			if (i == -1)
-				throw new NmeaMessageParseException(
-						"TAG BLOCK parameter is not is format 'a:b' :" + s);
+				throw new NmeaMessageParseException("TAG BLOCK parameter is not is format 'a:b' :"
+				        + s);
 			map.put(item.substring(0, i), item.substring(i + 1));
 		}
 		return map;

@@ -19,7 +19,8 @@ public interface AisExtractorFactory {
 	 * 
 	 * @param message
 	 * @param minLength
+	 * @param padBits
 	 * @return
 	 */
-	AisExtractor create(String message, int minLength);
+	AisExtractor create(String message, int minLength, int padBits);
 }

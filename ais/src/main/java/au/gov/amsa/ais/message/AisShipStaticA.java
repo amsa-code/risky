@@ -41,12 +41,11 @@ public class AisShipStaticA implements AisShipStatic {
 	private Integer shipType;
 	private final AisExtractor extractor;
 
-	public AisShipStaticA(String message, String source) {
-		this(Util.getAisExtractorFactory(), message, source);
+	public AisShipStaticA(String message, String source, int padBits) {
+		this(Util.getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisShipStaticA(AisExtractorFactory factory, String message,
-			String source) {
+	public AisShipStaticA(AisExtractorFactory factory, String message, String source, int padBits) {
 		this.source = source;
 		extractor = factory.create(message, 421, padBits);
 		messageId = extractor.getValue(0, 6);
@@ -155,8 +154,7 @@ public class AisShipStaticA implements AisShipStatic {
 		else {
 			Optional<Integer> c = getDimensionC();
 			Optional<Integer> d = getDimensionD();
-			if (!a.isPresent() && !c.isPresent() && b.isPresent()
-					&& d.isPresent())
+			if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
 				return b;
 			else
 				return Optional.absent();
@@ -172,8 +170,7 @@ public class AisShipStaticA implements AisShipStatic {
 		else {
 			Optional<Integer> a = getDimensionA();
 			Optional<Integer> b = getDimensionB();
-			if (!a.isPresent() && !c.isPresent() && b.isPresent()
-					&& d.isPresent())
+			if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
 				return d;
 			else
 				return Optional.absent();
@@ -186,16 +183,14 @@ public class AisShipStaticA implements AisShipStatic {
 		return typeOfElectronicPositionFixingDevice;
 	}
 
-	private static long getExpectedTimeOfArrival(int month, int day, int hour,
-			int minute) {
+	private static long getExpectedTimeOfArrival(int month, int day, int hour, int minute) {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		int year = cal.get(Calendar.YEAR);
 		return getExpectedTimeOfArrival(year, month, day, hour, minute);
 	}
 
 	@VisibleForTesting
-	static long getExpectedTimeOfArrival(int year, int month, int day,
-			int hour, int minute) {
+	static long getExpectedTimeOfArrival(int year, int month, int day, int hour, int minute) {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		cal.clear();
 		cal.set(year, month - 1, day, hour, minute);

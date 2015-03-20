@@ -15,7 +15,7 @@ public class AisExtractorTest {
 	@Test(expected = AisParseException.class)
 	public void testExtractorConstructorThrowsAisParseExceptionIfMessageNotLongEnough() {
 		String m = "1G72VO0335bPmqcabrJan7rl0000";
-		new AisExtractor(m, 10000);
+		new AisExtractor(m, 10000, 0);
 	}
 
 	@Test

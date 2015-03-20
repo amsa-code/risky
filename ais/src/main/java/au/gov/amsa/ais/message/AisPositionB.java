@@ -24,18 +24,17 @@ public class AisPositionB implements AisPosition, HasCommunications {
 	private final Double longitude;
 	private final Double latitude;
 
-	public AisPositionB(String message, String source) {
-		this(getAisExtractorFactory(), message, source);
+	public AisPositionB(String message, String source, int padBits) {
+		this(getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisPositionB(String message) {
-		this(getAisExtractorFactory(), message, null);
+	public AisPositionB(String message, int padBits) {
+		this(getAisExtractorFactory(), message, null, padBits);
 	}
 
-	public AisPositionB(AisExtractorFactory factory, String message,
-			String source) {
+	public AisPositionB(AisExtractorFactory factory, String message, String source, int padBits) {
 		this.source = source;
-		this.extractor = factory.create(message, 133);
+		this.extractor = factory.create(message, 133, padBits);
 		messageId = extractor.getMessageId();
 		checkMessageId(getMessageId(), AisMessageType.POSITION_REPORT_CLASS_B);
 

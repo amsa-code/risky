@@ -7,11 +7,11 @@ public class AisMessageOther implements AisMessage {
 	private final int messageId;
 	private final String source;
 
-	public AisMessageOther(int messageId) {
-		this(messageId, null);
+	public AisMessageOther(int messageId, int padBits) {
+		this(messageId, null, padBits);
 	}
 
-	public AisMessageOther(int messageId, String source) {
+	public AisMessageOther(int messageId, String source, int padBits) {
 		this.messageId = messageId;
 		this.source = source;
 	}
@@ -20,9 +20,6 @@ public class AisMessageOther implements AisMessage {
 	public int getMessageId() {
 		return messageId;
 	}
-
-
-	
 
 	@Override
 	public String getSource() {

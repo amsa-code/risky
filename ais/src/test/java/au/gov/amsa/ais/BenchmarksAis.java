@@ -20,8 +20,7 @@ public class BenchmarksAis {
 	private static final String aisPositionA = "\\s:rEV02,c:1334337326*5A\\!AIVDM,1,1,,B,18JSad001i5gcaArTICimQTT068t,0*4A";
 	private static final String aisPositionB = "\\s:MSQ - Mt Cootha,c:1426803365*73\\!AIVDM,1,1,,A,B7P?n900Irg8IHL4RblF?wRToP06,0*1B";
 	private static final List<String> nmeaLines = Streams
-			.nmeaFromGzip(new File("src/test/resources/ais.txt.gz")).toList()
-			.toBlocking().single();
+	        .nmeaFromGzip(new File("src/test/resources/ais.txt.gz")).toList().toBlocking().single();
 
 	@Benchmark
 	public void parseShipStaticNmeaMessage() {
@@ -67,7 +66,7 @@ public class BenchmarksAis {
 	public void parseMany() throws IOException {
 		// process 44K lines
 		Observable.from(nmeaLines).map(Streams.LINE_TO_NMEA_MESSAGE)
-				.compose(Streams.<NmeaMessage> valueIfPresent()).subscribe();
+		        .compose(Streams.<NmeaMessage> valueIfPresent()).subscribe();
 	}
 
 	public static void main(String[] args) {
