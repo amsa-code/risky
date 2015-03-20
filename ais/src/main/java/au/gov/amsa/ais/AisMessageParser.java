@@ -57,7 +57,7 @@ public class AisMessageParser {
 	 * @return
 	 */
 	public AisMessage parse(String message, String source, int padBits) {
-		AisExtractor extractor = factory.create(message, padBits);
+		AisExtractor extractor = factory.create(message, 0, padBits);
 		int id = extractor.getMessageId();
 		if (Util.isClassAPositionReport(id)) {
 			return new AisPositionA(message, source, padBits);

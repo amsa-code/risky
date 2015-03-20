@@ -237,11 +237,6 @@ public final class Util {
 	private static AisExtractorFactory extractorFactory = new AisExtractorFactory() {
 
 		@Override
-		public AisExtractor create(String message, int padBits) {
-			return new AisExtractor(message, padBits);
-		}
-
-		@Override
 		public AisExtractor create(String message, int minLength, int padBits) {
 			return new AisExtractor(message, minLength, padBits);
 		}

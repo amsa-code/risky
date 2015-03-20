@@ -9,7 +9,7 @@ public class AisExtractorTest {
 	@Test
 	public void testExtractorGetsMessageId() {
 		String m = "1G72VO0335bPmqcabrJan7rl0000";
-		assertEquals(1, new AisExtractor(m, 0).getMessageId());
+		assertEquals(1, new AisExtractor(m, 0, 0).getMessageId());
 	}
 
 	@Test(expected = AisParseException.class)
@@ -21,7 +21,7 @@ public class AisExtractorTest {
 	@Test
 	public void testExtractorConstructorInstantiatedIfMessageLongEnough() {
 		String m = "1G72VO0335bPmqcabrJan7rl0000";
-		new AisExtractor(m, 1);
+		new AisExtractor(m, 1, 0);
 	}
 
 	@Test(expected = AisParseException.class)

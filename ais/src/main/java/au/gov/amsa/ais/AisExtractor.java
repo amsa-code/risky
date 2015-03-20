@@ -11,21 +11,10 @@ import au.gov.amsa.util.SixBit;
  */
 public class AisExtractor {
 
-	// private final String decodedMessage;
-
 	private final boolean[] bitSet;
 	private final boolean[] calculated;
 	private final int padBits;
 	private final String message;
-
-	/**
-	 * Constructor. Does not do a minimum length check.
-	 * 
-	 * @param message
-	 */
-	public AisExtractor(String message, int padBits) {
-		this(message, null, padBits);
-	}
 
 	/**
 	 * Constructor. If message once decoded is less than minLength then throws
