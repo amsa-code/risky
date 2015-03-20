@@ -1,7 +1,6 @@
 Benchmark                                                                    Mode  Samples       Score       Error  Units
-a.g.a.a.BenchmarksAis.parseAisPositionANmeaMessage                          thrpt       10  650677.393 ± 13832.927  ops/s
-a.g.a.a.BenchmarksAis.parseAisPositionBNmeaMessage                          thrpt       10  674499.960 ± 13318.059  ops/s
-a.g.a.a.BenchmarksAis.parseMany                                             thrpt       10      14.247 ±     0.459  ops/s
-a.g.a.a.BenchmarksAis.parseShipStaticNmeaMessage                            thrpt       10  693274.921 ± 32572.951  ops/s
-a.g.a.a.BenchmarksAis.parseShipStaticNmeaMessageAndExtractBitsOfInterest    thrpt       10  438545.954 ± 10281.057  ops/s
-
+a.g.a.a.BenchmarksAis.parseAisPositionANmeaMessage                          thrpt       10  685927.569 ± 11769.770  ops/s
+a.g.a.a.BenchmarksAis.parseAisPositionBNmeaMessage                          thrpt       10  647797.736 ± 13336.681  ops/s
+a.g.a.a.BenchmarksAis.parseMany                                             thrpt       10      14.105 ±     0.378  ops/s
+a.g.a.a.BenchmarksAis.parseShipStaticNmeaMessage                            thrpt       10  681930.105 ± 14623.748  ops/s
+a.g.a.a.BenchmarksAis.parseShipStaticNmeaMessageAndExtractBitsOfInterest    thrpt       10  414155.027 ± 11821.850  ops/s

@@ -65,7 +65,9 @@ public class AisExtractor {
 	 * @param to
 	 * @return
 	 */
-	public int getValue(int from, int to) {
+	public synchronized int getValue(int from, int to) {
+		// is synchronized so that values of bitSet and calculated can be lazily
+		// calculated and safely published (thread safe).
 		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
 		return (int) SixBit.getValue(from, to, bitSet);
 	}
@@ -78,12 +80,16 @@ public class AisExtractor {
 	 * @param to
 	 * @return
 	 */
-	public int getSignedValue(int from, int to) {
+	public synchronized int getSignedValue(int from, int to) {
+		// is synchronized so that values of bitSet and calculated can be lazily
+		// calculated and safely published (thread safe).
 		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
 		return (int) SixBit.getSignedValue(from, to, bitSet);
 	}
 
-	public String getString(int from, int to) {
+	public synchronized String getString(int from, int to) {
+		// is synchronized so that values of bitSet and calculated can be lazily
+		// calculated and safely published (thread safe).
 		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
 		return SixBit.getString(from, to, bitSet);
 	}
