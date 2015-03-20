@@ -27,10 +27,10 @@ public final class Util {
 	 * @return
 	 * @throws AisParseException
 	 */
-	protected static int getValueByBinStr(String binaryString, boolean signum) {
+	protected static int getValueByBinStr(String binaryString, boolean signed) {
 
 		Integer value = Integer.parseInt(binaryString, 2);
-		if (signum && binaryString.charAt(0) == '1') {
+		if (signed && binaryString.charAt(0) == '1') {
 			char[] invert = new char[binaryString.length()];
 			Arrays.fill(invert, '1');
 			value ^= Integer.parseInt(new String(invert), 2);
@@ -211,8 +211,8 @@ public final class Util {
 	 * @param lat
 	 */
 	public static void checkLat(double lat) {
-		checkArgument(lat <= 91.0, "latitude out of range " + lat);
-		checkArgument(lat > -90.0, "latitude out of range " + lat);
+		checkArgument(lat <= 91.0, "latitude out of range ");
+		checkArgument(lat > -90.0, "latitude out of range ");
 	}
 
 	/**
@@ -222,8 +222,8 @@ public final class Util {
 	 * @param lon
 	 */
 	public static void checkLong(double lon) {
-		checkArgument(lon <= 181.0, "longitude out of range " + lon);
-		checkArgument(lon > -180.0, "longitude out of range " + lon);
+		checkArgument(lon <= 181.0, "longitude out of range");
+		checkArgument(lon > -180.0, "longitude out of range");
 	}
 
 	/**
@@ -240,13 +240,8 @@ public final class Util {
 	private static AisExtractorFactory extractorFactory = new AisExtractorFactory() {
 
 		@Override
-		public AisExtractor create(String message) {
-			return new AisExtractor(message);
-		}
-
-		@Override
-		public AisExtractor create(String message, int minLength) {
-			return new AisExtractor(message, minLength);
+		public AisExtractor create(String message, int minLength, int padBits) {
+			return new AisExtractor(message, minLength, padBits);
 		}
 
 	};

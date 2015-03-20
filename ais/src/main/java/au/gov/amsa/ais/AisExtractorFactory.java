@@ -11,13 +11,6 @@ import au.gov.amsa.ais.message.AisPositionA;
  * 
  */
 public interface AisExtractorFactory {
-	/**
-	 * Returns an extractor for the given message.
-	 * 
-	 * @param message
-	 * @return
-	 */
-	AisExtractor create(String message);
 
 	/**
 	 * Returns an extractor for the given message. If the decoded message does
