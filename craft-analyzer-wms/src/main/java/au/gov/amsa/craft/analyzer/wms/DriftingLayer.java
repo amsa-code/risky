@@ -395,24 +395,30 @@ public class DriftingLayer implements Layer {
         //
         // }).toBlocking().toIterable();
         ConcurrentLinkedQueue<VesselPosition> positions = queue;
+        Point startPoint = null;
         for (VesselPosition p : positions) {
             // expecting positions to be in mmsi, time order
             Point point = projector.toPoint(p.lat(), p.lon());
             if (last.isPresent() && p.id().equals(last.get().id()) && p.data().isPresent()
-                    && !p.data().get().equals(p.time())
-                    && Math.abs(p.lat() - last.get().lat()) < 0.1
-                    && Math.abs(p.lon() - last.get().lon()) < 0.1) {
+                    && !p.data().get().equals(p.time()) && isOkMovement(p, last.get())) {
                 // join the last position with this one with a line
                 g.setColor(Color.gray);
                 g.drawLine(lastPoint.get().x, lastPoint.get().y, point.x, point.y);
-
             }
-            if (p.data().get().equals(p.time())) {
+            if (p.data().get().equals(p.time())
+                    || (last.isPresent() && !isOkMovement(p, last.get()))) {
                 g.setColor(Color.red);
                 g.drawRect(point.x, point.y, 1, 1);
-            } else {
+                startPoint = point;
+            } else if (startPoint != null) {
+                // draw intermediate point
                 g.setColor(Color.darkGray);
                 g.drawRect(point.x, point.y, 1, 1);
+                // redraw startPoint so that a slightly moving drift doesn't
+                // overdraw the startPoint with the color of an intermediate
+                // point
+                g.setColor(Color.red);
+                g.drawRect(startPoint.x, startPoint.y, 1, 1);
             }
             last = Optional.of(p);
             lastPoint = Optional.of(point);
@@ -420,6 +426,11 @@ public class DriftingLayer implements Layer {
         }
         log.info("drawn");
 
+    }
+
+    private static boolean isOkMovement(VesselPosition current, VesselPosition last) {
+        return Position.create(current.lat(), current.lon()).getDistanceToKm(
+                Position.create(last.lat(), last.lon())) < 15;
     }
 
     private static void sortFile(String filename) throws FileNotFoundException, IOException {

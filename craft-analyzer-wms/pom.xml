@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>grumpy-ogc</artifactId>
-			<version>0.2.2</version>
+			<version>0.2.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

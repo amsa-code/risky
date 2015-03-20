@@ -8,11 +8,17 @@ function addLayers(map) {
 
     var wmsUrl = "wms";
     
-    var layer1 = new OpenLayers.Layer.WMS( "Analyze",
+    var layer1 = new OpenLayers.Layer.WMS( "Drifting",
                 wmsUrl, 
-                {layers: 'Analyze',transparent: "true", format: "image/png",styles:"Standard"},
+                {layers: 'Drifting',transparent: "true", format: "image/png",styles:"Standard"},
                 {gutter:15,singleTile:true, visibility:true,opacity: 0.5,animationEnabled: false});
                 
+
+//    var marineProfile = new OpenLayers.Layer.WMS("deepshade", 
+//                    "http:///osm.franken.de:8080/geoserver/wms",
+//                    {layers: "gebco:deepshade", type: 'png', transparent: true},
+//                    {isBaseLayer: false, visibility: true, opacity: 0.2, minResolution: 38.22});
+
     map.addLayer(layer1);
     
     
