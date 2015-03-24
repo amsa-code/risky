@@ -18,6 +18,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
@@ -57,7 +58,6 @@ import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.github.davidmoten.rx.slf4j.OperatorLogging;
 import com.google.common.base.Optional;
 
 public class Streams {
@@ -75,34 +75,29 @@ public class Streams {
 		return connectOnce(socket).timeout(1, TimeUnit.MINUTES).retry();
 	}
 
-	public static Observable<TimestampedAndLine<AisMessage>> connectAndExtract(
-			String host, int port) {
+	public static Observable<TimestampedAndLine<AisMessage>> connectAndExtract(String host, int port) {
 		return extract(connect(host, port));
 	}
 
-	public static Observable<TimestampedAndLine<AisMessage>> extract(
-			Observable<String> rawAisNmea) {
+	public static Observable<TimestampedAndLine<AisMessage>> extract(Observable<String> rawAisNmea) {
 		return rawAisNmea
 		// parse nmea
-				.map(LINE_TO_NMEA_MESSAGE)
-				// if error filter out
-				.compose(Streams.<NmeaMessage> valueIfPresent())
-				// aggregate multi line nmea
-				.map(aggregateMultiLineNmea(BUFFER_SIZE))
-				// if error filter out
-				.compose(Streams.<NmeaMessage> valueIfPresent())
-				// parse ais message and include line
-				.map(TO_AIS_MESSAGE_AND_LINE);
+		        .map(LINE_TO_NMEA_MESSAGE)
+		        // if error filter out
+		        .compose(Streams.<NmeaMessage> valueIfPresent())
+		        // aggregate multi line nmea
+		        .map(aggregateMultiLineNmea(BUFFER_SIZE))
+		        // if error filter out
+		        .compose(Streams.<NmeaMessage> valueIfPresent())
+		        // parse ais message and include line
+		        .map(TO_AIS_MESSAGE_AND_LINE);
 	}
 
-	public static Observable<Timestamped<AisMessage>> extractMessages(
-			Observable<String> rawAisNmea) {
-		return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
-				.compose(Streams.<NmeaMessage> valueIfPresent())
-				.map(aggregateMultiLineNmea(BUFFER_SIZE))
-				.compose(Streams.<NmeaMessage> valueIfPresent())
-				.map(TO_AIS_MESSAGE)
-				.compose(Streams.<Timestamped<AisMessage>> valueIfPresent());
+	public static Observable<Timestamped<AisMessage>> extractMessages(Observable<String> rawAisNmea) {
+		return rawAisNmea.map(LINE_TO_NMEA_MESSAGE).compose(Streams.<NmeaMessage> valueIfPresent())
+		        .map(aggregateMultiLineNmea(BUFFER_SIZE))
+		        .compose(Streams.<NmeaMessage> valueIfPresent()).map(TO_AIS_MESSAGE)
+		        .compose(Streams.<Timestamped<AisMessage>> valueIfPresent());
 
 	}
 
@@ -129,8 +124,7 @@ public class Streams {
 
 			@Override
 			public Observable<T> call(Observable<Optional<T>> o) {
-				return o.filter(Streams.<T> isPresent()).map(
-						Streams.<T> toValue());
+				return o.filter(Streams.<T> isPresent()).map(Streams.<T> toValue());
 			}
 		};
 	}
@@ -147,16 +141,15 @@ public class Streams {
 				if (m.message() instanceof AisPosition) {
 					AisPosition a = (AisPosition) m.message();
 					if (a.getLatitude() == null || a.getLongitude() == null
-							|| a.getLatitude() < -90 || a.getLatitude() > 90
-							|| a.getLongitude() < -180
-							|| a.getLongitude() > 180)
+					        || a.getLatitude() < -90 || a.getLatitude() > 90
+					        || a.getLongitude() < -180 || a.getLongitude() > 180)
 						return Observable.empty();
 					else {
 						final Optional<NavigationalStatus> nav;
 						if (a instanceof AisPositionA) {
 							AisPositionA p = (AisPositionA) a;
-							nav = of(NavigationalStatus.values()[p
-									.getNavigationalStatus().ordinal()]);
+							nav = of(NavigationalStatus.values()[p.getNavigationalStatus()
+							        .ordinal()]);
 						} else
 							nav = absent();
 
@@ -166,16 +159,14 @@ public class Streams {
 						else
 							sog = of((a.getSpeedOverGroundKnots().floatValue()));
 						final Optional<Float> cog;
-						if (a.getCourseOverGround() == null
-								|| a.getCourseOverGround() >= 360
-								|| a.getCourseOverGround() < 0)
+						if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
+						        || a.getCourseOverGround() < 0)
 							cog = absent();
 						else
 							cog = of((a.getCourseOverGround().floatValue()));
 						final Optional<Float> heading;
-						if (a.getTrueHeading() == null
-								|| a.getTrueHeading() >= 360
-								|| a.getTrueHeading() < 0)
+						if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
+						        || a.getTrueHeading() < 0)
 							heading = absent();
 						else
 							heading = of((a.getTrueHeading().floatValue()));
@@ -195,10 +186,9 @@ public class Streams {
 						// TODO latency
 						Optional<Integer> latency = absent();
 
-						Fix f = new Fix(a.getMmsi(), a.getLatitude()
-								.floatValue(), a.getLongitude().floatValue(),
-								m.time(), latency, src, nav, sog, cog, heading,
-								aisClass);
+						Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(), a.getLongitude()
+						        .floatValue(), m.time(), latency, src, nav, sog, cog, heading,
+						        aisClass);
 						return Observable.just(f);
 					}
 				} else
@@ -242,22 +232,19 @@ public class Streams {
 	}
 
 	public static Observable<String> nmeaFrom(InputStream is) {
-		return Strings.split(Strings.from(new InputStreamReader(is, UTF8)),
-				"\n");
+		return Strings.split(Strings.from(new InputStreamReader(is, UTF8)), "\n");
 	}
 
 	public static Observable<String> nmeaFromGzip(String filename) {
 		return nmeaFromGzip(new File(filename));
 	}
 
-	public static Observable<Observable<String>> nmeasFromGzip(
-			Observable<File> files) {
+	public static Observable<Observable<String>> nmeasFromGzip(Observable<File> files) {
 		return files.map(new Func1<File, Observable<String>>() {
 
 			@Override
 			public Observable<String> call(File f) {
-				return nmeaFromGzip(f.getPath()).subscribeOn(
-						Schedulers.computation());
+				return nmeaFromGzip(f.getPath()).subscribeOn(Schedulers.computation());
 			}
 		});
 	}
@@ -269,8 +256,8 @@ public class Streams {
 			@Override
 			public Reader call() {
 				try {
-					return new InputStreamReader(new GZIPInputStream(
-							new FileInputStream(file)), UTF8);
+					return new InputStreamReader(new GZIPInputStream(new FileInputStream(file)),
+					        UTF8);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
@@ -295,8 +282,7 @@ public class Streams {
 				}
 			}
 		};
-		return Observable.using(resourceFactory, observableFactory,
-				disposeAction, true);
+		return Observable.using(resourceFactory, observableFactory, disposeAction, true);
 	}
 
 	public static void print(Observable<?> stream, final PrintStream out) {
@@ -391,8 +377,7 @@ public class Streams {
 		private final String line;
 		private final String error;
 
-		public TimestampedAndLine(Optional<Timestamped<T>> message,
-				String line, String error) {
+		public TimestampedAndLine(Optional<Timestamped<T>> message, String line, String error) {
 			this.message = message;
 			this.line = line;
 			this.error = error;
@@ -502,12 +487,10 @@ public class Streams {
 			try {
 				AisNmeaMessage n = new AisNmeaMessage(nmea);
 				return new TimestampedAndLine<AisMessage>(Optional.of(n
-						.getTimestampedMessage(System.currentTimeMillis())),
-						line, null);
+				        .getTimestampedMessage(System.currentTimeMillis())), line, null);
 			} catch (AisParseException e) {
 				return new TimestampedAndLine<AisMessage>(
-						Optional.<Timestamped<AisMessage>> absent(), line,
-						e.getMessage());
+				        Optional.<Timestamped<AisMessage>> absent(), line, e.getMessage());
 			} catch (RuntimeException e) {
 				log.warn(e.getMessage(), e);
 				throw e;
@@ -544,7 +527,7 @@ public class Streams {
 	// }
 
 	public static final Func1<NmeaMessage, Optional<NmeaMessage>> aggregateMultiLineNmea(
-			final int bufferSize) {
+	        final int bufferSize) {
 		return new Func1<NmeaMessage, Optional<NmeaMessage>>() {
 
 			private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
@@ -558,7 +541,7 @@ public class Streams {
 						return absent();
 					else {
 						Optional<NmeaMessage> concat = AisNmeaBuffer
-								.concatenateMessages(list.get());
+						        .concatenateMessages(list.get());
 						if (concat.isPresent())
 							return of(concat.get());
 						else
@@ -587,8 +570,7 @@ public class Streams {
 				try {
 					synchronized (this) {
 						log.info("creating new socket");
-						socket = createSocket(hostPort.getHost(),
-								hostPort.getPort());
+						socket = createSocket(hostPort.getHost(), hostPort.getPort());
 					}
 					log.info("waiting one second before attempting connect");
 					Thread.sleep(1000);
@@ -626,8 +608,7 @@ public class Streams {
 			private Subscription createSubscription() {
 				return new Subscription() {
 
-					private final AtomicBoolean subscribed = new AtomicBoolean(
-							true);
+					private final AtomicBoolean subscribed = new AtomicBoolean(true);
 
 					@Override
 					public boolean isUnsubscribed() {
@@ -679,30 +660,27 @@ public class Streams {
 	}
 
 	public static Func1<List<File>, Observable<Integer>> extractFixesFromNmeaGzAndAppendToFile(
-			final int linesPerProcessor, final Scheduler scheduler,
-			final Func1<Fix, String> fileMapper, final int writeBufferSize,
-			final OperatorLogging<File> logger) {
+	        final int linesPerProcessor, final Scheduler scheduler,
+	        final Func1<Fix, String> fileMapper, final int writeBufferSize,
+	        final Action1<File> logger) {
 		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(List<File> files) {
-				Observable<Fix> fixes = Streams.extractFixes(Observable
-						.from(files)
-						// log
-						.lift(logger)
-						// one file at a time
-						.concatMap(new Func1<File, Observable<String>>() {
-							@Override
-							public Observable<String> call(File file) {
-								return Streams.nmeaFromGzip(file
-										.getAbsolutePath());
-							}
-						}));
-				return BinaryFixesWriter
-						.writeFixes(fileMapper, fixes, writeBufferSize, false)
-						// total counts
-						.reduce(0, countFixes())
-						// do async
-						.subscribeOn(scheduler);
+				Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
+				// log
+				        .doOnNext(logger)
+				        // one file at a time
+				        .concatMap(new Func1<File, Observable<String>>() {
+					        @Override
+					        public Observable<String> call(File file) {
+						        return Streams.nmeaFromGzip(file.getAbsolutePath());
+					        }
+				        }));
+				return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false)
+				// total counts
+				        .reduce(0, countFixes())
+				        // do async
+				        .subscribeOn(scheduler);
 			}
 		};
 	}
@@ -716,46 +694,58 @@ public class Streams {
 		};
 	}
 
-	public static Observable<Integer> writeFixesFromNmeaGz(File input,
-			Pattern inputPattern, File output, int logEvery,
-			int writeBufferSize, Scheduler scheduler, int linesPerProcessor,
-			long downSampleIntervalMs, Func1<Fix, String> fileMapper) {
+	public static Observable<Integer> writeFixesFromNmeaGz(File input, Pattern inputPattern,
+	        File output, int logEvery, int writeBufferSize, Scheduler scheduler,
+	        int linesPerProcessor, long downSampleIntervalMs, Func1<Fix, String> fileMapper) {
 
-		List<File> fileList = Files.find(input, inputPattern);
+		final List<File> fileList = Files.find(input, inputPattern);
 		Observable<File> files = Observable.from(fileList);
 
 		// count files across parallel streams
-		OperatorLogging<File> logger = Logging.<File> logger().showCount()
-				.showRateSinceStart("rateFilesPerSecond").showValue().log();
+		// OperatorLogging<File> logger = Logging.<File> logger().showCount()
+		// .showRateSinceStart("rateFilesPerSecond").showValue().log();
+		Action1<File> logger = new Action1<File>() {
+			AtomicInteger count = new AtomicInteger();
+			Long start = null;
+
+			@Override
+			public void call(File file) {
+				if (start == null)
+					start = System.currentTimeMillis();
+				int num = count.incrementAndGet();
+				double filesPerSecond = (System.currentTimeMillis() - start) / (double) num
+				        / 1000.0;
+				log.info("file " + num + " of " + fileList.size() + ", rateFilesPerSecond="
+				        + filesPerSecond);
+			}
+		};
 
 		deleteDirectory(output);
 
 		return files
 		// log the filename
-				.buffer(fileList.size()
-						/ Runtime.getRuntime().availableProcessors())
-				// extract fixes
-				.flatMap(
-						extractFixesFromNmeaGzAndAppendToFile(
-								linesPerProcessor, scheduler, fileMapper,
-								writeBufferSize, logger))
-				// count number written fixes
-				.scan(0, new Func2<Integer, Integer, Integer>() {
-					@Override
-					public Integer call(Integer a, Integer b) {
-						return a + b;
-					}
-				})
-				// log
-				.lift(Logging.<Integer> logger().showCount().showMemory()
-						.showRateSince("rate", 5000).every(logEvery).log())
-				// get the final count
-				.last()
-				// on completion of writing fixes, sort the track files and emit
-				// the count of files
-				.concatWith(
-						BinaryFixes.sortBinaryFixFilesByTime(output,
-								downSampleIntervalMs, scheduler));
+		        .buffer(fileList.size() / Runtime.getRuntime().availableProcessors())
+		        // extract fixes
+		        .flatMap(
+		                extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
+		                        fileMapper, writeBufferSize, logger))
+		        // count number written fixes
+		        .scan(0, new Func2<Integer, Integer, Integer>() {
+			        @Override
+			        public Integer call(Integer a, Integer b) {
+				        return a + b;
+			        }
+		        })
+		        // log
+		        .lift(Logging.<Integer> logger().showCount().showMemory()
+		                .showRateSince("rate", 5000).every(logEvery).log())
+		        // get the final count
+		        .last()
+		        // on completion of writing fixes, sort the track files and emit
+		        // the count of files
+		        .concatWith(
+		                BinaryFixes.sortBinaryFixFilesByTime(output, downSampleIntervalMs,
+		                        scheduler));
 	}
 
 	private static void deleteDirectory(File output) {
@@ -769,11 +759,9 @@ public class Streams {
 	public static void main(String[] args) {
 		// print(connectAndExtract("mariweb", 9010).take(10));
 		long t = System.currentTimeMillis();
-		int count = extractMessages(
-				nmeaFrom(new File("/home/dxm/temp/NMEA_ITU_20150101"))).count()
-				.toBlocking().single();
+		int count = extractMessages(nmeaFrom(new File("/home/dxm/temp/NMEA_ITU_20150101"))).count()
+		        .toBlocking().single();
 		double rate = count * 1000.0 / (System.currentTimeMillis() - t);
-		System.out.println("read " + count + " records, rateMsgsPerSecond = "
-				+ rate);
+		System.out.println("read " + count + " records, rateMsgsPerSecond = " + rate);
 	}
 }

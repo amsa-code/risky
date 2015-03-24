@@ -9,7 +9,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import au.gov.amsa.ais.AisExtractor;
@@ -147,14 +146,7 @@ public class AisPositionATest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(118600000).atLeastOnce();
 		replay(ex);
-
-		try {
-			AisPositionA.extractLongitude(ex);
-			Assert.fail(); // fail if gets here
-		} catch (AisParseException e) {
-			// expected exception
-		}
-
+		assertNull(AisPositionA.extractLongitude(ex));
 	}
 
 	@Test
@@ -162,13 +154,7 @@ public class AisPositionATest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(58600000).atLeastOnce();
 		replay(ex);
-
-		try {
-			AisPositionA.extractLatitude(ex);
-			Assert.fail(); // fail if gets here
-		} catch (AisParseException e) {
-			// expected exception
-		}
+		assertNull(AisPositionA.extractLatitude(ex));
 
 	}
 
@@ -177,14 +163,7 @@ public class AisPositionATest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-118600000).atLeastOnce();
 		replay(ex);
-
-		try {
-			AisPositionA.extractLongitude(ex);
-			Assert.fail(); // fail if gets here
-		} catch (AisParseException e) {
-			// expected exception
-		}
-
+		assertNull(AisPositionA.extractLongitude(ex));
 	}
 
 	@Test
@@ -192,14 +171,7 @@ public class AisPositionATest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getSignedValue(anyInt(), anyInt())).andReturn(-58600000).atLeastOnce();
 		replay(ex);
-
-		try {
-			AisPositionA.extractLatitude(ex);
-			Assert.fail(); // fail if gets here
-		} catch (AisParseException e) {
-			// expected exception
-		}
-
+		assertNull(AisPositionA.extractLatitude(ex));
 	}
 
 }
