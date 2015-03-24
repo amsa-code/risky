@@ -725,7 +725,7 @@ public class Streams {
 
 		return files
 		        // log the filename
-		        .buffer(fileList.size() / Runtime.getRuntime().availableProcessors())
+		        .buffer(Math.max(fileList.size() / Runtime.getRuntime().availableProcessors(), 1))
 		        // extract fixes
 		        .flatMap(
 		                extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
