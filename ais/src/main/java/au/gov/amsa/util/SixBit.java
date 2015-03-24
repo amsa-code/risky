@@ -40,7 +40,7 @@ public final class SixBit {
 				char chr = str.charAt(i);
 				int binVal = INT_TO_SIX_BIT[chr];
 				if (binVal == -1) {
-					throw new RuntimeException("Illegal sixbit ascii char: " + chr);
+					throw new SixBitException("Illegal sixbit ascii char: " + chr);
 				}
 				bitSet[index] = (binVal & 32) > 0;
 				bitSet[index + 1] = (binVal & 16) > 0;
@@ -59,7 +59,7 @@ public final class SixBit {
 			char chr = str.charAt(slen);
 			int binVal = INT_TO_SIX_BIT[chr];
 			if (binVal == -1) {
-				throw new RuntimeException("Illegal sixbit ascii char: " + chr);
+				throw new SixBitException("Illegal sixbit ascii char: " + chr);
 			}
 			int bits = 6 - padBits;
 
@@ -84,7 +84,7 @@ public final class SixBit {
 
 	public static long getValue(int from, int to, boolean[] bitSet) {
 		if (to > bitSet.length) {
-			throw new RuntimeException(bitSet.length + " is not enough bits. At least " + to
+			throw new SixBitException(bitSet.length + " is not enough bits. At least " + to
 			        + " expected.");
 		}
 		long val = 0;
@@ -100,7 +100,7 @@ public final class SixBit {
 
 	public static long getSignedValue(int from, int to, boolean[] bitSet) {
 		if (to > bitSet.length) {
-			throw new RuntimeException(bitSet.length + " is not enough bits. At least " + to
+			throw new SixBitException(bitSet.length + " is not enough bits. At least " + to
 			        + " expected.");
 		}
 		long val = 0;
@@ -124,7 +124,7 @@ public final class SixBit {
 		int pos = from;
 		int i;
 		for (i = 0; i < len; i++) {
-			char ch = (char) intToascii((char) SixBit.getValue(pos, pos + 6, bitSet));
+			char ch = (char) intToAscii((char) SixBit.getValue(pos, pos + 6, bitSet));
 			// stops at the first instance of @ character
 			if (ch == '@') {
 				len = i;
@@ -145,9 +145,9 @@ public final class SixBit {
 	 * @param val
 	 * @return
 	 */
-	private static int intToascii(int val) {
+	private static int intToAscii(int val) {
 		if (val > 63) {
-			throw new RuntimeException("Char value " + val + " not allowed");
+			throw new SixBitException("Char value " + val + " not allowed");
 		} else if (val < 32) {
 			return val + 64;
 		} else {

@@ -1,6 +1,7 @@
 package au.gov.amsa.ais;
 
 import au.gov.amsa.util.SixBit;
+import au.gov.amsa.util.SixBitException;
 
 /**
  * Utility class for extracting parts of an ais message as unsigned integers,
@@ -59,10 +60,15 @@ public class AisExtractor {
 	 * @return
 	 */
 	public synchronized int getValue(int from, int to) {
-		// is synchronized so that values of bitSet and calculated can be lazily
-		// calculated and safely published (thread safe).
-		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
-		return (int) SixBit.getValue(from, to, bitSet);
+		try {
+			// is synchronized so that values of bitSet and calculated can be
+			// lazily
+			// calculated and safely published (thread safe).
+			SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+			return (int) SixBit.getValue(from, to, bitSet);
+		} catch (SixBitException e) {
+			throw new AisParseException(e);
+		}
 	}
 
 	/**
@@ -74,17 +80,27 @@ public class AisExtractor {
 	 * @return
 	 */
 	public synchronized int getSignedValue(int from, int to) {
-		// is synchronized so that values of bitSet and calculated can be lazily
-		// calculated and safely published (thread safe).
-		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
-		return (int) SixBit.getSignedValue(from, to, bitSet);
+		try {
+			// is synchronized so that values of bitSet and calculated can be
+			// lazily
+			// calculated and safely published (thread safe).
+			SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+			return (int) SixBit.getSignedValue(from, to, bitSet);
+		} catch (SixBitException e) {
+			throw new AisParseException(e);
+		}
 	}
 
 	public synchronized String getString(int from, int to) {
-		// is synchronized so that values of bitSet and calculated can be lazily
-		// calculated and safely published (thread safe).
-		SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
-		return SixBit.getString(from, to, bitSet);
+		try {
+			// is synchronized so that values of bitSet and calculated can be
+			// lazily
+			// calculated and safely published (thread safe).
+			SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+			return SixBit.getString(from, to, bitSet);
+		} catch (SixBitException e) {
+			throw new AisParseException(e);
+		}
 	}
 
 }

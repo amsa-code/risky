@@ -44,7 +44,7 @@ public class AisAidToNavigation implements AisMessage, HasMmsi {
 		this(Util.getAisExtractorFactory(), message, source, padBits);
 	}
 
-	public AisAidToNavigation(AisExtractorFactory factory, String message, String source,
+	private AisAidToNavigation(AisExtractorFactory factory, String message, String source,
 	        int padBits) {
 		this.source = source;
 		extractor = factory.create(message, 172, padBits);
@@ -68,7 +68,6 @@ public class AisAidToNavigation implements AisMessage, HasMmsi {
 		isUsingRAIM = Util.areEqual(extractor.getValue(268, 269), 1);
 		isVirtualAtoN = areEqual(extractor.getValue(269, 270), 1);
 		isAtonInAssignedMode = areEqual(extractor.getValue(270, 271), 1);
-
 	}
 
 	@Override

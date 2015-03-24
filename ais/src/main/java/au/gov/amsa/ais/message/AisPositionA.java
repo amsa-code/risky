@@ -5,6 +5,7 @@ import static au.gov.amsa.ais.AisMessageType.POSITION_REPORT_SCHEDULED;
 import static au.gov.amsa.ais.AisMessageType.POSITION_REPORT_SPECIAL;
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
+import au.gov.amsa.ais.AisParseException;
 import au.gov.amsa.ais.Communications;
 import au.gov.amsa.ais.HasCommunications;
 import au.gov.amsa.ais.Util;
@@ -50,58 +51,82 @@ public class AisPositionA implements AisPosition, HasCommunications {
 	}
 
 	static Integer extractTrueHeading(AisExtractor extractor) {
-		int val = extractor.getValue(128, 137);
-		if (val == TRUE_HEADING_NOT_AVAILABLE)
+		try {
+			int val = extractor.getValue(128, 137);
+			if (val == TRUE_HEADING_NOT_AVAILABLE)
+				return null;
+			else if (val > 359) {
+				// have seen 404, might be corrupted message
+				return null;
+			} else
+				return val;
+		} catch (AisParseException e) {
 			return null;
-		else if (val > 359) {
-			// have seen 404, might be corrupted message
-			return null;
-		} else
-			return val;
+		}
 	}
 
 	static Double extractCourseOverGround(AisExtractor extractor) {
-		int val = extractor.getValue(116, 128);
-		if (val == COG_NOT_AVAILABLE || val >= 3600)
+		try {
+			int val = extractor.getValue(116, 128);
+			if (val == COG_NOT_AVAILABLE || val >= 3600)
+				return null;
+			else
+				return val / 10.0;
+		} catch (AisParseException e) {
 			return null;
-		else
-			return val / 10.0;
+		}
 	}
 
 	static Double extractSpeedOverGround(AisExtractor extractor) {
-		int val = extractor.getValue(50, 60);
-		if (val == SOG_NOT_AVAILABLE)
+		try {
+			int val = extractor.getValue(50, 60);
+			if (val == SOG_NOT_AVAILABLE)
+				return null;
+			else
+				return val / 10.0;
+		} catch (AisParseException e) {
 			return null;
-		else
-			return val / 10.0;
+		}
 	}
 
 	static Integer extractRateOfTurn(AisExtractor extractor) {
-		byte val = (byte) extractor.getSignedValue(42, 50);
-		if (val == ROT_NOT_AVAILABLE)
+		try {
+			byte val = (byte) extractor.getSignedValue(42, 50);
+			if (val == ROT_NOT_AVAILABLE)
+				return null;
+			else
+				return (int) val;
+		} catch (AisParseException e) {
 			return null;
-		else
-			return (int) val;
+		}
 	}
 
 	static Double extractLongitude(AisExtractor extractor) {
-		int val = extractor.getSignedValue(61, 89);
-		if (val == LONGITUDE_NOT_AVAILABLE) {
+		try {
+			int val = extractor.getSignedValue(61, 89);
+			if (val == LONGITUDE_NOT_AVAILABLE) {
+				return null;
+			} else {
+				Util.checkLong(val / 600000.0);
+				return val / 600000.0;
+			}
+		} catch (AisParseException e) {
 			return null;
-		} else {
-			Util.checkLong(val / 600000.0);
-			return val / 600000.0;
 		}
-
 	}
 
 	static Double extractLatitude(AisExtractor extractor) {
-		int val = extractor.getSignedValue(89, 116);
-		if (val == LATITUDE_NOT_AVAILABLE) {
+
+		try {
+			int val = extractor.getSignedValue(89, 116);
+			if (val == LATITUDE_NOT_AVAILABLE) {
+				return null;
+			} else {
+				Util.checkLat(val / 600000.0);
+				return val / 600000.0;
+			}
+		} catch (AisParseException e) {
 			return null;
-		} else {
-			Util.checkLat(val / 600000.0);
-			return val / 600000.0;
 		}
 	}
 

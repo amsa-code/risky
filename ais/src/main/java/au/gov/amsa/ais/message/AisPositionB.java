@@ -6,6 +6,7 @@ import static au.gov.amsa.ais.Util.getAisExtractorFactory;
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
 import au.gov.amsa.ais.AisMessageType;
+import au.gov.amsa.ais.AisParseException;
 import au.gov.amsa.ais.Communications;
 import au.gov.amsa.ais.HasCommunications;
 import au.gov.amsa.ais.Util;
@@ -44,22 +45,30 @@ public class AisPositionB implements AisPosition, HasCommunications {
 	}
 
 	static Integer extractTrueHeading(AisExtractor extractor) {
-		int val = extractor.getValue(124, 133);
-		if (val == TRUE_HEADING_NOT_AVAILABLE)
+		try {
+			int val = extractor.getValue(124, 133);
+			if (val == TRUE_HEADING_NOT_AVAILABLE)
+				return null;
+			else if (val > 359) {
+				// have seen 404, might be corrupted message
+				return null;
+			} else
+				return val;
+		} catch (AisParseException e) {
 			return null;
-		else if (val > 359) {
-			// have seen 404, might be corrupted message
-			return null;
-		} else
-			return val;
+		}
 	}
 
 	static Double extractCourseOverGround(AisExtractor extractor) {
-		int val = extractor.getValue(112, 124);
-		if (val == COG_NOT_AVAILABLE || val >= 3600)
+		try {
+			int val = extractor.getValue(112, 124);
+			if (val == COG_NOT_AVAILABLE || val >= 3600)
+				return null;
+			else
+				return val / 10.0;
+		} catch (AisParseException e) {
 			return null;
-		else
-			return val / 10.0;
+		}
 	}
 
 	static Double extractSpeedOverGround(AisExtractor extractor) {

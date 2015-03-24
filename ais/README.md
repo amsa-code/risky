@@ -74,7 +74,7 @@ mvn exec:java -P bin -Dinput=/media/an/nmea -Doutput=/media/an/binary-fixes-all 
 ```
 Using 6 cores on a Xeon E5-1650@3.20GHz, the above command extracted and wrote 252K fixes/second. 
 ```input``` and ```output``` were different directories on a single SSD. Conversion of a year's worth of AMSA AIS NMEA lines 
-takes 22 minutes.
+takes 2 hours.
 
 Effect of downsampling AIS
 -------------------------------
