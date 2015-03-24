@@ -33,6 +33,7 @@ import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
+import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -723,7 +724,7 @@ public class Streams {
 		deleteDirectory(output);
 
 		return files
-		// log the filename
+		        // log the filename
 		        .buffer(fileList.size() / Runtime.getRuntime().availableProcessors())
 		        // extract fixes
 		        .flatMap(
@@ -743,6 +744,13 @@ public class Streams {
 		        .last()
 		        // on completion of writing fixes, sort the track files and emit
 		        // the count of files
+		        .doOnCompleted(new Action0() {
+
+			        @Override
+			        public void call() {
+				        log.info("completed converting nmea to binary fixes, starting sort");
+			        }
+		        })
 		        .concatWith(
 		                BinaryFixes.sortBinaryFixFilesByTime(output, downSampleIntervalMs,
 		                        scheduler));
