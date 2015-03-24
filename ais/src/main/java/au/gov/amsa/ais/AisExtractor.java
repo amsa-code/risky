@@ -24,6 +24,10 @@ public class AisExtractor {
 	 * @param minLength
 	 */
 	public AisExtractor(String message, Integer minLength, int padBits) {
+		if (message.length() == 0)
+			throw new AisParseException("message length cannot be 0");
+		if (padBits > 6 || padBits < 0)
+			throw new AisParseException("padBits must be between 0 and 6");
 		this.message = message;
 		boolean[] bits = new boolean[message.length() * 6 - padBits];
 		boolean[] calculated = new boolean[message.length()];

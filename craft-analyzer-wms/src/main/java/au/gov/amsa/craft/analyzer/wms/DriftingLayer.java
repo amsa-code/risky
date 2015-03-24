@@ -79,6 +79,9 @@ public class DriftingLayer implements Layer {
         Sources.fixes2(new File(filename))
                 // log
                 .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(10000).log())
+                // only emit those drifters that have drifted a decent distance
+                // since start of drift
+                .lift(new OperatorDriftDistanceCheck())
                 // only class A vessels
                 .filter(onlyClassA())
                 // ignore vessels at anchor
@@ -295,7 +298,7 @@ public class DriftingLayer implements Layer {
             public void call(VesselPosition p) {
                 // System.out.println(p.lat() + "\t" + p.lon() + "\t"
                 // + p.id().uniqueId());
-                if (queue.size() % 1000 == 0)
+                if (queue.size() % 10000 == 0)
                     System.out.println("queue.size=" + queue.size());
                 queue.add(p);
                 tree = tree.add(p, Geometries.point(p.lon(), p.lat()));

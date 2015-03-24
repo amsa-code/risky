@@ -60,7 +60,7 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.plugin.version}</version>
 				<configuration>
-					<scanIntervalSeconds>10</scanIntervalSeconds>
+					<scanIntervalSeconds>2</scanIntervalSeconds>
 					<stopKey>foo</stopKey>
 					<stopPort>${stop.port}</stopPort>
 					<webAppConfig>
