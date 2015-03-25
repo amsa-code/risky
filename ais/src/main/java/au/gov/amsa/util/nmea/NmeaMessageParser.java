@@ -28,10 +28,12 @@ public class NmeaMessageParser {
 
 		String remaining;
 		if (line.startsWith("\\")) {
-			int tagFinish = line.indexOf("\\", 1);
+			int tagFinish = line.lastIndexOf('\\', line.length() - 1);
 			if (tagFinish == -1)
 				throw new NmeaMessageParseException("no matching \\ symbol to finish tag block: "
 				        + line);
+			if (tagFinish == 0)
+				throw new NmeaMessageParseException("tag block is empty or not terminated");
 			tags = extractTags(line.substring(1, tagFinish));
 			remaining = line.substring(tagFinish + 1);
 		} else

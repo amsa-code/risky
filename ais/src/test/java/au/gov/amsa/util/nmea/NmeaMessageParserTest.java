@@ -1,6 +1,7 @@
 package au.gov.amsa.util.nmea;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.util.LinkedHashMap;
@@ -159,6 +160,13 @@ public class NmeaMessageParserTest {
 		assertEquals("1418371240", tags.get("c"));
 		assertEquals("|X=1|D=1|T=41985.3864759144|P=10.225.253.129:25479|R=IN|", tags.get("i"));
 		assertEquals(3, tags.size());
+	}
+
+	@Test
+	public void testNmeaWithBackSlashCorruptionInTagBlock() {
+		String msg = "\\s:rEV61,c\\g:1-2-8541,s:rEV61,c:1427240143*20\\!AIVDM,2,1,3,A,53K=Fr42<hQKTP7?KKL<58pUH4j0hDLDp@00000t4T1DD4tj0DTnA3QF@00000,0*18";
+		NmeaMessage n = new NmeaMessageParser().parse(msg);
+		assertNotNull(n.getTags().get("c\\g"));
 	}
 
 }
