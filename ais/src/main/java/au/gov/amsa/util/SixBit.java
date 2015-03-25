@@ -22,12 +22,18 @@ public final class SixBit {
 	}
 
 	/**
-	 * Append bits from a sixbit encoded string
+	 * Converts sixBit string characters to bits (boolean values in the array
+	 * bitSet) but just between the bit range {@code from} to {@code to}
+	 * exclusive.
 	 * 
 	 * @param str
 	 * @param padBits
+	 * @param bitSet
+	 * @param calculated
+	 * @param from
+	 * @param to
 	 */
-	public static void sixBitToBits(String str, int padBits, boolean bitSet[],
+	public static void convertSixBitToBits(String str, int padBits, boolean bitSet[],
 	        boolean[] calculated, int from, int to) {
 		if (str.length() == 0)
 			return;
@@ -124,6 +130,9 @@ public final class SixBit {
 		int pos = from;
 		int i;
 		for (i = 0; i < len; i++) {
+			// Note that SixBit.getValue() should never return a value > 63
+			// because it is only using 6 bits so intToAscii should never throw
+			// a SixBitException.
 			char ch = (char) intToAscii((char) SixBit.getValue(pos, pos + 6, bitSet));
 			// stops at the first instance of @ character
 			if (ch == '@') {

@@ -64,7 +64,7 @@ public class AisExtractor {
 			// is synchronized so that values of bitSet and calculated can be
 			// lazily
 			// calculated and safely published (thread safe).
-			SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+			SixBit.convertSixBitToBits(message, padBits, bitSet, calculated, from, to);
 			return (int) SixBit.getValue(from, to, bitSet);
 		} catch (SixBitException e) {
 			throw new AisParseException(e);
@@ -84,7 +84,7 @@ public class AisExtractor {
 			// is synchronized so that values of bitSet and calculated can be
 			// lazily
 			// calculated and safely published (thread safe).
-			SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+			SixBit.convertSixBitToBits(message, padBits, bitSet, calculated, from, to);
 			return (int) SixBit.getSignedValue(from, to, bitSet);
 		} catch (SixBitException e) {
 			throw new AisParseException(e);
@@ -96,7 +96,7 @@ public class AisExtractor {
 			// is synchronized so that values of bitSet and calculated can be
 			// lazily
 			// calculated and safely published (thread safe).
-			SixBit.sixBitToBits(message, padBits, bitSet, calculated, from, to);
+			SixBit.convertSixBitToBits(message, padBits, bitSet, calculated, from, to);
 			return SixBit.getString(from, to, bitSet);
 		} catch (SixBitException e) {
 			throw new AisParseException(e);
