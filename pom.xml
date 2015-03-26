@@ -58,6 +58,7 @@
 		<module>ihs-reader</module>
 		<module>renjin</module>
 		<module>h2spatial</module>
+        <module>spark</module>
     </modules>
 
     <build>
