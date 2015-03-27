@@ -38,7 +38,7 @@ public class MLApp {
         Integer numClasses = 3;
         Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
         String impurity = "gini";
-        Integer maxDepth = 15;
+        Integer maxDepth = 5;
         Integer maxBins = 32;
 
         // Train a DecisionTree model for classification.
