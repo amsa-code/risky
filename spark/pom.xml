@@ -9,11 +9,20 @@
     <artifactId>spark</artifactId>
     <name>${project.artifactId}</name>
     <description />
+<properties>
+	<spark.version>1.3.0</spark.version>
+    <scala.version>2.11</scala.version>
+</properties>
     <dependencies>
-    <dependency> <!-- Spark dependency -->
+    <dependency>
       <groupId>org.apache.spark</groupId>
-      <artifactId>spark-core_2.10</artifactId>
-      <version>1.2.1</version>
+      <artifactId>spark-core_${scala.version}</artifactId>
+      <version>${spark.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.spark</groupId>
+      <artifactId>spark-mllib_${scala.version}</artifactId>
+      <version>${spark.version}</version>
     </dependency>
   </dependencies>
 </project>
