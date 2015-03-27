@@ -18,8 +18,8 @@ import com.github.davidmoten.rx.Functions;
  */
 public class Downsample<T extends HasFix> implements Transformer<T, T> {
 
-    private long minTimeBetweenFixesMs;
-    private Func1<T, Boolean> selector;
+    private final long minTimeBetweenFixesMs;
+    private final Func1<T, Boolean> selector;
 
     public Downsample(long minTimeBetweenFixesMs, Func1<T, Boolean> selector) {
         this.minTimeBetweenFixesMs = minTimeBetweenFixesMs;
