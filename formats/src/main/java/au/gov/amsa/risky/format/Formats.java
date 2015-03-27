@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -32,23 +33,32 @@ public final class Formats {
         Preconditions.checkNotNull(pattern);
         Preconditions.checkNotNull(transformer);
         final List<File> files = Files.find(input, pattern);
+        long n = 0;
+        for (File file : files)
+            n += file.length();
+        final long totalSizeBytes = n;
+        log.info("transforming " + new DecimalFormat("0.000").format(totalSizeBytes / 1000000.0)
+                + "MB");
         final Action1<File> logger = new Action1<File>() {
             final AtomicInteger count = new AtomicInteger();
             final long startTime = System.currentTimeMillis();
+            final AtomicLong size = new AtomicLong();
 
             @Override
             public void call(File f) {
                 long t = System.currentTimeMillis();
                 int n = count.incrementAndGet();
+                long bytes = size.getAndAdd(f.length());
                 double timeToFinishMins;
                 if (n > 1) {
-                    timeToFinishMins = (t - startTime) / (double) (n - 1) * files.size() / 1000.0
-                            / 60.0;
+                    timeToFinishMins = (t - startTime) / (double) (bytes)
+                            * (double) (totalSizeBytes - bytes) / 1000.0 / 60.0;
                 } else
                     timeToFinishMins = -1;
-                DecimalFormat df = new DecimalFormat("0.00");
-                log.info("transforming " + n + " of " + files.size() + ":" + f
-                        + ", finish in mins=" + df.format(timeToFinishMins));
+                DecimalFormat df = new DecimalFormat("0.000");
+                log.info("transforming " + n + " of " + files.size() + ":" + f + ", sizeMB="
+                        + df.format(f.length() / 1000000.0) + ", finish in mins="
+                        + df.format(timeToFinishMins));
             }
         };
 
@@ -63,7 +73,7 @@ public final class Formats {
                     public Observable<Integer> call(final File file) {
                         final File outputFile = rebase(file, input, output);
                         outputFile.getParentFile().mkdirs();
-                        log.info("writing " + file + " to " + outputFile);
+                        logger.call(file);
                         return BinaryFixes.from(file, true)
                         // to list
                                 .toList()
@@ -79,7 +89,6 @@ public final class Formats {
                                     public void call(List<HasFix> list) {
                                         File f = new File(outputFile.getParentFile(), renamer
                                                 .call(outputFile.getName()));
-                                        logger.call(f);
                                         fixesWriter.call(list, f);
                                     }
                                 })

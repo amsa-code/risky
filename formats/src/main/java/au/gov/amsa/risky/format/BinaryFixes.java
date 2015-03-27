@@ -11,6 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
@@ -140,35 +141,40 @@ public final class BinaryFixes {
     public static Observable<Integer> sortBinaryFixFilesByTime(File output,
             final long downSampleIntervalMs, Scheduler scheduler) {
         final AtomicInteger numFiles = new AtomicInteger();
-        final Action1<File> preSortAction = createLogAction(numFiles);
+        final AtomicLong totalSizeBytes = new AtomicLong();
+        final Action1<File> preSortAction = createLogAction(numFiles, totalSizeBytes);
         return Observable.just(output).onBackpressureBuffer()
         // log
                 .lift(Logging.<File> logger().prefix("sorting files in folder ").log())
                 // find the track files
-                .concatMap(findTrackFiles(numFiles))
+                .concatMap(findTrackFiles(numFiles, totalSizeBytes))
                 // sort the fixes in each file in each list and rewrite files
                 .flatMap(sortFileFixes(downSampleIntervalMs, scheduler, preSortAction))
                 // return the count
                 .count();
     }
 
-    private static Action1<File> createLogAction(final AtomicInteger numFiles) {
+    private static Action1<File> createLogAction(final AtomicInteger numFiles,
+            final AtomicLong totalSizeBytes) {
         return new Action1<File>() {
             final AtomicInteger count = new AtomicInteger();
             final long startTime = System.currentTimeMillis();
+            final AtomicLong size = new AtomicLong();
 
             @Override
             public void call(File f) {
                 long t = System.currentTimeMillis();
                 int n = count.incrementAndGet();
+                long bytes = size.getAndAdd(f.length());
                 double timeToFinishMins;
                 if (n > 1) {
-                    timeToFinishMins = (t - startTime) / (double) (n - 1) * numFiles.get() / 1000.0
-                            / 60.0;
+                    timeToFinishMins = (t - startTime) / (double) bytes
+                            * (double) (totalSizeBytes.get() - bytes) / 1000.0 / 60.0;
                 } else
                     timeToFinishMins = -1;
-                DecimalFormat df = new DecimalFormat("0.00");
-                log.info("sorting " + n + " of " + numFiles.get() + ":" + f + ", finish in mins="
+                DecimalFormat df = new DecimalFormat("0.000");
+                log.info("sorting " + n + " of " + numFiles.get() + ":" + f + ", sizeMB="
+                        + df.format(f.length() / 1000000.0) + ", finish in mins="
                         + df.format(timeToFinishMins));
             }
         };
@@ -220,12 +226,19 @@ public final class BinaryFixes {
         };
     }
 
-    private static Func1<File, Observable<List<File>>> findTrackFiles(final AtomicInteger numFiles) {
+    private static Func1<File, Observable<List<File>>> findTrackFiles(final AtomicInteger numFiles,
+            final AtomicLong totalSize) {
         return new Func1<File, Observable<List<File>>>() {
             @Override
             public Observable<List<File>> call(File output) {
                 List<File> files = Files.find(output, Pattern.compile("\\d+\\.track"));
-                System.out.println("found files " + files.size());
+                log.info("found files " + files.size());
+                log.info("getting total size");
+                long size = 0;
+                for (File file : files)
+                    size += file.length();
+                log.info("total size=" + size);
+                totalSize.set(size);
                 numFiles.set(files.size());
                 return Observable.from(files).buffer(
                         Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1));
