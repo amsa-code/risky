@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -139,7 +140,20 @@ public final class BinaryFixes {
     public static Observable<Integer> sortBinaryFixFilesByTime(File output,
             final long downSampleIntervalMs, Scheduler scheduler) {
         final AtomicInteger numFiles = new AtomicInteger();
-        final Action1<File> preSortAction = new Action1<File>() {
+        final Action1<File> preSortAction = createLogAction(numFiles);
+        return Observable.just(output).onBackpressureBuffer()
+        // log
+                .lift(Logging.<File> logger().prefix("sorting files in folder ").log())
+                // find the track files
+                .concatMap(findTrackFiles(numFiles))
+                // sort the fixes in each file in each list and rewrite files
+                .flatMap(sortFileFixes(downSampleIntervalMs, scheduler, preSortAction))
+                // return the count
+                .count();
+    }
+
+    private static Action1<File> createLogAction(final AtomicInteger numFiles) {
+        return new Action1<File>() {
             final AtomicInteger count = new AtomicInteger();
             final long startTime = System.currentTimeMillis();
 
@@ -153,19 +167,11 @@ public final class BinaryFixes {
                             / 60.0;
                 } else
                     timeToFinishMins = -1;
+                DecimalFormat df = new DecimalFormat("0.00");
                 log.info("sorting " + n + " of " + numFiles.get() + ":" + f + ", finish in mins="
-                        + timeToFinishMins);
+                        + df.format(timeToFinishMins));
             }
         };
-        return Observable.just(output).onBackpressureBuffer()
-        // log
-                .lift(Logging.<File> logger().prefix("sorting files in folder ").log())
-                // find the track files
-                .concatMap(findTrackFiles(numFiles))
-                // sort the fixes in each file in each list and rewrite files
-                .flatMap(sortFileFixes(downSampleIntervalMs, scheduler, preSortAction))
-                // return the count
-                .count();
     }
 
     private static Func1<List<File>, Observable<Integer>> sortFileFixes(

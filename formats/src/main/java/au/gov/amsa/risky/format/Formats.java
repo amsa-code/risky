@@ -1,7 +1,9 @@
 package au.gov.amsa.risky.format;
 
 import java.io.File;
+import java.text.DecimalFormat;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -29,8 +31,28 @@ public final class Formats {
         Preconditions.checkNotNull(output);
         Preconditions.checkNotNull(pattern);
         Preconditions.checkNotNull(transformer);
-        List<File> files = Files.find(input, pattern);
-        log.info("converting " + files.size() + " files");
+        final List<File> files = Files.find(input, pattern);
+        final Action1<File> logger = new Action1<File>() {
+            final AtomicInteger count = new AtomicInteger();
+            final long startTime = System.currentTimeMillis();
+
+            @Override
+            public void call(File f) {
+                long t = System.currentTimeMillis();
+                int n = count.incrementAndGet();
+                double timeToFinishMins;
+                if (n > 1) {
+                    timeToFinishMins = (t - startTime) / (double) (n - 1) * files.size() / 1000.0
+                            / 60.0;
+                } else
+                    timeToFinishMins = -1;
+                DecimalFormat df = new DecimalFormat("0.00");
+                log.info("transforming " + n + " of " + files.size() + ":" + f
+                        + ", finish in mins=" + df.format(timeToFinishMins));
+            }
+        };
+
+        log.info("converting " + files.size() + " files" + " in " + input);
         return Observable
         // get the files matching the pattern from the directory
                 .from(files)
@@ -57,8 +79,8 @@ public final class Formats {
                                     public void call(List<HasFix> list) {
                                         File f = new File(outputFile.getParentFile(), renamer
                                                 .call(outputFile.getName()));
+                                        logger.call(f);
                                         fixesWriter.call(list, f);
-                                        log.info("transformed " + file + " to " + f);
                                     }
                                 })
                                 // count the fixes
