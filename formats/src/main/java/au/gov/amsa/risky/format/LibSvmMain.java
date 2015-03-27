@@ -28,7 +28,7 @@ public class LibSvmMain {
                         && f.getSpeedOverGroundKnots().isPresent();
 
             }
-        }).take(10000000).forEach(new Action1<HasFix>() {
+        }).take(1000000).forEach(new Action1<HasFix>() {
 
             @Override
             public void call(HasFix f) {
