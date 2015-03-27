@@ -1,6 +1,9 @@
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -16,14 +19,14 @@ import scala.Tuple2;
 
 public class MLApp {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         SparkConf sparkConf = new SparkConf().setAppName("JavaDecisionTree");
         sparkConf.setMaster("local");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         // Load and parse the data file.
-        String datapath = "data/mllib/sample_libsvm_data.txt";
+        String datapath = "../formats/target/fixes.libsvm";
         JavaRDD<LabeledPoint> data = MLUtils.loadLibSVMFile(sc.sc(), datapath).toJavaRDD();
         // Split the data into training and test sets (30% held out for testing)
         JavaRDD<LabeledPoint>[] splits = data.randomSplit(new double[] { 0.7, 0.3 });
@@ -32,10 +35,10 @@ public class MLApp {
 
         // Set parameters.
         // Empty categoricalFeaturesInfo indicates all features are continuous.
-        Integer numClasses = 2;
+        Integer numClasses = 3;
         Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
         String impurity = "gini";
-        Integer maxDepth = 5;
+        Integer maxDepth = 15;
         Integer maxBins = 32;
 
         // Train a DecisionTree model for classification.
@@ -61,7 +64,9 @@ public class MLApp {
         System.out.println("Learned classification tree model:\n" + model.toDebugString());
 
         // Save and load model
-        model.save(sc.sc(), "myModelPath");
-        DecisionTreeModel sameModel = DecisionTreeModel.load(sc.sc(), "myModelPath");
+        String modelPath = "target/myModelPath";
+        FileUtils.deleteDirectory(new File(modelPath));
+        model.save(sc.sc(), modelPath);
+        DecisionTreeModel sameModel = DecisionTreeModel.load(sc.sc(), modelPath);
     }
 }
