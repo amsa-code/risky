@@ -111,4 +111,5 @@ public class OperatorMinEffectiveSpeedThresholdTest {
         assertFalse(list.isEmpty());
         assertEquals(b.fix().lon(), list.get(0).fix().lon(), 0.0001);
     }
+
 }
