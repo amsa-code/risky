@@ -2,13 +2,13 @@ package au.gov.amsa.risky.format;
 
 import static com.google.common.base.Optional.of;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import rx.Observable;
@@ -100,15 +100,15 @@ public class OperatorMinEffectiveSpeedThresholdTest {
     }
 
     @Test
-    @Ignore
     public void testThreeLargeGapThenLargeGapReturnsSecond() {
         Fix a = createFix(0, 135.0f);
-        Fix b = createFix(TimeUnit.HOURS.toMillis(31), 135.05f);
-        Fix c = createFix(TimeUnit.MINUTES.toMillis(62), 135.01f);
+        Fix b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
+        Fix c = createFix(TimeUnit.MINUTES.toMillis(62), 135.2f);
         List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(a, b, c)
                 // aggregate stats
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
                 .toList().toBlocking().single();
+        assertFalse(list.isEmpty());
         assertEquals(b.fix().lon(), list.get(0).fix().lon(), 0.0001);
     }
 }
