@@ -15,7 +15,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
         Operator<FixWithPreAndPostEffectiveSpeed, HasFix> {
 
     private long deltaMs;
-    private final long smallestReportingIntervalMs = 3000;
+    private final long smallestReportingIntervalMs = 1000;
     private final RingBuffer<HasFix> buffer;
 
     public OperatorMinEffectiveSpeedThreshold(long deltaMs) {
@@ -52,36 +52,39 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                 HasFix latest = fix;
                 HasFix first = buffer.peek();
                 if (!middle.isPresent()) {
-                    if (latest.fix().time() - first.fix().time() > deltaMs) {
+                    if (latest.fix().time() - first.fix().time() >= deltaMs) {
                         middle = Optional.of(latest);
+                        System.out.println("middle=" + middle);
                     }
-                } else if (latest.fix().time() - middle.get().fix().time() > deltaMs) {
+                } else if (latest.fix().time() - middle.get().fix().time() >= deltaMs) {
                     // now can emit middle with its pre and post effective speed
                     // and reliability measure (time difference minus deltaMs)
 
                     // measure distance from first to middle
                     double distanceFirstToMiddleKm = 0;
-                    Optional<HasFix> last = Optional.absent();
+                    Optional<HasFix> previous = Optional.absent();
                     Enumeration<HasFix> en = buffer.values();
                     boolean keepGoing = en.hasMoreElements();
                     while (keepGoing) {
                         HasFix f = en.nextElement();
-                        if (last.isPresent())
-                            distanceFirstToMiddleKm += distanceKm(last.get(), f);
-                        keepGoing = en.hasMoreElements() && f != middle;
+                        if (previous.isPresent())
+                            distanceFirstToMiddleKm += distanceKm(previous.get(), f);
+                        previous = Optional.of(f);
+                        keepGoing = en.hasMoreElements() && f != middle.get();
                     }
 
                     // measure distance from middle to latest
                     double distanceMiddleToLatestKm = 0;
-                    last = middle;
+                    previous = middle;
                     keepGoing = en.hasMoreElements();
                     Optional<HasFix> firstAfterMiddle = Optional.absent();
                     while (keepGoing) {
                         HasFix f = en.nextElement();
                         if (!firstAfterMiddle.isPresent())
                             firstAfterMiddle = Optional.of(f);
-                        if (last.isPresent())
-                            distanceFirstToMiddleKm += distanceKm(last.get(), f);
+                        if (previous.isPresent())
+                            distanceMiddleToLatestKm += distanceKm(previous.get(), f);
+                        previous = Optional.of(f);
                         keepGoing = en.hasMoreElements();
                     }
 
@@ -104,8 +107,8 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                             / (double) TimeUnit.HOURS.toMillis(1);
 
                     // emit what we have!
-                    child.onNext(new FixWithPreAndPostEffectiveSpeed(fix, preSpeedKnots, preError,
-                            postSpeedKnots, postError));
+                    child.onNext(new FixWithPreAndPostEffectiveSpeed(middle.get(), preSpeedKnots,
+                            preError, postSpeedKnots, postError));
 
                     // drop values from front of buffer
                     en = buffer.values();
@@ -118,6 +121,8 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                         else
                             buffer.pop();
                     }
+                    // TODO needs more thinking
+                    middle = firstAfterMiddle;
                 }
             }
 
@@ -169,6 +174,23 @@ public final class OperatorMinEffectiveSpeedThreshold implements
 
         public double postError() {
             return postError;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder b = new StringBuilder();
+            b.append("FixWithPreAndPostEffectiveSpeed [preEffectiveSpeedKnots=");
+            b.append(preEffectiveSpeedKnots);
+            b.append(", preError=");
+            b.append(preError);
+            b.append(", postEffectiveSpeedKnots=");
+            b.append(postEffectiveSpeedKnots);
+            b.append(", postError=");
+            b.append(postError);
+            b.append(", fix=");
+            b.append(fix);
+            b.append("]");
+            return b.toString();
         }
 
     }

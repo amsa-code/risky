@@ -5,10 +5,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import rx.functions.Action1;
 import rx.functions.Func1;
+import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold.FixWithPreAndPostEffectiveSpeed;
 import au.gov.amsa.util.Files;
 
 public class LibSvmMain {
@@ -28,6 +30,8 @@ public class LibSvmMain {
                 .filter(classAOnly())
                 // only fixes that have course, heading and speed present
                 .filter(hasCourseHeadingSpeed())
+                // emit with params
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.HOURS.toMillis(1)))
                 // write the fixes in LIBSVM format
                 .forEach(writeFix(writer), handleError());
 
@@ -47,11 +51,11 @@ public class LibSvmMain {
         };
     }
 
-    private static Action1<HasFix> writeFix(final Writer writer) {
-        return new Action1<HasFix>() {
+    private static Action1<FixWithPreAndPostEffectiveSpeed> writeFix(final Writer writer) {
+        return new Action1<FixWithPreAndPostEffectiveSpeed>() {
 
             @Override
-            public void call(HasFix f) {
+            public void call(FixWithPreAndPostEffectiveSpeed f) {
                 int navStatus;
 
                 if (f.fix().navigationalStatus().isPresent()) {
@@ -67,7 +71,8 @@ public class LibSvmMain {
                 float diff = Math.abs(fix.courseOverGroundDegrees().get()
                         - fix.headingDegrees().get());
                 LibSvm.write(writer, navStatus, f.fix().lat(), f.fix().lon(), fix
-                        .speedOverGroundKnots().get(), diff);
+                        .speedOverGroundKnots().get(), diff, f.preEffectiveSpeedKnots(), f
+                        .preError(), f.postEffectiveSpeedKnots(), f.postError());
             }
         };
     }
@@ -78,8 +83,7 @@ public class LibSvmMain {
             @Override
             public Boolean call(HasFix fix) {
                 Fix f = fix.fix();
-                return f.courseOverGroundDegrees().isPresent()
-                        && f.headingDegrees().isPresent()
+                return f.courseOverGroundDegrees().isPresent() && f.headingDegrees().isPresent()
                         && f.speedOverGroundKnots().isPresent();
             }
         };
