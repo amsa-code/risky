@@ -126,7 +126,7 @@ public final class BinaryFixesWriter {
 
 		@Override
 		public String call(Fix fix) {
-			DateTime d = new DateTime(fix.getTime(), DateTimeZone.UTC);
+			DateTime d = new DateTime(fix.time(), DateTimeZone.UTC);
 			int month = d.getMonthOfYear();
 			int year = d.getYear();
 			StringBuilder s = new StringBuilder();
@@ -136,7 +136,7 @@ public final class BinaryFixesWriter {
 			s.append(File.separator);
 			s.append(month);
 			s.append(File.separator);
-			s.append(fix.getMmsi());
+			s.append(fix.mmsi());
 			s.append(".track");
 			return s.toString();
 		}
@@ -153,14 +153,14 @@ public final class BinaryFixesWriter {
 
 		@Override
 		public String call(Fix fix) {
-			DateTime d = new DateTime(fix.getTime(), DateTimeZone.UTC);
+			DateTime d = new DateTime(fix.time(), DateTimeZone.UTC);
 			int year = d.getYear();
 			StringBuilder s = new StringBuilder();
 			s.append(base);
 			s.append(File.separator);
 			s.append(year);
 			s.append(File.separator);
-			s.append(fix.getMmsi());
+			s.append(fix.mmsi());
 			s.append(".track");
 			return s.toString();
 		}

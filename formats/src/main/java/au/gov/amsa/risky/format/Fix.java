@@ -56,51 +56,51 @@ public final class Fix implements HasFix {
 		this.aisClass = aisClass;
 	}
 
-	public long getMmsi() {
+	public long mmsi() {
 		return mmsi;
 	}
 
-	public long getTime() {
+	public long time() {
 		return time;
 	}
 
-	public float getLat() {
+	public float lat() {
 		return lat;
 	}
 
-	public float getLon() {
+	public float lon() {
 		return lon;
 	}
 
-	public Optional<NavigationalStatus> getNavigationalStatus() {
+	public Optional<NavigationalStatus> navigationalStatus() {
 		return navigationalStatus;
 	}
 
-	public Optional<Float> getSpeedOverGroundKnots() {
+	public Optional<Float> speedOverGroundKnots() {
 		return speedOverGroundKnots;
 	}
 
-	public Optional<Float> getCourseOverGroundDegrees() {
+	public Optional<Float> courseOverGroundDegrees() {
 		return courseOverGroundDegrees;
 	}
 
-	public Optional<Float> getHeadingDegrees() {
+	public Optional<Float> headingDegrees() {
 		return headingDegrees;
 	}
 
-	public AisClass getAisClass() {
+	public AisClass aisClass() {
 		return aisClass;
 	}
 
-	public Optional<Integer> getLatencySeconds() {
+	public Optional<Integer> latencySeconds() {
 		return latencySeconds;
 	}
 
-	public Optional<Short> getSource() {
+	public Optional<Short> source() {
 		return source;
 	}
 
-	public Optional<Byte> getRateOfTurn() {
+	public Optional<Byte> rateOfTurn() {
 		return Optional.absent();
 	}
 

@@ -91,13 +91,13 @@ public class DriftingDetectorFix {
 		// of fixes. If a certain proportion of fixes are drift detection with a
 		// minimum window of report time from the first detection report time
 		// then report them to the child subscriber
-		if (currentMmsi.get() != f.getMmsi() || q.size() == q.maxSize()) {
+		if (currentMmsi.get() != f.mmsi() || q.size() == q.maxSize()) {
 			// note that hitting maxSize in q should only happen for rubbish
 			// mmsi codes like 0 so we are happy to clear the q
 			q.clear();
 			driftingSinceTime.set(Long.MAX_VALUE);
 			nonDriftingSinceTime.set(Long.MAX_VALUE);
-			currentMmsi.set(f.getMmsi());
+			currentMmsi.set(f.mmsi());
 		}
 		if (q.isEmpty()) {
 			if (IS_CANDIDATE.call(f)) {
@@ -105,10 +105,10 @@ public class DriftingDetectorFix {
 				// reset non drifting time because drifting detected
 				nonDriftingSinceTime.set(Long.MAX_VALUE);
 				// if drifting since not set then use this fix time
-				driftingSinceTime.compareAndSet(Long.MAX_VALUE, f.getTime());
+				driftingSinceTime.compareAndSet(Long.MAX_VALUE, f.time());
 			} else {
 				// if non drifting start time not set then use this fix
-				nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, f.getTime());
+				nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, f.time());
 				return;
 			}
 		} else {
@@ -117,7 +117,7 @@ public class DriftingDetectorFix {
 		}
 
 		// process the queue if time interval long enough
-		if (f.getTime() - q.peek().fix.getTime() >= WINDOW_SIZE_MS) {
+		if (f.time() - q.peek().fix.time() >= WINDOW_SIZE_MS) {
 			// count the number of candidates
 			int count = countDrifting(q);
 			// if a decent number of drift candidates found in the time interval
@@ -139,14 +139,14 @@ public class DriftingDetectorFix {
 			if (x.drifting) {
 				// emit DriftCandidate with driftingSinceTime
 				long driftingSince;
-				if (x.fix.getTime() - nonDriftingSinceTime.get() > NON_DRIFTING_THRESHOLD_MS)
-					driftingSince = x.fix.getTime();
+				if (x.fix.time() - nonDriftingSinceTime.get() > NON_DRIFTING_THRESHOLD_MS)
+					driftingSince = x.fix.time();
 				else
 					driftingSince = driftingSinceTime.get();
 				child.onNext(new DriftCandidate(x.fix, driftingSince));
 				nonDriftingSinceTime.set(Long.MAX_VALUE);
 			} else {
-				nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.getTime());
+				nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.time());
 			}
 		}
 	}
@@ -180,17 +180,17 @@ public class DriftingDetectorFix {
 
 		@Override
 		public Boolean call(Fix p) {
-			if (p.getCourseOverGroundDegrees().isPresent()
-			        && p.getHeadingDegrees().isPresent()
-			        && p.getSpeedOverGroundKnots().isPresent()
-			        && (!p.getNavigationalStatus().isPresent() || (p.getNavigationalStatus().get() != NavigationalStatus.AT_ANCHOR && p
-			                .getNavigationalStatus().get() != NavigationalStatus.MOORED))) {
-				double diff = diff(p.getCourseOverGroundDegrees().get(), p.getHeadingDegrees()
+			if (p.courseOverGroundDegrees().isPresent()
+			        && p.headingDegrees().isPresent()
+			        && p.speedOverGroundKnots().isPresent()
+			        && (!p.navigationalStatus().isPresent() || (p.navigationalStatus().get() != NavigationalStatus.AT_ANCHOR && p
+			                .navigationalStatus().get() != NavigationalStatus.MOORED))) {
+				double diff = diff(p.courseOverGroundDegrees().get(), p.headingDegrees()
 				        .get());
 				return diff >= HEADING_COG_DIFFERENCE_MIN && diff <= HEADING_COG_DIFFERENCE_MAX
-				        && p.getSpeedOverGroundKnots().get() <= MAX_DRIFTING_SPEED_KNOTS
+				        && p.speedOverGroundKnots().get() <= MAX_DRIFTING_SPEED_KNOTS
 
-				        && p.getSpeedOverGroundKnots().get() > MIN_DRIFTING_SPEED_KNOTS;
+				        && p.speedOverGroundKnots().get() > MIN_DRIFTING_SPEED_KNOTS;
 			} else
 				return false;
 		}

@@ -54,20 +54,20 @@ public class LibSvmMain {
             public void call(HasFix f) {
                 int navStatus;
 
-                if (f.fix().getNavigationalStatus().isPresent()) {
-                    if (f.fix().getNavigationalStatus().get() == NavigationalStatus.MOORED)
+                if (f.fix().navigationalStatus().isPresent()) {
+                    if (f.fix().navigationalStatus().get() == NavigationalStatus.MOORED)
                         navStatus = 1;
-                    else if (f.fix().getNavigationalStatus().get() == NavigationalStatus.AT_ANCHOR)
+                    else if (f.fix().navigationalStatus().get() == NavigationalStatus.AT_ANCHOR)
                         navStatus = 2;
                     else
                         navStatus = 0;
                 } else
                     navStatus = 0;
                 Fix fix = f.fix();
-                float diff = Math.abs(fix.getCourseOverGroundDegrees().get()
-                        - fix.getHeadingDegrees().get());
-                LibSvm.write(writer, navStatus, f.fix().getLat(), f.fix().getLon(), fix
-                        .getSpeedOverGroundKnots().get(), diff);
+                float diff = Math.abs(fix.courseOverGroundDegrees().get()
+                        - fix.headingDegrees().get());
+                LibSvm.write(writer, navStatus, f.fix().lat(), f.fix().lon(), fix
+                        .speedOverGroundKnots().get(), diff);
             }
         };
     }
@@ -78,9 +78,9 @@ public class LibSvmMain {
             @Override
             public Boolean call(HasFix fix) {
                 Fix f = fix.fix();
-                return f.getCourseOverGroundDegrees().isPresent()
-                        && f.getHeadingDegrees().isPresent()
-                        && f.getSpeedOverGroundKnots().isPresent();
+                return f.courseOverGroundDegrees().isPresent()
+                        && f.headingDegrees().isPresent()
+                        && f.speedOverGroundKnots().isPresent();
             }
         };
     }
@@ -91,7 +91,7 @@ public class LibSvmMain {
             @Override
             public Boolean call(HasFix fix) {
                 Fix f = fix.fix();
-                return (f.getAisClass() == AisClass.A);
+                return (f.aisClass() == AisClass.A);
 
             }
         };

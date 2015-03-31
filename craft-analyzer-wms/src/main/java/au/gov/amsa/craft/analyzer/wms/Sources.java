@@ -47,8 +47,8 @@ public class Sources {
 
             @Override
             public Boolean call(DriftCandidate c) {
-                return !c.fix().getNavigationalStatus().isPresent()
-                        || c.fix().getNavigationalStatus().get() != NavigationalStatus.ENGAGED_IN_FISHING;
+                return !c.fix().navigationalStatus().isPresent()
+                        || c.fix().navigationalStatus().get() != NavigationalStatus.ENGAGED_IN_FISHING;
             }
         }).map(VesselPositions.toVesselPosition(new Func1<DriftCandidate, Optional<?>>() {
             @Override

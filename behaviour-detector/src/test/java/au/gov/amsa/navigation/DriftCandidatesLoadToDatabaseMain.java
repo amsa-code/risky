@@ -34,16 +34,16 @@ public class DriftCandidatesLoadToDatabaseMain {
 			        @Override
 			        public Observable<Object> call(DriftCandidate c) {
 				        Fix f = c.fix();
-				        Object navStatus = f.getNavigationalStatus().isPresent() ? map.get(f
-				                .getNavigationalStatus().get().name()) : null;// NullSentinel.create(Types.INTEGER);
+				        Object navStatus = f.navigationalStatus().isPresent() ? map.get(f
+				                .navigationalStatus().get().name()) : null;// NullSentinel.create(Types.INTEGER);
 				        final Object driftingSince;
-				        if (c.driftingSince() == f.getTime())
+				        if (c.driftingSince() == f.time())
 					        driftingSince = null;// NullSentinel.create(Types.TIMESTAMP);
 				        else
 					        driftingSince = new Date(c.driftingSince());
-				        return Observable.<Object> just(f.getMmsi(), new Date(f.getTime()), f
-				                .getLat(), f.getLon(), f.getCourseOverGroundDegrees().get(), f
-				                .getHeadingDegrees().get(), f.getAisClass().name(), navStatus,
+				        return Observable.<Object> just(f.mmsi(), new Date(f.time()), f
+				                .lat(), f.lon(), f.courseOverGroundDegrees().get(), f
+				                .headingDegrees().get(), f.aisClass().name(), navStatus,
 				                driftingSince);
 			        }
 		        });

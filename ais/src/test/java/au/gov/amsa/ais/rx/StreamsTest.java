@@ -50,14 +50,14 @@ public class StreamsTest {
 		        "\\s:rEV02,c:1334337317*58\\!AIVDM,1,1,,B,19NWuLhuRb5QHfCpPcwj`26B0<02,0*5F"
 		                .getBytes(Charset.forName("UTF-8")));
 		Fix fix = Streams.extractFixes(Streams.nmeaFrom(is)).toBlocking().single();
-		assertEquals(636091763, fix.getMmsi());
-		assertEquals(-13.0884285, fix.getLat(), PRECISION);
-		assertEquals(1334337317000L, fix.getTime());
-		assertEquals(AisClass.A, fix.getAisClass());
-		assertEquals(67.0, fix.getHeadingDegrees().get(), PRECISION);
-		assertEquals(67.199996948, fix.getCourseOverGroundDegrees().get(), PRECISION);
-		assertFalse(fix.getLatencySeconds().isPresent());
-		assertEquals(1, (int) fix.getSource().get());
+		assertEquals(636091763, fix.mmsi());
+		assertEquals(-13.0884285, fix.lat(), PRECISION);
+		assertEquals(1334337317000L, fix.time());
+		assertEquals(AisClass.A, fix.aisClass());
+		assertEquals(67.0, fix.headingDegrees().get(), PRECISION);
+		assertEquals(67.199996948, fix.courseOverGroundDegrees().get(), PRECISION);
+		assertFalse(fix.latencySeconds().isPresent());
+		assertEquals(1, (int) fix.source().get());
 		System.out.println(fix);
 		is.close();
 	}
@@ -69,7 +69,7 @@ public class StreamsTest {
 		        "\\s:Pt Hedland NOMAD,c:1421878430*19\\!ABVDM,1,1,,B,33m2SV800K`Nh85lJdeDlTCN0000,0*1A"
 		                .getBytes(Charset.forName("UTF-8")));
 		Fix fix = Streams.extractFixes(Streams.nmeaFrom(is)).toBlocking().single();
-		assertEquals(NavigationalStatus.UNDER_WAY, fix.getNavigationalStatus().get());
+		assertEquals(NavigationalStatus.UNDER_WAY, fix.navigationalStatus().get());
 		is.close();
 	}
 
@@ -80,8 +80,8 @@ public class StreamsTest {
 		        "\\s:ISEEK Flinders,c:1421879177*61\\!AIVDO,1,1,,,1>qc9wwP009qrbKd6DMAPww>0000,0*76"
 		                .getBytes(Charset.forName("UTF-8")));
 		Fix fix = Streams.extractFixes(Streams.nmeaFrom(is)).toBlocking().single();
-		assertTrue(fix.getNavigationalStatus().isPresent());
-		assertEquals(Optional.of(NavigationalStatus.NOT_DEFINED), fix.getNavigationalStatus());
+		assertTrue(fix.navigationalStatus().isPresent());
+		assertEquals(Optional.of(NavigationalStatus.NOT_DEFINED), fix.navigationalStatus());
 		is.close();
 	}
 
@@ -98,13 +98,13 @@ public class StreamsTest {
 		        "\\s:MSQ - Mt Cootha,c:1421877742*76\\!AIVDM,1,1,,B,B7P?oe00FRg9t`L4T4IV;wbToP06,0*2F"
 		                .getBytes(Charset.forName("UTF-8")));
 		Fix fix = Streams.extractFixes(Streams.nmeaFrom(is)).toBlocking().single();
-		assertEquals(503576500, fix.getMmsi());
-		assertEquals(-27.46356391906, fix.getLat(), PRECISION);
-		assertEquals(1421877742000L, fix.getTime());
-		assertEquals(AisClass.B, fix.getAisClass());
-		assertEquals(BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN, (int) fix.getSource().get());
-		assertFalse(fix.getNavigationalStatus().isPresent());
-		assertFalse(fix.getLatencySeconds().isPresent());
+		assertEquals(503576500, fix.mmsi());
+		assertEquals(-27.46356391906, fix.lat(), PRECISION);
+		assertEquals(1421877742000L, fix.time());
+		assertEquals(AisClass.B, fix.aisClass());
+		assertEquals(BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN, (int) fix.source().get());
+		assertFalse(fix.navigationalStatus().isPresent());
+		assertFalse(fix.latencySeconds().isPresent());
 		System.out.println(fix);
 		is.close();
 	}
@@ -118,7 +118,7 @@ public class StreamsTest {
 		int count = Streams.extractFixes(Streams.nmeaFrom(is)).map(new Func1<Fix, Long>() {
 			@Override
 			public Long call(Fix fix) {
-				return fix.getMmsi();
+				return fix.mmsi();
 			}
 		}).distinct().count().toBlocking().single();
 		assertEquals(DISTINCT_MMSI, count);

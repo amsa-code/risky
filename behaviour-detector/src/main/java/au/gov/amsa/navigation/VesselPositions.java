@@ -18,18 +18,18 @@ public class VesselPositions {
 	public static VesselPosition toVesselPosition(Fix fix, Optional<?> data) {
 		return VesselPosition
 		        .builder()
-		        .id(new Mmsi(fix.getMmsi()))
-		        .lat(fix.getLat())
-		        .lon(fix.getLon())
-		        .time(fix.getTime())
-		        .cls(fix.getAisClass() == AisClass.A ? VesselClass.A : VesselClass.B)
-		        .cogDegrees(toDouble(fix.getCourseOverGroundDegrees()))
-		        .headingDegrees(toDouble(fix.getHeadingDegrees()))
+		        .id(new Mmsi(fix.mmsi()))
+		        .lat(fix.lat())
+		        .lon(fix.lon())
+		        .time(fix.time())
+		        .cls(fix.aisClass() == AisClass.A ? VesselClass.A : VesselClass.B)
+		        .cogDegrees(toDouble(fix.courseOverGroundDegrees()))
+		        .headingDegrees(toDouble(fix.headingDegrees()))
 		        .speedMetresPerSecond(
-		                multiply(fix.getSpeedOverGroundKnots(), KNOTS_TO_METRES_PER_SECOND))
+		                multiply(fix.speedOverGroundKnots(), KNOTS_TO_METRES_PER_SECOND))
 		        .navigationalStatus(
-		                fix.getNavigationalStatus().isPresent() ? NavigationalStatus.values()[fix
-		                        .getNavigationalStatus().get().ordinal()]
+		                fix.navigationalStatus().isPresent() ? NavigationalStatus.values()[fix
+		                        .navigationalStatus().get().ordinal()]
 		                        : NavigationalStatus.NOT_DEFINED)
 		        .positionAisNmea(Optional.<String> absent())
 		        .shipStaticAisNmea(Optional.<String> absent())

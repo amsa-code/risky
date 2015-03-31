@@ -36,18 +36,18 @@ public final class BinaryFixesTest {
 				.single();
 		assertEquals(numFixes, fixes.size());
 		Fix f = fixes.get(fixes.size() - 1);
-		assertEquals(123456789, f.getMmsi());
-		assertEquals(-10.0, f.getLat(), PRECISION);
-		assertEquals(135, f.getLon(), PRECISION);
-		assertEquals(1000, f.getTime(), PRECISION);
-		assertEquals(12, (int) f.getLatencySeconds().get());
-		assertEquals(1, (int) f.getSource().get());
+		assertEquals(123456789, f.mmsi());
+		assertEquals(-10.0, f.lat(), PRECISION);
+		assertEquals(135, f.lon(), PRECISION);
+		assertEquals(1000, f.time(), PRECISION);
+		assertEquals(12, (int) f.latencySeconds().get());
+		assertEquals(1, (int) f.source().get());
 		assertEquals(NavigationalStatus.ENGAGED_IN_FISHING, f
-				.getNavigationalStatus().get());
-		assertEquals(7.5, f.getSpeedOverGroundKnots().get(), PRECISION);
-		assertEquals(45, f.getCourseOverGroundDegrees().get(), PRECISION);
-		assertEquals(46, f.getHeadingDegrees().get(), PRECISION);
-		assertEquals(AisClass.B, f.getAisClass());
+				.navigationalStatus().get());
+		assertEquals(7.5, f.speedOverGroundKnots().get(), PRECISION);
+		assertEquals(45, f.courseOverGroundDegrees().get(), PRECISION);
+		assertEquals(46, f.headingDegrees().get(), PRECISION);
+		assertEquals(AisClass.B, f.aisClass());
 	}
 
 	private void writeTrace(File trace, int repetitions) throws IOException {

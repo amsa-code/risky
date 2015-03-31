@@ -30,15 +30,15 @@ public class DriftCandidatesTest {
 		        .single();
 		assertEquals(5, list.size());
 		Fix f = list.get(0).fix();
-		assertEquals(111450000, f.getMmsi());
-		assertEquals(-10.518791, f.getLat(), PRECISION);
-		assertEquals(140.33229, f.getLon(), PRECISION);
-		assertEquals(1418998619000L, f.getTime());
-		assertEquals(AisClass.B, f.getAisClass());
-		assertEquals(96.3, f.getCourseOverGroundDegrees().get(), PRECISION);
-		assertEquals(1.0, f.getHeadingDegrees().get(), PRECISION);
-		assertEquals(3.5, f.getSpeedOverGroundKnots().get(), PRECISION);
-		assertFalse(f.getNavigationalStatus().isPresent());
+		assertEquals(111450000, f.mmsi());
+		assertEquals(-10.518791, f.lat(), PRECISION);
+		assertEquals(140.33229, f.lon(), PRECISION);
+		assertEquals(1418998619000L, f.time());
+		assertEquals(AisClass.B, f.aisClass());
+		assertEquals(96.3, f.courseOverGroundDegrees().get(), PRECISION);
+		assertEquals(1.0, f.headingDegrees().get(), PRECISION);
+		assertEquals(3.5, f.speedOverGroundKnots().get(), PRECISION);
+		assertFalse(f.navigationalStatus().isPresent());
 		assertEquals(1413956437000L, list.get(0).driftingSince());
 	}
 

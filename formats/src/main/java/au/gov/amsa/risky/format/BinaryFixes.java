@@ -60,20 +60,20 @@ public final class BinaryFixes {
             @Override
             public String call(Fix f) {
                 StringBuilder s = new StringBuilder();
-                s.append(f.getLat());
+                s.append(f.lat());
                 s.append(COMMA);
-                s.append(f.getLon());
+                s.append(f.lon());
                 s.append(COMMA);
-                s.append(new DateTime(f.getTime()).toString());
+                s.append(new DateTime(f.time()).toString());
                 s.append(COMMA);
-                s.append(f.getSource().or(SOURCE_ABSENT));
+                s.append(f.source().or(SOURCE_ABSENT));
                 s.append(COMMA);
-                s.append(f.getLatencySeconds().or(LATENCY_ABSENT));
+                s.append(f.latencySeconds().or(LATENCY_ABSENT));
                 s.append(COMMA);
-                s.append(f.getNavigationalStatus().or(
+                s.append(f.navigationalStatus().or(
                         NavigationalStatus.values()[NAV_STATUS_ABSENT]));
                 s.append(COMMA);
-                s.append(f.getRateOfTurn().or(RATE_OF_TURN_ABSENT));
+                s.append(f.rateOfTurn().or(RATE_OF_TURN_ABSENT));
                 s.append(COMMA);
                 // TODO add the rest of the fields
                 return s.toString();
@@ -97,41 +97,41 @@ public final class BinaryFixes {
     }
 
     public static void write(Fix fix, ByteBuffer bb) {
-        bb.putFloat(fix.getLat());
-        bb.putFloat(fix.getLon());
-        bb.putLong(fix.getTime());
-        if (fix.getLatencySeconds().isPresent())
-            bb.putInt(fix.getLatencySeconds().get());
+        bb.putFloat(fix.lat());
+        bb.putFloat(fix.lon());
+        bb.putLong(fix.time());
+        if (fix.latencySeconds().isPresent())
+            bb.putInt(fix.latencySeconds().get());
         else
             bb.putInt(LATENCY_ABSENT);
-        if (fix.getSource().isPresent())
-            bb.putShort(fix.getSource().get());
+        if (fix.source().isPresent())
+            bb.putShort(fix.source().get());
         else
             bb.putShort(SOURCE_ABSENT);
 
-        if (fix.getNavigationalStatus().isPresent())
-            bb.put((byte) fix.getNavigationalStatus().get().ordinal());
+        if (fix.navigationalStatus().isPresent())
+            bb.put((byte) fix.navigationalStatus().get().ordinal());
         else
             bb.put(NAV_STATUS_ABSENT);
 
         // rot
         bb.put(ROT_ABSENT);
 
-        if (fix.getSpeedOverGroundKnots().isPresent())
-            bb.putShort((short) Math.round(10 * fix.getSpeedOverGroundKnots().get()));
+        if (fix.speedOverGroundKnots().isPresent())
+            bb.putShort((short) Math.round(10 * fix.speedOverGroundKnots().get()));
         else
             bb.putShort(SOG_ABSENT);
 
-        if (fix.getCourseOverGroundDegrees().isPresent())
-            bb.putShort((short) Math.round(10 * fix.getCourseOverGroundDegrees().get()));
+        if (fix.courseOverGroundDegrees().isPresent())
+            bb.putShort((short) Math.round(10 * fix.courseOverGroundDegrees().get()));
         else
             bb.putShort(COG_ABSENT);
 
-        if (fix.getHeadingDegrees().isPresent())
-            bb.putShort((short) Math.round(10 * fix.getHeadingDegrees().get()));
+        if (fix.headingDegrees().isPresent())
+            bb.putShort((short) Math.round(10 * fix.headingDegrees().get()));
         else
             bb.putShort(HEADING_ABSENT);
-        if (fix.getAisClass() == AisClass.A)
+        if (fix.aisClass() == AisClass.A)
             bb.put((byte) 0);
         else
             bb.put((byte) 1);
@@ -270,7 +270,7 @@ public final class BinaryFixes {
     private static final Comparator<Fix> FIX_ORDER_BY_TIME = new Comparator<Fix>() {
         @Override
         public int compare(Fix a, Fix b) {
-            return ((Long) a.getTime()).compareTo(b.getTime());
+            return ((Long) a.time()).compareTo(b.time());
         }
     };
 

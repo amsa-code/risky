@@ -24,7 +24,7 @@ public class DriftCandidate implements HasFix {
 
 	@Override
 	public String toString() {
-		return "DriftCandidate [driftingDurationMinutes=" + (fix.getTime() - driftingSince)
+		return "DriftCandidate [driftingDurationMinutes=" + (fix.time() - driftingSince)
 		        / 60000.0 + ", fix=" + fix + "]";
 	}
 

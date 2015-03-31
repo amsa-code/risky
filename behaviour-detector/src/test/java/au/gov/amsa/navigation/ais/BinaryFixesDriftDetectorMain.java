@@ -122,7 +122,7 @@ public class BinaryFixesDriftDetectorMain {
 		return new Func1<DriftCandidate, Boolean>() {
 			@Override
 			public Boolean call(DriftCandidate c) {
-				return c.driftingSince() == c.fix().getTime();
+				return c.driftingSince() == c.fix().time();
 			}
 		};
 	}
@@ -137,23 +137,23 @@ public class BinaryFixesDriftDetectorMain {
 				FileOutputStream os = new FileOutputStream(DRIFT_CANDIDATES_TXT, true);
 				Fix f = c.fix();
 				StringBuilder s = new StringBuilder();
-				s.append(f.getMmsi());
+				s.append(f.mmsi());
 				s.append(COMMA);
-				s.append(f.getLat());
+				s.append(f.lat());
 				s.append(COMMA);
-				s.append(f.getLon());
+				s.append(f.lon());
 				s.append(COMMA);
-				s.append(f.getTime());
+				s.append(f.time());
 				s.append(COMMA);
-				s.append(f.getAisClass());
+				s.append(f.aisClass());
 				s.append(COMMA);
-				s.append(f.getCourseOverGroundDegrees().get());
+				s.append(f.courseOverGroundDegrees().get());
 				s.append(COMMA);
-				s.append(f.getHeadingDegrees().get());
+				s.append(f.headingDegrees().get());
 				s.append(COMMA);
-				s.append(f.getSpeedOverGroundKnots().get());
+				s.append(f.speedOverGroundKnots().get());
 				s.append(COMMA);
-				s.append(f.getNavigationalStatus().isPresent() ? f.getNavigationalStatus().get()
+				s.append(f.navigationalStatus().isPresent() ? f.navigationalStatus().get()
 				        .toString() : "");
 				s.append(COMMA);
 				s.append(c.driftingSince());
