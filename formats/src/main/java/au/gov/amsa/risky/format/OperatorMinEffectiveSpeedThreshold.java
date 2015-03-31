@@ -11,7 +11,7 @@ import au.gov.amsa.util.RingBuffer;
 import com.github.davidmoten.grumpy.core.Position;
 import com.google.common.base.Optional;
 
-public class OperatorMinEffectiveSpeedThreshold implements
+public final class OperatorMinEffectiveSpeedThreshold implements
         Operator<FixWithPreAndPostEffectiveSpeed, HasFix> {
 
     private long deltaMs;
@@ -57,7 +57,7 @@ public class OperatorMinEffectiveSpeedThreshold implements
                     }
                 } else if (latest.fix().time() - middle.get().fix().time() > deltaMs) {
                     // now can emit middle with its pre and post effective speed
-                    // and reliability measure (distance from deltaMs)
+                    // and reliability measure (time difference minus deltaMs)
 
                     // measure distance from first to middle
                     double distanceFirstToMiddleKm = 0;
@@ -75,8 +75,11 @@ public class OperatorMinEffectiveSpeedThreshold implements
                     double distanceMiddleToLatestKm = 0;
                     last = middle;
                     keepGoing = en.hasMoreElements();
+                    Optional<HasFix> firstAfterMiddle = Optional.absent();
                     while (keepGoing) {
                         HasFix f = en.nextElement();
+                        if (!firstAfterMiddle.isPresent())
+                            firstAfterMiddle = Optional.of(f);
                         if (last.isPresent())
                             distanceFirstToMiddleKm += distanceKm(last.get(), f);
                         keepGoing = en.hasMoreElements();
@@ -99,8 +102,22 @@ public class OperatorMinEffectiveSpeedThreshold implements
                     double postError = Math.abs(latest.fix().time() - middle.get().fix().time()
                             - deltaMs)
                             / (double) TimeUnit.HOURS.toMillis(1);
+
+                    // emit what we have!
                     child.onNext(new FixWithPreAndPostEffectiveSpeed(fix, preSpeedKnots, preError,
                             postSpeedKnots, postError));
+
+                    // drop values from front of buffer
+                    en = buffer.values();
+                    // skip first
+                    en.nextElement();
+                    while (en.hasMoreElements()) {
+                        HasFix next = en.nextElement();
+                        if (firstAfterMiddle.get().fix().time() - next.fix().time() < deltaMs)
+                            break;
+                        else
+                            buffer.pop();
+                    }
                 }
             }
 
@@ -115,7 +132,7 @@ public class OperatorMinEffectiveSpeedThreshold implements
         return Position.create(f.fix().lat(), f.fix().lon());
     }
 
-    public static class FixWithPreAndPostEffectiveSpeed implements HasFix {
+    public static final class FixWithPreAndPostEffectiveSpeed implements HasFix {
 
         private final double preEffectiveSpeedKnots;
 
