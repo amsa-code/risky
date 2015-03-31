@@ -76,6 +76,12 @@
 			<artifactId>streams</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>au.gov.amsa.risky</groupId>
+			<artifactId>risky-util</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>

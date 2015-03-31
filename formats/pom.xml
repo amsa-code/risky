@@ -63,6 +63,12 @@
             <version>4.3.23</version>
         </dependency>
         <dependency>
+            <groupId>au.gov.amsa.risky</groupId>
+            <artifactId>risky-util</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>

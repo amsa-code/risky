@@ -51,6 +51,7 @@
     <modules>
         <module>streams</module>
         <module>ais</module>
+        <module>risky-util</module>
         <module>behaviour-detector</module>
 		<module>geo-analyzer</module>
 		<module>craft-analyzer-wms</module>

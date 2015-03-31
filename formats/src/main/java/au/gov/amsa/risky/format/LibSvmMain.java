@@ -4,9 +4,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.regex.Pattern;
 
-import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func1;
 import au.gov.amsa.util.Files;
@@ -14,21 +14,41 @@ import au.gov.amsa.util.Files;
 public class LibSvmMain {
 
     public static void main(String[] args) throws IOException {
+
+        // open an output writer
         final Writer writer = new FileWriter("target/fixes.libsvm");
-        Observable<Fix> fixes = BinaryFixes.from(Files.find(new File(
-                "/media/an/binary-fixes-5-minute/2014"), Pattern.compile(".*\\.track")));
-        fixes.filter(new Func1<HasFix, Boolean>() {
+
+        // specify which files have the fixes to process
+        List<File> files = Files.find(new File("/media/an/binary-fixes-5-minute/2014"),
+                Pattern.compile(".*\\.track"));
+
+        // process the fixes in the files
+        BinaryFixes.from(files)
+        // just class A vessels
+                .filter(classAOnly())
+                // only fixes that have course, heading and speed present
+                .filter(hasCourseHeadingSpeed())
+                // write the fixes in LIBSVM format
+                .forEach(writeFix(writer), handleError());
+
+        // close the writer
+        writer.close();
+
+        System.out.println("finished");
+    }
+
+    private static Action1<Throwable> handleError() {
+        return new Action1<Throwable>() {
 
             @Override
-            public Boolean call(HasFix fix) {
-                Fix f = fix.fix();
-                return (f.getAisClass() == AisClass.A)
-                        && f.getCourseOverGroundDegrees().isPresent()
-                        && f.getHeadingDegrees().isPresent()
-                        && f.getSpeedOverGroundKnots().isPresent();
-
+            public void call(Throwable t) {
+                t.printStackTrace();
             }
-        }).forEach(new Action1<HasFix>() {
+        };
+    }
+
+    private static Action1<HasFix> writeFix(final Writer writer) {
+        return new Action1<HasFix>() {
 
             @Override
             public void call(HasFix f) {
@@ -49,15 +69,32 @@ public class LibSvmMain {
                 LibSvm.write(writer, navStatus, f.fix().getLat(), f.fix().getLon(), fix
                         .getSpeedOverGroundKnots().get(), diff);
             }
-        }, new Action1<Throwable>() {
+        };
+    }
+
+    private static Func1<HasFix, Boolean> hasCourseHeadingSpeed() {
+        return new Func1<HasFix, Boolean>() {
 
             @Override
-            public void call(Throwable t) {
-                t.printStackTrace();
+            public Boolean call(HasFix fix) {
+                Fix f = fix.fix();
+                return f.getCourseOverGroundDegrees().isPresent()
+                        && f.getHeadingDegrees().isPresent()
+                        && f.getSpeedOverGroundKnots().isPresent();
             }
-        });
-        writer.close();
-        System.out.println("finished");
+        };
+    }
+
+    private static Func1<HasFix, Boolean> classAOnly() {
+        return new Func1<HasFix, Boolean>() {
+
+            @Override
+            public Boolean call(HasFix fix) {
+                Fix f = fix.fix();
+                return (f.getAisClass() == AisClass.A);
+
+            }
+        };
     }
 
 }

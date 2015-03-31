@@ -8,8 +8,6 @@ import java.util.Enumeration;
 
 import org.junit.Test;
 
-import au.gov.amsa.util.RingBuffer;
-
 public class RingBufferTest {
 
     @Test
