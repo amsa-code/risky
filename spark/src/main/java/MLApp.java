@@ -26,7 +26,8 @@ public class MLApp {
 
         // Load and parse the data file.
         String datapath = "../formats/target/fixes.libsvm";
-        List<String> names = Arrays.asList("lat", "lon", "speedKnots", "courseHeadingDiff");
+        List<String> names = Arrays.asList("lat", "lon", "speedKnots", "courseHeadingDiff",
+                "preEffectiveSpeedKnots", "preError", "postEffectiveSpeedKnots", "postError");
 
         JavaRDD<LabeledPoint> data = MLUtils.loadLibSVMFile(sc.sc(), datapath).toJavaRDD();
         // Split the data into training and test sets (30% held out for testing)

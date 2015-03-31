@@ -13,12 +13,14 @@ import rx.functions.Func1;
 import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold.FixWithPreAndPostEffectiveSpeed;
 import au.gov.amsa.util.Files;
 
+import com.github.davidmoten.rx.slf4j.Logging;
+
 public class LibSvmMain {
 
     public static void main(String[] args) throws IOException {
 
         // open an output writer
-        final Writer writer = new FileWriter("target/fixes.libsvm");
+        final Writer writer = new FileWriter("/media/an/fixes.libsvm");
 
         // specify which files have the fixes to process
         List<File> files = Files.find(new File("/media/an/binary-fixes-5-minute/2014"),
@@ -26,12 +28,15 @@ public class LibSvmMain {
 
         // process the fixes in the files
         BinaryFixes.from(files)
-        // just class A vessels
+        // log
+                .lift(Logging.<HasFix> logger().showCount().every(1000000).log())
+                // just class A vessels
                 .filter(classAOnly())
                 // only fixes that have course, heading and speed present
                 .filter(hasCourseHeadingSpeed())
                 // emit with params
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.HOURS.toMillis(1)))
+                // log
                 // write the fixes in LIBSVM format
                 .forEach(writeFix(writer), handleError());
 

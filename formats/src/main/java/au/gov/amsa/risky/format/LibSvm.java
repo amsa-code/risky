@@ -15,7 +15,7 @@ public class LibSvm {
                     writer.write(' ');
                     writer.write(Integer.toString(i + 1));
                     writer.write(':');
-                    writer.write(Double.toString(value));
+                    writer.write(Float.toString((float) value));
                 }
             }
             writer.write('\n');

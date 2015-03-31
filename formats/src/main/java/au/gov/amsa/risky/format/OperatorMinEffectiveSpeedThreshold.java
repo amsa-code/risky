@@ -54,76 +54,79 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                 if (!middle.isPresent()) {
                     if (latest.fix().time() - first.fix().time() >= deltaMs) {
                         middle = Optional.of(latest);
-                        System.out.println("middle=" + middle);
                     }
-                } else if (latest.fix().time() - middle.get().fix().time() >= deltaMs) {
-                    // now can emit middle with its pre and post effective speed
-                    // and reliability measure (time difference minus deltaMs)
+                } else
+                    while (latest.fix().time() - middle.get().fix().time() >= deltaMs) {
+                        // now can emit middle with its pre and post effective
+                        // speed
+                        // and reliability measure (time difference minus
+                        // deltaMs)
 
-                    // measure distance from first to middle
-                    double distanceFirstToMiddleKm = 0;
-                    Optional<HasFix> previous = Optional.absent();
-                    Enumeration<HasFix> en = buffer.values();
-                    boolean keepGoing = en.hasMoreElements();
-                    while (keepGoing) {
-                        HasFix f = en.nextElement();
-                        if (previous.isPresent())
-                            distanceFirstToMiddleKm += distanceKm(previous.get(), f);
-                        previous = Optional.of(f);
-                        keepGoing = en.hasMoreElements() && f != middle.get();
-                    }
+                        // measure distance from first to middle
+                        double distanceFirstToMiddleKm = 0;
+                        Optional<HasFix> previous = Optional.absent();
+                        Enumeration<HasFix> en = buffer.values();
+                        boolean keepGoing = en.hasMoreElements();
+                        while (keepGoing) {
+                            HasFix f = en.nextElement();
+                            if (previous.isPresent())
+                                distanceFirstToMiddleKm += distanceKm(previous.get(), f);
+                            previous = Optional.of(f);
+                            keepGoing = en.hasMoreElements() && f != middle.get();
+                        }
 
-                    // measure distance from middle to latest
-                    double distanceMiddleToLatestKm = 0;
-                    previous = middle;
-                    keepGoing = en.hasMoreElements();
-                    Optional<HasFix> firstAfterMiddle = Optional.absent();
-                    while (keepGoing) {
-                        HasFix f = en.nextElement();
-                        if (!firstAfterMiddle.isPresent())
-                            firstAfterMiddle = Optional.of(f);
-                        if (previous.isPresent())
-                            distanceMiddleToLatestKm += distanceKm(previous.get(), f);
-                        previous = Optional.of(f);
+                        // measure distance from middle to latest
+                        double distanceMiddleToLatestKm = 0;
+                        previous = middle;
                         keepGoing = en.hasMoreElements();
+                        Optional<HasFix> firstAfterMiddle = Optional.absent();
+                        while (keepGoing) {
+                            HasFix f = en.nextElement();
+                            if (!firstAfterMiddle.isPresent())
+                                firstAfterMiddle = Optional.of(f);
+                            if (previous.isPresent())
+                                distanceMiddleToLatestKm += distanceKm(previous.get(), f);
+                            previous = Optional.of(f);
+                            keepGoing = en.hasMoreElements();
+                        }
+
+                        // time from first to middle
+                        long timeFirstToMiddleMs = middle.get().fix().time() - first.fix().time();
+                        long timeMiddleToLatestMs = latest.fix().time() - middle.get().fix().time();
+
+                        // speed calcs
+                        double preSpeedKnots = distanceFirstToMiddleKm
+                                / (double) timeFirstToMiddleMs / 1.852 * TimeUnit.HOURS.toMillis(1);
+
+                        double postSpeedKnots = distanceMiddleToLatestKm
+                                / (double) timeMiddleToLatestMs / 1.852
+                                * TimeUnit.HOURS.toMillis(1);
+
+                        double preError = Math.abs(middle.get().fix().time() - first.fix().time()
+                                - deltaMs)
+                                / (double) TimeUnit.HOURS.toMillis(1);
+                        double postError = Math.abs(latest.fix().time() - middle.get().fix().time()
+                                - deltaMs)
+                                / (double) TimeUnit.HOURS.toMillis(1);
+
+                        // emit what we have!
+                        child.onNext(new FixWithPreAndPostEffectiveSpeed(middle.get(),
+                                preSpeedKnots, preError, postSpeedKnots, postError));
+
+                        // drop values from front of buffer
+                        en = buffer.values();
+                        // skip first
+                        en.nextElement();
+                        while (en.hasMoreElements()) {
+                            HasFix next = en.nextElement();
+                            if (firstAfterMiddle.get().fix().time() - next.fix().time() < deltaMs)
+                                break;
+                            else
+                                buffer.pop();
+                        }
+                        // TODO needs more thinking
+                        middle = firstAfterMiddle;
                     }
-
-                    // time from first to middle
-                    long timeFirstToMiddleMs = middle.get().fix().time() - first.fix().time();
-                    long timeMiddleToLatestMs = latest.fix().time() - middle.get().fix().time();
-
-                    // speed calcs
-                    double preSpeedKnots = distanceFirstToMiddleKm / (double) timeFirstToMiddleMs
-                            / 1.852 * TimeUnit.HOURS.toMillis(1);
-
-                    double postSpeedKnots = distanceMiddleToLatestKm
-                            / (double) timeMiddleToLatestMs / 1.852 * TimeUnit.HOURS.toMillis(1);
-
-                    double preError = Math.abs(middle.get().fix().time() - first.fix().time()
-                            - deltaMs)
-                            / (double) TimeUnit.HOURS.toMillis(1);
-                    double postError = Math.abs(latest.fix().time() - middle.get().fix().time()
-                            - deltaMs)
-                            / (double) TimeUnit.HOURS.toMillis(1);
-
-                    // emit what we have!
-                    child.onNext(new FixWithPreAndPostEffectiveSpeed(middle.get(), preSpeedKnots,
-                            preError, postSpeedKnots, postError));
-
-                    // drop values from front of buffer
-                    en = buffer.values();
-                    // skip first
-                    en.nextElement();
-                    while (en.hasMoreElements()) {
-                        HasFix next = en.nextElement();
-                        if (firstAfterMiddle.get().fix().time() - next.fix().time() < deltaMs)
-                            break;
-                        else
-                            buffer.pop();
-                    }
-                    // TODO needs more thinking
-                    middle = firstAfterMiddle;
-                }
             }
 
         };
