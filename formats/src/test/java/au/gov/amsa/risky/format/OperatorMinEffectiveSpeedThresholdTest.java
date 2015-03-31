@@ -2,6 +2,7 @@ package au.gov.amsa.risky.format;
 
 import static com.google.common.base.Optional.of;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,5 +47,43 @@ public class OperatorMinEffectiveSpeedThresholdTest {
     private Fix createFix(long t, float lon) {
         return new Fix(213456789, -10f, lon, t, of(12), of((short) 1),
                 of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
+    }
+
+    @Test
+    public void testOnEmpty() {
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable.<HasFix> empty()
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testSingle() {
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(createFix(0, 135.0f))
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testTwoSmallGapReturnsNothing() {
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable
+                .just(createFix(0, 135.0f), createFix(100, 135.01f))
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testTwoLargeGapReturnsNothing() {
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable
+                .just(createFix(0, 135.0f), createFix(TimeUnit.HOURS.toMillis(1), 135.01f))
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertTrue(list.isEmpty());
     }
 }
