@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import rx.Observable;
@@ -85,5 +86,29 @@ public class OperatorMinEffectiveSpeedThresholdTest {
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
                 .toList().toBlocking().single();
         assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testThreeSmallGapThenLargeGapReturnsNothing() {
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable
+                .just(createFix(0, 135.0f), createFix(100, 135.05f),
+                        createFix(TimeUnit.MINUTES.toMillis(60), 135.01f))
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    @Ignore
+    public void testThreeLargeGapThenLargeGapReturnsSecond() {
+        Fix a = createFix(0, 135.0f);
+        Fix b = createFix(TimeUnit.HOURS.toMillis(31), 135.05f);
+        Fix c = createFix(TimeUnit.MINUTES.toMillis(62), 135.01f);
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(a, b, c)
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertEquals(b.fix().lon(), list.get(0).fix().lon(), 0.0001);
     }
 }
