@@ -74,6 +74,11 @@
             <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+        	<groupId>com.github.davidmoten</groupId>
+        	<artifactId>grumpy-core</artifactId>
+        	<version>0.2.3</version>
+        </dependency>
     </dependencies>
 
 	<profiles>
