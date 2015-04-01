@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -31,6 +32,7 @@ public class MLApp {
         // make it readable
         List<String> names = Arrays.asList("lat", "lon", "speedKnots", "courseHeadingDiff",
                 "preEffectiveSpeedKnots", "preError", "postEffectiveSpeedKnots", "postError");
+        List<String> features = Arrays.asList("other", "moored", "anchored");
 
         JavaRDD<LabeledPoint> data = MLUtils.loadLibSVMFile(sc.sc(), datapath).toJavaRDD();
         // Split the data into training and test sets (30% held out for testing)
@@ -43,7 +45,7 @@ public class MLApp {
         Integer numClassifications = 3;
         Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
         String impurity = "gini";
-        Integer maxDepth = 6;
+        Integer maxDepth = 8;
         Integer maxBins = 32;
 
         // Train a DecisionTree model for classification.
@@ -62,8 +64,15 @@ public class MLApp {
                 / testData.count();
 
         System.out.println("Test Error: " + testErr);
-        System.out.println("Learned classification tree model:\n"
-                + useNames(model.toDebugString(), names));
+
+        String s = useNames(model.toDebugString(), names, features);
+
+        System.out.println("Learned classification tree model:\n" + s);
+
+        FileOutputStream fos = new FileOutputStream("target/model.txt");
+        fos.write(("Test Error: " + testErr + "\n").getBytes());
+        fos.write(s.getBytes());
+        fos.close();
 
         // Save and load model to demo possible usage in prediction mode
         String modelPath = "target/myModelPath";
@@ -73,10 +82,14 @@ public class MLApp {
 
     }
 
-    private static String useNames(String s, List<String> names) {
+    private static String useNames(String s, List<String> names, List<String> features) {
         String result = s;
         for (int i = names.size() - 1; i >= 0; i--) {
             result = result.replace("feature " + i, names.get(i));
+        }
+
+        for (int i = names.size() - 1; i >= 0; i--) {
+            result = result.replace("Predict: " + i + ".0", "Predict: " + features.get(i));
         }
         return result;
     }
