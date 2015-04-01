@@ -158,7 +158,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
         private final double preError;
         private final double postEffectiveSpeedKnots;
         private final double postError;
-        private final Fix fix;
+        private final HasFix fix;
 
         public FixWithPreAndPostEffectiveSpeed(HasFix fix, double preEffectiveSpeedKnots,
                 double preError, double postEffectiveSpeedKnots, double postError) {
@@ -166,11 +166,15 @@ public final class OperatorMinEffectiveSpeedThreshold implements
             this.preError = preError;
             this.postEffectiveSpeedKnots = postEffectiveSpeedKnots;
             this.postError = postError;
-            this.fix = fix.fix();
+            this.fix = fix;
         }
 
         @Override
         public Fix fix() {
+            return fix.fix();
+        }
+
+        public HasFix fixWrapper() {
             return fix;
         }
 

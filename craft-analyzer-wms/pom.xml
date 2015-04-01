@@ -26,6 +26,11 @@
 			<version>${project.parent.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>au.gov.amsa.risky</groupId>
+			<artifactId>spark</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>grumpy-ogc</artifactId>
 			<version>0.2.3</version>
