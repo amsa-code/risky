@@ -1,3 +1,5 @@
+package au.gov.amsa.spark.ais;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -16,7 +18,7 @@ import org.apache.spark.mllib.tree.DecisionTree;
 import org.apache.spark.mllib.tree.model.DecisionTreeModel;
 import org.apache.spark.mllib.util.MLUtils;
 
-public class MLApp {
+public class AnchoredTrainerMain {
 
     public static void main(String[] args) throws IOException {
 
@@ -63,6 +65,12 @@ public class MLApp {
         // divide by total count to get ratio failing test
                 / testData.count();
 
+        // Save and load model to demo possible usage in prediction mode
+        String modelPath = "target/myModelPath";
+        FileUtils.deleteDirectory(new File(modelPath));
+        model.save(sc.sc(), modelPath);
+        DecisionTreeModel sameModel = DecisionTreeModel.load(sc.sc(), modelPath);
+
         System.out.println("Test Error: " + testErr);
 
         String s = useNames(model.toDebugString(), names, classifications);
@@ -74,12 +82,6 @@ public class MLApp {
         fos.write(s.getBytes());
         fos.close();
 
-        // Save and load model to demo possible usage in prediction mode
-        String modelPath = "target/myModelPath";
-        FileUtils.deleteDirectory(new File(modelPath));
-        model.save(sc.sc(), modelPath);
-        DecisionTreeModel sameModel = DecisionTreeModel.load(sc.sc(), modelPath);
-
     }
 
     private static String useNames(String s, List<String> names, List<String> features) {
@@ -88,7 +90,7 @@ public class MLApp {
             result = result.replace("feature " + i, names.get(i));
         }
 
-        for (int i = names.size() - 1; i >= 0; i--) {
+        for (int i = features.size() - 1; i >= 0; i--) {
             result = result.replace("Predict: " + i + ".0", "Predict: " + features.get(i));
         }
         return result;

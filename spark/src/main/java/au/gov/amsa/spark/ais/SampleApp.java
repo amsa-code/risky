@@ -1,9 +1,10 @@
+package au.gov.amsa.spark.ais;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
 
-public class SimpleApp {
+public class SampleApp {
     public static void main(String[] args) {
         String logFile = "/var/log/syslog"; // Should be some file on your
                                             // system
