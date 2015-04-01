@@ -43,6 +43,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
 
             @Override
             public void onNext(HasFix fix) {
+                boolean emitted = false;
                 // if mmsi changes then clear the fix history
                 if (!buffer.isEmpty() && buffer.peek().fix().mmsi() != fix.fix().mmsi()) {
                     buffer.clear();
@@ -57,14 +58,12 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                     }
                 } else
                     while (latest.fix().time() - middle.get().fix().time() >= deltaMs) {
-                        HasFix first = buffer.peek();
-                        System.out.println("first=" + first);
-                        System.out.println("middle=" + middle.get());
-                        System.out.println("latest=" + latest);
 
                         // now can emit middle with its pre and post effective
                         // speed and reliability measure (time difference minus
                         // deltaMs)
+
+                        HasFix first = buffer.peek();
 
                         // measure distance from first to middle
                         double distanceFirstToMiddleKm = 0;
@@ -100,12 +99,6 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                         // time from first to middle
                         long timeFirstToMiddleMs = middle.get().fix().time() - first.fix().time();
                         long timeMiddleToLatestMs = latest.fix().time() - middle.get().fix().time();
-                        System.out.println("distanceFirstToMiddleKm=" + distanceFirstToMiddleKm);
-                        System.out.println("distanceMiddleToLatestKm=" + distanceMiddleToLatestKm);
-                        System.out.println("timeFirstToMiddleMins=" + timeFirstToMiddleMs
-                                / (double) TimeUnit.MINUTES.toMillis(1));
-                        System.out.println("timeMiddleToLatestMins=" + timeMiddleToLatestMs
-                                / (double) TimeUnit.MINUTES.toMillis(1));
 
                         // speed calcs
                         double preSpeedKnots = distanceFirstToMiddleKm
@@ -125,6 +118,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                         // emit what we have!
                         child.onNext(new FixWithPreAndPostEffectiveSpeed(middle.get(),
                                 preSpeedKnots, preError, postSpeedKnots, postError));
+                        emitted = true;
 
                         // drop values from front of buffer
                         en = buffer.values();
@@ -137,9 +131,13 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                             else
                                 buffer.pop();
                         }
-                        // TODO needs more thinking
                         middle = firstAfterMiddle;
                     }
+                if (!emitted) {
+                    // value submitted to this method did not result in an
+                    // emission so request another one
+                    request(1);
+                }
             }
 
         };
