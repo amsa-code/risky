@@ -13,8 +13,9 @@ public class AnchoredPredictorTest {
     @Test
     public void testLoad() {
         SparkConf sparkConf = new SparkConf().setAppName("AnchoragePredictor");
+        sparkConf.set("spark.ui.enabled", "false");
         // just run this locally
-        sparkConf.setMaster("local[" + Runtime.getRuntime().availableProcessors() + "]");
+        sparkConf.setMaster("local");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
         AnchoredPredictor predictor = new AnchoredPredictor(sc);
         // can do 10 million of these a second!
