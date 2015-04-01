@@ -25,7 +25,10 @@ public class MLApp {
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         // Load and parse the data file.
-        String datapath = "../formats/target/fixes.libsvm";
+        String datapath = "/media/an/fixes.libsvm";
+
+        // the feature names are substituted into the model debugString later to
+        // make it readable
         List<String> names = Arrays.asList("lat", "lon", "speedKnots", "courseHeadingDiff",
                 "preEffectiveSpeedKnots", "preError", "postEffectiveSpeedKnots", "postError");
 
@@ -52,7 +55,7 @@ public class MLApp {
         // pair up actual and predicted classification numerical representation
                 .map(toPredictionAndActual(model))
                 // get the ones that don't match
-                .filter(notEqual())
+                .filter(predictionWrong())
                 // count them
                 .count()
         // divide by total count to get ratio failing test
@@ -78,7 +81,7 @@ public class MLApp {
         return result;
     }
 
-    private static Function<PredictionAndActual, Boolean> notEqual() {
+    private static Function<PredictionAndActual, Boolean> predictionWrong() {
         return new Function<PredictionAndActual, Boolean>() {
             @Override
             public Boolean call(PredictionAndActual p) {
