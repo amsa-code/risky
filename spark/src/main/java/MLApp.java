@@ -32,7 +32,7 @@ public class MLApp {
         // make it readable
         List<String> names = Arrays.asList("lat", "lon", "speedKnots", "courseHeadingDiff",
                 "preEffectiveSpeedKnots", "preError", "postEffectiveSpeedKnots", "postError");
-        List<String> features = Arrays.asList("other", "moored", "anchored");
+        List<String> classifications = Arrays.asList("other", "moored", "anchored");
 
         JavaRDD<LabeledPoint> data = MLUtils.loadLibSVMFile(sc.sc(), datapath).toJavaRDD();
         // Split the data into training and test sets (30% held out for testing)
@@ -42,7 +42,7 @@ public class MLApp {
 
         // Set parameters.
         // Empty categoricalFeaturesInfo indicates all features are continuous.
-        Integer numClassifications = 3;
+        Integer numClassifications = classifications.size();
         Map<Integer, Integer> categoricalFeaturesInfo = new HashMap<Integer, Integer>();
         String impurity = "gini";
         Integer maxDepth = 8;
@@ -65,7 +65,7 @@ public class MLApp {
 
         System.out.println("Test Error: " + testErr);
 
-        String s = useNames(model.toDebugString(), names, features);
+        String s = useNames(model.toDebugString(), names, classifications);
 
         System.out.println("Learned classification tree model:\n" + s);
 
