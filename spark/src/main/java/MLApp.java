@@ -22,7 +22,7 @@ public class MLApp {
 
         SparkConf sparkConf = new SparkConf().setAppName("JavaDecisionTree");
         // just run this locally
-        sparkConf.setMaster("local[6]");
+        sparkConf.setMaster("local[" + Runtime.getRuntime().availableProcessors() + "]");
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
         // Load and parse the data file.
