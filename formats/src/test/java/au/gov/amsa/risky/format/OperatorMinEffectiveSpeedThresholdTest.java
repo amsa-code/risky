@@ -103,13 +103,35 @@ public class OperatorMinEffectiveSpeedThresholdTest {
     public void testThreeLargeGapThenLargeGapReturnsSecond() {
         Fix a = createFix(0, 135.0f);
         Fix b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
-        Fix c = createFix(TimeUnit.MINUTES.toMillis(62), 135.2f);
+        Fix c = createFix(TimeUnit.MINUTES.toMillis(63), 135.25f);
         List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(a, b, c)
                 // aggregate stats
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
                 .toList().toBlocking().single();
         assertFalse(list.isEmpty());
         assertEquals(b.fix().lon(), list.get(0).fix().lon(), 0.0001);
+        FixWithPreAndPostEffectiveSpeed r = list.get(0);
+        assertEquals(11.444905004618045, r.preEffectiveSpeedKnots(), 0.00001);
+        assertEquals(1.0, r.preError(), 0.001);
+        assertEquals(16.6291858282, r.postEffectiveSpeedKnots(), 0.0001);
+        assertEquals(2.0, r.postError(), 0.001);
+    }
+
+    @Test
+    public void testFourLargeGapThenLittleGapThenLargeGapReturnsTwoMiddle() {
+        Fix a = createFix(0, 135.0f);
+        Fix b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
+        Fix c = createFix(TimeUnit.MINUTES.toMillis(32), 135.2f);
+        Fix d = createFix(TimeUnit.MINUTES.toMillis(62), 135.3f);
+        List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(a, b, c, d)
+                // aggregate stats
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
+                .toList().toBlocking().single();
+        assertEquals(2, list.size());
+        assertEquals(b.fix().lon(), list.get(0).fix().lon(), 0.0001);
+        assertEquals(c.fix().lon(), list.get(1).fix().lon(), 0.0001);
+        System.out.println(b);
+        System.out.println(c);
     }
 
 }
