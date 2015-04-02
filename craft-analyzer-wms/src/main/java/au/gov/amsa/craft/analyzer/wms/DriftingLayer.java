@@ -17,12 +17,9 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaSparkContext;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -45,11 +42,7 @@ import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.navigation.ais.AisVesselPositions;
 import au.gov.amsa.navigation.ais.SortOperator;
-import au.gov.amsa.risky.format.Fix;
-import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold;
 import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold.FixWithPreAndPostEffectiveSpeed;
-import au.gov.amsa.spark.ais.AnchoredPredictor;
-import au.gov.amsa.spark.ais.AnchoredPredictor.Status;
 
 import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.grumpy.projection.Projector;
@@ -79,11 +72,8 @@ public class DriftingLayer implements Layer {
     private volatile RTree<VesselPosition, com.github.davidmoten.rtree.geometry.Point> tree = RTree
             .maxChildren(4).star().create();
 
-    private final AnchoredPredictor anchoredPredictor;
-
     public DriftingLayer() {
         log.info("creating Drifting layer");
-        anchoredPredictor = createAnchoredPredictor();
         // collect drifting candidates
         String filename = System.getProperty("drift.candidates", System.getProperty("user.home")
                 + "/drift-candidates.txt");
@@ -92,19 +82,13 @@ public class DriftingLayer implements Layer {
                 .lift(Logging.<VesselPosition> logger().showCount().showMemory().every(10000).log())
                 // only emit those drifters that have drifted a decent distance
                 // since start of drift
-                // .lift(new OperatorDriftDistanceCheck())
+                .lift(new OperatorDriftDistanceCheck())
                 // only class A vessels
                 .filter(onlyClassA())
-                //
-                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.HOURS.toMillis(1)))
-                //
-                .filter(not(atAnchorOrMoored(anchoredPredictor)))
-                // //
-                .map(toVesselPosition())
                 // exclude anchored
-                // .filter(not(atAnchor()))
+                .filter(not(atAnchor()))
                 // exclude moored
-                // .filter(not(isMoored()))
+                .filter(not(isMoored()))
                 // group by id and date
                 .distinct(byIdAndTimePattern("yyyy-MM-dd HH"))
                 // add to queue
@@ -122,56 +106,6 @@ public class DriftingLayer implements Layer {
                 return (VesselPosition) f.fixWrapper();
             }
         };
-    }
-
-    private static Func1<FixWithPreAndPostEffectiveSpeed, Boolean> atAnchorOrMoored(
-            final AnchoredPredictor anchoredPredictor) {
-        return new Func1<FixWithPreAndPostEffectiveSpeed, Boolean>() {
-
-            @Override
-            public Boolean call(FixWithPreAndPostEffectiveSpeed f) {
-                Fix fix = f.fix();
-                if (fix.navigationalStatus().isPresent()
-                        && (fix.navigationalStatus().get() == au.gov.amsa.risky.format.NavigationalStatus.AT_ANCHOR || fix
-                                .navigationalStatus().get() == au.gov.amsa.risky.format.NavigationalStatus.MOORED))
-                    return true;
-                else if (anchoredPredictor == null)
-                    return false;
-                else if (fix.speedOverGroundKnots().isPresent()
-                        && fix.courseOverGroundDegrees().isPresent()
-                        && fix.headingDegrees().isPresent()) {
-                    Status status = anchoredPredictor.predict(
-                    //
-                            fix.lat(),
-                            //
-                            fix.lon(),
-                            //
-                            fix.speedOverGroundKnots().get(),
-                            //
-                            Math.abs(fix.courseOverGroundDegrees().get()
-                                    - fix.headingDegrees().get()),
-                            //
-                            f.preEffectiveSpeedKnots(),
-                            //
-                            f.preError(),
-                            //
-                            f.postEffectiveSpeedKnots(),
-                            //
-                            f.postError());
-                    return status == Status.ANCHORED || status == Status.MOORED;
-                } else
-                    return false;
-            }
-        };
-    }
-
-    private static AnchoredPredictor createAnchoredPredictor() {
-        SparkConf sparkConf = new SparkConf().setAppName("AnchoragePredictor");
-        sparkConf.set("spark.ui.enabled", "false");
-        // just run this locally
-        sparkConf.setMaster("local");
-        JavaSparkContext sc = new JavaSparkContext(sparkConf);
-        return new AnchoredPredictor(sc);
     }
 
     private static Observable<VesselPosition> getDrifters() {
