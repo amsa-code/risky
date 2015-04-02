@@ -5,8 +5,8 @@ import java.util.concurrent.TimeUnit;
 import rx.functions.Func1;
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.risky.format.AisClass;
-import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasFix;
+import au.gov.amsa.risky.format.Fix;
 
 import com.google.common.base.Optional;
 

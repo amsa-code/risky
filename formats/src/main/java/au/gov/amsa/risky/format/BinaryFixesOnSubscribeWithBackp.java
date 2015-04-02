@@ -22,104 +22,104 @@ import au.gov.amsa.risky.format.BinaryFixesOnSubscribeWithBackp.State;
 
 public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, State> {
 
-	private InputStream is;
-	private long mmsi;
+    private InputStream is;
+    private long mmsi;
 
-	public BinaryFixesOnSubscribeWithBackp(InputStream is, long mmsi) {
-		this.is = is;
-		this.mmsi = mmsi;
-	}
+    public BinaryFixesOnSubscribeWithBackp(InputStream is, long mmsi) {
+        this.is = is;
+        this.mmsi = mmsi;
+    }
 
-	public static class State {
-		final InputStream is;
-		final long mmsi;
-		final Queue<Fix> queue;
+    public static class State {
+        final InputStream is;
+        final long mmsi;
+        final Queue<Fix> queue;
 
-		public State(InputStream is, long mmsi, Queue<Fix> queue) {
-			this.is = is;
-			this.mmsi = mmsi;
-			this.queue = queue;
-		}
+        public State(InputStream is, long mmsi, Queue<Fix> queue) {
+            this.is = is;
+            this.mmsi = mmsi;
+            this.queue = queue;
+        }
 
-	}
+    }
 
-	/**
-	 * Returns stream of fixes from the given file. If the file name ends in
-	 * '.gz' then the file is unzipped before being read.
-	 * 
-	 * @param file
-	 * @return fixes stream
-	 */
-	public static Observable<Fix> from(final File file) {
+    /**
+     * Returns stream of fixes from the given file. If the file name ends in
+     * '.gz' then the file is unzipped before being read.
+     * 
+     * @param file
+     * @return fixes stream
+     */
+    public static Observable<Fix> from(final File file) {
 
-		Func0<InputStream> resourceFactory = new Func0<InputStream>() {
+        Func0<InputStream> resourceFactory = new Func0<InputStream>() {
 
-			@Override
-			public InputStream call() {
-				try {
-					if (file.getName().endsWith(".gz"))
-						return new GZIPInputStream(new FileInputStream(file));
-					else
-						return new FileInputStream(file);
-				} catch (FileNotFoundException e) {
-					throw new RuntimeException(e);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		};
+            @Override
+            public InputStream call() {
+                try {
+                    if (file.getName().endsWith(".gz"))
+                        return new GZIPInputStream(new FileInputStream(file));
+                    else
+                        return new FileInputStream(file);
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
 
-		Func1<InputStream, Observable<Fix>> obsFactory = new Func1<InputStream, Observable<Fix>>() {
+        Func1<InputStream, Observable<Fix>> obsFactory = new Func1<InputStream, Observable<Fix>>() {
 
-			@Override
-			public Observable<Fix> call(InputStream is) {
-				return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, BinaryFixesUtil
-				        .getMmsi(file)));
-			}
-		};
-		Action1<InputStream> disposeAction = new Action1<InputStream>() {
+            @Override
+            public Observable<Fix> call(InputStream is) {
+                return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, BinaryFixesUtil
+                        .getMmsi(file)));
+            }
+        };
+        Action1<InputStream> disposeAction = new Action1<InputStream>() {
 
-			@Override
-			public void call(InputStream is) {
-				try {
-					is.close();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-		};
-		return Observable.using(resourceFactory, obsFactory, disposeAction, true);
+            @Override
+            public void call(InputStream is) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        return Observable.using(resourceFactory, obsFactory, disposeAction, true);
 
-	}
+    }
 
-	@Override
-	protected State onSubscribe(Subscriber<? super Fix> subscriber) {
-		return new State(is, mmsi, new LinkedList<Fix>());
-	}
+    @Override
+    protected State onSubscribe(Subscriber<? super Fix> subscriber) {
+        return new State(is, mmsi, new LinkedList<Fix>());
+    }
 
-	@Override
-	protected void next(rx.observables.AbstractOnSubscribe.SubscriptionState<Fix, State> state) {
-		Fix f = state.state().queue.poll();
-		if (f != null)
-			state.onNext(f);
-		else {
-			byte[] bytes = new byte[4096 * BINARY_FIX_BYTES];
-			int length;
-			try {
-				if ((length = state.state().is.read(bytes)) > 0) {
-					for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
-						ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
-						Fix fix = BinaryFixesUtil.toFix(state.state().mmsi, bb);
-						state.state().queue.add(fix);
-					}
-					state.onNext(state.state().queue.remove());
-				} else
-					state.onCompleted();
-			} catch (IOException e) {
-				state.onError(e);
-			}
-		}
+    @Override
+    protected void next(rx.observables.AbstractOnSubscribe.SubscriptionState<Fix, State> state) {
+        Fix f = state.state().queue.poll();
+        if (f != null)
+            state.onNext(f);
+        else {
+            byte[] bytes = new byte[4096 * BINARY_FIX_BYTES];
+            int length;
+            try {
+                if ((length = state.state().is.read(bytes)) > 0) {
+                    for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
+                        ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
+                        Fix fix = BinaryFixesUtil.toFix(state.state().mmsi, bb);
+                        state.state().queue.add(fix);
+                    }
+                    state.onNext(state.state().queue.remove());
+                } else
+                    state.onCompleted();
+            } catch (IOException e) {
+                state.onError(e);
+            }
+        }
 
-	}
+    }
 
 }

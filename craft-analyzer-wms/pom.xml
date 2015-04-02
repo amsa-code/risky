@@ -61,6 +61,32 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack-model</id>
+						<phase>process-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>au.gov.amsa.risky</groupId>
+									<artifactId>spark</artifactId>
+									<version>${project.parent.version}</version>
+									<type>jar</type>
+									<overWrite>false</overWrite>
+								</artifactItem>
+							</artifactItems>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+							<overWriteReleases>false</overWriteReleases>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.plugin.version}</version>

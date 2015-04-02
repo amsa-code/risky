@@ -10,7 +10,7 @@ import com.google.common.base.Optional;
 
 public class BinaryFixesUtil {
 
-	static Fix toFix(long mmsi, ByteBuffer bb) {
+	static FixImpl toFix(long mmsi, ByteBuffer bb) {
 		float lat = bb.getFloat();
 		float lon = bb.getFloat();
 		long time = bb.getLong();
@@ -62,7 +62,7 @@ public class BinaryFixesUtil {
 			aisClass = AisClass.A;
 		else
 			aisClass = AisClass.B;
-		Fix fix = new Fix(mmsi, lat, lon, time, latencySeconds, source, navigationalStatus,
+		FixImpl fix = new FixImpl(mmsi, lat, lon, time, latencySeconds, source, navigationalStatus,
 		        speedOverGroundKnots, courseOverGroundDegrees, headingDegrees, aisClass);
 		return fix;
 	}

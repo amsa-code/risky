@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
-import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.FixImpl;
 
 public class NmeaGzToBinaryFixesMain {
 
@@ -48,7 +48,7 @@ public class NmeaGzToBinaryFixesMain {
 		long downSampleIntervalMs = TimeUnit.MINUTES.toMillis(0);
 		Pattern inputPattern = Pattern.compile(pattern);
 
-		final Func1<Fix, String> fileMapper;
+		final Func1<FixImpl, String> fileMapper;
 		if (BY_MONTH.equals(by))
 			fileMapper = new BinaryFixesWriter.ByMonth(output);
 		else if (BY_YEAR.equals(by))

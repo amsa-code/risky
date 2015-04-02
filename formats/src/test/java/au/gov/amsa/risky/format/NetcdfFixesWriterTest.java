@@ -22,7 +22,7 @@ public class NetcdfFixesWriterTest {
 	@Test
 	public void testWriting() {
 		Fix f1 = createFix(TimeUnit.DAYS.toMillis(1), -10.5f, 135f);
-		Fix f2 = createFix(TimeUnit.DAYS.toMillis(2), -10.8f, 136f);
+		FixImpl f2 = createFix(TimeUnit.DAYS.toMillis(2), -10.8f, 136f);
 		List<HasFix> fixes = Arrays.asList((HasFix) f1, f2);
 		NetcdfFixesWriter.writeFixes(fixes, new File("target/test.nc"));
 	}
@@ -44,8 +44,8 @@ public class NetcdfFixesWriterTest {
 		assertFalse(attributes.isEmpty());
 	}
 
-	private static Fix createFix(long time, float lat, float lon) {
-		return new Fix(213456789, lat, lon, time, of(12), of((short) 1),
+	private static FixImpl createFix(long time, float lat, float lon) {
+		return new FixImpl(213456789, lat, lon, time, of(12), of((short) 1),
 		        of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
 	}
 

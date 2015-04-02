@@ -23,7 +23,7 @@ public class DownsampleTest {
 
     @Test
     public void testDownSampleOfOneReturnsOne() {
-        Fix f = createFix(0);
+        FixImpl f = createFix(0);
         HasFix fix = Observable.just(f).compose(minTimeStep(100, TimeUnit.MILLISECONDS))
                 .toBlocking().single();
         assertEquals(f, fix);
@@ -31,8 +31,8 @@ public class DownsampleTest {
 
     @Test
     public void testDownSampleOfTwoWithSmallGapReturnsFirst() {
-        Fix f = createFix(0);
-        Fix f2 = createFix(50);
+        FixImpl f = createFix(0);
+        FixImpl f2 = createFix(50);
         HasFix fix = Observable.just(f, f2).compose(minTimeStep(100, TimeUnit.MILLISECONDS))
                 .toBlocking().single();
         assertEquals(f, fix);
@@ -40,8 +40,8 @@ public class DownsampleTest {
 
     @Test
     public void testDownSampleOfTwoWithBigGapReturnsTwo() {
-        Fix f = createFix(0);
-        Fix f2 = createFix(150);
+        FixImpl f = createFix(0);
+        FixImpl f2 = createFix(150);
         List<HasFix> fixes = Observable.just(f, f2)
                 .compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toList().toBlocking().single();
         assertEquals(Arrays.asList(f, f2), fixes);
@@ -49,9 +49,9 @@ public class DownsampleTest {
 
     @Test
     public void testDownSampleOfThreeWithSmallGapThenBigGapReturnsOuterTwo() {
-        Fix f = createFix(0);
-        Fix f2 = createFix(50);
-        Fix f3 = createFix(150);
+        FixImpl f = createFix(0);
+        FixImpl f2 = createFix(50);
+        FixImpl f3 = createFix(150);
         List<HasFix> fixes = Observable.just(f, f2, f3)
                 .compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toList().toBlocking().single();
         assertEquals(Arrays.asList(f, f3), fixes);
@@ -59,9 +59,9 @@ public class DownsampleTest {
 
     @Test
     public void testDownSampleOfNonZeroGapWithItemsWithSameTimeReturnsFirst() {
-        Fix f = createFix(50);
-        Fix f2 = createFix(50);
-        Fix f3 = createFix(50);
+        FixImpl f = createFix(50);
+        FixImpl f2 = createFix(50);
+        FixImpl f3 = createFix(50);
         List<HasFix> fixes = Observable.just(f, f2, f3)
                 .compose(minTimeStep(100, TimeUnit.MILLISECONDS)).toList().toBlocking().single();
         assertEquals(Arrays.asList(f), fixes);
@@ -69,16 +69,16 @@ public class DownsampleTest {
 
     @Test
     public void testDownSampleOf0ForItemsWithSameTimeReturnsAll() {
-        Fix f = createFix(50);
-        Fix f2 = createFix(50);
-        Fix f3 = createFix(50);
+        FixImpl f = createFix(50);
+        FixImpl f2 = createFix(50);
+        FixImpl f3 = createFix(50);
         List<HasFix> fixes = Observable.just(f, f2, f3)
                 .compose(minTimeStep(0, TimeUnit.MILLISECONDS)).toList().toBlocking().single();
         assertEquals(Arrays.asList(f, f2, f3), fixes);
     }
 
-    private static Fix createFix(long time) {
-        return new Fix(213456789, -10f, 135f, time, of(12), of((short) 1),
+    private static FixImpl createFix(long time) {
+        return new FixImpl(213456789, -10f, 135f, time, of(12), of((short) 1),
                 of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
     }
 

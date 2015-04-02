@@ -19,6 +19,7 @@ import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
 import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
+import au.gov.amsa.risky.format.FixImpl;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 
@@ -115,9 +116,9 @@ public class StreamsTest {
 	@Test
 	public void testNumberCraftInTestFile() throws IOException {
 		InputStream is = StreamsTest.class.getResourceAsStream(NMEA_RESOURCE);
-		int count = Streams.extractFixes(Streams.nmeaFrom(is)).map(new Func1<Fix, Long>() {
+		int count = Streams.extractFixes(Streams.nmeaFrom(is)).map(new Func1<FixImpl, Long>() {
 			@Override
-			public Long call(Fix fix) {
+			public Long call(FixImpl fix) {
 				return fix.mmsi();
 			}
 		}).distinct().count().toBlocking().single();
@@ -128,7 +129,7 @@ public class StreamsTest {
 	@Test
 	public void testBinaryFixesWriterUsingFileMapper() throws IOException {
 		InputStream is = StreamsTest.class.getResourceAsStream(NMEA_RESOURCE);
-		Observable<Fix> fixes = Streams.extractFixes(Streams.nmeaFrom(is));
+		Observable<FixImpl> fixes = Streams.extractFixes(Streams.nmeaFrom(is));
 		String base = "target/binary";
 		File directory = new File(base);
 		FileUtils.deleteDirectory(directory);

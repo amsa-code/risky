@@ -20,17 +20,17 @@ public class OperatorMinEffectiveSpeedThresholdTest {
     public void test() {
         long t = 1000;
         long diff = TimeUnit.MINUTES.toMillis(20);
-        Fix a = createFix(t, 135f);
+        FixImpl a = createFix(t, 135f);
         t += diff;
-        Fix b = createFix(t, 135.01f);
+        FixImpl b = createFix(t, 135.01f);
         t += diff;
-        Fix c = createFix(t, 135.02f);
+        FixImpl c = createFix(t, 135.02f);
         t += diff;
-        Fix d = createFix(t, 135.03f);
+        FixImpl d = createFix(t, 135.03f);
         t += diff;
-        Fix e = createFix(t, 135.04f);
+        FixImpl e = createFix(t, 135.04f);
         t += TimeUnit.MINUTES.toMillis(15);
-        Fix f = createFix(t, 135.05f);
+        FixImpl f = createFix(t, 135.05f);
 
         List<FixWithPreAndPostEffectiveSpeed> list =
         // fixes
@@ -45,8 +45,8 @@ public class OperatorMinEffectiveSpeedThresholdTest {
         assertEquals(1.77, list.get(0).preEffectiveSpeedKnots(), 0.01);
     }
 
-    private Fix createFix(long t, float lon) {
-        return new Fix(213456789, -10f, lon, t, of(12), of((short) 1),
+    private FixImpl createFix(long t, float lon) {
+        return new FixImpl(213456789, -10f, lon, t, of(12), of((short) 1),
                 of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
     }
 
@@ -101,9 +101,9 @@ public class OperatorMinEffectiveSpeedThresholdTest {
 
     @Test
     public void testThreeLargeGapThenLargeGapReturnsSecond() {
-        Fix a = createFix(0, 135.0f);
-        Fix b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
-        Fix c = createFix(TimeUnit.MINUTES.toMillis(63), 135.25f);
+        FixImpl a = createFix(0, 135.0f);
+        FixImpl b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
+        FixImpl c = createFix(TimeUnit.MINUTES.toMillis(63), 135.25f);
         List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(a, b, c)
                 // aggregate stats
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))
@@ -119,10 +119,10 @@ public class OperatorMinEffectiveSpeedThresholdTest {
 
     @Test
     public void testFourLargeGapThenLittleGapThenLargeGapReturnsTwoMiddle() {
-        Fix a = createFix(0, 135.0f);
-        Fix b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
-        Fix c = createFix(TimeUnit.MINUTES.toMillis(32), 135.2f);
-        Fix d = createFix(TimeUnit.MINUTES.toMillis(62), 135.3f);
+        FixImpl a = createFix(0, 135.0f);
+        FixImpl b = createFix(TimeUnit.MINUTES.toMillis(31), 135.1f);
+        FixImpl c = createFix(TimeUnit.MINUTES.toMillis(32), 135.2f);
+        FixImpl d = createFix(TimeUnit.MINUTES.toMillis(62), 135.3f);
         List<FixWithPreAndPostEffectiveSpeed> list = Observable.just(a, b, c, d)
                 // aggregate stats
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.MINUTES.toMillis(30)))

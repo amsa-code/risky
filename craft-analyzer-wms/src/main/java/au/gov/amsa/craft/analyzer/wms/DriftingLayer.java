@@ -17,9 +17,12 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.spark.SparkConf;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -43,6 +46,7 @@ import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.navigation.ais.AisVesselPositions;
 import au.gov.amsa.navigation.ais.SortOperator;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold;
 import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold.FixWithPreAndPostEffectiveSpeed;
 import au.gov.amsa.spark.ais.AnchoredPredictor;
 import au.gov.amsa.spark.ais.AnchoredPredictor.Status;
@@ -92,16 +96,15 @@ public class DriftingLayer implements Layer {
                 // only class A vessels
                 .filter(onlyClassA())
                 //
-                // .lift(new
-                // OperatorMinEffectiveSpeedThreshold(TimeUnit.HOURS.toMillis(1)))
+                .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.HOURS.toMillis(1)))
+                //
+                .filter(not(atAnchorOrMoored(anchoredPredictor)))
                 // //
-                // .filter(not(atAnchorOrMoored(anchoredPredictor)))
-                // //
-                // .map(toVesselPosition())
+                .map(toVesselPosition())
                 // exclude anchored
-                .filter(not(atAnchor()))
+                // .filter(not(atAnchor()))
                 // exclude moored
-                .filter(not(isMoored()))
+                // .filter(not(isMoored()))
                 // group by id and date
                 .distinct(byIdAndTimePattern("yyyy-MM-dd HH"))
                 // add to queue
@@ -163,14 +166,12 @@ public class DriftingLayer implements Layer {
     }
 
     private static AnchoredPredictor createAnchoredPredictor() {
-        // SparkConf sparkConf = new
-        // SparkConf().setAppName("AnchoragePredictor");
-        // sparkConf.set("spark.ui.enabled", "false");
-        // // just run this locally
-        // sparkConf.setMaster("local");
-        // JavaSparkContext sc = new JavaSparkContext(sparkConf);
-        // return new AnchoredPredictor(sc);
-        return null;
+        SparkConf sparkConf = new SparkConf().setAppName("AnchoragePredictor");
+        sparkConf.set("spark.ui.enabled", "false");
+        // just run this locally
+        sparkConf.setMaster("local");
+        JavaSparkContext sc = new JavaSparkContext(sparkConf);
+        return new AnchoredPredictor(sc);
     }
 
     private static Observable<VesselPosition> getDrifters() {

@@ -50,7 +50,7 @@ import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
-import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.FixImpl;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.Files;
@@ -130,14 +130,14 @@ public class Streams {
 		};
 	}
 
-	public static Observable<Fix> extractFixes(Observable<String> rawAisNmea) {
+	public static Observable<FixImpl> extractFixes(Observable<String> rawAisNmea) {
 		return extractMessages(rawAisNmea).flatMap(TO_FIX);
 	}
 
-	private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = new Func1<Timestamped<AisMessage>, Observable<Fix>>() {
+	private static final Func1<Timestamped<AisMessage>, Observable<FixImpl>> TO_FIX = new Func1<Timestamped<AisMessage>, Observable<FixImpl>>() {
 
 		@Override
-		public Observable<Fix> call(Timestamped<AisMessage> m) {
+		public Observable<FixImpl> call(Timestamped<AisMessage> m) {
 			try {
 				if (m.message() instanceof AisPosition) {
 					AisPosition a = (AisPosition) m.message();
@@ -187,7 +187,7 @@ public class Streams {
 						// TODO latency
 						Optional<Integer> latency = absent();
 
-						Fix f = new Fix(a.getMmsi(), a.getLatitude().floatValue(), a.getLongitude()
+						FixImpl f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(), a.getLongitude()
 						        .floatValue(), m.time(), latency, src, nav, sog, cog, heading,
 						        aisClass);
 						return Observable.just(f);
@@ -662,12 +662,12 @@ public class Streams {
 
 	public static Func1<List<File>, Observable<Integer>> extractFixesFromNmeaGzAndAppendToFile(
 	        final int linesPerProcessor, final Scheduler scheduler,
-	        final Func1<Fix, String> fileMapper, final int writeBufferSize,
+	        final Func1<FixImpl, String> fileMapper, final int writeBufferSize,
 	        final Action1<File> logger) {
 		return new Func1<List<File>, Observable<Integer>>() {
 			@Override
 			public Observable<Integer> call(List<File> files) {
-				Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
+				Observable<FixImpl> fixes = Streams.extractFixes(Observable.from(files)
 				// log
 				        .doOnNext(logger)
 				        // one file at a time
@@ -686,10 +686,10 @@ public class Streams {
 		};
 	}
 
-	private static Func2<Integer, List<Fix>, Integer> countFixes() {
-		return new Func2<Integer, List<Fix>, Integer>() {
+	private static Func2<Integer, List<FixImpl>, Integer> countFixes() {
+		return new Func2<Integer, List<FixImpl>, Integer>() {
 			@Override
-			public Integer call(Integer count, List<Fix> fixes) {
+			public Integer call(Integer count, List<FixImpl> fixes) {
 				return count + fixes.size();
 			}
 		};
@@ -697,7 +697,7 @@ public class Streams {
 
 	public static Observable<Integer> writeFixesFromNmeaGz(File input, Pattern inputPattern,
 	        File output, int logEvery, int writeBufferSize, Scheduler scheduler,
-	        int linesPerProcessor, long downSampleIntervalMs, Func1<Fix, String> fileMapper) {
+	        int linesPerProcessor, long downSampleIntervalMs, Func1<FixImpl, String> fileMapper) {
 
 		final List<File> fileList = Files.find(input, inputPattern);
 		Observable<File> files = Observable.from(fileList);

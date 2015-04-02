@@ -12,7 +12,7 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import au.gov.amsa.risky.format.AisClass;
-import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.FixImpl;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
 
@@ -53,7 +53,7 @@ public final class DriftCandidates {
 					        aisClass = AisClass.A;
 				        else
 					        aisClass = AisClass.B;
-				        Fix fix = new Fix(mmsi, lat, lon, time, Optional.<Integer> absent(),
+				        FixImpl fix = new FixImpl(mmsi, lat, lon, time, Optional.<Integer> absent(),
 				                Optional.<Short> absent(), navigationalStatus, Optional
 				                        .of(speedKnots), Optional.of(course), Optional.of(heading),
 				                aisClass);

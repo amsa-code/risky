@@ -70,8 +70,7 @@ public final class BinaryFixes {
                 s.append(COMMA);
                 s.append(f.latencySeconds().or(LATENCY_ABSENT));
                 s.append(COMMA);
-                s.append(f.navigationalStatus().or(
-                        NavigationalStatus.values()[NAV_STATUS_ABSENT]));
+                s.append(f.navigationalStatus().or(NavigationalStatus.values()[NAV_STATUS_ABSENT]));
                 s.append(COMMA);
                 s.append(f.rateOfTurn().or(RATE_OF_TURN_ABSENT));
                 s.append(COMMA);
