@@ -5,8 +5,9 @@ import static java.lang.Math.toRadians;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import au.gov.amsa.risky.format.HasFix;
+import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.HasFix;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -434,7 +435,90 @@ public class VesselPosition implements HasFix {
 
     @Override
     public Fix fix() {
-        throw new RuntimeException("not implemented");
+        return new Fix() {
+
+            @Override
+            public Fix fix() {
+                return this;
+            }
+
+            @Override
+            public long mmsi() {
+                return ((Mmsi) id).uniqueId();
+            }
+
+            @Override
+            public long time() {
+                return time;
+            }
+
+            @Override
+            public float lat() {
+                return (float) lat;
+            }
+
+            @Override
+            public float lon() {
+                return (float) lon;
+            }
+
+            @Override
+            public Optional<au.gov.amsa.risky.format.NavigationalStatus> navigationalStatus() {
+                return Optional
+                        .of(au.gov.amsa.risky.format.NavigationalStatus.values()[navigationalStatus
+                                .ordinal()]);
+            }
+
+            @Override
+            public Optional<Float> speedOverGroundKnots() {
+                if (speedMetresPerSecond.isPresent())
+                    return Optional.of((float) (1 / 1852 * speedMetresPerSecond.get() * 3600));
+                else
+                    return Optional.absent();
+            }
+
+            @Override
+            public Optional<Float> courseOverGroundDegrees() {
+                return toFloat(cogDegrees);
+            }
+
+            @Override
+            public Optional<Float> headingDegrees() {
+                return toFloat(headingDegrees);
+            }
+
+            @Override
+            public AisClass aisClass() {
+                if (cls == VesselClass.A)
+                    return AisClass.A;
+                else if (cls == VesselClass.B)
+                    return AisClass.B;
+                else
+                    throw new RuntimeException("unexpected");
+            }
+
+            @Override
+            public Optional<Integer> latencySeconds() {
+                return Optional.absent();
+            }
+
+            @Override
+            public Optional<Short> source() {
+                return Optional.absent();
+            }
+
+            @Override
+            public Optional<Byte> rateOfTurn() {
+                return Optional.absent();
+            }
+        };
+    }
+
+    private static Optional<Float> toFloat(Optional<Double> value) {
+        if (value.isPresent())
+            return Optional.of(value.get().floatValue());
+        else
+            return Optional.absent();
     }
 
 }
