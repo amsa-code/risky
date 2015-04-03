@@ -6,13 +6,13 @@ import java.io.Reader;
 import rx.Subscriber;
 import rx.observables.AbstractOnSubscribe;
 
-public final class ReaderOnSubscribe extends
+public final class OnSubscribeReader extends
 		AbstractOnSubscribe<String, Reader> {
 
 	private final Reader reader;
 	private final int size;
 
-	public ReaderOnSubscribe(Reader reader, int size) {
+	public OnSubscribeReader(Reader reader, int size) {
 		this.reader = reader;
 		this.size = size;
 	}

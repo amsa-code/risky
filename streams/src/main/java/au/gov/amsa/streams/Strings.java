@@ -39,7 +39,7 @@ public final class Strings {
 	};
 
 	public static Observable<String> from(final Reader reader, final int size) {
-		return new ReaderOnSubscribe(reader, size).toObservable();
+		return new OnSubscribeReader(reader, size).toObservable();
 		// return StringObservable.from(reader, size);
 	}
 

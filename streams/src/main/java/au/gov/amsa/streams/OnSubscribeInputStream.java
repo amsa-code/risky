@@ -7,30 +7,30 @@ import java.util.Arrays;
 import rx.Subscriber;
 import rx.observables.AbstractOnSubscribe;
 
-public final class InputStreamOnSubscribe extends
+public final class OnSubscribeInputStream extends
 		AbstractOnSubscribe<byte[], InputStream> {
 
-	private final InputStream reader;
+	private final InputStream is;
 	private final int size;
 
-	public InputStreamOnSubscribe(InputStream reader, int size) {
-		this.reader = reader;
+	public OnSubscribeInputStream(InputStream is, int size) {
+		this.is = is;
 		this.size = size;
 	}
 
 	@Override
 	protected InputStream onSubscribe(Subscriber<? super byte[]> subscriber) {
-		return reader;
+		return is;
 	}
 
 	@Override
 	protected void next(
 			rx.observables.AbstractOnSubscribe.SubscriptionState<byte[], InputStream> state) {
 
-		InputStream reader = state.state();
+		InputStream is = state.state();
 		byte[] buffer = new byte[size];
 		try {
-			int count = reader.read(buffer);
+			int count = is.read(buffer);
 			if (count == -1)
 				state.onCompleted();
 			else

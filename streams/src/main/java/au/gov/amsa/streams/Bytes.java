@@ -14,7 +14,7 @@ import rx.functions.Func1;
 public class Bytes {
 
 	public static Observable<byte[]> from(final InputStream is, final int size) {
-		return new InputStreamOnSubscribe(is, size).toObservable();
+		return new OnSubscribeInputStream(is, size).toObservable();
 	}
 
 	public static Observable<byte[]> from(InputStream is) {
