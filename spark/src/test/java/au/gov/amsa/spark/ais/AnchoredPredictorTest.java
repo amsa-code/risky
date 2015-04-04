@@ -5,14 +5,12 @@ import static org.junit.Assert.assertEquals;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.junit.Test;
-import org.junit.Ignore;
 
 import au.gov.amsa.spark.ais.AnchoredPredictor.Status;
 
 public class AnchoredPredictorTest {
 
     @Test
-    @Ignore
     public void testLoad() {
         SparkConf sparkConf = new SparkConf().setAppName("AnchoragePredictor");
         sparkConf.set("spark.ui.enabled", "false");
