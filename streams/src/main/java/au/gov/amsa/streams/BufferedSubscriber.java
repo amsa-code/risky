@@ -19,9 +19,9 @@ public class BufferedSubscriber<T> extends Subscriber<T> {
     // queue to hold messages till they are requested
     private final Deque<Object> queue = new LinkedList<Object>();
     private volatile boolean requestAll = false;
-    private final Subscriber<T> child;
+    private final Subscriber<? super T> child;
 
-    public BufferedSubscriber(Subscriber<T> child) {
+    public BufferedSubscriber(Subscriber<? super T> child) {
         this.child = child;
         this.expected = expected;
     }
@@ -45,7 +45,7 @@ public class BufferedSubscriber<T> extends Subscriber<T> {
         return requestAll;
     }
 
-    private void drainQueue() {
+    public void drainQueue() {
         // only used by backpressure path
         while (true) {
             Object item = queue.peek();
@@ -73,8 +73,14 @@ public class BufferedSubscriber<T> extends Subscriber<T> {
 
     @Override
     public void onError(Throwable e) {
-        queue.add(on.error(e));
-        drainQueue();
+        if (requestedAll()) {
+            // fast path
+            child.onError(e);
+        } else {
+            // backpressure path
+            queue.add(on.error(e));
+            drainQueue();
+        }
     }
 
     @Override
