@@ -9,6 +9,7 @@ import rx.Observable.Transformer;
 import rx.Subscriber;
 import rx.functions.Func1;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.HasFix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.util.RingBuffer;
 
@@ -31,7 +32,7 @@ public class DriftingDetectorFix {
     private static final double MIN_PROPORTION = 0.5;
     private static final double NON_DRIFTING_THRESHOLD_MS = 5 * 60 * 1000;
 
-    public Observable<DriftCandidate> getCandidates(Observable<Fix> o) {
+    public Observable<DriftCandidate> getCandidates(Observable<HasFix> o) {
         return o.lift(detectDriftCandidates());
     }
 
@@ -52,12 +53,12 @@ public class DriftingDetectorFix {
      * 
      * @return an operator to detect drift candidates
      */
-    private static Operator<DriftCandidate, Fix> detectDriftCandidates() {
-        return new Operator<DriftCandidate, Fix>() {
+    private static Operator<DriftCandidate, HasFix> detectDriftCandidates() {
+        return new Operator<DriftCandidate, HasFix>() {
 
             @Override
-            public Subscriber<? super Fix> call(final Subscriber<? super DriftCandidate> child) {
-                return new Subscriber<Fix>(child) {
+            public Subscriber<? super HasFix> call(final Subscriber<? super DriftCandidate> child) {
+                return new Subscriber<HasFix>(child) {
                     final int SIZE = 1000;
                     final AtomicLong driftingSinceTime = new AtomicLong(Long.MAX_VALUE);
                     final AtomicLong nonDriftingSinceTime = new AtomicLong(Long.MAX_VALUE);
@@ -75,8 +76,9 @@ public class DriftingDetectorFix {
                     }
 
                     @Override
-                    public void onNext(Fix f) {
-                        handleFix(f, q, child, driftingSinceTime, nonDriftingSinceTime, currentMmsi);
+                    public void onNext(HasFix f) {
+                        handleFix(f.fix(), q, child, driftingSinceTime, nonDriftingSinceTime,
+                                currentMmsi);
                     }
 
                 };
@@ -165,12 +167,12 @@ public class DriftingDetectorFix {
         return new DriftingTransformer();
     }
 
-    private static class DriftingTransformer implements Transformer<Fix, DriftCandidate> {
+    private static class DriftingTransformer implements Transformer<HasFix, DriftCandidate> {
 
         private final DriftingDetectorFix d = new DriftingDetectorFix();
 
         @Override
-        public Observable<DriftCandidate> call(Observable<Fix> o) {
+        public Observable<DriftCandidate> call(Observable<HasFix> o) {
             return d.getCandidates(o);
         }
     }
