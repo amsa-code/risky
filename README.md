@@ -7,6 +7,8 @@ Tools for analyzing timestamped position data such as vessel position reports fr
 
 Makes extensive use of lazy functional stream programming libraries from [RxJava](https://github.com/reactivex/RxJava).
 
+Requires Java 7. Move to Java 8 should happen by May 2015 (waiting for AMSA upgrade to Java 8).
+
 Status: *pre-alpha*
 
 | Subproject         | Description |
