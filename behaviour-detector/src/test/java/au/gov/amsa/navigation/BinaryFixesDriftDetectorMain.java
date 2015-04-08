@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation.ais;
+package au.gov.amsa.navigation;
 
 import java.io.File;
 import java.io.FileOutputStream;

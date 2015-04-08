@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation.ais;
+package au.gov.amsa.navigation;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -10,6 +10,7 @@ import rx.observables.GroupedObservable;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselPosition;
+import au.gov.amsa.navigation.ais.AisVesselPositions;
 
 public class DriftingDetectorMain {
 

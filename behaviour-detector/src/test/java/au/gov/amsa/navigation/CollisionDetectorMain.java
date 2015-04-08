@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation.ais;
+package au.gov.amsa.navigation;
 
 import java.io.IOException;
 
@@ -8,6 +8,7 @@ import au.gov.amsa.navigation.CollisionCandidate;
 import au.gov.amsa.navigation.CollisionDetector;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
+import au.gov.amsa.navigation.ais.AisVesselPositions;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 
