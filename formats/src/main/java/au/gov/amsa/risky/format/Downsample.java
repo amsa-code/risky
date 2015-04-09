@@ -40,10 +40,10 @@ public class Downsample<T extends HasFix> implements Transformer<T, T> {
         Observable<T> result = fixes.scan(new Func2<T, T, T>() {
             @Override
             public T call(T latest, T fix) {
-                if (fix.fix().time() < latest.fix().time())
-                    throw new RuntimeException("not in ascending time order!");
-                else if (fix.fix().mmsi() != latest.fix().mmsi())
+                if (fix.fix().mmsi() != latest.fix().mmsi())
                     throw new RuntimeException("can only downsample a single vessel");
+                else if (fix.fix().time() < latest.fix().time())
+                    throw new RuntimeException("not in ascending time order!");
                 else if (fix.fix().time() - latest.fix().time() >= minTimeBetweenFixesMs
                         || selector.call(fix))
                     return fix;

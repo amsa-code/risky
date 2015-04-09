@@ -22,6 +22,7 @@ import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.FixImpl;
+import au.gov.amsa.risky.format.Fixes;
 import au.gov.amsa.util.Files;
 import au.gov.amsa.util.identity.MmsiValidator2;
 
@@ -44,9 +45,11 @@ public class BinaryFixesDriftDetectorMain {
                 // exclude invalid mmsi
                 .filter(onlyValidMmsis())
                 // share the load between processors
-                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
+                .buffer(Math.max(1,
+                        files.size()
+                                / (Math.max(1, Runtime.getRuntime().availableProcessors() - 1))))
                 // search each list of files for drift detections
-                .flatMap(detectDrift(num, Schedulers.immediate()))
+                .flatMap(detectDrift(num, Schedulers.computation()))
                 // count
                 .reduce(0, BinaryFixesDriftDetectorMain.<Integer> add()).toBlocking().single();
         log.info("drift detections = " + count);
@@ -91,28 +94,39 @@ public class BinaryFixesDriftDetectorMain {
         return new Func1<List<File>, Observable<Integer>>() {
             @Override
             public Observable<Integer> call(List<File> list) {
-                return Observable.from(list).concatMap(new Func1<File, Observable<Integer>>() {
-                    @Override
-                    public Observable<Integer> call(File file) {
-                        return BinaryFixes.from(file)
-                        // log count
-                                .doOnNext(logCount(num))
-                                // detect drift
-                                .compose(DriftDetector.detectDrift())
-                                // downsample to min 5 minutes between reports
-                                // but ensure that start of drift is always
-                                // included
-                                .compose(
-                                        Downsample.<DriftCandidate> minTimeStep(5,
-                                                TimeUnit.MINUTES, isStartOfDrift()))
-                                // onNext
-                                .doOnNext(ON_NEXT)
-                                // count
-                                .count();
-                    }
+                return Observable.from(list)
+                // files to drift detections
+                        .concatMap(new Func1<File, Observable<Integer>>() {
+                            @Override
+                            public Observable<Integer> call(final File file) {
+                                return BinaryFixes.from(file)
+                                // log count
+                                        .doOnNext(logCount(num))
+                                        //
+                                        .compose(Fixes.ignoreOutOfOrderFixes(false))
+                                        // detect drift
+                                        .compose(DriftDetector.detectDrift())
+                                        // downsample to min 5 minutes between
+                                        // reports but ensure that start of
+                                        // drift is always included
+                                        .compose(
+                                                Downsample.<DriftCandidate> minTimeStep(5,
+                                                        TimeUnit.MINUTES, isStartOfDrift()))
+                                        // onNext
+                                        .doOnNext(ON_NEXT)
+                                        // log on error
+                                        .doOnError(new Action1<Throwable>() {
+                                            @Override
+                                            public void call(Throwable e) {
+                                                log.error(file + ":" + e.getMessage(), e);
+                                            }
+                                        })
+                                        // count
+                                        .count();
+                            }
 
-                })
-                // schedule
+                        })
+                        // schedule
                         .subscribeOn(scheduler);
             }
         };

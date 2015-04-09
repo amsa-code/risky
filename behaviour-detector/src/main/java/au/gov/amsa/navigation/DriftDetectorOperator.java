@@ -100,8 +100,10 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
                 return;
             }
         } else {
-            // queue is non-empty so add to the queue
-            q.push(new FixAndStatus(f, IS_CANDIDATE.call(f)));
+            if (q.peek().fix.time() < f.time()) {
+                // queue is non-empty so add to the queue
+                q.push(new FixAndStatus(f, IS_CANDIDATE.call(f)));
+            }
         }
 
         // process the queue if time interval long enough
