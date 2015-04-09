@@ -1,6 +1,5 @@
 package au.gov.amsa.navigation;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
@@ -10,22 +9,21 @@ import rx.Observer;
 import rx.functions.Func1;
 import rx.observables.GroupedObservable;
 import au.gov.amsa.ais.rx.Streams;
-import au.gov.amsa.navigation.DriftDetector.DriftDetectorTransformer;
 import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.Fixes;
 import au.gov.amsa.streams.StringSockets;
 
+import com.github.davidmoten.rx.jdbc.Database;
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 public class DriftDetectorFromAisStreamMain {
 
     private static final Logger log = Logger.getLogger(DriftDetectorFromAisStreamMain.class);
 
     public static void main(String[] args) {
+        final Database db = Database.from("jdbc:oracle:thin:aussar/aussar@devdbs:1521:AUSDEV");
+
         Observable<String> lines = StringSockets
         //
                 .from("sarappsdev.amsa.gov.au")
@@ -37,15 +35,6 @@ public class DriftDetectorFromAisStreamMain {
                 .reconnectDelay(1, TimeUnit.SECONDS)
                 //
                 .create();
-
-        final Map<Long, DriftDetectorTransformer> detectors = Maps.asMap(Sets.<Long> newHashSet(),
-                new Function<Long, DriftDetectorTransformer>() {
-
-                    @Override
-                    public DriftDetectorTransformer apply(Long input) {
-                        return DriftDetector.detectDrift();
-                    }
-                });
 
         Streams.extractFixes(lines)
         //
@@ -60,9 +49,13 @@ public class DriftDetectorFromAisStreamMain {
 
                     @Override
                     public Observable<DriftCandidate> call(GroupedObservable<Long, Fix> g) {
-                        return g.compose(Fixes.ignoreOutOfOrderFixes(true))
+                        return g
+                        //
+                        .compose(Fixes.ignoreOutOfOrderFixes(true))
+                        //
+                        // .lift(Logging.<Fix> logger().showValue().log())
                         // detect drift
-                                .compose(detectors.get(g.getKey()))
+                                .compose(DriftDetector.detectDrift())
                                 // downsample to min 5 minutes between
                                 // reports but ensure that start of
                                 // drift is always included
@@ -71,9 +64,9 @@ public class DriftDetectorFromAisStreamMain {
                                                 TimeUnit.MINUTES, isStartOfDrift()));
                     }
                 })
-
-                // retry on error
-                .retry()
+                // write candidates to the database with no batching (bufferSize
+                // = 1)
+                .compose(new DriftCandidatesDatabaseLoader(db, 1).loadToDatabase())
                 // go!
                 .subscribe(new Observer<Object>() {
 

@@ -1,6 +1,7 @@
 package au.gov.amsa.navigation;
 
 import java.util.Enumeration;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import rx.Observable.Operator;
@@ -30,9 +31,9 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
     @VisibleForTesting
     static final float MIN_DRIFTING_SPEED_KNOTS = 0.25f;
 
-    private static final long WINDOW_SIZE_MS = 5 * 60 * 1000;
+    private static final long WINDOW_SIZE_MS = TimeUnit.MINUTES.toMillis(5);
     private static final double MIN_PROPORTION = 0.5;
-    private static final double NON_DRIFTING_THRESHOLD_MS = 5 * 60 * 1000;
+    private static final double NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
 
     @Override
     public Subscriber<? super HasFix> call(final Subscriber<? super DriftCandidate> child) {
