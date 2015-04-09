@@ -12,13 +12,13 @@ This project is a super example of the effectiveness of [RxJava](https://github.
 Here is an example of reading a stream of AIS NMEA messages from a host and republishing it on a server port for multiple subscribers:
 
 ```java
-import au.gov.amsa.streams.Strings;
+import au.gov.amsa.streams.StringSockets;
 import au.gov.amsa.streams.StringServer;
 import java.util.concurrent.TimeUnit;
 import rx.Observable;
 
 Observable<String> strings = 
-		Strings.from("mariweb.amsa.gov.au")
+		StringSockets.from("mariweb.amsa.gov.au")
                .port(9010)
                .quietTimeout(1, TimeUnit.MINUTES)
                .reconnectDelay(1, TimeUnit.SECONDS)
