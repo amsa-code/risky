@@ -21,11 +21,11 @@ public class DriftDetector {
         return new DriftDetectorOperator();
     }
 
-    public static DriftingTransformer detectDrift() {
-        return new DriftingTransformer();
+    public static DriftDetectorTransformer detectDrift() {
+        return new DriftDetectorTransformer();
     }
 
-    private static class DriftingTransformer implements Transformer<HasFix, DriftCandidate> {
+    public static class DriftDetectorTransformer implements Transformer<HasFix, DriftCandidate> {
 
         private final DriftDetector d = new DriftDetector();
 
