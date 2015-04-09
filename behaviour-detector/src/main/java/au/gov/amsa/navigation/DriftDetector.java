@@ -5,7 +5,7 @@ import rx.Observable.Operator;
 import rx.Observable.Transformer;
 import au.gov.amsa.risky.format.HasFix;
 
-public class DriftingDetector {
+public class DriftDetector {
 
     public Observable<DriftCandidate> getCandidates(Observable<HasFix> o) {
         return o.lift(detectDriftCandidates());
@@ -18,7 +18,7 @@ public class DriftingDetector {
      * @return an operator to detect drift candidates
      */
     private static Operator<DriftCandidate, HasFix> detectDriftCandidates() {
-        return new DriftingDetectorOperator();
+        return new DriftDetectorOperator();
     }
 
     public static DriftingTransformer detectDrift() {
@@ -27,7 +27,7 @@ public class DriftingDetector {
 
     private static class DriftingTransformer implements Transformer<HasFix, DriftCandidate> {
 
-        private final DriftingDetector d = new DriftingDetector();
+        private final DriftDetector d = new DriftDetector();
 
         @Override
         public Observable<DriftCandidate> call(Observable<HasFix> o) {

@@ -37,7 +37,7 @@ import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.ShipTypeDecoder;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.navigation.DriftCandidate;
-import au.gov.amsa.navigation.DriftingDetector;
+import au.gov.amsa.navigation.DriftDetector;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
@@ -278,7 +278,7 @@ public class DriftingLayer implements Layer {
                             }
                         })
                         // detect drift
-                        .compose(DriftingDetector.detectDrift())
+                        .compose(DriftDetector.detectDrift())
 
                         // backpressure strategy - don't
                         // .onBackpressureBlock()

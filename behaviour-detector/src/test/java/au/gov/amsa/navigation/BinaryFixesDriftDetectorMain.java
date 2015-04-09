@@ -40,7 +40,9 @@ public class BinaryFixesDriftDetectorMain {
         final AtomicLong num = new AtomicLong();
         int count = Observable
         // list files
-                .from(files).filter(onlyValidMmsis())
+                .from(files)
+                // exclude invalid mmsi
+                .filter(onlyValidMmsis())
                 // share the load between processors
                 .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
                 // search each list of files for drift detections
@@ -96,7 +98,7 @@ public class BinaryFixesDriftDetectorMain {
                         // log count
                                 .doOnNext(logCount(num))
                                 // detect drift
-                                .compose(DriftingDetector.detectDrift())
+                                .compose(DriftDetector.detectDrift())
                                 // downsample to min 5 minutes between reports
                                 // but ensure that start of drift is always
                                 // included

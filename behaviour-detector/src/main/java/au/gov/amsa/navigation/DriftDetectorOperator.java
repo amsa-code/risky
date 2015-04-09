@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
  * This operator expects a stream of fixes of increasing time except when the
  * mmsi changes (it can!).
  */
-public class DriftingDetectorOperator implements Operator<DriftCandidate, HasFix> {
+public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
     static final double KNOTS_TO_METRES_PER_SECOND = 0.5144444;
     @VisibleForTesting

@@ -14,7 +14,7 @@ import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.navigation.DriftCandidate;
 import au.gov.amsa.navigation.DriftCandidates;
-import au.gov.amsa.navigation.DriftingDetector;
+import au.gov.amsa.navigation.DriftDetector;
 import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPositions;
 import au.gov.amsa.risky.format.BinaryFixes;
@@ -64,7 +64,7 @@ public class Sources {
 
             @Override
             public Observable<Fix> call(List<File> files) {
-                return BinaryFixes.from(files).compose(DriftingDetector.detectDrift())
+                return BinaryFixes.from(files).compose(DriftDetector.detectDrift())
                         .map(new Func1<DriftCandidate, Fix>() {
 
                             @Override
