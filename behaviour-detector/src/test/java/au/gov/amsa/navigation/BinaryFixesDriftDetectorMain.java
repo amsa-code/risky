@@ -96,7 +96,7 @@ public class BinaryFixesDriftDetectorMain {
                         // log count
                                 .doOnNext(logCount(num))
                                 // detect drift
-                                .compose(DriftingDetectorFix.detectDrift())
+                                .compose(DriftingDetector.detectDrift())
                                 // downsample to min 5 minutes between reports
                                 // but ensure that start of drift is always
                                 // included

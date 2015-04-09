@@ -5,17 +5,21 @@ import au.gov.amsa.risky.format.HasFix;
 
 public class DriftCandidate implements HasFix {
 
-    private final Fix fix;
+    private final HasFix fix;
     private final long driftingSince;
 
-    public DriftCandidate(Fix fix, long driftingSince) {
+    public DriftCandidate(HasFix fix, long driftingSince) {
         this.fix = fix;
         this.driftingSince = driftingSince;
     }
 
+    public HasFix fixWwrapper() {
+        return fix;
+    }
+
     @Override
     public Fix fix() {
-        return fix;
+        return fix.fix();
     }
 
     public long driftingSince() {
@@ -24,8 +28,8 @@ public class DriftCandidate implements HasFix {
 
     @Override
     public String toString() {
-        return "DriftCandidate [driftingDurationMinutes=" + (fix.time() - driftingSince) / 60000.0
-                + ", fix=" + fix + "]";
+        return "DriftCandidate [driftingDurationMinutes=" + (fix.fix().time() - driftingSince)
+                / 60000.0 + ", fix=" + fix + "]";
     }
 
 }

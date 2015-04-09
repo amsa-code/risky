@@ -36,6 +36,7 @@ import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.ShipTypeDecoder;
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.navigation.DriftCandidate;
 import au.gov.amsa.navigation.DriftingDetector;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
@@ -127,7 +128,9 @@ public class DriftingLayer implements Layer {
         // log filename
                 .lift(Logging.<String> logger().onNextPrefix("loading file=").showValue().log())
                 // extract positions from file
-                .flatMap(filenameToPositions())
+                .flatMap(filenameToDriftCandidates())
+                // convert back to vessel position
+                .map(driftCandidateToVesselPosition())
                 // log
                 // .lift(Logging.<VesselPosition>logger().log())
                 // only class A vessels
@@ -150,6 +153,16 @@ public class DriftingLayer implements Layer {
                 .filter(isBig())
                 // group by id and date
                 .distinct(byIdAndTimePattern("yyyy-MM-dd"));
+    }
+
+    private static Func1<DriftCandidate, VesselPosition> driftCandidateToVesselPosition() {
+        return new Func1<DriftCandidate, VesselPosition>() {
+
+            @Override
+            public VesselPosition call(DriftCandidate c) {
+                return (VesselPosition) c.fixWwrapper();
+            }
+        };
     }
 
     private static Func1<VesselPosition, Boolean> isShipType(final int shipType) {
@@ -222,10 +235,10 @@ public class DriftingLayer implements Layer {
 
     private static AtomicLong totalCount = new AtomicLong();
 
-    private static Func1<String, Observable<VesselPosition>> filenameToPositions() {
-        return new Func1<String, Observable<VesselPosition>>() {
+    private static Func1<String, Observable<DriftCandidate>> filenameToDriftCandidates() {
+        return new Func1<String, Observable<DriftCandidate>>() {
             @Override
-            public Observable<VesselPosition> call(final String filename) {
+            public Observable<DriftCandidate> call(final String filename) {
                 return Streams.nmeaFromGzip(filename)
                 // extract positions
                         .compose(AisVesselPositions.positions())
@@ -266,6 +279,7 @@ public class DriftingLayer implements Layer {
                         })
                         // detect drift
                         .compose(DriftingDetector.detectDrift())
+
                         // backpressure strategy - don't
                         // .onBackpressureBlock()
                         // in background thread from pool per file
