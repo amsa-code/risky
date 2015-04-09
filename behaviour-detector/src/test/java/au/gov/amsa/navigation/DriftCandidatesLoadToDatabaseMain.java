@@ -11,14 +11,14 @@ public class DriftCandidatesLoadToDatabaseMain {
 
         final Database db = Database.from("jdbc:oracle:thin:aussar/aussar@devdbs:1521:AUSDEV");
 
-        int bufferSize = 9000;
+        int bufferSize = 1000;
         DriftCandidates
         // load drift candidates from csv
                 .fromCsv(new File("/home/dxm/drift-candidates.txt"))
                 // log
                 .lift(Logging.<DriftCandidate> logger().showCount().every(100).log())
                 // write candidates to the database
-                .compose(new DriftCandidatesDatabaseLoader(db, 1).loadToDatabase())
+                .compose(new DriftCandidatesDatabaseLoader(db, bufferSize).loadToDatabase())
                 // go
                 .subscribe();
 

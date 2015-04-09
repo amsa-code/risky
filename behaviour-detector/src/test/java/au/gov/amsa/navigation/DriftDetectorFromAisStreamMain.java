@@ -22,7 +22,8 @@ public class DriftDetectorFromAisStreamMain {
     private static final Logger log = Logger.getLogger(DriftDetectorFromAisStreamMain.class);
 
     public static void main(String[] args) {
-        final Database db = Database.from("jdbc:oracle:thin:aussar/aussar@devdbs:1521:AUSDEV");
+        final Database db = Database.builder()
+                .url("jdbc:oracle:thin:aussar/aussar@devdbs:1521:AUSDEV").pool(1, 1).build();
 
         Observable<String> lines = StringSockets
         //

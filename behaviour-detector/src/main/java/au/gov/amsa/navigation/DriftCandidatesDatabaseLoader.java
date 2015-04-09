@@ -15,6 +15,7 @@ import com.github.davidmoten.rx.jdbc.tuple.Tuple2;
 
 public class DriftCandidatesDatabaseLoader {
 
+    protected static final int NUM_PARAMETERS = 9;
     private final Database db;
     private final Map<String, Integer> navStatuses;
     private final int bufferSize;
@@ -77,17 +78,18 @@ public class DriftCandidatesDatabaseLoader {
                             }
                         })
                         // push to database in batches
-                        .buffer(bufferSize)
+                        .buffer(bufferSize * NUM_PARAMETERS)
                         // insert batch into database
                         .concatMap(new Func1<List<Object>, Observable<Boolean>>() {
 
                             @Override
-                            public Observable<Boolean> call(List<Object> candidates) {
+                            public Observable<Boolean> call(List<Object> row) {
+                                System.out.println("row=" + row);
                                 Observable<Integer> insert = db
                                         .update("insert into aussar.drift_candidate(mmsi, time, lat, lon, course, heading, ais_class,ais_nav_status_id, drifting_start_time) "
                                                 + "values( ?,?,?,?,?,?,?,?,?) ")
                                         // specify params
-                                        .parameters(Observable.from(candidates))
+                                        .parameters(Observable.from(row))
                                         // use a transaction
                                         .dependsOn(db.beginTransaction())
                                         // count

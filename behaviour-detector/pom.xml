@@ -62,6 +62,13 @@
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>rxjava-jdbc</artifactId>
 			<version>0.5.5</version>
+			<optional>true</optional>
+		</dependency>
+
+		<dependency>
+			<groupId>com.zaxxer</groupId>
+			<artifactId>HikariCP-java6</artifactId>
+			<version>2.3.2</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -76,7 +83,7 @@
 			<artifactId>streams</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>risky-util</artifactId>
@@ -154,6 +161,45 @@
 						<configuration>
 							<classpathScope>test</classpathScope>
 							<mainClass>au.gov.amsa.navigation.DriftCandidatesLoadToDatabaseMain</mainClass>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<!--  chuck this profile soon -->
+		<profile>
+			<id>oracle2</id>
+			<properties>
+				<oracle.jdbc.version>11.2.0.4</oracle.jdbc.version>
+			</properties>
+			<dependencies>
+				<dependency>
+					<groupId>com.oracle</groupId>
+					<artifactId>ojdbc6</artifactId>
+					<version>${oracle.jdbc.version}</version>
+				</dependency>
+				<dependency>
+					<groupId>com.oracle</groupId>
+					<artifactId>orai18n</artifactId>
+					<version>${oracle.jdbc.version}</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>exec-maven-plugin</artifactId>
+						<version>${exec.version}</version>
+						<executions>
+							<execution>
+								<goals>
+									<goal>java</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<classpathScope>test</classpathScope>
+							<mainClass>au.gov.amsa.navigation.DriftDetectorFromAisStreamMain</mainClass>
 						</configuration>
 					</plugin>
 				</plugins>
