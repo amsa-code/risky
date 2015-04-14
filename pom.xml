@@ -27,11 +27,11 @@
         <exec.version>1.3.2</exec.version>
         <mockito.version>1.10.19</mockito.version>
 
- 		<cobertura.version>2.6</cobertura.version>
+ 		<cobertura.version>2.7</cobertura.version>
         <checkstyle.version>2.13</checkstyle.version>
-        <findbugs.version>3.0.0</findbugs.version>
-        <javadoc.version>2.10.1</javadoc.version>
-        <pmd.version>3.2</pmd.version>
+        <findbugs.version>3.0.1</findbugs.version>
+        <javadoc.version>2.10.2</javadoc.version>
+        <pmd.version>3.4</pmd.version>
         <jdepend.version>2.0-beta-2</jdepend.version>
         <javancss.version>2.1</javancss.version>
         <project.info.version>2.7</project.info.version>
@@ -68,7 +68,7 @@
                 <inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
+                <version>3.3</version>
                 <configuration>
                     <verbose>true</verbose>
                     <fork>true</fork>
