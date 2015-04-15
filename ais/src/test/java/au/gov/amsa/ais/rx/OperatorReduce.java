@@ -1,6 +1,6 @@
 package au.gov.amsa.ais.rx;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import rx.Observable.Operator;
 import rx.Producer;
@@ -34,11 +34,14 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 
     private static class ParentSubscriber<T, R> extends Subscriber<T> {
 
+        private static enum Status {
+            NOT_REQUESTED_NOT_COMPLETED, NOT_REQUESTED_COMPLETED, REQUESTED_NOT_COMPLETED, REQUESTED_COMPLETED, EMITTED;
+        }
+
         private final Subscriber<? super R> child;
         private R value;
-        private volatile boolean emit = false;
-        private volatile boolean completed = false;
-        private final AtomicBoolean emitted = new AtomicBoolean(false);
+        private AtomicReference<Status> status = new AtomicReference<Status>(
+                Status.NOT_REQUESTED_NOT_COMPLETED);
         private final Func2<R, ? super T, R> reduction;
 
         ParentSubscriber(Subscriber<? super R> child, Func2<R, ? super T, R> reduction,
@@ -50,7 +53,9 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 
         void requestMore(long n) {
             if (n > 0) {
-                emit = true;
+                status.compareAndSet(Status.NOT_REQUESTED_NOT_COMPLETED,
+                        Status.REQUESTED_NOT_COMPLETED);
+                status.compareAndSet(Status.NOT_REQUESTED_COMPLETED, Status.REQUESTED_COMPLETED);
             }
             // even if request = 0 emit might be true now
             // so we will check again
@@ -59,12 +64,13 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 
         @Override
         public void onCompleted() {
-            completed = true;
+            status.compareAndSet(Status.NOT_REQUESTED_NOT_COMPLETED, Status.NOT_REQUESTED_COMPLETED);
+            status.compareAndSet(Status.REQUESTED_NOT_COMPLETED, Status.REQUESTED_COMPLETED);
             drain();
         }
 
         void drain() {
-            if (emit && completed && emitted.compareAndSet(false, true)) {
+            if (status.compareAndSet(Status.REQUESTED_COMPLETED, Status.EMITTED)) {
                 // synchronize to ensure that value is latest
                 synchronized (this) {
                     child.onNext(value);
