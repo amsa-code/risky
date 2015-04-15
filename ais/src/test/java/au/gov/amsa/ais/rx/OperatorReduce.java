@@ -64,7 +64,7 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
         }
 
         void drain() {
-            if (completed && emit && emitted.compareAndSet(false, true)) {
+            if (emit && completed && emitted.compareAndSet(false, true)) {
                 // synchronize to ensure that value is latest
                 synchronized (this) {
                     child.onNext(value);
