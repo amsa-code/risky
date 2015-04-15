@@ -34,14 +34,14 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 
 	private static class ParentSubscriber<T, R> extends Subscriber<T> {
 
-		private static enum Status {
+		private static enum State {
 			NOT_REQUESTED_NOT_COMPLETED, NOT_REQUESTED_COMPLETED, REQUESTED_NOT_COMPLETED, REQUESTED_COMPLETED, EMITTED;
 		}
 
 		private final Subscriber<? super R> child;
 		private R value;
-		private AtomicReference<Status> status = new AtomicReference<Status>(
-				Status.NOT_REQUESTED_NOT_COMPLETED);
+		private AtomicReference<State> state = new AtomicReference<State>(
+				State.NOT_REQUESTED_NOT_COMPLETED);
 		private final Func2<R, ? super T, R> reduction;
 
 		ParentSubscriber(Subscriber<? super R> child,
@@ -53,35 +53,33 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 
 		void requestMore(long n) {
 			if (n > 0) {
-				if (!status.compareAndSet(Status.NOT_REQUESTED_NOT_COMPLETED,
-						Status.REQUESTED_NOT_COMPLETED)) {
-					status.compareAndSet(Status.NOT_REQUESTED_COMPLETED,
-							Status.REQUESTED_COMPLETED);
+				if (!state.compareAndSet(State.NOT_REQUESTED_NOT_COMPLETED,
+						State.REQUESTED_NOT_COMPLETED)) {
+					if (state.compareAndSet(State.NOT_REQUESTED_COMPLETED,
+							State.REQUESTED_COMPLETED)) {
+						drain();
+					}
 				}
 			}
-			// even if request = 0 might be ready to emit
-			// so we will check again
-			drain();
 		}
 
 		@Override
 		public void onCompleted() {
-			if (!status.compareAndSet(Status.REQUESTED_NOT_COMPLETED,
-					Status.REQUESTED_COMPLETED)) {
-				status.compareAndSet(Status.NOT_REQUESTED_NOT_COMPLETED,
-						Status.NOT_REQUESTED_COMPLETED);
+			if (state.compareAndSet(State.REQUESTED_NOT_COMPLETED,
+					State.REQUESTED_COMPLETED)) {
+				drain();
+			} else {
+				state.compareAndSet(State.NOT_REQUESTED_NOT_COMPLETED,
+						State.NOT_REQUESTED_COMPLETED);
 			}
-
-			drain();
 		}
 
 		void drain() {
-			if (status
-					.compareAndSet(Status.REQUESTED_COMPLETED, Status.EMITTED)) {
+			if (state.compareAndSet(State.REQUESTED_COMPLETED, State.EMITTED)) {
+				if (isUnsubscribed())
+					return;
 				// synchronize to ensure that value is safely published
 				synchronized (this) {
-					if (isUnsubscribed())
-						return;
 					child.onNext(value);
 					// release for gc
 					value = null;
