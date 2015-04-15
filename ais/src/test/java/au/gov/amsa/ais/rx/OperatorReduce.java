@@ -68,6 +68,7 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
                 // synchronize to ensure that value is latest
                 synchronized (this) {
                     child.onNext(value);
+                    // release for gc
                     value = null;
                     child.onCompleted();
                 }
