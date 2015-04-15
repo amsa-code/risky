@@ -96,7 +96,7 @@ public class BenchmarksAis {
     }
 
     @Benchmark
-    public void rxJavaCountDedicatedOperator() {
+    public void rxJavaCountNewReduce() {
         Observable.range(1, 1000000)
                 .lift(new OperatorReduce<Integer, Integer>(CountHolder.INSTANCE, 0)).subscribe();
     }

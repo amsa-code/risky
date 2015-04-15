@@ -35,7 +35,7 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
     private static class ParentSubscriber<T, R> extends Subscriber<T> {
 
         private final Subscriber<? super R> child;
-        private volatile R value;
+        private R value;
         private volatile boolean emit = false;
         private volatile boolean completed = false;
         private final AtomicBoolean emitted = new AtomicBoolean(false);
@@ -65,8 +65,12 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 
         void drain() {
             if (completed && emit && emitted.compareAndSet(false, true)) {
-                child.onNext(value);
-                child.onCompleted();
+                // synchronize to ensure that value is latest
+                synchronized (this) {
+                    child.onNext(value);
+                    value = null;
+                    child.onCompleted();
+                }
             }
         }
 
