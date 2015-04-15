@@ -11,7 +11,7 @@ import org.openjdk.jmh.annotations.State;
 import rx.Observable;
 import rx.functions.Func2;
 import au.gov.amsa.ais.message.AisShipStaticA;
-import au.gov.amsa.ais.rx.OperatorCount;
+import au.gov.amsa.ais.rx.OperatorReduce;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.util.nmea.NmeaMessage;
 
@@ -97,7 +97,8 @@ public class BenchmarksAis {
 
     @Benchmark
     public void rxJavaCountDedicatedOperator() {
-        Observable.range(1, 1000000).lift(new OperatorCount<Integer>()).subscribe();
+        Observable.range(1, 1000000)
+                .lift(new OperatorReduce<Integer, Integer>(CountHolder.INSTANCE, 0)).subscribe();
     }
 
     public static void main(String[] args) {

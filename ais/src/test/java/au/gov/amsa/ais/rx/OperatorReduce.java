@@ -5,12 +5,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import rx.Observable.Operator;
 import rx.Producer;
 import rx.Subscriber;
+import rx.functions.Func2;
 
-public class OperatorCount<T> implements Operator<Integer, T> {
+public class OperatorReduce<T, R> implements Operator<R, T> {
+
+    private final Func2<R, ? super T, R> reduction;
+    private R initialValue;
+
+    public OperatorReduce(Func2<R, ? super T, R> reduction, R initialValue) {
+        this.reduction = reduction;
+        this.initialValue = initialValue;
+    }
 
     @Override
-    public Subscriber<? super T> call(Subscriber<? super Integer> child) {
-        final ParentSubscriber<T> parent = new ParentSubscriber<T>(child);
+    public Subscriber<? super T> call(Subscriber<? super R> child) {
+        final ParentSubscriber<T, R> parent = new ParentSubscriber<T, R>(child, reduction,
+                initialValue);
         child.setProducer(new Producer() {
 
             @Override
@@ -22,16 +32,20 @@ public class OperatorCount<T> implements Operator<Integer, T> {
         return parent;
     }
 
-    private static class ParentSubscriber<T> extends Subscriber<T> {
+    private static class ParentSubscriber<T, R> extends Subscriber<T> {
 
-        private Subscriber<? super Integer> child;
-        private int count;
+        private final Subscriber<? super R> child;
+        private volatile R value;
         private volatile boolean emit = false;
         private volatile boolean completed = false;
         private final AtomicBoolean emitted = new AtomicBoolean(false);
+        private final Func2<R, ? super T, R> reduction;
 
-        ParentSubscriber(Subscriber<? super Integer> child) {
+        ParentSubscriber(Subscriber<? super R> child, Func2<R, ? super T, R> reduction,
+                R initialValue) {
             this.child = child;
+            this.reduction = reduction;
+            this.value = initialValue;
         }
 
         void requestMore(long n) {
@@ -51,7 +65,7 @@ public class OperatorCount<T> implements Operator<Integer, T> {
 
         void drain() {
             if (completed && emit && emitted.compareAndSet(false, true)) {
-                child.onNext(count);
+                child.onNext(value);
                 child.onCompleted();
             }
         }
@@ -63,7 +77,7 @@ public class OperatorCount<T> implements Operator<Integer, T> {
 
         @Override
         public void onNext(T t) {
-            count++;
+            value = reduction.call(value, t);
         }
 
     }
