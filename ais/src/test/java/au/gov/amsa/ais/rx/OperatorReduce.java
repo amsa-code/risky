@@ -59,7 +59,7 @@ public class OperatorReduce<T, R> implements Operator<R, T> {
 							Status.REQUESTED_COMPLETED);
 				}
 			}
-			// even if request = 0 emit might be true now
+			// even if request = 0 might be ready to emit
 			// so we will check again
 			drain();
 		}
