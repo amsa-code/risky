@@ -111,31 +111,16 @@ public class Streams {
     }
 
     public static <T> Func1<Optional<T>, Boolean> isPresent() {
-        return new Func1<Optional<T>, Boolean>() {
-            @Override
-            public Boolean call(Optional<T> value) {
-                return value.isPresent();
-            }
-        };
+        return x -> x.isPresent();
     }
 
     public static <T> Func1<Optional<T>, T> toValue() {
-        return new Func1<Optional<T>, T>() {
-            @Override
-            public T call(Optional<T> value) {
-                return value.get();
-            }
-        };
+        return x -> x.get();
+
     }
 
     public static <T> Transformer<Optional<T>, T> valueIfPresent() {
-        return new Transformer<Optional<T>, T>() {
-
-            @Override
-            public Observable<T> call(Observable<Optional<T>> o) {
-                return o.filter(Streams.<T> isPresent()).map(Streams.<T> toValue());
-            }
-        };
+        return o -> o.filter(Streams.<T> isPresent()).map(Streams.<T> toValue());
     }
 
     public static Observable<Fix> extractFixes(Observable<String> rawAisNmea) {
@@ -221,21 +206,15 @@ public class Streams {
                     throw new RuntimeException(e);
                 }
             }
-        }, new Func1<InputStream, Observable<String>>() {
-
-            @Override
-            public Observable<String> call(InputStream is) {
-                return nmeaFrom(is);
-            }
-        }, new Action1<InputStream>() {
-
-            @Override
-            public void call(InputStream is) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    // don't care
-                }
+        },
+        //
+                is -> nmeaFrom(is),
+                //
+                is -> {
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        // don't care
             }
         }, true);
     }
@@ -249,13 +228,7 @@ public class Streams {
     }
 
     public static Observable<Observable<String>> nmeasFromGzip(Observable<File> files) {
-        return files.map(new Func1<File, Observable<String>>() {
-
-            @Override
-            public Observable<String> call(File f) {
-                return nmeaFromGzip(f.getPath()).subscribeOn(Schedulers.computation());
-            }
-        });
+        return files.map(f -> nmeaFromGzip(f.getPath()).subscribeOn(Schedulers.computation()));
     }
 
     public static Observable<String> nmeaFromGzip(final File file) {
@@ -272,14 +245,10 @@ public class Streams {
                 }
             }
         };
-        Func1<Reader, Observable<String>> observableFactory = new Func1<Reader, Observable<String>>() {
 
-            @Override
-            public Observable<String> call(Reader reader) {
-                // return StringObservable.split(Strings.from(reader), "\n");
-                return Strings.split(Strings.from(reader), "\n");
-            }
-        };
+        Func1<Reader, Observable<String>> observableFactory = reader -> Strings.split(
+                Strings.from(reader), "\n");
+
         Action1<Reader> disposeAction = new Action1<Reader>() {
 
             @Override

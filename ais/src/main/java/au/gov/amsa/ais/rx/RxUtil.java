@@ -3,25 +3,20 @@ package au.gov.amsa.ais.rx;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import rx.Notification;
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 
 public class RxUtil {
 
     public static <T> Func1<T, T> println(final OutputStream out) {
-        return new Func1<T, T>() {
-            @Override
-            public T call(T t) {
-                try {
-                    out.write(t.toString().getBytes());
-                    out.write('\n');
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                return t;
+        return t -> {
+            try {
+                out.write(t.toString().getBytes());
+                out.write('\n');
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+            return t;
         };
     }
 
@@ -30,12 +25,7 @@ public class RxUtil {
     }
 
     public static <T> void print(Observable<T> o) {
-        o.materialize().toBlocking().forEach(new Action1<Notification<T>>() {
-            @Override
-            public void call(Notification<T> notification) {
-                System.out.println(notification);
-            }
-        });
+        o.materialize().toBlocking().forEach(System.out::println);
     }
 
     @SuppressWarnings("unchecked")
