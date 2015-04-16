@@ -204,8 +204,9 @@ public final class BinaryFixes {
         return new Func1<File, Observable<Integer>>() {
             @Override
             public Observable<Integer> call(final File file) {
-                return BinaryFixes.from(file)
-                // to list
+                return BinaryFixes
+                        .from(file)
+                        // to list
                         .toList()
                         // sort each list
                         .map(sortFixes())
@@ -215,6 +216,7 @@ public final class BinaryFixes {
                         // fixes
                         .compose(
                                 Downsample.minTimeStep(downSampleIntervalMs, TimeUnit.MILLISECONDS))
+                        .cast(HasFix.class)
                         // make into a list
                         // again
                         .toList()

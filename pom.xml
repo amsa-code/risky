@@ -12,8 +12,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
-        <compiler.source>1.7</compiler.source>
-        <compiler.target>1.7</compiler.target>
+        <compiler.source>1.8</compiler.source>
+        <compiler.target>1.8</compiler.target>
         <rxjava.version>1.0.9</rxjava.version>
         <rxjava.string.version>0.22.0</rxjava.string.version>
 		<rxjava.math.version>1.0.0</rxjava.math.version>
