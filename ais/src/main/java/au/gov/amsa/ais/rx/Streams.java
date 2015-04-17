@@ -135,37 +135,37 @@ public class Streams {
                         || a.getLongitude() > 180)
                     return Observable.empty();
                 else {
-                    final Optional<NavigationalStatus> nav;
+                    Optional<NavigationalStatus> nav;
                     if (a instanceof AisPositionA) {
                         AisPositionA p = (AisPositionA) a;
                         nav = of(NavigationalStatus.values()[p.getNavigationalStatus().ordinal()]);
                     } else
                         nav = absent();
 
-                    final Optional<Float> sog;
+                    Optional<Float> sog;
                     if (a.getSpeedOverGroundKnots() == null)
                         sog = absent();
                     else
                         sog = of((a.getSpeedOverGroundKnots().floatValue()));
-                    final Optional<Float> cog;
+                    Optional<Float> cog;
                     if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
                             || a.getCourseOverGround() < 0)
                         cog = absent();
                     else
                         cog = of((a.getCourseOverGround().floatValue()));
-                    final Optional<Float> heading;
+                    Optional<Float> heading;
                     if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
                             || a.getTrueHeading() < 0)
                         heading = absent();
                     else
                         heading = of((a.getTrueHeading().floatValue()));
 
-                    final AisClass aisClass;
+                    AisClass aisClass;
                     if (a instanceof AisPositionA)
                         aisClass = AisClass.A;
                     else
                         aisClass = AisClass.B;
-                    final Optional<Short> src;
+                    Optional<Short> src;
                     if (a.getSource() != null) {
                         // TODO decode
                         src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
