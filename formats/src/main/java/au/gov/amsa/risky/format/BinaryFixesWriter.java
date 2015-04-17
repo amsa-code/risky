@@ -36,27 +36,17 @@ public final class BinaryFixesWriter {
 
     private static Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>> buffer(
             final int bufferSize) {
-        return new Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>>() {
-            @Override
-            public Observable<List<Fix>> call(GroupedObservable<String, Fix> fileFixes) {
-                return fileFixes.buffer(bufferSize);
-            }
-        };
+        return fileFixes -> fileFixes.buffer(bufferSize);
     }
 
+    @SuppressWarnings("unchecked")
     private static Action1<List<Fix>> writeFixList(final Func1<Fix, String> fileMapper,
             final boolean zip) {
-        return new Action1<List<Fix>>() {
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public void call(List<Fix> fixes) {
-                if (fixes.size() == 0)
-                    return;
-                String filename = fileMapper.call(fixes.get(0));
-                writeFixes((List<HasFix>) (List<?>) fixes, new File(filename), true, zip);
-            }
-
+        return fixes -> {
+            if (fixes.size() == 0)
+                return;
+            String filename = fileMapper.call(fixes.get(0));
+            writeFixes((List<HasFix>) (List<?>) fixes, new File(filename), true, zip);
         };
     }
 

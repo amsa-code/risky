@@ -55,29 +55,25 @@ public final class BinaryFixes {
     }
 
     public static Observable<String> csv(Observable<Fix> fixes) {
-        return fixes.map(new Func1<Fix, String>() {
-
-            @Override
-            public String call(Fix f) {
-                StringBuilder s = new StringBuilder();
-                s.append(f.lat());
-                s.append(COMMA);
-                s.append(f.lon());
-                s.append(COMMA);
-                s.append(new DateTime(f.time()).toString());
-                s.append(COMMA);
-                s.append(f.source().or(SOURCE_ABSENT));
-                s.append(COMMA);
-                s.append(f.latencySeconds().or(LATENCY_ABSENT));
-                s.append(COMMA);
-                s.append(f.navigationalStatus().or(NavigationalStatus.values()[NAV_STATUS_ABSENT]));
-                s.append(COMMA);
-                s.append(f.rateOfTurn().or(RATE_OF_TURN_ABSENT));
-                s.append(COMMA);
-                // TODO add the rest of the fields
+        return fixes.map(f -> {
+            StringBuilder s = new StringBuilder();
+            s.append(f.lat());
+            s.append(COMMA);
+            s.append(f.lon());
+            s.append(COMMA);
+            s.append(new DateTime(f.time()).toString());
+            s.append(COMMA);
+            s.append(f.source().or(SOURCE_ABSENT));
+            s.append(COMMA);
+            s.append(f.latencySeconds().or(LATENCY_ABSENT));
+            s.append(COMMA);
+            s.append(f.navigationalStatus().or(NavigationalStatus.values()[NAV_STATUS_ABSENT]));
+            s.append(COMMA);
+            s.append(f.rateOfTurn().or(RATE_OF_TURN_ABSENT));
+            s.append(COMMA);
+            // TODO add the rest of the fields
                 return s.toString();
-            }
-        });
+            });
     }
 
     public static void write(Fix fix, OutputStream os) {
@@ -184,106 +180,77 @@ public final class BinaryFixes {
     private static Func1<List<File>, Observable<Integer>> sortFileFixes(
             final long downSampleIntervalMs, final Scheduler scheduler,
             final Action1<File> preSortAction) {
-        return new Func1<List<File>, Observable<Integer>>() {
-            @Override
-            public Observable<Integer> call(final List<File> files) {
-                return Observable
-                // from list of files
-                        .from(files)
-                        // log
-                        .doOnNext(preSortAction)
-                        // process one file after another
-                        .concatMap(sortFileFixes(downSampleIntervalMs))
-                        // async
-                        .subscribeOn(scheduler);
-            }
+        return files -> {
+            return Observable
+            // from list of files
+                    .from(files)
+                    // log
+                    .doOnNext(preSortAction)
+                    // process one file after another
+                    .concatMap(sortFileFixes(downSampleIntervalMs))
+                    // async
+                    .subscribeOn(scheduler);
         };
     }
 
     private static Func1<File, Observable<Integer>> sortFileFixes(final long downSampleIntervalMs) {
-        return new Func1<File, Observable<Integer>>() {
-            @Override
-            public Observable<Integer> call(final File file) {
-                return BinaryFixes
-                        .from(file)
-                        // to list
-                        .toList()
-                        // sort each list
-                        .map(sortFixes())
-                        // flatten
-                        .flatMapIterable(Functions.<List<Fix>> identity())
-                        // downsample the sorted
-                        // fixes
-                        .compose(
-                                Downsample.minTimeStep(downSampleIntervalMs, TimeUnit.MILLISECONDS))
-                        .cast(HasFix.class)
-                        // make into a list
-                        // again
-                        .toList()
-                        // replace the file with
-                        // sorted fixes
-                        .doOnNext(writeFixes(file))
-                        // count the fixes
-                        .count();
-            }
+        return file -> {
+            return BinaryFixes
+                    .from(file)
+                    // to list
+                    .toList()
+                    // sort each list
+                    .map(sortFixes())
+                    // flatten
+                    .flatMapIterable(Functions.<List<Fix>> identity())
+                    // downsample the sorted
+                    // fixes
+                    .compose(Downsample.minTimeStep(downSampleIntervalMs, TimeUnit.MILLISECONDS))
+                    .cast(HasFix.class)
+                    // make into a list
+                    // again
+                    .toList()
+                    // replace the file with
+                    // sorted fixes
+                    .doOnNext(writeFixes(file))
+                    // count the fixes
+                    .count();
         };
     }
 
     private static Func1<File, Observable<List<File>>> findTrackFiles(final AtomicInteger numFiles,
             final AtomicLong totalSize) {
-        return new Func1<File, Observable<List<File>>>() {
-            @Override
-            public Observable<List<File>> call(File output) {
-                List<File> files = Files.find(output, Pattern.compile("\\d+\\.track"));
-                log.info("found files " + files.size());
-                log.info("getting total size");
-                long size = 0;
-                for (File file : files)
-                    size += file.length();
-                log.info("total size=" + size);
-                totalSize.set(size);
-                numFiles.set(files.size());
-                return Observable.from(files).buffer(
-                        Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1));
-            }
+        return output -> {
+            List<File> files = Files.find(output, Pattern.compile("\\d+\\.track"));
+            log.info("found files " + files.size());
+            log.info("getting total size");
+            long size = 0;
+            for (File file : files)
+                size += file.length();
+            log.info("total size=" + size);
+            totalSize.set(size);
+            numFiles.set(files.size());
+            return Observable.from(files).buffer(
+                    Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1));
         };
     }
 
     private static Action1<List<HasFix>> writeFixes(final File file) {
-        return new Action1<List<HasFix>>() {
-            @Override
-            public void call(List<HasFix> list) {
-                BinaryFixesWriter.writeFixes(list, file, false, false);
-            }
-        };
+        return list -> BinaryFixesWriter.writeFixes(list, file, false, false);
     }
 
     private static Func1<List<Fix>, List<Fix>> sortFixes() {
-        return new Func1<List<Fix>, List<Fix>>() {
-
-            @Override
-            public List<Fix> call(List<Fix> list) {
-                ArrayList<Fix> temp = new ArrayList<Fix>(list);
-                Collections.sort(temp, FIX_ORDER_BY_TIME);
-                return temp;
-            }
+        return list -> {
+            ArrayList<Fix> temp = new ArrayList<Fix>(list);
+            Collections.sort(temp, FIX_ORDER_BY_TIME);
+            return temp;
         };
     }
 
-    private static final Comparator<Fix> FIX_ORDER_BY_TIME = new Comparator<Fix>() {
-        @Override
-        public int compare(Fix a, Fix b) {
-            return ((Long) a.time()).compareTo(b.time());
-        }
-    };
+    private static final Comparator<Fix> FIX_ORDER_BY_TIME = (a, b) -> ((Long) a.time())
+            .compareTo(b.time());
 
     public static Observable<Fix> from(List<File> files) {
-        return Observable.from(files).concatMap(new Func1<File, Observable<Fix>>() {
-
-            @Override
-            public Observable<Fix> call(File file) {
-                return BinaryFixes.from(file);
-            }
-        });
+        return Observable.from(files).concatMap(file -> BinaryFixes.from(file));
     }
 }

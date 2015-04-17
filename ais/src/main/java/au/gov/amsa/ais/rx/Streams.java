@@ -6,7 +6,6 @@ import static com.google.common.base.Optional.of;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,7 +32,6 @@ import rx.Observer;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.Subscription;
-import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -59,6 +57,7 @@ import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
 
+import com.github.davidmoten.rx.Checked;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
 
@@ -127,88 +126,71 @@ public class Streams {
         return extractMessages(rawAisNmea).flatMap(TO_FIX);
     }
 
-    private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = new Func1<Timestamped<AisMessage>, Observable<Fix>>() {
-
-        @Override
-        public Observable<Fix> call(Timestamped<AisMessage> m) {
-            try {
-                if (m.message() instanceof AisPosition) {
-                    AisPosition a = (AisPosition) m.message();
-                    if (a.getLatitude() == null || a.getLongitude() == null
-                            || a.getLatitude() < -90 || a.getLatitude() > 90
-                            || a.getLongitude() < -180 || a.getLongitude() > 180)
-                        return Observable.empty();
-                    else {
-                        final Optional<NavigationalStatus> nav;
-                        if (a instanceof AisPositionA) {
-                            AisPositionA p = (AisPositionA) a;
-                            nav = of(NavigationalStatus.values()[p.getNavigationalStatus()
-                                    .ordinal()]);
-                        } else
-                            nav = absent();
-
-                        final Optional<Float> sog;
-                        if (a.getSpeedOverGroundKnots() == null)
-                            sog = absent();
-                        else
-                            sog = of((a.getSpeedOverGroundKnots().floatValue()));
-                        final Optional<Float> cog;
-                        if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
-                                || a.getCourseOverGround() < 0)
-                            cog = absent();
-                        else
-                            cog = of((a.getCourseOverGround().floatValue()));
-                        final Optional<Float> heading;
-                        if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
-                                || a.getTrueHeading() < 0)
-                            heading = absent();
-                        else
-                            heading = of((a.getTrueHeading().floatValue()));
-
-                        final AisClass aisClass;
-                        if (a instanceof AisPositionA)
-                            aisClass = AisClass.A;
-                        else
-                            aisClass = AisClass.B;
-                        final Optional<Short> src;
-                        if (a.getSource() != null) {
-                            // TODO decode
-                            src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
-                        } else
-                            src = absent();
-
-                        // TODO latency
-                        Optional<Integer> latency = absent();
-
-                        Fix f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(), a
-                                .getLongitude().floatValue(), m.time(), latency, src, nav, sog,
-                                cog, heading, aisClass);
-                        return Observable.just(f);
-                    }
-                } else
+    private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = m -> {
+        try {
+            if (m.message() instanceof AisPosition) {
+                AisPosition a = (AisPosition) m.message();
+                if (a.getLatitude() == null || a.getLongitude() == null || a.getLatitude() < -90
+                        || a.getLatitude() > 90 || a.getLongitude() < -180
+                        || a.getLongitude() > 180)
                     return Observable.empty();
-            } catch (RuntimeException e) {
-                log.warn(e.getMessage(), e);
-                return Observable.empty();
-            }
-        }
+                else {
+                    final Optional<NavigationalStatus> nav;
+                    if (a instanceof AisPositionA) {
+                        AisPositionA p = (AisPositionA) a;
+                        nav = of(NavigationalStatus.values()[p.getNavigationalStatus().ordinal()]);
+                    } else
+                        nav = absent();
 
+                    final Optional<Float> sog;
+                    if (a.getSpeedOverGroundKnots() == null)
+                        sog = absent();
+                    else
+                        sog = of((a.getSpeedOverGroundKnots().floatValue()));
+                    final Optional<Float> cog;
+                    if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
+                            || a.getCourseOverGround() < 0)
+                        cog = absent();
+                    else
+                        cog = of((a.getCourseOverGround().floatValue()));
+                    final Optional<Float> heading;
+                    if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
+                            || a.getTrueHeading() < 0)
+                        heading = absent();
+                    else
+                        heading = of((a.getTrueHeading().floatValue()));
+
+                    final AisClass aisClass;
+                    if (a instanceof AisPositionA)
+                        aisClass = AisClass.A;
+                    else
+                        aisClass = AisClass.B;
+                    final Optional<Short> src;
+                    if (a.getSource() != null) {
+                        // TODO decode
+                        src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
+                    } else
+                        src = absent();
+
+                    // TODO latency
+                    Optional<Integer> latency = absent();
+
+                    Fix f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(), a.getLongitude()
+                            .floatValue(), m.time(), latency, src, nav, sog, cog, heading, aisClass);
+                    return Observable.just(f);
+                }
+            } else
+                return Observable.empty();
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e);
+            return Observable.empty();
+        }
     };
 
     public static Observable<String> nmeaFrom(final File file) {
-        return Observable.using(new Func0<InputStream>() {
-
-            @Override
-            public InputStream call() {
-                try {
-                    return new FileInputStream(file);
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        },
+        return Observable.using(
         //
-                is -> nmeaFrom(is),
+                Checked.f0(() -> new FileInputStream(file)), is -> nmeaFrom(is),
                 //
                 is -> {
                     try {
@@ -233,31 +215,22 @@ public class Streams {
 
     public static Observable<String> nmeaFromGzip(final File file) {
 
-        Func0<Reader> resourceFactory = new Func0<Reader>() {
-
-            @Override
-            public Reader call() {
-                try {
-                    return new InputStreamReader(new GZIPInputStream(new FileInputStream(file)),
-                            UTF8);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+        Func0<Reader> resourceFactory = () -> {
+            try {
+                return new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), UTF8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         };
 
         Func1<Reader, Observable<String>> observableFactory = reader -> Strings.split(
                 Strings.from(reader), "\n");
 
-        Action1<Reader> disposeAction = new Action1<Reader>() {
-
-            @Override
-            public void call(Reader reader) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    // ignore
-                }
+        Action1<Reader> disposeAction = reader -> {
+            try {
+                reader.close();
+            } catch (IOException e) {
+                // ignore
             }
         };
         return Observable.using(resourceFactory, observableFactory, disposeAction, true);
@@ -286,17 +259,12 @@ public class Streams {
         print(stream, System.out);
     }
 
-    public static final Func1<String, Optional<NmeaMessage>> LINE_TO_NMEA_MESSAGE = new Func1<String, Optional<NmeaMessage>>() {
-
-        @Override
-        public Optional<NmeaMessage> call(String line) {
-            try {
-                return Optional.of(NmeaUtil.parseNmea(line));
-            } catch (RuntimeException e) {
-                return Optional.absent();
-            }
+    public static final Func1<String, Optional<NmeaMessage>> LINE_TO_NMEA_MESSAGE = line -> {
+        try {
+            return Optional.of(NmeaUtil.parseNmea(line));
+        } catch (RuntimeException e) {
+            return Optional.absent();
         }
-
     };
 
     // public static final Func1<String, Observable<NmeaMessage>>
@@ -452,22 +420,18 @@ public class Streams {
         return false;
     }
 
-    public static final Func1<NmeaMessage, TimestampedAndLine<AisMessage>> TO_AIS_MESSAGE_AND_LINE = new Func1<NmeaMessage, TimestampedAndLine<AisMessage>>() {
-
-        @Override
-        public TimestampedAndLine<AisMessage> call(NmeaMessage nmea) {
-            String line = nmea.toLine();
-            try {
-                AisNmeaMessage n = new AisNmeaMessage(nmea);
-                return new TimestampedAndLine<AisMessage>(Optional.of(n
-                        .getTimestampedMessage(System.currentTimeMillis())), line, null);
-            } catch (AisParseException e) {
-                return new TimestampedAndLine<AisMessage>(
-                        Optional.<Timestamped<AisMessage>> absent(), line, e.getMessage());
-            } catch (RuntimeException e) {
-                log.warn(e.getMessage(), e);
-                throw e;
-            }
+    public static final Func1<NmeaMessage, TimestampedAndLine<AisMessage>> TO_AIS_MESSAGE_AND_LINE = nmea -> {
+        String line = nmea.toLine();
+        try {
+            AisNmeaMessage n = new AisNmeaMessage(nmea);
+            return new TimestampedAndLine<AisMessage>(Optional.of(n.getTimestampedMessage(System
+                    .currentTimeMillis())), line, null);
+        } catch (AisParseException e) {
+            return new TimestampedAndLine<AisMessage>(Optional.<Timestamped<AisMessage>> absent(),
+                    line, e.getMessage());
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e);
+            throw e;
         }
     };
 
@@ -636,35 +600,22 @@ public class Streams {
             final int linesPerProcessor, final Scheduler scheduler,
             final Func1<Fix, String> fileMapper, final int writeBufferSize,
             final Action1<File> logger) {
-        return new Func1<List<File>, Observable<Integer>>() {
-            @Override
-            public Observable<Integer> call(List<File> files) {
-                Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
-                // log
-                        .doOnNext(logger)
-                        // one file at a time
-                        .concatMap(new Func1<File, Observable<String>>() {
-                            @Override
-                            public Observable<String> call(File file) {
-                                return Streams.nmeaFromGzip(file.getAbsolutePath());
-                            }
-                        }));
-                return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false)
-                // total counts
-                        .reduce(0, countFixes())
-                        // do async
-                        .subscribeOn(scheduler);
-            }
+        return files -> {
+            Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
+            // log
+                    .doOnNext(logger)
+                    // one file at a time
+                    .concatMap(file -> Streams.nmeaFromGzip(file.getAbsolutePath())));
+            return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false)
+            // total counts
+                    .reduce(0, countFixes())
+                    // do async
+                    .subscribeOn(scheduler);
         };
     }
 
     private static Func2<Integer, List<Fix>, Integer> countFixes() {
-        return new Func2<Integer, List<Fix>, Integer>() {
-            @Override
-            public Integer call(Integer count, List<Fix> fixes) {
-                return count + fixes.size();
-            }
-        };
+        return (count, fixes) -> count + fixes.size();
     }
 
     public static Observable<Integer> writeFixesFromNmeaGz(File input, Pattern inputPattern,
@@ -703,12 +654,7 @@ public class Streams {
                         extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
                                 fileMapper, writeBufferSize, logger))
                 // count number written fixes
-                .scan(0, new Func2<Integer, Integer, Integer>() {
-                    @Override
-                    public Integer call(Integer a, Integer b) {
-                        return a + b;
-                    }
-                })
+                .scan(0, (a, b) -> a + b)
                 // log
                 .lift(Logging.<Integer> logger().showCount().showMemory()
                         .showRateSince("rate", 5000).every(logEvery).log())
@@ -716,13 +662,8 @@ public class Streams {
                 .last()
                 // on completion of writing fixes, sort the track files and emit
                 // the count of files
-                .doOnCompleted(new Action0() {
-
-                    @Override
-                    public void call() {
-                        log.info("completed converting nmea to binary fixes, starting sort");
-                    }
-                })
+                .doOnCompleted(
+                        () -> log.info("completed converting nmea to binary fixes, starting sort"))
                 .concatWith(
                         BinaryFixes.sortBinaryFixFilesByTime(output, downSampleIntervalMs,
                                 scheduler));
