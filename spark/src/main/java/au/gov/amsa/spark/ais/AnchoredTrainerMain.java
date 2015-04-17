@@ -97,22 +97,12 @@ public class AnchoredTrainerMain {
     }
 
     private static Function<PredictionAndActual, Boolean> predictionWrong() {
-        return new Function<PredictionAndActual, Boolean>() {
-            @Override
-            public Boolean call(PredictionAndActual p) {
-                return p.prediction != p.actual;
-            }
-        };
+        return p -> p.prediction != p.actual;
     }
 
     private static Function<LabeledPoint, PredictionAndActual> toPredictionAndActual(
             final DecisionTreeModel model) {
-        return new Function<LabeledPoint, PredictionAndActual>() {
-            @Override
-            public PredictionAndActual call(LabeledPoint p) {
-                return new PredictionAndActual(model.predict(p.features()), p.label());
-            }
-        };
+        return p -> new PredictionAndActual(model.predict(p.features()), p.label());
     }
 
     private static class PredictionAndActual {
