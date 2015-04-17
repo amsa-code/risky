@@ -14,70 +14,70 @@ import au.gov.amsa.ais.message.AisShipStaticA;
 
 public class AisMessageParserTest {
 
-	@Test
-	public void testAisPositionA() {
-		AisMessageParser p = new AisMessageParser();
-		AisMessage m = p.parse("15MgK45P3@G?fl0E`JbR0OwT0@MS", 0);
+    @Test
+    public void testAisPositionA() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("15MgK45P3@G?fl0E`JbR0OwT0@MS", 0);
 
-		assertTrue(m instanceof AisPositionA);
-	}
+        assertTrue(m instanceof AisPositionA);
+    }
 
-	@Test
-	public void testAisBaseStation() {
-		AisMessageParser p = new AisMessageParser();
-		AisMessage m = p.parse("403OviQuMGCqWrRO9>E6fE700@GO", 0);
+    @Test
+    public void testAisBaseStation() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("403OviQuMGCqWrRO9>E6fE700@GO", 0);
 
-		assertTrue(m instanceof AisBaseStation);
-	}
+        assertTrue(m instanceof AisBaseStation);
+    }
 
-	@Test
-	public void testAisShipStaticA() {
-		AisMessageParser p = new AisMessageParser();
-		AisMessage m = p.parse(
-		        "577JNW02BLa=I8`cN20t=@98DE`F0U<h4pB22216C@J>@4M20FlRCp11H2PCQBDSp888880", 0);
+    @Test
+    public void testAisShipStaticA() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse(
+                "577JNW02BLa=I8`cN20t=@98DE`F0U<h4pB22216C@J>@4M20FlRCp11H2PCQBDSp888880", 0);
 
-		assertTrue(m instanceof AisShipStaticA);
-	}
+        assertTrue(m instanceof AisShipStaticA);
+    }
 
-	@Test
-	public void testAisPositionB() {
-		AisMessageParser p = new AisMessageParser();
-		AisMessage m = p.parse("B7P@fj00RJVpbIuUhlF93wm5WP06", 0);
+    @Test
+    public void testAisPositionB() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("B7P@fj00RJVpbIuUhlF93wm5WP06", 0);
 
-		assertTrue(m instanceof AisPositionB);
-	}
+        assertTrue(m instanceof AisPositionB);
+    }
 
-	@Test
-	public void testBExtended() {
-		AisMessageParser p = new AisMessageParser();
-		AisMessage m = p.parse("C5N3SRgPEnJGEBT>NhWAwwo862PaLELTBJ:V00000000S0D:R220", 0);
+    @Test
+    public void testBExtended() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("C5N3SRgPEnJGEBT>NhWAwwo862PaLELTBJ:V00000000S0D:R220", 0);
 
-		assertTrue(m instanceof AisPositionBExtended);
-	}
+        assertTrue(m instanceof AisPositionBExtended);
+    }
 
-	@Test
-	public void testParseAtonMessage() {
-		AisMessageParser p = new AisMessageParser();
-		AisMessage m = p.parse("E>lsp0;`bRb:0h97QUP00000000E6LE2ttVw020@@@P020", 0);
+    @Test
+    public void testParseAtonMessage() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("E>lsp0;`bRb:0h97QUP00000000E6LE2ttVw020@@@P020", 0);
 
-		assertTrue(m instanceof AisAidToNavigation);
-		AisAidToNavigation a = (AisAidToNavigation) m;
-		System.out.println(a);
-		assertEquals(21, a.getMessageId());
-		assertEquals(0, a.getRepeatIndicator());
-		assertEquals(995031040, a.getMmsi());
-		assertEquals(23, a.getAtoNType());
-		assertEquals("QUETTA ROCK", a.getName());
-		assertEquals("", a.getAtonStatus());
-		assertTrue(a.isHighAccuracyPosition());
-	}
+        assertTrue(m instanceof AisAidToNavigation);
+        AisAidToNavigation a = (AisAidToNavigation) m;
+        // System.out.println(a);
+        assertEquals(21, a.getMessageId());
+        assertEquals(0, a.getRepeatIndicator());
+        assertEquals(995031040, a.getMmsi());
+        assertEquals(23, a.getAtoNType());
+        assertEquals("QUETTA ROCK", a.getName());
+        assertEquals("", a.getAtonStatus());
+        assertTrue(a.isHighAccuracyPosition());
+    }
 
-	@Test
-	public void test() {
-		String bit = "55CgN202=iPc<D5CP01JpfpD@@TD00000000001AS@jLN5j`1NjjFSk@P@0000000000002";
-		AisMessageParser p = new AisMessageParser();
-		AisMessage a = p.parse(bit, 0);
-		System.out.println(a);
-	}
+    @Test
+    public void test() {
+        String bit = "55CgN202=iPc<D5CP01JpfpD@@TD00000000001AS@jLN5j`1NjjFSk@P@0000000000002";
+        AisMessageParser p = new AisMessageParser();
+        AisMessage a = p.parse(bit, 0);
+        // System.out.println(a);
+    }
 
 }
