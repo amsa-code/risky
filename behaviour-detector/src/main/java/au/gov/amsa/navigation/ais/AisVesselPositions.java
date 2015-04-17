@@ -75,7 +75,7 @@ public class AisVesselPositions {
                     || p.getLongitude() == null)
                 return empty();
             else {
-                final VesselClass cls;
+                VesselClass cls;
                 if (p instanceof AisPositionA)
                     cls = VesselClass.A;
                 else
@@ -94,7 +94,7 @@ public class AisVesselPositions {
                 Optional<Integer> shipType = vessel.isPresent() ? vessel.get().getShipType()
                         : Optional.<Integer> absent();
 
-                final NavigationalStatus navigationalStatus;
+                NavigationalStatus navigationalStatus;
                 if (p instanceof AisPositionA) {
                     AisPositionA a = (AisPositionA) p;
                     if (Util.equals(a.getNavigationalStatus(),
