@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Observable;
-import rx.functions.Action1;
 import rx.functions.Func1;
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.ShipTypeDecoder;
@@ -47,184 +46,157 @@ import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
 
 public class ShipTypeBreakdownMain {
 
-	private static Logger log = LoggerFactory
-			.getLogger(ShipTypeBreakdownMain.class);
+    private static Logger log = LoggerFactory.getLogger(ShipTypeBreakdownMain.class);
 
-	public static void main(String[] args) throws FileNotFoundException,
-			IOException {
+    public static void main(String[] args) throws FileNotFoundException, IOException {
 
-		// load a shapefile
+        // load a shapefile
 
-		final GeometryFactory gf = new GeometryFactory();
-		File file = new File("/home/dxm/temp/srr.shp");
-		Map<String, Serializable> map = new HashMap<>();
-		map.put("url", file.toURI().toURL());
-		DataStore datastore = DataStoreFinder.getDataStore(map);
-		String typeName = datastore.getTypeNames()[0];
-		System.out.println(typeName);
-		SimpleFeatureSource source = datastore.getFeatureSource(typeName);
-		final SimpleFeatureCollection features = source.getFeatures();
-		final List<PreparedGeometry> geometries = new ArrayList<>();
+        final GeometryFactory gf = new GeometryFactory();
+        File file = new File("/home/dxm/temp/srr.shp");
+        Map<String, Serializable> map = new HashMap<>();
+        map.put("url", file.toURI().toURL());
+        DataStore datastore = DataStoreFinder.getDataStore(map);
+        String typeName = datastore.getTypeNames()[0];
+        System.out.println(typeName);
+        SimpleFeatureSource source = datastore.getFeatureSource(typeName);
+        final SimpleFeatureCollection features = source.getFeatures();
+        final List<PreparedGeometry> geometries = new ArrayList<>();
 
-		SimpleFeatureIterator it = features.features();
-		while (it.hasNext()) {
-			SimpleFeature feature = it.next();
-			Geometry g = (Geometry) feature.getDefaultGeometry();
-			geometries.add(PreparedGeometryFactory.prepare(g));
-		}
+        SimpleFeatureIterator it = features.features();
+        while (it.hasNext()) {
+            SimpleFeature feature = it.next();
+            Geometry g = (Geometry) feature.getDefaultGeometry();
+            geometries.add(PreparedGeometryFactory.prepare(g));
+        }
 
-		// System.exit(0);
+        // System.exit(0);
 
-		String filename = "/media/analysis/nmea/2014/NMEA_ITU_20140815.gz";
-		final Set<Long> mmsi = new HashSet<Long>();
-		final Set<Long> mmsiA = new HashSet<Long>();
-		final Set<Long> mmsiB = new HashSet<Long>();
-		
-		Streams.extract(Streams.nmeaFromGzip(filename))
-				.flatMap(aisPositionsOnly)
-				.lift(Logging.<TimestampedAndLine<AisPosition>> logger()
-						.showCount().every(100000).log())
-				.doOnNext(new Action1<TimestampedAndLine<AisPosition>>() {
-					@Override
-					public void call(TimestampedAndLine<AisPosition> m) {
-						AisPosition p = m.getMessage().get().message();
-						if (p.getLatitude() != null
-								&& p.getLongitude() != null
-								&& contains(gf, geometries, p.getLatitude(),
-										p.getLongitude())) {
-							long mmsiNo = m.getMessage().get().message().getMmsi();
-							mmsi.add(mmsiNo);
-							if (m.getMessage().get().message() instanceof AisPositionA)
-								mmsiA.add(mmsiNo);
-							else 
-								mmsiB.add(mmsiNo);
-						}
-					}
-				}).subscribe();
+        String filename = "/media/analysis/nmea/2014/NMEA_ITU_20140815.gz";
+        final Set<Long> mmsi = new HashSet<Long>();
+        final Set<Long> mmsiA = new HashSet<Long>();
+        final Set<Long> mmsiB = new HashSet<Long>();
 
-		final Map<ShipTypeClass, Set<Long>> countsByShipType = new ConcurrentHashMap<>();
+        Streams.extract(Streams.nmeaFromGzip(filename))
+                .flatMap(aisPositionsOnly)
+                .lift(Logging.<TimestampedAndLine<AisPosition>> logger().showCount().every(100000)
+                        .log())
+                .doOnNext(
+                        m -> {
+                            AisPosition p = m.getMessage().get().message();
+                            if (p.getLatitude() != null && p.getLongitude() != null
+                                    && contains(gf, geometries, p.getLatitude(), p.getLongitude())) {
+                                long mmsiNo = m.getMessage().get().message().getMmsi();
+                                mmsi.add(mmsiNo);
+                                if (m.getMessage().get().message() instanceof AisPositionA)
+                                    mmsiA.add(mmsiNo);
+                                else
+                                    mmsiB.add(mmsiNo);
+                            }
+                        }).subscribe();
 
-		Streams.extract(Streams.nmeaFromGzip(filename))
-				.flatMap(aisShipStaticOnly)
-				.doOnNext(new Action1<TimestampedAndLine<AisShipStatic>>() {
-					@Override
-					public void call(TimestampedAndLine<AisShipStatic> m) {
-						AisShipStatic s = m.getMessage().get().message();
-						if (mmsi.contains(s.getMmsi())) {
-							boolean isClassA = s instanceof AisShipStaticA;
-							ShipTypeClass shipTypeClass = new ShipTypeClass(
-									isClassA, s.getShipType());
-							if (countsByShipType.get(shipTypeClass) == null)
-								countsByShipType.put(shipTypeClass,
-										new HashSet<Long>());
-							else
-								countsByShipType.get(shipTypeClass).add(
-										s.getMmsi());
-						}
-					}
-				}).subscribe();
+        final Map<ShipTypeClass, Set<Long>> countsByShipType = new ConcurrentHashMap<>();
 
-		System.out.println(countsByShipType);
-		Set<String> set = new TreeSet<String>();
-		int sizeA = 0;
-		int sizeB = 0;
-		for (Entry<ShipTypeClass, Set<Long>> s : countsByShipType.entrySet()) {
-			set.add(ShipTypeDecoder.getShipType(s.getKey().shipType) + "\t"
-					+ (s.getKey().isClassA ? "A" : "B") + "\t" + s.getValue().size());
-			if (s.getKey().isClassA)
-				sizeA+=s.getValue().size();
-			else 
-				sizeB+= s.getValue().size();
-		}
-		for (String line : set)
-			System.out.println(line);
-		System.out.println("Unknown\tA\t"+ (mmsiA.size()-sizeA));
-		System.out.println("Unknown\tB\t"+ (mmsiB.size()-sizeB));
-		log.info("finished");
-	}
+        Streams.extract(Streams.nmeaFromGzip(filename)).flatMap(aisShipStaticOnly).doOnNext(m -> {
+            AisShipStatic s = m.getMessage().get().message();
+            if (mmsi.contains(s.getMmsi())) {
+                boolean isClassA = s instanceof AisShipStaticA;
+                ShipTypeClass shipTypeClass = new ShipTypeClass(isClassA, s.getShipType());
+                if (countsByShipType.get(shipTypeClass) == null)
+                    countsByShipType.put(shipTypeClass, new HashSet<Long>());
+                else
+                    countsByShipType.get(shipTypeClass).add(s.getMmsi());
+            }
+        }).subscribe();
 
-	private static Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisPosition>>> aisPositionsOnly = new Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisPosition>>>() {
+        System.out.println(countsByShipType);
+        Set<String> set = new TreeSet<String>();
+        int sizeA = 0;
+        int sizeB = 0;
+        for (Entry<ShipTypeClass, Set<Long>> s : countsByShipType.entrySet()) {
+            set.add(ShipTypeDecoder.getShipType(s.getKey().shipType) + "\t"
+                    + (s.getKey().isClassA ? "A" : "B") + "\t" + s.getValue().size());
+            if (s.getKey().isClassA)
+                sizeA += s.getValue().size();
+            else
+                sizeB += s.getValue().size();
+        }
+        set.stream().forEach(System.out::println);
+        System.out.println("Unknown\tA\t" + (mmsiA.size() - sizeA));
+        System.out.println("Unknown\tB\t" + (mmsiB.size() - sizeB));
+        log.info("finished");
+    }
 
-		@Override
-		public Observable<TimestampedAndLine<AisPosition>> call(
-				TimestampedAndLine<AisMessage> m) {
-			Optional<Timestamped<AisMessage>> message = m.getMessage();
-			if (message.isPresent()
-					&& message.get().message() instanceof AisPosition) {
-				@SuppressWarnings("unchecked")
-				TimestampedAndLine<AisPosition> m2 = (TimestampedAndLine<AisPosition>) (TimestampedAndLine<?>) m;
-				return Observable.just(m2);
-			} else
-				return Observable.empty();
-		}
-	};
+    private static Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisPosition>>> aisPositionsOnly = m -> {
+        Optional<Timestamped<AisMessage>> message = m.getMessage();
+        if (message.isPresent() && message.get().message() instanceof AisPosition) {
+            @SuppressWarnings("unchecked")
+            TimestampedAndLine<AisPosition> m2 = (TimestampedAndLine<AisPosition>) (TimestampedAndLine<?>) m;
+            return Observable.just(m2);
+        } else
+            return Observable.empty();
+    };
 
-	private static Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisShipStatic>>> aisShipStaticOnly = new Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisShipStatic>>>() {
+    private static Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisShipStatic>>> aisShipStaticOnly = m -> {
+        Optional<Timestamped<AisMessage>> message = m.getMessage();
+        if (message.isPresent() && message.get().message() instanceof AisShipStatic) {
+            @SuppressWarnings("unchecked")
+            TimestampedAndLine<AisShipStatic> m2 = (TimestampedAndLine<AisShipStatic>) (TimestampedAndLine<?>) m;
+            return Observable.just(m2);
+        } else
+            return Observable.empty();
+    };
 
-		@Override
-		public Observable<TimestampedAndLine<AisShipStatic>> call(
-				TimestampedAndLine<AisMessage> m) {
-			Optional<Timestamped<AisMessage>> message = m.getMessage();
-			if (message.isPresent()
-					&& message.get().message() instanceof AisShipStatic) {
-				@SuppressWarnings("unchecked")
-				TimestampedAndLine<AisShipStatic> m2 = (TimestampedAndLine<AisShipStatic>) (TimestampedAndLine<?>) m;
-				return Observable.just(m2);
-			} else
-				return Observable.empty();
-		}
-	};
+    private static class ShipTypeClass {
+        boolean isClassA;
 
-	private static class ShipTypeClass {
-		boolean isClassA;
+        @Override
+        public String toString() {
+            return "ShipTypeClass [class=" + (isClassA ? "A" : "B") + ", shipType=" + shipType
+                    + "]";
+        }
 
-		@Override
-		public String toString() {
-			return "ShipTypeClass [class=" + (isClassA ? "A" : "B")
-					+ ", shipType=" + shipType + "]";
-		}
+        int shipType;
 
-		int shipType;
+        ShipTypeClass(boolean isClassA, int shipType) {
+            super();
+            this.isClassA = isClassA;
+            this.shipType = shipType;
+        }
 
-		ShipTypeClass(boolean isClassA, int shipType) {
-			super();
-			this.isClassA = isClassA;
-			this.shipType = shipType;
-		}
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + (isClassA ? 1231 : 1237);
+            result = prime * result + shipType;
+            return result;
+        }
 
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + (isClassA ? 1231 : 1237);
-			result = prime * result + shipType;
-			return result;
-		}
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ShipTypeClass other = (ShipTypeClass) obj;
+            if (isClassA != other.isClassA)
+                return false;
+            if (shipType != other.shipType)
+                return false;
+            return true;
+        }
+    }
 
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			ShipTypeClass other = (ShipTypeClass) obj;
-			if (isClassA != other.isClassA)
-				return false;
-			if (shipType != other.shipType)
-				return false;
-			return true;
-		}
-	}
-
-	private static boolean contains(GeometryFactory gf,
-			Collection<PreparedGeometry> geometries, double lat, double lon) {
-		for (PreparedGeometry g : geometries) {
-			if (g.contains(gf.createPoint(new Coordinate(lon, lat))))
-				return true;
-		}
-		return false;
-	}
+    private static boolean contains(GeometryFactory gf, Collection<PreparedGeometry> geometries,
+            double lat, double lon) {
+        for (PreparedGeometry g : geometries) {
+            if (g.contains(gf.createPoint(new Coordinate(lon, lat))))
+                return true;
+        }
+        return false;
+    }
 
 }

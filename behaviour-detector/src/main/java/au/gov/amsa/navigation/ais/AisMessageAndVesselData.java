@@ -10,50 +10,40 @@ import com.google.common.base.Optional;
 
 public final class AisMessageAndVesselData {
 
-	private Optional<TimestampedAndLine<AisMessage>> message;
-	private VesselData data;
+    private Optional<TimestampedAndLine<AisMessage>> message;
+    private VesselData data;
 
-	public AisMessageAndVesselData(
-			Optional<TimestampedAndLine<AisMessage>> message, VesselData data) {
-		this.message = message;
-		this.data = data;
-	}
+    public AisMessageAndVesselData(Optional<TimestampedAndLine<AisMessage>> message, VesselData data) {
+        this.message = message;
+        this.data = data;
+    }
 
-	public AisMessageAndVesselData() {
-		this(Optional.<TimestampedAndLine<AisMessage>> absent(),
-				new VesselData());
-	}
+    public AisMessageAndVesselData() {
+        this(Optional.<TimestampedAndLine<AisMessage>> absent(), new VesselData());
+    }
 
-	public Optional<TimestampedAndLine<AisMessage>> message() {
-		return message;
-	}
+    public Optional<TimestampedAndLine<AisMessage>> message() {
+        return message;
+    }
 
-	public VesselData data() {
-		return data;
-	}
+    public VesselData data() {
+        return data;
+    }
 
-	public static Func2<AisMessageAndVesselData, TimestampedAndLine<AisMessage>, AisMessageAndVesselData> aggregate = new Func2<AisMessageAndVesselData, TimestampedAndLine<AisMessage>, AisMessageAndVesselData>() {
-
-		@Override
-		public AisMessageAndVesselData call(
-				AisMessageAndVesselData messageAndData,
-				TimestampedAndLine<AisMessage> message) {
-			if (!message.getMessage().isPresent())
-				throw new RuntimeException("unexpected");
-			Optional<String> line = Optional.of(message.getLine());
-			AisMessage m = message.getMessage().get().message();
-			if (m instanceof AisShipStaticA)
-				return new AisMessageAndVesselData(Optional.of(message),
-						messageAndData.data().add(
-								(AisShipStaticA) m, line));
-			else if (m instanceof AisPositionBExtended)
-				return new AisMessageAndVesselData(Optional.of(message),
-						messageAndData.data().add(
-								(AisPositionBExtended) m, line));
-			else
-				return new AisMessageAndVesselData(Optional.of(message),
-						messageAndData.data());
-		}
-	};
+    public static Func2<AisMessageAndVesselData, TimestampedAndLine<AisMessage>, AisMessageAndVesselData> aggregate = (
+            messageAndData, message) -> {
+        if (!message.getMessage().isPresent())
+            throw new RuntimeException("unexpected");
+        Optional<String> line = Optional.of(message.getLine());
+        AisMessage m = message.getMessage().get().message();
+        if (m instanceof AisShipStaticA)
+            return new AisMessageAndVesselData(Optional.of(message), messageAndData.data().add(
+                    (AisShipStaticA) m, line));
+        else if (m instanceof AisPositionBExtended)
+            return new AisMessageAndVesselData(Optional.of(message), messageAndData.data().add(
+                    (AisPositionBExtended) m, line));
+        else
+            return new AisMessageAndVesselData(Optional.of(message), messageAndData.data());
+    };
 
 }

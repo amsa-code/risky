@@ -56,49 +56,37 @@ public class BinaryFixesDriftDetectorMain {
     }
 
     private static Func1<? super File, Boolean> onlyValidMmsis() {
-        return new Func1<File, Boolean>() {
-
-            @Override
-            public Boolean call(File file) {
-                return MmsiValidator2.INSTANCE.isValid(Long.parseLong(file.getName().substring(0,
-                        file.getName().indexOf('.'))));
-            }
-        };
+        return file -> MmsiValidator2.INSTANCE.isValid(Long.parseLong(file.getName().substring(0,
+                file.getName().indexOf('.'))));
     }
 
+    @SuppressWarnings("unchecked")
     private static <T extends Number> Func2<T, T, T> add() {
-        return new Func2<T, T, T>() {
-            @SuppressWarnings("unchecked")
-            @Override
-            public T call(T a, T b) {
-                if (a instanceof Integer)
-                    return (T) (Number) (a.intValue() + b.intValue());
-                else if (a instanceof Long)
-                    return (T) (Number) (a.longValue() + b.longValue());
-                else if (a instanceof Double)
-                    return (T) (Number) (a.doubleValue() + b.doubleValue());
-                else if (a instanceof Float)
-                    return (T) (Number) (a.floatValue() + b.floatValue());
-                else if (a instanceof Byte)
-                    return (T) (Number) (a.byteValue() + b.byteValue());
-                else if (a instanceof Short)
-                    return (T) (Number) (a.shortValue() + b.shortValue());
-                else
-                    throw new RuntimeException("not implemented");
-            }
+        return (a, b) -> {
+            if (a instanceof Integer)
+                return (T) (Number) (a.intValue() + b.intValue());
+            else if (a instanceof Long)
+                return (T) (Number) (a.longValue() + b.longValue());
+            else if (a instanceof Double)
+                return (T) (Number) (a.doubleValue() + b.doubleValue());
+            else if (a instanceof Float)
+                return (T) (Number) (a.floatValue() + b.floatValue());
+            else if (a instanceof Byte)
+                return (T) (Number) (a.byteValue() + b.byteValue());
+            else if (a instanceof Short)
+                return (T) (Number) (a.shortValue() + b.shortValue());
+            else
+                throw new RuntimeException("not implemented");
         };
     }
 
     private static Func1<List<File>, Observable<Integer>> detectDrift(final AtomicLong num,
             final Scheduler scheduler) {
-        return new Func1<List<File>, Observable<Integer>>() {
-            @Override
-            public Observable<Integer> call(List<File> list) {
-                return Observable.from(list)
-                // files to drift detections
-                        .concatMap(new Func1<File, Observable<Integer>>() {
-                            @Override
-                            public Observable<Integer> call(final File file) {
+        return list -> {
+            return Observable.from(list)
+                    // files to drift detections
+                    .concatMap(
+                            file -> {
                                 return BinaryFixes.from(file)
                                 // log count
                                         .doOnNext(logCount(num))
@@ -106,7 +94,8 @@ public class BinaryFixesDriftDetectorMain {
                                         .compose(Fixes.ignoreOutOfOrderFixes(false))
                                         // detect drift
                                         .compose(DriftDetector.detectDrift())
-                                        // downsample to min 5 minutes between
+                                        // downsample to min 5 minutes
+                                        // between
                                         // reports but ensure that start of
                                         // drift is always included
                                         .compose(
@@ -115,30 +104,19 @@ public class BinaryFixesDriftDetectorMain {
                                         // onNext
                                         .doOnNext(ON_NEXT)
                                         // log on error
-                                        .doOnError(new Action1<Throwable>() {
-                                            @Override
-                                            public void call(Throwable e) {
-                                                log.error(file + ":" + e.getMessage(), e);
-                                            }
+                                        .doOnError(e -> {
+                                            log.error(file + ":" + e.getMessage(), e);
                                         })
                                         // count
                                         .count();
-                            }
-
-                        })
-                        // schedule
-                        .subscribeOn(scheduler);
-            }
+                            })
+                    // schedule
+                    .subscribeOn(scheduler);
         };
     }
 
     private static Func1<DriftCandidate, Boolean> isStartOfDrift() {
-        return new Func1<DriftCandidate, Boolean>() {
-            @Override
-            public Boolean call(DriftCandidate c) {
-                return c.driftingSince() == c.fix().time();
-            }
-        };
+        return c -> c.driftingSince() == c.fix().time();
     }
 
     private static final Action1<DriftCandidate> ON_NEXT = new Action1<DriftCandidate>() {
@@ -181,13 +159,10 @@ public class BinaryFixesDriftDetectorMain {
     };
 
     private static Action1<Fix> logCount(final AtomicLong num) {
-        return new Action1<Fix>() {
-            @Override
-            public void call(Fix p) {
-                long n = num.incrementAndGet();
-                if (n % 1000000 == 0)
-                    log.info((n / 1000000.0) + "m");
-            }
+        return p -> {
+            long n = num.incrementAndGet();
+            if (n % 1000000 == 0)
+                log.info((n / 1000000.0) + "m");
         };
     }
 

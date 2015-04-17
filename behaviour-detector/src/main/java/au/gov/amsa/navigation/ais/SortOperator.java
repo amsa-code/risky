@@ -18,7 +18,7 @@ public class SortOperator<T> implements Operator<T, T> {
 	}
 
 	@Override
-	public Subscriber<? super T> call(final Subscriber<? super T> subscriber) {
+	public Subscriber<? super T> call(final Subscriber<? super T> child) {
 
 		return new Subscriber<T>() {
 
@@ -28,16 +28,16 @@ public class SortOperator<T> implements Operator<T, T> {
 			public void onCompleted() {
 				Collections.sort(list, comparator);
 				for (T t : list)
-					if (subscriber.isUnsubscribed())
+					if (child.isUnsubscribed())
 						return;
 					else
-						subscriber.onNext(t);
-				subscriber.onCompleted();
+						child.onNext(t);
+				child.onCompleted();
 			}
 
 			@Override
 			public void onError(Throwable e) {
-				subscriber.onError(e);
+				child.onError(e);
 			}
 
 			@Override
