@@ -9,7 +9,6 @@ import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Action2;
 import rx.functions.Func1;
-import rx.functions.Func2;
 
 import com.github.davidmoten.rx.Functions;
 
@@ -37,28 +36,20 @@ public class Downsample<T extends HasFix> implements Transformer<T, T> {
 
     @Override
     public Observable<T> call(Observable<T> fixes) {
-        Observable<T> result = fixes.scan(new Func2<T, T, T>() {
-            @Override
-            public T call(T latest, T fix) {
-                if (fix.fix().mmsi() != latest.fix().mmsi())
-                    throw new RuntimeException("can only downsample a single vessel");
-                else if (fix.fix().time() < latest.fix().time())
-                    throw new RuntimeException("not in ascending time order!");
-                else if (fix.fix().time() - latest.fix().time() >= minTimeBetweenFixesMs
-                        || selector.call(fix))
-                    return fix;
-                else
-                    return latest;
-            }
+        Observable<T> result = fixes.scan((latest, fix) -> {
+            if (fix.fix().mmsi() != latest.fix().mmsi())
+                throw new RuntimeException("can only downsample a single vessel");
+            else if (fix.fix().time() < latest.fix().time())
+                throw new RuntimeException("not in ascending time order!");
+            else if (fix.fix().time() - latest.fix().time() >= minTimeBetweenFixesMs
+                    || selector.call(fix))
+                return fix;
+            else
+                return latest;
         });
         if (minTimeBetweenFixesMs > 0)
             // throw away repeats
-            result = result.distinctUntilChanged(new Func1<HasFix, Long>() {
-                @Override
-                public Long call(HasFix f) {
-                    return f.fix().time();
-                }
-            });
+            result = result.distinctUntilChanged(f -> f.fix().time());
         return result;
     }
 
@@ -68,11 +59,8 @@ public class Downsample<T extends HasFix> implements Transformer<T, T> {
                 FIXES_WRITER, Functions.<String> identity());
     }
 
-    private static Action2<List<HasFix>, File> FIXES_WRITER = new Action2<List<HasFix>, File>() {
-        @Override
-        public void call(List<HasFix> list, File file) {
-            BinaryFixesWriter.writeFixes(list, file, false, false);
-        }
+    private static Action2<List<HasFix>, File> FIXES_WRITER = (list, file) -> {
+        BinaryFixesWriter.writeFixes(list, file, false, false);
     };
 
 }

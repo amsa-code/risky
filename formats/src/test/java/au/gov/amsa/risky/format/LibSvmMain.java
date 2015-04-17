@@ -38,7 +38,7 @@ public class LibSvmMain {
                 .lift(new OperatorMinEffectiveSpeedThreshold(TimeUnit.HOURS.toMillis(1)))
                 // log
                 // write the fixes in LIBSVM format
-                .forEach(writeFix(writer), handleError());
+                .forEach(writeFix(writer), t -> t.printStackTrace());
 
         // close the writer
         writer.close();
@@ -46,63 +46,39 @@ public class LibSvmMain {
         System.out.println("finished");
     }
 
-    private static Action1<Throwable> handleError() {
-        return new Action1<Throwable>() {
-
-            @Override
-            public void call(Throwable t) {
-                t.printStackTrace();
-            }
-        };
-    }
-
     private static Action1<FixWithPreAndPostEffectiveSpeed> writeFix(final Writer writer) {
-        return new Action1<FixWithPreAndPostEffectiveSpeed>() {
+        return f -> {
+            int navStatus;
 
-            @Override
-            public void call(FixWithPreAndPostEffectiveSpeed f) {
-                int navStatus;
-
-                if (f.fix().navigationalStatus().isPresent()) {
-                    if (f.fix().navigationalStatus().get() == NavigationalStatus.MOORED)
-                        navStatus = 1;
-                    else if (f.fix().navigationalStatus().get() == NavigationalStatus.AT_ANCHOR)
-                        navStatus = 2;
-                    else
-                        navStatus = 0;
-                } else
+            if (f.fix().navigationalStatus().isPresent()) {
+                if (f.fix().navigationalStatus().get() == NavigationalStatus.MOORED)
+                    navStatus = 1;
+                else if (f.fix().navigationalStatus().get() == NavigationalStatus.AT_ANCHOR)
+                    navStatus = 2;
+                else
                     navStatus = 0;
-                Fix fix = f.fix();
-                float diff = Math.abs(fix.courseOverGroundDegrees().get()
-                        - fix.headingDegrees().get());
-                LibSvm.write(writer, navStatus, f.fix().lat(), f.fix().lon(), fix
-                        .speedOverGroundKnots().get(), diff, f.preEffectiveSpeedKnots(), f
-                        .preError(), f.postEffectiveSpeedKnots(), f.postError());
-            }
+            } else
+                navStatus = 0;
+            Fix fix = f.fix();
+            float diff = Math.abs(fix.courseOverGroundDegrees().get() - fix.headingDegrees().get());
+            LibSvm.write(writer, navStatus, f.fix().lat(), f.fix().lon(), fix
+                    .speedOverGroundKnots().get(), diff, f.preEffectiveSpeedKnots(), f.preError(),
+                    f.postEffectiveSpeedKnots(), f.postError());
         };
     }
 
     private static Func1<HasFix, Boolean> hasCourseHeadingSpeed() {
-        return new Func1<HasFix, Boolean>() {
-
-            @Override
-            public Boolean call(HasFix fix) {
-                Fix f = fix.fix();
-                return f.courseOverGroundDegrees().isPresent() && f.headingDegrees().isPresent()
-                        && f.speedOverGroundKnots().isPresent();
-            }
+        return fix -> {
+            Fix f = fix.fix();
+            return f.courseOverGroundDegrees().isPresent() && f.headingDegrees().isPresent()
+                    && f.speedOverGroundKnots().isPresent();
         };
     }
 
     private static Func1<HasFix, Boolean> classAOnly() {
-        return new Func1<HasFix, Boolean>() {
-
-            @Override
-            public Boolean call(HasFix fix) {
-                Fix f = fix.fix();
-                return (f.aisClass() == AisClass.A);
-
-            }
+        return fix -> {
+            Fix f = fix.fix();
+            return (f.aisClass() == AisClass.A);
         };
     }
 

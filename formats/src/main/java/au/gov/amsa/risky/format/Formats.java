@@ -67,35 +67,30 @@ public final class Formats {
         // get the files matching the pattern from the directory
                 .from(files)
                 // replace the file with a transformed version
-                .flatMap(new Func1<File, Observable<Integer>>() {
-
-                    @Override
-                    public Observable<Integer> call(final File file) {
-                        final File outputFile = rebase(file, input, output);
-                        outputFile.getParentFile().mkdirs();
-                        logger.call(file);
-                        return BinaryFixes.from(file, true)
-                        // to list
-                                .toList()
-                                // flatten
-                                .flatMapIterable(Functions.<List<Fix>> identity())
-                                // transform the fixes
-                                .compose(transformer)
-                                // make into a list again
-                                .toList()
-                                // replace the file with sorted fixes
-                                .doOnNext(new Action1<List<HasFix>>() {
-                                    @Override
-                                    public void call(List<HasFix> list) {
-                                        File f = new File(outputFile.getParentFile(), renamer
-                                                .call(outputFile.getName()));
-                                        fixesWriter.call(list, f);
-                                    }
-                                })
-                                // count the fixes
-                                .count();
-                    }
-                });
+                .flatMap(
+                        file -> {
+                            final File outputFile = rebase(file, input, output);
+                            outputFile.getParentFile().mkdirs();
+                            logger.call(file);
+                            return BinaryFixes.from(file, true)
+                            // to list
+                                    .toList()
+                                    // flatten
+                                    .flatMapIterable(Functions.<List<Fix>> identity())
+                                    // transform the fixes
+                                    .compose(transformer)
+                                    // make into a list again
+                                    .toList()
+                                    // replace the file with sorted fixes
+                                    .doOnNext(
+                                            list -> {
+                                                File f = new File(outputFile.getParentFile(),
+                                                        renamer.call(outputFile.getName()));
+                                                fixesWriter.call(list, f);
+                                            })
+                                    // count the fixes
+                                    .count();
+                        });
 
     }
 
