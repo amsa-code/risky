@@ -20,141 +20,147 @@ import rx.schedulers.Schedulers;
  */
 public final class StringServer {
 
-	private static Logger log = LoggerFactory.getLogger(StringServer.class);
+    private static Logger log = LoggerFactory.getLogger(StringServer.class);
 
-	private final ServerSocket ss;
-	private volatile boolean keepGoing = true;
-	private final Observable<String> source;
+    private final ServerSocket ss;
+    private volatile boolean keepGoing = true;
+    private final Observable<String> source;
 
-	/**
-	 * Factory method.
-	 * 
-	 * @param source
-	 *            source to publish on server socket
-	 * @param port
-	 *            to assign the server socket to
-	 */
-	public static StringServer create(Observable<String> source, int port) {
-		return new StringServer(source, port);
-	}
+    /**
+     * Factory method.
+     * 
+     * @param source
+     *            source to publish on server socket
+     * @param port
+     *            to assign the server socket to
+     */
+    public static StringServer create(Observable<String> source, int port) {
+        return new StringServer(source, port);
+    }
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param ss
-	 *            {@link ServerSocket} to publish to
-	 * @param source
-	 *            the source of lines to publish on ServerSocket
-	 */
-	private StringServer(Observable<String> source, int port) {
-		try {
-			this.ss = new ServerSocket(port);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-		this.source = source;
-	}
+    /**
+     * Constructor.
+     * 
+     * @param ss
+     *            {@link ServerSocket} to publish to
+     * @param source
+     *            the source of lines to publish on ServerSocket
+     */
+    private StringServer(Observable<String> source, int port) {
+        try {
+            this.ss = new ServerSocket(port);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        this.source = source;
+    }
 
-	/**
-	 * Starts the server. Each connection to the server will bring about another
-	 * subscription to the source.
-	 */
-	public void start() {
-		try {
-			while (keepGoing) {
-				try {
-					// this is a blocking call so it hogs a thread
-					final Socket socket = ss.accept();
-					final String socketName = socket.getInetAddress()
-							.getHostAddress() + ":" + socket.getPort();
-					try {
-						final OutputStream out = socket.getOutputStream();
+    /**
+     * Starts the server. Each connection to the server will bring about another
+     * subscription to the source.
+     */
+    public void start() {
+        try {
+            while (keepGoing) {
+                try {
+                    // this is a blocking call so it hogs a thread
+                    final Socket socket = ss.accept();
+                    final String socketName = socket.getInetAddress().getHostAddress() + ":"
+                            + socket.getPort();
+                    try {
+                        final OutputStream out = socket.getOutputStream();
 
-						Subscriber<String> subscriber = createSubscriber(
-								socket, socketName, out);
-						source
-						// subscribe in background so can accept another
-						// connection
-						.subscribeOn(Schedulers.io())
-						// write each line to the socket OutputStream
-								.subscribe(subscriber);
-					} catch (IOException e) {
-						// could not get output stream (could have closed very
-						// quickly after connecting)
-						// dont' care
-					}
-				} catch (SocketTimeoutException e) {
-					// don't care
-				}
-			}
-		} catch (IOException e) {
-			if (keepGoing) {
-				log.warn(e.getMessage(), e);
-				throw new RuntimeException(e);
-			} else
-				log.info("server stopped");
-		} finally {
-			closeServerSocket();
-		}
-	}
+                        Subscriber<String> subscriber = createSubscriber(socket, socketName, out);
+                        source
+                        // subscribe in background so can accept another
+                        // connection
+                        .subscribeOn(Schedulers.io())
+                        // write each line to the socket OutputStream
+                                .subscribe(subscriber);
+                    } catch (IOException e) {
+                        // could not get output stream (could have closed very
+                        // quickly after connecting)
+                        // dont' care
+                    }
+                } catch (SocketTimeoutException e) {
+                    // don't care
+                }
+            }
+        } catch (IOException e) {
+            if (keepGoing) {
+                log.warn(e.getMessage(), e);
+                throw new RuntimeException(e);
+            } else
+                log.info("server stopped");
+        } finally {
+            closeServerSocket();
+        }
+    }
 
-	/**
-	 * Stops the server by closing the ServerSocket.
-	 */
-	public void stop() {
-		log.info("stopping");
-		keepGoing = false;
-		closeServerSocket();
-	}
+    /**
+     * Stops the server by closing the ServerSocket.
+     */
+    public void stop() {
+        log.info("stopping");
+        keepGoing = false;
+        closeServerSocket();
+    }
 
-	private void closeServerSocket() {
-		try {
-			ss.close();
-		} catch (IOException e) {
-			log.info("could not close server socket: " + e.getMessage());
-		}
-	}
+    private void closeServerSocket() {
+        try {
+            ss.close();
+        } catch (IOException e) {
+            log.info("could not close server socket: " + e.getMessage());
+        }
+    }
 
-	private static Subscriber<String> createSubscriber(final Socket socket,
-			final String socketName, final OutputStream out) {
-		return new Subscriber<String>() {
+    private static Subscriber<String> createSubscriber(final Socket socket,
+            final String socketName, final OutputStream out) {
+        return new Subscriber<String>() {
 
-			@Override
-			public void onCompleted() {
-				log.info("stream completed");
-				closeSocket();
-			}
+            @Override
+            public void onCompleted() {
+                log.info("stream completed");
+                closeSocket();
+            }
 
-			@Override
-			public void onError(Throwable e) {
-				log.error(e.getMessage()
-						+ " - unexpected due to upstream retry");
-				closeSocket();
-			}
+            @Override
+            public void onError(Throwable e) {
+                log.error(e.getMessage() + " - unexpected due to upstream retry");
+                closeSocket();
+            }
 
-			@Override
-			public void onNext(String line) {
-				try {
-					out.write(line.getBytes(StandardCharsets.UTF_8));
-					out.flush();
-				} catch (IOException e) {
-					log.info(e.getMessage() + " " + socketName);
-					// this will unsubscribe to clean up the
-					// resources associated with this subscription
-					unsubscribe();
-					closeSocket();
-				}
-			}
+            @Override
+            public void onNext(String line) {
+                try {
+                    out.write(line.getBytes(StandardCharsets.UTF_8));
+                    out.flush();
+                } catch (IOException e) {
+                    log.info(e.getMessage() + " " + socketName);
+                    // this will unsubscribe to clean up the
+                    // resources associated with this subscription
+                    unsubscribe();
+                    closeSocket();
+                }
+            }
 
-			private void closeSocket() {
-				try {
-					socket.close();
-				} catch (IOException e1) {
-					log.info("closing socket " + socketName + ":"
-							+ e1.getMessage());
-				}
-			}
-		};
-	}
+            private void closeSocket() {
+                try {
+                    socket.close();
+                } catch (IOException e1) {
+                    log.info("closing socket " + socketName + ":" + e1.getMessage());
+                }
+            }
+        };
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("StringServer [port=");
+        b.append(ss.getLocalPort());
+        b.append("]");
+        return b.toString();
+    }
 
 }

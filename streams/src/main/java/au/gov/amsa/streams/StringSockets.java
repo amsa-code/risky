@@ -20,11 +20,9 @@ import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
-import rx.observables.StringObservable;
 import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rx.Checked;
-import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
@@ -54,7 +52,8 @@ public final class StringSockets {
         return triggersWithDelay(reconnectDelayMs)
         // log (note connection number will increase if socket is cleanly closed
         // by the server)
-                .lift(Logging.<Integer> logger().onNextPrefix("connectionNumber=").log())
+        // .lift(Logging.<Integer>
+        // logger().onNextPrefix("connectionNumber=").log())
                 // connect to server and read lines from its input stream
                 .concatMap(from(host, port, charset, quietTimeoutMs))
                 // ensure connection has not dropped out by throwing an
@@ -171,8 +170,8 @@ public final class StringSockets {
 
     @VisibleForTesting
     static Func1<Socket, Observable<String>> socketObservableFactory(final Charset charset) {
-        return Checked.f1(socket -> StringObservable.from(new InputStreamReader(socket
-                .getInputStream(), charset)));
+        return Checked.f1(socket -> Strings.from(new InputStreamReader(socket.getInputStream(),
+                charset)));
     }
 
     @VisibleForTesting
@@ -184,7 +183,7 @@ public final class StringSockets {
                 socket.close();
             } catch (IOException e) {
                 // don't really care if socket could not be closed cleanly
-                log.info(e.getMessage(), e);
+                log.info("messageOnSocketClose=" + e.getMessage(), e);
             }
         };
     }
