@@ -56,7 +56,7 @@ public final class StringSockets {
         // by the server)
                 .lift(Logging.<Integer> logger().onNextPrefix("connectionNumber=").log())
                 // connect to server and read lines from its input stream
-                .concatMap(from(host, port, charset))
+                .concatMap(from(host, port, charset, quietTimeoutMs))
                 // ensure connection has not dropped out by throwing an
                 // exception after a minute of no messages. This is a good idea
                 // with TCPIP because for example a firewall might drop a quiet
@@ -143,15 +143,15 @@ public final class StringSockets {
     }
 
     private static Func1<Integer, Observable<String>> from(final String host, final int port,
-            final Charset charset) {
+            final Charset charset, long quietTimeoutMs) {
         return new Func1<Integer, Observable<String>>() {
             @Override
             public Observable<String> call(Integer n) {
                 return Observable
                 // create a stream from a socket and dispose of socket
                 // appropriately
-                        .using(socketCreator(host, port), socketObservableFactory(charset),
-                                socketDisposer(), true)
+                        .using(socketCreator(host, port, quietTimeoutMs),
+                                socketObservableFactory(charset), socketDisposer(), true)
                         // cannot ask host to slow down so buffer on
                         // backpressure
                         .onBackpressureBuffer();
@@ -160,10 +160,12 @@ public final class StringSockets {
     }
 
     @VisibleForTesting
-    static Func0<Socket> socketCreator(final String host, final int port) {
+    static Func0<Socket> socketCreator(final String host, final int port, long quietTimeoutMs) {
         return Checked.f0(() -> {
             log.info("creating socket to " + host + ":" + port);
-            return new Socket(host, port);
+            Socket socket = new Socket(host, port);
+            socket.setSoTimeout((int) quietTimeoutMs);
+            return socket;
         });
     }
 
