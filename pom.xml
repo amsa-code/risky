@@ -93,9 +93,25 @@
                     </execution>
                 </executions>
             </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${javadoc.version}</version>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+						    <goal>jar</goal>
+						</goals>
+						<configuration>
+						    <additionalparam>-Xdoclint:none</additionalparam>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
         </plugins>
     </build>
-
+ 
     <reporting>
         <excludeDefaults>true</excludeDefaults>
         <outputDirectory>${project.build.directory}/site</outputDirectory>
@@ -172,6 +188,7 @@
                 <version>${javadoc.version}</version>
                 <configuration>
                     <aggregate>true</aggregate>
+                    <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
             <!-- commented this plugin out because cannot run offline (e.g. at home) -->
