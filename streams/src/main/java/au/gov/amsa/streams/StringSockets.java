@@ -24,7 +24,6 @@ import rx.functions.Func1;
 import rx.observables.StringObservable;
 import rx.schedulers.Schedulers;
 
-import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 
@@ -52,16 +51,16 @@ public final class StringSockets {
         // stream on every connect we won't be in a mad loop of
         // failing connections
         return triggersWithDelay(reconnectDelayMs)
-        // log (note connection number will increase if socket is cleanly closed
-        // by the server)
-                .lift(Logging.<Integer> logger().onNextPrefix("connectionNumber=").log())
-                // connect to server and read lines from its input stream
+        // connect to server and read lines from its input stream
                 .concatMap(from(host, port, charset, quietTimeoutMs))
                 // ensure connection has not dropped out by throwing an
                 // exception after a minute of no messages. This is a good idea
                 // with TCPIP because for example a firewall might drop a quiet
-                // connection and we won't know about it.
-                .timeout(quietTimeoutMs, TimeUnit.MILLISECONDS)
+                // connection and we won't know about it. The from method call
+                // in concatMap above sets a socket read timeout as well but
+                // just in case we pull the plug on the socket a second later
+                // with this call to timeout()
+                .timeout(quietTimeoutMs + 1000, TimeUnit.MILLISECONDS)
                 // if any exception occurs retry
                 .retry()
                 // all subscribers use the same stream
