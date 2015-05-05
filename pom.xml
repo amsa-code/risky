@@ -14,7 +14,7 @@
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
         <compiler.source>1.8</compiler.source>
         <compiler.target>1.8</compiler.target>
-        <rxjava.version>1.0.9</rxjava.version>
+        <rxjava.version>1.0.10</rxjava.version>
         <rxjava.string.version>0.22.0</rxjava.string.version>
 		<rxjava.math.version>1.0.0</rxjava.math.version>
         <rxjava.extras.version>0.5.2</rxjava.extras.version>
