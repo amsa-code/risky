@@ -21,19 +21,17 @@ import com.google.common.base.Preconditions;
  */
 public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
-    static final double KNOTS_TO_METRES_PER_SECOND = 0.5144444;
-    @VisibleForTesting
-    static final int HEADING_COG_DIFFERENCE_MIN = 45;
-    @VisibleForTesting
-    static final int HEADING_COG_DIFFERENCE_MAX = 135;
-    @VisibleForTesting
-    static final float MAX_DRIFTING_SPEED_KNOTS = 20;
-    @VisibleForTesting
-    static final float MIN_DRIFTING_SPEED_KNOTS = 0.25f;
+    private final Options options;
+    private final Func1<Fix, Boolean> isCandidate;
 
-    private static final long WINDOW_SIZE_MS = TimeUnit.MINUTES.toMillis(5);
-    private static final double MIN_PROPORTION = 0.5;
-    private static final double NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
+    public DriftDetectorOperator(Options options) {
+        this.options = options;
+        isCandidate = isCandidate(options);
+    }
+
+    public DriftDetectorOperator() {
+        this(Options.instance());
+    }
 
     @Override
     public Subscriber<? super HasFix> call(final Subscriber<? super DriftCandidate> child) {
@@ -73,7 +71,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
     }
 
-    static void handleFix(Fix f, RingBuffer<FixAndStatus> q,
+    private void handleFix(Fix f, RingBuffer<FixAndStatus> q,
             Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
             AtomicLong nonDriftingSinceTime, AtomicLong currentMmsi) {
         // when a fix arrives that is a drift detection start building a queue
@@ -89,7 +87,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             currentMmsi.set(f.mmsi());
         }
         if (q.isEmpty()) {
-            if (IS_CANDIDATE.call(f)) {
+            if (isCandidate.call(f)) {
                 q.push(new FixAndStatus(f, true));
                 // reset non drifting time because drifting detected
                 nonDriftingSinceTime.set(Long.MAX_VALUE);
@@ -103,18 +101,19 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         } else {
             if (q.peek().fix.time() < f.time()) {
                 // queue is non-empty so add to the queue
-                q.push(new FixAndStatus(f, IS_CANDIDATE.call(f)));
+                q.push(new FixAndStatus(f, isCandidate.call(f)));
             }
         }
 
         // process the queue if time interval long enough
-        if (f.time() - q.peek().fix.time() >= WINDOW_SIZE_MS) {
+        if (f.time() - q.peek().fix.time() >= options.windowSizeMs()) {
             // count the number of candidates
             int count = countDrifting(q);
             // if a decent number of drift candidates found in the time interval
             // then emit them
-            if ((double) count / q.size() >= MIN_PROPORTION) {
-                emitDriftersAndUpdateTimes(q, child, driftingSinceTime, nonDriftingSinceTime);
+            if ((double) count / q.size() >= options.minProportion()) {
+                emitDriftersAndUpdateTimes(q, child, driftingSinceTime, nonDriftingSinceTime,
+                        options);
             }
         }
 
@@ -122,7 +121,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
     private static void emitDriftersAndUpdateTimes(RingBuffer<FixAndStatus> q,
             Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
-            AtomicLong nonDriftingSinceTime) {
+            AtomicLong nonDriftingSinceTime, Options options) {
         Enumeration<FixAndStatus> en = q.values();
         while (en.hasMoreElements()) {
             FixAndStatus x = en.nextElement();
@@ -130,7 +129,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             if (x.drifting) {
                 // emit DriftCandidate with driftingSinceTime
                 long driftingSince;
-                if (x.fix.time() - nonDriftingSinceTime.get() > NON_DRIFTING_THRESHOLD_MS)
+                if (x.fix.time() - nonDriftingSinceTime.get() > options.nonDriftingThresholdMs())
                     driftingSince = x.fix.time();
                 else
                     driftingSince = driftingSinceTime.get();
@@ -153,24 +152,23 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
     }
 
     @VisibleForTesting
-    static Func1<Fix, Boolean> IS_CANDIDATE = new Func1<Fix, Boolean>() {
-
-        @Override
-        public Boolean call(Fix f) {
+    static Func1<Fix, Boolean> isCandidate(Options options) {
+        return f -> {
             if (f.courseOverGroundDegrees().isPresent()
                     && f.headingDegrees().isPresent()
                     && f.speedOverGroundKnots().isPresent()
                     && (!f.navigationalStatus().isPresent() || (f.navigationalStatus().get() != NavigationalStatus.AT_ANCHOR && f
                             .navigationalStatus().get() != NavigationalStatus.MOORED))) {
                 double diff = diff(f.courseOverGroundDegrees().get(), f.headingDegrees().get());
-                return diff >= HEADING_COG_DIFFERENCE_MIN && diff <= HEADING_COG_DIFFERENCE_MAX
-                        && f.speedOverGroundKnots().get() <= MAX_DRIFTING_SPEED_KNOTS
+                return diff >= options.minHeadingCogDifference()
+                        && diff <= options.maxHeadingCogDifference()
+                        && f.speedOverGroundKnots().get() <= options.maxDriftingSpeedKnots()
 
-                        && f.speedOverGroundKnots().get() > MIN_DRIFTING_SPEED_KNOTS;
+                        && f.speedOverGroundKnots().get() > options.minDriftingSpeedKnots();
             } else
                 return false;
-        }
-    };
+        };
+    }
 
     static double diff(double a, double b) {
         Preconditions.checkArgument(a >= 0 && a < 360);
@@ -186,4 +184,85 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             return value;
 
     };
+
+    public static final class Options {
+
+        @VisibleForTesting
+        static final int DEFAULT_HEADING_COG_DIFFERENCE_MIN = 45;
+        @VisibleForTesting
+        static final int DEFAULT_HEADING_COG_DIFFERENCE_MAX = 135;
+        @VisibleForTesting
+        static final float DEFAULT_MIN_DRIFTING_SPEED_KNOTS = 0.25f;
+        @VisibleForTesting
+        static final float DEFAULT_MAX_DRIFTING_SPEED_KNOTS = 20;
+        private static final long DEFAULT_WINDOW_SIZE_MS = TimeUnit.MINUTES.toMillis(5);
+        private static final double DEFAULT_MIN_PROPORTION = 0.5;
+        private static final long DEFAULT_NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
+
+        private final int minHeadingCogDifference;
+        private final int maxHeadingCogDifference;
+        private final float minDriftingSpeedKnots;
+        private final float maxDriftingSpeedKnots;
+        private final long windowSizeMs;
+        private final double minProportion;
+        private final long nonDriftingThresholdMs;
+
+        private static class Holder {
+
+            static Options INSTANCE = new Options(DEFAULT_HEADING_COG_DIFFERENCE_MIN,
+                    DEFAULT_HEADING_COG_DIFFERENCE_MAX, DEFAULT_MIN_DRIFTING_SPEED_KNOTS,
+                    DEFAULT_MAX_DRIFTING_SPEED_KNOTS, DEFAULT_WINDOW_SIZE_MS,
+                    DEFAULT_MIN_PROPORTION, DEFAULT_NON_DRIFTING_THRESHOLD_MS);
+        }
+
+        public static Options instance() {
+            return Holder.INSTANCE;
+        }
+
+        public Options(int minHeadingCogDifference, int maxHeadingCogDifference,
+                float minDriftingSpeedKnots, float maxDriftingSpeedKnots, long windowSizeMs,
+                double minProportion, long nonDriftingThresholdMs) {
+            Preconditions.checkArgument(minHeadingCogDifference >= 0);
+            Preconditions.checkArgument(minDriftingSpeedKnots >= 0);
+            Preconditions.checkArgument(minHeadingCogDifference <= maxHeadingCogDifference);
+            Preconditions.checkArgument(minDriftingSpeedKnots <= maxDriftingSpeedKnots);
+            this.minHeadingCogDifference = minHeadingCogDifference;
+            this.maxHeadingCogDifference = maxHeadingCogDifference;
+            this.minDriftingSpeedKnots = minDriftingSpeedKnots;
+            this.maxDriftingSpeedKnots = maxDriftingSpeedKnots;
+            this.windowSizeMs = windowSizeMs;
+            this.minProportion = minProportion;
+            this.nonDriftingThresholdMs = nonDriftingThresholdMs;
+        }
+
+        public int maxHeadingCogDifference() {
+            return maxHeadingCogDifference;
+        }
+
+        public int minHeadingCogDifference() {
+            return minHeadingCogDifference;
+        }
+
+        public float maxDriftingSpeedKnots() {
+            return maxDriftingSpeedKnots;
+        }
+
+        public float minDriftingSpeedKnots() {
+            return minDriftingSpeedKnots;
+        }
+
+        public long windowSizeMs() {
+            return windowSizeMs;
+        }
+
+        public double minProportion() {
+            return minProportion;
+        }
+
+        public long nonDriftingThresholdMs() {
+            return nonDriftingThresholdMs;
+        }
+
+    }
+
 }
