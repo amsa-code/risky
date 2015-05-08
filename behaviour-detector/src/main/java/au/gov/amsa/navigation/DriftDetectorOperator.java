@@ -263,6 +263,27 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             return nonDriftingThresholdMs;
         }
 
+        @Override
+        public String toString() {
+            StringBuilder b = new StringBuilder();
+            b.append("Options [minHeadingCogDifference=");
+            b.append(minHeadingCogDifference);
+            b.append(", maxHeadingCogDifference=");
+            b.append(maxHeadingCogDifference);
+            b.append(", minDriftingSpeedKnots=");
+            b.append(minDriftingSpeedKnots);
+            b.append(", maxDriftingSpeedKnots=");
+            b.append(maxDriftingSpeedKnots);
+            b.append(", windowSizeMs=");
+            b.append(windowSizeMs);
+            b.append(", minProportion=");
+            b.append(minProportion);
+            b.append(", nonDriftingThresholdMs=");
+            b.append(nonDriftingThresholdMs);
+            b.append("]");
+            return b.toString();
+        }
+
     }
 
 }
