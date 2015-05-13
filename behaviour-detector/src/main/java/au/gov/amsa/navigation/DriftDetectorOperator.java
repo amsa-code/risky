@@ -23,7 +23,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
     // For a drifting vessel we expect the reporting interval to be 10 seconds
     // (mandated by its speed in knots).
-    private static final long MIN_INTERVAL_BETWEEN_FIXES = 10;
+    private static final long MIN_INTERVAL_BETWEEN_FIXES_MS = 10000;
     private final Options options;
     private final Func1<Fix, Boolean> isCandidate;
 
@@ -39,7 +39,9 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
     @Override
     public Subscriber<? super HasFix> call(final Subscriber<? super DriftCandidate> child) {
         return new Subscriber<HasFix>(child) {
-            final int size = (int) (options.windowSizeMs() * 3 / MIN_INTERVAL_BETWEEN_FIXES / 2);
+            // multiply the max expected size by 1.5 just to be on the safe
+            // side.
+            final int size = (int) (options.windowSizeMs() * 3 / 2 / MIN_INTERVAL_BETWEEN_FIXES_MS);
             final AtomicLong driftingSinceTime = new AtomicLong(Long.MAX_VALUE);
             final AtomicLong nonDriftingSinceTime = new AtomicLong(Long.MAX_VALUE);
             final AtomicLong currentMmsi = new AtomicLong(-1);
