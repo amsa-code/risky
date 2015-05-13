@@ -120,6 +120,8 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             }
         }
 
+        // TODO expire fixes from the queue when they are too old
+
     }
 
     private static void emitDriftersAndUpdateTimes(RingBuffer<FixAndStatus> q,
