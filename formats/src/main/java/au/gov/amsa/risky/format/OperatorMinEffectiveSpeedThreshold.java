@@ -49,7 +49,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                     buffer.clear();
                     middle = Optional.absent();
                 }
-                buffer.push(fix);
+                buffer.add(fix);
                 HasFix latest = fix;
                 if (!middle.isPresent()) {
                     HasFix first = buffer.peek();
@@ -129,7 +129,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                             if (firstAfterMiddle.get().fix().time() - next.fix().time() < deltaMs)
                                 break;
                             else
-                                buffer.pop();
+                                buffer.remove();
                         }
                         middle = firstAfterMiddle;
                     }

@@ -20,66 +20,66 @@ public class RingBufferTest {
     @Test
     public void testPush() {
         RingBuffer<Integer> q = RingBuffer.create(3);
-        q.push(1);
+        q.add(1);
         assertFalse(q.isEmpty());
         assertEquals(1, q.size());
-        assertEquals(1, (int) q.pop());
+        assertEquals(1, (int) q.poll());
         assertTrue(q.isEmpty());
     }
 
     @Test
     public void testPushTwo() {
         RingBuffer<Integer> q = RingBuffer.create(3);
-        q.push(1);
-        q.push(2);
+        q.add(1);
+        q.add(2);
         assertFalse(q.isEmpty());
         assertEquals(2, q.size());
-        assertEquals(1, (int) q.pop());
-        assertEquals(2, (int) q.pop());
+        assertEquals(1, (int) q.poll());
+        assertEquals(2, (int) q.poll());
         assertTrue(q.isEmpty());
-        q.push(3);
-        q.push(4);
-        assertEquals(3, (int) q.pop());
-        assertEquals(4, (int) q.pop());
+        q.add(3);
+        q.add(4);
+        assertEquals(3, (int) q.poll());
+        assertEquals(4, (int) q.poll());
     }
 
     @Test(expected = RuntimeException.class)
     public void testPushThreeOverflows() {
         RingBuffer<Integer> q = RingBuffer.create(2);
-        q.push(1);
-        q.push(2);
-        q.push(3);
+        q.add(1);
+        q.add(2);
+        q.add(3);
         assertFalse(q.isEmpty());
         assertEquals(3, q.size());
-        assertEquals(1, (int) q.pop());
-        assertEquals(2, (int) q.pop());
-        assertEquals(3, (int) q.pop());
+        assertEquals(1, (int) q.poll());
+        assertEquals(2, (int) q.poll());
+        assertEquals(3, (int) q.poll());
     }
 
     public void testPushThreeInSizeThree() {
         RingBuffer<Integer> q = RingBuffer.create(3);
-        q.push(1);
-        q.push(2);
-        q.push(3);
+        q.add(1);
+        q.add(2);
+        q.add(3);
         assertFalse(q.isEmpty());
         assertEquals(3, q.size());
-        assertEquals(1, (int) q.pop());
-        assertEquals(2, (int) q.pop());
-        assertEquals(3, (int) q.pop());
+        assertEquals(1, (int) q.poll());
+        assertEquals(2, (int) q.poll());
+        assertEquals(3, (int) q.poll());
     }
 
     public void testPushThreeAndEnumerate() {
         RingBuffer<Integer> q = RingBuffer.create(3);
-        q.push(1);
-        q.push(2);
-        q.push(3);
+        q.add(1);
+        q.add(2);
+        q.add(3);
         Enumeration<Integer> en = q.values();
         assertEquals(1, (int) en.nextElement());
-        assertEquals(1, (int) q.pop());
+        assertEquals(1, (int) q.poll());
         assertEquals(2, (int) en.nextElement());
-        assertEquals(2, (int) q.pop());
+        assertEquals(2, (int) q.poll());
         assertEquals(3, (int) en.nextElement());
-        assertEquals(3, (int) q.pop());
+        assertEquals(3, (int) q.poll());
         assertFalse(en.hasMoreElements());
     }
 }

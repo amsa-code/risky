@@ -93,7 +93,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         }
         if (q.isEmpty()) {
             if (isCandidate.call(f)) {
-                q.push(new FixAndStatus(f, true));
+                q.add(new FixAndStatus(f, true));
                 // reset non drifting time because drifting detected
                 nonDriftingSinceTime.set(Long.MAX_VALUE);
                 // if drifting since not set then use this fix time
@@ -106,45 +106,43 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         } else {
             if (q.peek().fix.time() < f.time()) {
                 // queue is non-empty so add to the queue
-                q.push(new FixAndStatus(f, isCandidate.call(f)));
+                q.add(new FixAndStatus(f, isCandidate.call(f)));
             }
         }
 
         // process the queue if time interval long enough
-        if (f.time() - q.peek().fix.time() >= options.windowSizeMs()) {
+        // any fixes older than latestFix.time - windowSizeMs will be trimmed
+        // recalculates the since fields too
+        trimQueueAndEmitDriftCandidates(f, q, child, driftingSinceTime, nonDriftingSinceTime);
+    }
+
+    private void trimQueueAndEmitDriftCandidates(Fix f, RingBuffer<FixAndStatus> q,
+            Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
+            AtomicLong nonDriftingSinceTime) {
+        FixAndStatus x = q.peek();
+        while (x != null && f.time() - x.fix.time() >= options.windowSizeMs()) {
+            // remove x from head of queue
+            q.poll();
             // count the number of candidates
             int count = countDrifting(q);
             // if a decent number of drift candidates found in the time interval
             // then emit them
             if ((double) count / q.size() >= options.minProportion()) {
-                emitDriftersAndUpdateTimes(q, child, driftingSinceTime, nonDriftingSinceTime,
-                        options);
+                if (x.drifting) {
+                    // emit DriftCandidate with driftingSinceTime
+                    long driftingSince;
+                    if (x.fix.time() - nonDriftingSinceTime.get() > options
+                            .nonDriftingThresholdMs())
+                        driftingSince = x.fix.time();
+                    else
+                        driftingSince = driftingSinceTime.get();
+                    child.onNext(new DriftCandidate(x.fix, driftingSince));
+                    nonDriftingSinceTime.set(Long.MAX_VALUE);
+                } else {
+                    nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.time());
+                }
             }
-        }
-
-        // TODO expire fixes from the queue when they are too old
-
-    }
-
-    private static void emitDriftersAndUpdateTimes(RingBuffer<FixAndStatus> q,
-            Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
-            AtomicLong nonDriftingSinceTime, Options options) {
-        Enumeration<FixAndStatus> en = q.values();
-        while (en.hasMoreElements()) {
-            FixAndStatus x = en.nextElement();
-            q.pop();
-            if (x.drifting) {
-                // emit DriftCandidate with driftingSinceTime
-                long driftingSince;
-                if (x.fix.time() - nonDriftingSinceTime.get() > options.nonDriftingThresholdMs())
-                    driftingSince = x.fix.time();
-                else
-                    driftingSince = driftingSinceTime.get();
-                child.onNext(new DriftCandidate(x.fix, driftingSince));
-                nonDriftingSinceTime.set(Long.MAX_VALUE);
-            } else {
-                nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.time());
-            }
+            x = q.peek();
         }
     }
 
@@ -202,7 +200,8 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         static final float DEFAULT_MIN_DRIFTING_SPEED_KNOTS = 0.25f;
         @VisibleForTesting
         static final float DEFAULT_MAX_DRIFTING_SPEED_KNOTS = 20;
-        private static final long DEFAULT_WINDOW_SIZE_MS = TimeUnit.MINUTES.toMillis(5);
+        private static final long DEFAULT_MIN_WINDOW_SIZE_MS = TimeUnit.MINUTES.toMillis(5);
+        private static final long DEFAULT_EXPIRY_AGE_MS = TimeUnit.HOURS.toMillis(5);
         private static final double DEFAULT_MIN_PROPORTION = 0.5;
         private static final long DEFAULT_NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
 
@@ -211,6 +210,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         private final float minDriftingSpeedKnots;
         private final float maxDriftingSpeedKnots;
         private final long windowSizeMs;
+        private final long expiryAgeMs;
         private final double minProportion;
         private final long nonDriftingThresholdMs;
 
@@ -218,8 +218,9 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
             static Options INSTANCE = new Options(DEFAULT_HEADING_COG_DIFFERENCE_MIN,
                     DEFAULT_HEADING_COG_DIFFERENCE_MAX, DEFAULT_MIN_DRIFTING_SPEED_KNOTS,
-                    DEFAULT_MAX_DRIFTING_SPEED_KNOTS, DEFAULT_WINDOW_SIZE_MS,
-                    DEFAULT_MIN_PROPORTION, DEFAULT_NON_DRIFTING_THRESHOLD_MS);
+                    DEFAULT_MAX_DRIFTING_SPEED_KNOTS, DEFAULT_MIN_WINDOW_SIZE_MS,
+                    DEFAULT_EXPIRY_AGE_MS, DEFAULT_MIN_PROPORTION,
+                    DEFAULT_NON_DRIFTING_THRESHOLD_MS);
         }
 
         public static Options instance() {
@@ -228,7 +229,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
         public Options(int minHeadingCogDifference, int maxHeadingCogDifference,
                 float minDriftingSpeedKnots, float maxDriftingSpeedKnots, long windowSizeMs,
-                double minProportion, long nonDriftingThresholdMs) {
+                long expiryAgeMs, double minProportion, long nonDriftingThresholdMs) {
             Preconditions.checkArgument(minHeadingCogDifference >= 0);
             Preconditions.checkArgument(minDriftingSpeedKnots >= 0);
             Preconditions.checkArgument(minHeadingCogDifference <= maxHeadingCogDifference);
@@ -238,6 +239,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             this.minDriftingSpeedKnots = minDriftingSpeedKnots;
             this.maxDriftingSpeedKnots = maxDriftingSpeedKnots;
             this.windowSizeMs = windowSizeMs;
+            this.expiryAgeMs = expiryAgeMs;
             this.minProportion = minProportion;
             this.nonDriftingThresholdMs = nonDriftingThresholdMs;
         }
@@ -262,6 +264,10 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             return windowSizeMs;
         }
 
+        public long expiryAgeMs() {
+            return expiryAgeMs;
+        }
+
         public double minProportion() {
             return minProportion;
         }
@@ -283,6 +289,8 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             b.append(maxDriftingSpeedKnots);
             b.append(", windowSizeMs=");
             b.append(windowSizeMs);
+            b.append(", expiryAgeMs=");
+            b.append(expiryAgeMs);
             b.append(", minProportion=");
             b.append(minProportion);
             b.append(", nonDriftingThresholdMs=");
