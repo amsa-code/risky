@@ -124,6 +124,12 @@ public class DriftDetectorOperatorTest {
     }
 
     @Test
+    public void testEmpty() {
+        List<DriftCandidate> list = getCandidates(Observable.empty());
+        assertEquals(0, list.size());
+    }
+
+    @Test
     public void testAddingASingleDrifterDoesNotEmitADriftCandidate() {
         Fix fix = createFix(100f, DRIFT_SPEED_KNOTS, 0);
         List<DriftCandidate> list = getCandidates(Observable.just(fix));
