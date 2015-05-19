@@ -5,9 +5,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import rx.Observable;
 import au.gov.amsa.navigation.DriftDetectorOperator.Options;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
@@ -119,5 +123,32 @@ public class DriftDetectorOperatorTest {
         assertFalse(DriftDetectorOperator.isCandidate(Options.instance()).call(fix));
     }
 
-    // TODO test when nav status present
+    @Test
+    public void testAddingASingleDrifterDoesNotEmitADriftCandidate() {
+        Fix fix = createFix(100f, DRIFT_SPEED_KNOTS, 0);
+        List<DriftCandidate> list = getCandidates(Observable.just(fix));
+        assertEquals(0, list.size());
+    }
+
+    private List<DriftCandidate> getCandidates(Observable<Fix> source) {
+        return source.compose(DriftDetector.detectDrift(createTestOptions())).toList().toBlocking()
+                .single();
+    }
+
+    private static Options createTestOptions() {
+        return new Options(45, 135, 0.25f, 20f, TimeUnit.MINUTES.toMillis(5), 0, 0.5f,
+                TimeUnit.MINUTES.toMillis(2));
+    }
+
+    private static Fix createFix(float courseHeadingDiff, float speedKnots, long time) {
+        Fix f = Mockito.mock(Fix.class);
+        Mockito.when(f.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
+        Mockito.when(f.headingDegrees()).thenReturn(Optional.of(10.0f + courseHeadingDiff));
+        Mockito.when(f.speedOverGroundKnots()).thenReturn(Optional.of(speedKnots));
+        Mockito.when(f.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(f.mmsi()).thenReturn(123456789L);
+        Mockito.when(f.fix()).thenReturn(f);
+        Mockito.when(f.time()).thenReturn(time);
+        return f;
+    }
 }
