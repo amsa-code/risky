@@ -136,6 +136,36 @@ public class DriftDetectorOperatorTest {
         assertEquals(0, list.size());
     }
 
+    @Test
+    public void testTwoDriftersBigTimeGapEmitsBoth() {
+        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, 0);
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, TimeUnit.HOURS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2));
+        assertEquals(2, list.size());
+        Fix r1 = list.get(0).fix();
+        Fix r2 = list.get(1).fix();
+        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
+        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
+        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
+        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
+    }
+
+    @Test
+    public void testTwoDriftersBigTimeGapThenSmallGapEmitsAll() {
+        long t = 0;
+        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += TimeUnit.HOURS.toMillis(1));
+        Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3));
+        assertEquals(3, list.size());
+        Fix r1 = list.get(0).fix();
+        Fix r2 = list.get(1).fix();
+        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
+        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
+        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
+        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
+    }
+
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
         return source.compose(DriftDetector.detectDrift(createTestOptions())).toList().toBlocking()
                 .single();

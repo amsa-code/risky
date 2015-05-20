@@ -113,7 +113,9 @@ public class RingBuffer<T> implements Queue<T> {
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        return notImplemented();
+        for (T t : c)
+            add(t);
+        return true;
     }
 
     @Override
