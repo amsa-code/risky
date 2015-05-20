@@ -107,14 +107,13 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             if (isCandidate.call(f)) {
                 q.add(new FixAndStatus(f, true, false));
             } else {
-                return;
+                q.add(new FixAndStatus(f, false, false));
             }
-        } else {
-            if (q.peek().fix.time() < f.time()) {
-                // queue is non-empty so add to the queue
-                q.add(new FixAndStatus(f, isCandidate.call(f), false));
-            }
-        }
+        } else if (q.peek().fix.time() < f.time()) {
+            // queue is non-empty so add to the queue
+            q.add(new FixAndStatus(f, isCandidate.call(f), false));
+        } else
+            return;
 
         // process the queue if time interval long enough
         // any fixes older than latestFix.time - windowSizeMs will be trimmed if
@@ -146,7 +145,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         FixAndStatus x;
         Optional<FixAndStatus> lastBeforeWindow = Optional.absent();
         long driftingSince = driftingSinceTime.get();
-        long nonDriftingSince = nonDriftingSinceTime.get();
+        long nonDriftingSince = Long.MAX_VALUE;
         while ((x = q.poll()) != null) {
             final boolean inWindow = f.time() - x.fix.time() < options.windowSizeMs();
             if (!inWindow)
@@ -276,6 +275,10 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             Preconditions.checkArgument(minDriftingSpeedKnots >= 0);
             Preconditions.checkArgument(minHeadingCogDifference <= maxHeadingCogDifference);
             Preconditions.checkArgument(minDriftingSpeedKnots <= maxDriftingSpeedKnots);
+            Preconditions.checkArgument(expiryAgeMs >= 0);
+            Preconditions.checkArgument(minProportion >= 0 && minProportion <= 1.0);
+            Preconditions.checkArgument(windowSizeMs > 0);
+            Preconditions.checkArgument(nonDriftingThresholdMs >= 0);
             this.minHeadingCogDifference = minHeadingCogDifference;
             this.maxHeadingCogDifference = maxHeadingCogDifference;
             this.minDriftingSpeedKnots = minDriftingSpeedKnots;
