@@ -256,6 +256,20 @@ public class DriftDetectorOperatorTest {
         assertEquals(1, (int) DriftDetectorOperator.queueSize.get());
     }
 
+    @Test
+    public void testDrifterThenNonDrifterProducesOneAndAllRetainedInQueue() {
+        long t = 0;
+        // drifter
+        Fix fix1 = createFix(90f, DRIFT_SPEED_KNOTS, t);
+        // non-drifter because of course-heading parameter
+        Fix fix2 = createFix(0f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2));
+        assertEquals(1, list.size());
+        assertEquals(fix1.time(), list.get(0).driftingSince());
+        // fix 1 is not retained because was first fix and was not a drifter
+        assertEquals(2, (int) DriftDetectorOperator.queueSize.get());
+    }
+
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
         return source.compose(DriftDetector.detectDrift(testOptions)).toList().toBlocking()
                 .single();
