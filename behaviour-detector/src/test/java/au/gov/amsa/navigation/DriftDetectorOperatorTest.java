@@ -24,6 +24,8 @@ public class DriftDetectorOperatorTest {
 
     private static final float DRIFT_SPEED_KNOTS = (float) ((DriftDetectorOperator.Options.DEFAULT_MIN_DRIFTING_SPEED_KNOTS + DriftDetectorOperator.Options.DEFAULT_MAX_DRIFTING_SPEED_KNOTS) * 0.5);
 
+    private static Options testOptions = createTestOptions();
+
     @Test
     public void testDiff() {
         assertEquals(0, diff(0, 0), PRECISION);
@@ -154,20 +156,62 @@ public class DriftDetectorOperatorTest {
     public void testTwoDriftersBigTimeGapThenSmallGapEmitsAll() {
         long t = 0;
         Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += TimeUnit.HOURS.toMillis(1));
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
         Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
         List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3));
         assertEquals(3, list.size());
         Fix r1 = list.get(0).fix();
         Fix r2 = list.get(1).fix();
+        Fix r3 = list.get(2).fix();
         assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
         assertEquals(fix1.headingDegrees(), r1.headingDegrees());
         assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
         assertEquals(fix2.headingDegrees(), r2.headingDegrees());
+        assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
+        assertEquals(fix3.headingDegrees(), r3.headingDegrees());
+        assertEquals(fix1.time(), list.get(0).driftingSince());
+        assertEquals(fix1.time(), list.get(1).driftingSince());
+        assertEquals(fix1.time(), list.get(2).driftingSince());
+
+        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
+    }
+
+    @Test
+    public void testTwoDriftersBigTimeGapWithNonDriftBetweenThenSmallGapEmitsAll() {
+        long t = 0;
+        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
+        // non drifter
+        Fix fix1a = createFix(0f, DRIFT_SPEED_KNOTS, t + 1);
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
+        Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix1a, fix2, fix3));
+        assertEquals(3, list.size());
+        Fix r1 = list.get(0).fix();
+        Fix r2 = list.get(1).fix();
+        Fix r3 = list.get(2).fix();
+        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
+        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
+        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
+        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
+        assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
+        assertEquals(fix3.headingDegrees(), r3.headingDegrees());
+        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
+    }
+
+    @Test
+    public void testThreeDriftersBigTimeGapThenSmallGapEmitsAllAndQueueDropsFirst() {
+        long t = 0;
+        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
+        Fix fix3 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
+        Fix fix4 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3, fix4));
+        assertEquals(4, list.size());
+        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
     }
 
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
-        return source.compose(DriftDetector.detectDrift(createTestOptions())).toList().toBlocking()
+        return source.compose(DriftDetector.detectDrift(testOptions)).toList().toBlocking()
                 .single();
     }
 

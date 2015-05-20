@@ -20,7 +20,8 @@ import com.google.common.base.Preconditions;
 
 /**
  * This operator expects a stream of fixes of increasing time except when the
- * mmsi changes (it can!).
+ * mmsi changes (it can but each fixes for each mmsi should be grouped
+ * together).
  */
 public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
@@ -29,6 +30,10 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
     private static final long MIN_INTERVAL_BETWEEN_FIXES_MS = 10000;
     private final Options options;
     private final Func1<Fix, Boolean> isCandidate;
+
+    // used for unit testing
+    @VisibleForTesting
+    static ThreadLocal<Integer> queueSize = new ThreadLocal<Integer>();
 
     public DriftDetectorOperator(Options options) {
         this.options = options;
@@ -99,13 +104,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         if (q.isEmpty()) {
             if (isCandidate.call(f)) {
                 q.add(new FixAndStatus(f, true, false));
-                // reset non drifting time because drifting detected
-                nonDriftingSinceTime.set(Long.MAX_VALUE);
-                // if drifting since not set then use this fix time
-                driftingSinceTime.compareAndSet(Long.MAX_VALUE, f.time());
             } else {
-                // if non drifting start time not set then use this fix
-                nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, f.time());
                 return;
             }
         } else {
@@ -122,6 +121,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         // recalculate the since fields
         trimQueueAndEmitDriftCandidates(f, q, child, driftingSinceTime, nonDriftingSinceTime,
                 options);
+        queueSize.set(q.size());
     }
 
     private static void trimQueueAndEmitDriftCandidates(Fix f, RingBuffer<FixAndStatus> q,
@@ -143,28 +143,28 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         // and mark the drift candidates as emitted
         FixAndStatus x;
         Optional<FixAndStatus> lastBeforeWindow = Optional.absent();
+        long driftingSince = driftingSinceTime.get();
+        long nonDriftingSince = nonDriftingSinceTime.get();
         while ((x = q.poll()) != null) {
             final boolean inWindow = f.time() - x.fix.time() < options.windowSizeMs();
             if (!inWindow)
                 lastBeforeWindow = Optional.of(x);
             final boolean emitted;
             if (x.drifting) {
+                if (driftingSince == Long.MAX_VALUE
+                        || x.fix.time() - nonDriftingSince > options.nonDriftingThresholdMs()) {
+                    driftingSince = x.fix.time();
+                }
+                nonDriftingSince = Long.MAX_VALUE;
                 if (!x.emitted && canEmit) {
                     // emit DriftCandidate with driftingSinceTime
-                    long driftingSince;
-                    if (x.fix.time() - nonDriftingSinceTime.get() > options
-                            .nonDriftingThresholdMs())
-                        driftingSince = x.fix.time();
-                    else
-                        driftingSince = driftingSinceTime.get();
-
                     child.onNext(new DriftCandidate(x.fix, driftingSince));
-                    nonDriftingSinceTime.set(Long.MAX_VALUE);
                     emitted = true;
                 } else
                     emitted = false;
             } else {
-                nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.time());
+                if (nonDriftingSince == Long.MAX_VALUE)
+                    nonDriftingSince = x.fix.time();
                 emitted = false;
             }
             if (emitted) {
@@ -182,6 +182,8 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             q.add(lastBeforeWindow.get());
         }
         q.addAll(list);
+        driftingSinceTime.set(driftingSince);
+        nonDriftingSinceTime.set(nonDriftingSince);
     }
 
     private static int countDrifting(RingBuffer<FixAndStatus> q) {
