@@ -223,7 +223,7 @@ public class DriftDetectorOperatorTest {
         assertEquals(fix2.headingDegrees(), r2.headingDegrees());
         assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
         assertEquals(fix3.headingDegrees(), r3.headingDegrees());
-        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
+        assertEquals(4, (int) DriftDetectorOperator.queueSize.get());
         // tests start of drift
         assertEquals(fix1.time(), list.get(0).driftingSince());
         assertEquals(fix1.time(), list.get(1).driftingSince());
@@ -241,6 +241,19 @@ public class DriftDetectorOperatorTest {
         List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3, fix4));
         assertEquals(4, list.size());
         assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
+    }
+
+    @Test
+    public void testDrifterStartingWithNonDrifterButBigTimeGapProducesNothingAndFirstFixNotRetained() {
+        long t = 0;
+        // non-drifter because of course-heading parameter
+        Fix fix1 = createFix(0f, DRIFT_SPEED_KNOTS, t);
+        // drifter
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2));
+        assertTrue(list.isEmpty());
+        // fix 1 is not retained because was first fix and was not a drifter
+        assertEquals(1, (int) DriftDetectorOperator.queueSize.get());
     }
 
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
