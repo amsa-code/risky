@@ -2,6 +2,7 @@ package au.gov.amsa.navigation;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
@@ -54,7 +55,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             final AtomicLong driftingSinceTime = new AtomicLong(Long.MAX_VALUE);
             final AtomicLong nonDriftingSinceTime = new AtomicLong(Long.MAX_VALUE);
             final AtomicLong currentMmsi = new AtomicLong(-1);
-            final Queue<FixAndStatus> q = RingBuffer.create(maxSize);
+            final Queue<FixAndStatus> q = createQueue(options.favourMemoryOverSpeed(), maxSize);
 
             @Override
             public void onCompleted() {
@@ -73,6 +74,13 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             }
 
         };
+    }
+
+    private static <T> Queue<T> createQueue(boolean favourMemoryOverSpeed, int maxSize) {
+        if (favourMemoryOverSpeed)
+            return new LinkedList<T>();
+        else
+            return RingBuffer.create(maxSize);
     }
 
     private static class FixAndStatus {
@@ -245,6 +253,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         private static final long DEFAULT_EXPIRY_AGE_MS = TimeUnit.HOURS.toMillis(5);
         private static final double DEFAULT_MIN_PROPORTION = 0.5;
         private static final long DEFAULT_NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
+        private static final boolean FAVOUR_MEMORY_OVER_SPEED = true;
 
         private final int minHeadingCogDifference;
         private final int maxHeadingCogDifference;
@@ -254,6 +263,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         private final long expiryAgeMs;
         private final double minProportion;
         private final long nonDriftingThresholdMs;
+        private boolean favourMemoryOverSpeed;
 
         private static class Holder {
 
@@ -261,7 +271,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
                     DEFAULT_HEADING_COG_DIFFERENCE_MAX, DEFAULT_MIN_DRIFTING_SPEED_KNOTS,
                     DEFAULT_MAX_DRIFTING_SPEED_KNOTS, DEFAULT_MIN_WINDOW_SIZE_MS,
                     DEFAULT_EXPIRY_AGE_MS, DEFAULT_MIN_PROPORTION,
-                    DEFAULT_NON_DRIFTING_THRESHOLD_MS);
+                    DEFAULT_NON_DRIFTING_THRESHOLD_MS, FAVOUR_MEMORY_OVER_SPEED);
         }
 
         public static Options instance() {
@@ -270,12 +280,13 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
         public Options(int minHeadingCogDifference, int maxHeadingCogDifference,
                 float minDriftingSpeedKnots, float maxDriftingSpeedKnots, long windowSizeMs,
-                long expiryAgeMs, double minProportion, long nonDriftingThresholdMs) {
+                long expiryAgeMs, double minProportion, long nonDriftingThresholdMs,
+                boolean favourMemoryOverSpeed) {
             Preconditions.checkArgument(minHeadingCogDifference >= 0);
             Preconditions.checkArgument(minDriftingSpeedKnots >= 0);
             Preconditions.checkArgument(minHeadingCogDifference <= maxHeadingCogDifference);
             Preconditions.checkArgument(minDriftingSpeedKnots <= maxDriftingSpeedKnots);
-            Preconditions.checkArgument(expiryAgeMs >= 0);
+            Preconditions.checkArgument(expiryAgeMs == 0 || expiryAgeMs > windowSizeMs);
             Preconditions.checkArgument(minProportion >= 0 && minProportion <= 1.0);
             Preconditions.checkArgument(windowSizeMs > 0);
             Preconditions.checkArgument(nonDriftingThresholdMs >= 0);
@@ -287,6 +298,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             this.expiryAgeMs = expiryAgeMs;
             this.minProportion = minProportion;
             this.nonDriftingThresholdMs = nonDriftingThresholdMs;
+            this.favourMemoryOverSpeed = favourMemoryOverSpeed;
         }
 
         public int maxHeadingCogDifference() {
@@ -321,6 +333,10 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             return nonDriftingThresholdMs;
         }
 
+        public boolean favourMemoryOverSpeed() {
+            return favourMemoryOverSpeed;
+        }
+
         @Override
         public String toString() {
             StringBuilder b = new StringBuilder();
@@ -340,6 +356,8 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
             b.append(minProportion);
             b.append(", nonDriftingThresholdMs=");
             b.append(nonDriftingThresholdMs);
+            b.append(", favourMemoryOverSpeed=");
+            b.append(favourMemoryOverSpeed);
             b.append("]");
             return b.toString();
         }
