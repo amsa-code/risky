@@ -169,6 +169,8 @@ public class DriftDetectorOperatorTest {
         assertEquals(fix2.headingDegrees(), r2.headingDegrees());
         assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
         assertEquals(fix3.headingDegrees(), r3.headingDegrees());
+
+        // tests start of drift
         assertEquals(fix1.time(), list.get(0).driftingSince());
         assertEquals(fix1.time(), list.get(1).driftingSince());
         assertEquals(fix1.time(), list.get(2).driftingSince());
@@ -177,7 +179,7 @@ public class DriftDetectorOperatorTest {
     }
 
     @Test
-    public void testTwoDriftersBigTimeGapWithNonDriftBetweenThenSmallGapEmitsAll() {
+    public void testTwoDriftersBigTimeGapWithNonDriftBetweenThenSmallGapEmitsAllAndDriftingSinceIsFromSecond() {
         long t = 0;
         Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
         // non drifter
@@ -196,6 +198,37 @@ public class DriftDetectorOperatorTest {
         assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
         assertEquals(fix3.headingDegrees(), r3.headingDegrees());
         assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
+        // tests start of drift
+        assertEquals(fix1.time(), list.get(0).driftingSince());
+        assertEquals(fix2.time(), list.get(1).driftingSince());
+        assertEquals(fix2.time(), list.get(2).driftingSince());
+    }
+
+    @Test
+    public void testTwoDriftersBigTimeGapWithNonDriftBetweenButJustBeforeFollowingDrifterThenSmallGapEmitsAllAndDriftingSinceIsFromFirst() {
+        long t = 0;
+        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
+        // non drifter
+        Fix fix1a = createFix(0f, DRIFT_SPEED_KNOTS, t += testOptions.windowSizeMs() * 10 - 1);
+        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += 1);
+        Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix1a, fix2, fix3));
+        assertEquals(3, list.size());
+        Fix r1 = list.get(0).fix();
+        Fix r2 = list.get(1).fix();
+        Fix r3 = list.get(2).fix();
+        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
+        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
+        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
+        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
+        assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
+        assertEquals(fix3.headingDegrees(), r3.headingDegrees());
+        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
+        // tests start of drift
+        assertEquals(fix1.time(), list.get(0).driftingSince());
+        assertEquals(fix1.time(), list.get(1).driftingSince());
+        assertEquals(fix1.time(), list.get(2).driftingSince());
+
     }
 
     @Test
