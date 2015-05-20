@@ -1,6 +1,6 @@
 package au.gov.amsa.risky.format;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable.Operator;
@@ -67,16 +67,16 @@ public final class OperatorMinEffectiveSpeedThreshold implements
 
                         // measure distance from first to middle
                         double distanceFirstToMiddleKm = 0;
-                        Enumeration<HasFix> en = buffer.values();
+                        Iterator<HasFix> en = buffer.iterator();
                         {
                             Optional<HasFix> previous = Optional.absent();
-                            boolean keepGoing = en.hasMoreElements();
+                            boolean keepGoing = en.hasNext();
                             while (keepGoing) {
-                                HasFix f = en.nextElement();
+                                HasFix f = en.next();
                                 if (previous.isPresent())
                                     distanceFirstToMiddleKm += distanceKm(previous.get(), f);
                                 previous = Optional.of(f);
-                                keepGoing = en.hasMoreElements() && f != middle.get();
+                                keepGoing = en.hasNext() && f != middle.get();
                             }
                         }
 
@@ -85,14 +85,14 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                         Optional<HasFix> firstAfterMiddle = Optional.absent();
                         {
                             Optional<HasFix> previous = middle;
-                            boolean keepGoing = en.hasMoreElements();
+                            boolean keepGoing = en.hasNext();
                             while (keepGoing) {
-                                HasFix f = en.nextElement();
+                                HasFix f = en.next();
                                 if (!firstAfterMiddle.isPresent())
                                     firstAfterMiddle = Optional.of(f);
                                 distanceMiddleToLatestKm += distanceKm(previous.get(), f);
                                 previous = Optional.of(f);
-                                keepGoing = en.hasMoreElements();
+                                keepGoing = en.hasNext();
                             }
                         }
 
@@ -121,11 +121,11 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                         emitted = true;
 
                         // drop values from front of buffer
-                        en = buffer.values();
+                        en = buffer.iterator();
                         // skip first
-                        en.nextElement();
-                        while (en.hasMoreElements()) {
-                            HasFix next = en.nextElement();
+                        en.next();
+                        while (en.hasNext()) {
+                            HasFix next = en.next();
                             if (firstAfterMiddle.get().fix().time() - next.fix().time() < deltaMs)
                                 break;
                             else

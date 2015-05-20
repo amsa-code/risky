@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.junit.Test;
 
@@ -73,13 +73,13 @@ public class RingBufferTest {
         q.add(1);
         q.add(2);
         q.add(3);
-        Enumeration<Integer> en = q.values();
-        assertEquals(1, (int) en.nextElement());
+        Iterator<Integer> en = q.iterator();
+        assertEquals(1, (int) en.next());
         assertEquals(1, (int) q.poll());
-        assertEquals(2, (int) en.nextElement());
+        assertEquals(2, (int) en.next());
         assertEquals(2, (int) q.poll());
-        assertEquals(3, (int) en.nextElement());
+        assertEquals(3, (int) en.next());
         assertEquals(3, (int) q.poll());
-        assertFalse(en.hasMoreElements());
+        assertFalse(en.hasNext());
     }
 }

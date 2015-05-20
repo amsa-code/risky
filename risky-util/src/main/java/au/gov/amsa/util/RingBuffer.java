@@ -1,7 +1,6 @@
 package au.gov.amsa.util;
 
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Queue;
@@ -34,19 +33,20 @@ public class RingBuffer<T> implements Queue<T> {
         finish = start;
     }
 
-    public Enumeration<T> values() {
+    @Override
+    public Iterator<T> iterator() {
         final int _start = start;
         final int _finish = finish;
-        return new Enumeration<T>() {
+        return new Iterator<T>() {
             int i = _start;
 
             @Override
-            public boolean hasMoreElements() {
+            public boolean hasNext() {
                 return i != _finish;
             }
 
             @Override
-            public T nextElement() {
+            public T next() {
                 T value = list[i];
                 i = (i + 1) % list.length;
                 return value;
@@ -79,11 +79,6 @@ public class RingBuffer<T> implements Queue<T> {
 
     @Override
     public boolean contains(Object o) {
-        return notImplemented();
-    }
-
-    @Override
-    public Iterator<T> iterator() {
         return notImplemented();
     }
 

@@ -1,8 +1,9 @@
 package au.gov.amsa.navigation;
 
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -49,11 +50,11 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         return new Subscriber<HasFix>(child) {
             // multiply the max expected size by 1.5 just to be on the safe
             // side.
-            final int size = (int) (options.windowSizeMs() * 3 / 2 / MIN_INTERVAL_BETWEEN_FIXES_MS);
+            final int maxSize = (int) (options.windowSizeMs() * 3 / 2 / MIN_INTERVAL_BETWEEN_FIXES_MS);
             final AtomicLong driftingSinceTime = new AtomicLong(Long.MAX_VALUE);
             final AtomicLong nonDriftingSinceTime = new AtomicLong(Long.MAX_VALUE);
             final AtomicLong currentMmsi = new AtomicLong(-1);
-            final RingBuffer<FixAndStatus> q = RingBuffer.create(size);
+            final Queue<FixAndStatus> q = RingBuffer.create(maxSize);
 
             @Override
             public void onCompleted() {
@@ -67,7 +68,8 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
             @Override
             public void onNext(HasFix f) {
-                handleFix(f.fix(), q, child, driftingSinceTime, nonDriftingSinceTime, currentMmsi);
+                handleFix(f.fix(), q, child, driftingSinceTime, nonDriftingSinceTime, currentMmsi,
+                        maxSize);
             }
 
         };
@@ -86,14 +88,14 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
     }
 
-    private void handleFix(Fix f, RingBuffer<FixAndStatus> q,
-            Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
-            AtomicLong nonDriftingSinceTime, AtomicLong currentMmsi) {
+    private void handleFix(Fix f, Queue<FixAndStatus> q, Subscriber<? super DriftCandidate> child,
+            AtomicLong driftingSinceTime, AtomicLong nonDriftingSinceTime, AtomicLong currentMmsi,
+            int maxSize) {
         // when a fix arrives that is a drift detection start building a queue
         // of fixes. If a certain proportion of fixes are drift detection with a
         // minimum window of report time from the first detection report time
         // then report them to the child subscriber
-        if (currentMmsi.get() != f.mmsi() || q.size() == q.maxSize()) {
+        if (currentMmsi.get() != f.mmsi() || q.size() == maxSize) {
             // note that hitting maxSize in q should only happen for rubbish
             // mmsi codes like 0 so we are happy to clear the q
             q.clear();
@@ -124,7 +126,7 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         queueSize.set(q.size());
     }
 
-    private static void trimQueueAndEmitDriftCandidates(Fix f, RingBuffer<FixAndStatus> q,
+    private static void trimQueueAndEmitDriftCandidates(Fix f, Queue<FixAndStatus> q,
             Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
             AtomicLong nonDriftingSinceTime, Options options) {
         // count the number of candidates
@@ -186,11 +188,11 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         nonDriftingSinceTime.set(nonDriftingSince);
     }
 
-    private static int countDrifting(RingBuffer<FixAndStatus> q) {
+    private static int countDrifting(Queue<FixAndStatus> q) {
         int count = 0;
-        Enumeration<FixAndStatus> en = q.values();
-        while (en.hasMoreElements()) {
-            if (en.nextElement().drifting)
+        Iterator<FixAndStatus> en = q.iterator();
+        while (en.hasNext()) {
+            if (en.next().drifting)
                 count++;
         }
         return count;
