@@ -61,6 +61,7 @@
 		<module>h2spatial</module>
         <module>spark</module>
         <module>animator</module>
+        <module>geotools-extras</module>
     </modules>
 
     <build>
