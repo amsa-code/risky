@@ -7,7 +7,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.streams.Strings;
 
 public class Shapes {
@@ -39,6 +38,10 @@ public class Shapes {
                 .toBlocking().single();
     }
 
+    private static Shapefile shapefileFromZip(String resource) {
+        return Shapefile.fromZip(Shapes.class.getResourceAsStream(resource));
+    }
+
     /**
      * Returns the names of those shapes that contain the given lat, lon.
      * 
@@ -52,7 +55,4 @@ public class Shapes {
                 .filter(name -> shapes.get(name).contains(lat, lon));
     }
 
-    private static Shapefile shapefileFromZip(String resource) {
-        return Shapefile.fromZip(Shapes.class.getResourceAsStream(resource));
-    }
 }
