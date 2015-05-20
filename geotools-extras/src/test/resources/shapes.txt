@@ -1,0 +1,3 @@
+## Name | Resource (must be zipped shapefile)
+SRR|/shapefile-srr-polygon.zip
+Coral Sea ATBA|/shapefile-coral-sea-atba-polygon.zip
