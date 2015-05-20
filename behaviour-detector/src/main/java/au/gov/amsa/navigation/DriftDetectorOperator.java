@@ -116,40 +116,40 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
         }
 
         // process the queue if time interval long enough
-        // any fixes older than latestFix.time - windowSizeMs will be trimmed
-        // recalculates the since fields too
-        trimQueueAndEmitDriftCandidates(f, q, child, driftingSinceTime, nonDriftingSinceTime);
+        // any fixes older than latestFix.time - windowSizeMs will be trimmed if
+        // we satisfy criteria to emit
+        // fixes older than ageExpiryMs before latestFix.time will be trimmed
+        // recalculate the since fields
+        trimQueueAndEmitDriftCandidates(f, q, child, driftingSinceTime, nonDriftingSinceTime,
+                options);
     }
 
-    private void trimQueueAndEmitDriftCandidates(Fix f, RingBuffer<FixAndStatus> q,
+    private static void trimQueueAndEmitDriftCandidates(Fix f, RingBuffer<FixAndStatus> q,
             Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
-            AtomicLong nonDriftingSinceTime) {
+            AtomicLong nonDriftingSinceTime, Options options) {
         // count the number of candidates
         int count = countDrifting(q);
-        if ((double) count / q.size() <= options.minProportion() || q.size() <= 1) {
-            // not enough drifters to emit so just trim any expired fixes
-            trimExpired();
-            return;
-        } else {
-            // a decent number of drift candidates were found in the time
-            // interval so emit those that haven't been emitted already
+        boolean canEmit = (double) count / q.size() >= options.minProportion() && q.size() > 1;
+        // a decent number of drift candidates were found in the time
+        // interval so emit those that haven't been emitted already
 
-            // record all fixes still within the window so we can readd them to
-            // the queue after the emission loop. We also seek to retain the
-            // latest fix before the window.
-            List<FixAndStatus> list = new ArrayList<FixAndStatus>();
-            // we are going to emit all drift candidates that haven't been
-            // emitted already but we will hang on to all fixes less than
-            // options.windowSizeMs before the latest fix
-            // and mark the drift candidates as emitted
-            FixAndStatus x;
-            Optional<FixAndStatus> lastBeforeWindow = Optional.absent();
-            while ((x = q.poll()) != null) {
-                final boolean inWindow = f.time() - x.fix.time() < options.windowSizeMs();
-                if (!inWindow)
-                    lastBeforeWindow = Optional.of(x);
-                final boolean emitted;
-                if (x.drifting) {
+        // record all fixes still within the window so we can readd them to
+        // the queue after the emission loop. We also seek to retain the
+        // latest fix before the window.
+        List<FixAndStatus> list = new ArrayList<FixAndStatus>();
+        // we are going to emit all drift candidates that haven't been
+        // emitted already but we will hang on to all fixes less than
+        // options.windowSizeMs before the latest fix
+        // and mark the drift candidates as emitted
+        FixAndStatus x;
+        Optional<FixAndStatus> lastBeforeWindow = Optional.absent();
+        while ((x = q.poll()) != null) {
+            final boolean inWindow = f.time() - x.fix.time() < options.windowSizeMs();
+            if (!inWindow)
+                lastBeforeWindow = Optional.of(x);
+            final boolean emitted;
+            if (x.drifting) {
+                if (!x.emitted && canEmit) {
                     // emit DriftCandidate with driftingSinceTime
                     long driftingSince;
                     if (x.fix.time() - nonDriftingSinceTime.get() > options
@@ -157,35 +157,31 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
                         driftingSince = x.fix.time();
                     else
                         driftingSince = driftingSinceTime.get();
-                    if (!x.emitted)
-                        child.onNext(new DriftCandidate(x.fix, driftingSince));
+
+                    child.onNext(new DriftCandidate(x.fix, driftingSince));
                     nonDriftingSinceTime.set(Long.MAX_VALUE);
                     emitted = true;
-                } else {
-                    nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.time());
+                } else
                     emitted = false;
-                }
-                if (emitted) {
-                    FixAndStatus y = new FixAndStatus(x.fix, x.drifting, true);
-                    if (inWindow)
-                        list.add(y);
-                    else
-                        lastBeforeWindow = Optional.of(y);
-                } else if (inWindow)
-                    list.add(x);
-                // otherwise don't include it in the next queue
+            } else {
+                nonDriftingSinceTime.compareAndSet(Long.MAX_VALUE, x.fix.time());
+                emitted = false;
             }
-            // queue should be empty now, let's rebuild it
-            if (lastBeforeWindow.isPresent()) {
-                q.add(lastBeforeWindow.get());
-            }
-            q.addAll(list);
+            if (emitted) {
+                FixAndStatus y = new FixAndStatus(x.fix, x.drifting, true);
+                if (inWindow)
+                    list.add(y);
+                else
+                    lastBeforeWindow = Optional.of(y);
+            } else if (inWindow || (!canEmit && f.time() - x.fix.time() < options.expiryAgeMs))
+                list.add(x);
+            // otherwise don't include it in the next queue
         }
-    }
-
-    private void trimExpired() {
-        // TODO Auto-generated method stub
-
+        // queue should be empty now, let's rebuild it
+        if (lastBeforeWindow.isPresent()) {
+            q.add(lastBeforeWindow.get());
+        }
+        q.addAll(list);
     }
 
     private static int countDrifting(RingBuffer<FixAndStatus> q) {
