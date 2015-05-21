@@ -67,13 +67,23 @@ public final class DriftDetectorOperator2 implements Operator<DriftCandidate, Ha
             }
 
             private void processABC(Item item) {
+                if (isDrifter(a) && !isDrifter(b) && !isDrifter(item)) {
+                    // ignore item
+                } else if (isDrifter(a) && !isDrifter(b) && isDrifter(item)) {
+                    if (a.emitted()) {
 
+                    } else {
+
+                    }
+                }
             }
 
             private void processAB() {
                 if (!isDrifter(a))
                     a = null;
-                else if (!a.emitted()) {
+                else if (b == null) {
+                    // do nothing
+                } else if (!a.emitted()) {
                     if (isDrifter(b)) {
                         if (!expired(a, b)) {
                             driftingSince = a.time();
