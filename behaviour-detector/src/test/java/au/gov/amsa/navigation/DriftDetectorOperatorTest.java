@@ -25,8 +25,7 @@ public class DriftDetectorOperatorTest {
     private static final float DRIFT_SPEED_KNOTS = (float) ((DriftDetectorOperator.Options.DEFAULT_MIN_DRIFTING_SPEED_KNOTS + DriftDetectorOperator.Options.DEFAULT_MAX_DRIFTING_SPEED_KNOTS) * 0.5);
 
     private static Options testOptions = new Options(45, 135, 0.25f, 20f,
-            TimeUnit.MINUTES.toMillis(5), TimeUnit.HOURS.toMillis(4), 0.5f,
-            TimeUnit.MINUTES.toMillis(2), true);
+            TimeUnit.HOURS.toMillis(4), TimeUnit.MINUTES.toMillis(2));
 
     @Test
     public void testDiff() {

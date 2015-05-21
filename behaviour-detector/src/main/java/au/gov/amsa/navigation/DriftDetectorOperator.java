@@ -254,29 +254,22 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
         static final float DEFAULT_MIN_DRIFTING_SPEED_KNOTS = 0.25f;
         @VisibleForTesting
         static final float DEFAULT_MAX_DRIFTING_SPEED_KNOTS = 20;
-        private static final long DEFAULT_MIN_WINDOW_SIZE_MS = TimeUnit.MINUTES.toMillis(5);
         private static final long DEFAULT_EXPIRY_AGE_MS = TimeUnit.HOURS.toMillis(5);
-        private static final double DEFAULT_MIN_PROPORTION = 0.5;
         private static final long DEFAULT_NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
-        private static final boolean FAVOUR_MEMORY_OVER_SPEED = true;
 
         private final int minHeadingCogDifference;
         private final int maxHeadingCogDifference;
         private final float minDriftingSpeedKnots;
         private final float maxDriftingSpeedKnots;
-        private final long windowSizeMs;
         private final long expiryAgeMs;
-        private final double minProportion;
         private final long nonDriftingThresholdMs;
-        private boolean favourMemoryOverSpeed;
 
         private static class Holder {
 
             static Options INSTANCE = new Options(DEFAULT_HEADING_COG_DIFFERENCE_MIN,
                     DEFAULT_HEADING_COG_DIFFERENCE_MAX, DEFAULT_MIN_DRIFTING_SPEED_KNOTS,
-                    DEFAULT_MAX_DRIFTING_SPEED_KNOTS, DEFAULT_MIN_WINDOW_SIZE_MS,
-                    DEFAULT_EXPIRY_AGE_MS, DEFAULT_MIN_PROPORTION,
-                    DEFAULT_NON_DRIFTING_THRESHOLD_MS, FAVOUR_MEMORY_OVER_SPEED);
+                    DEFAULT_MAX_DRIFTING_SPEED_KNOTS, DEFAULT_EXPIRY_AGE_MS,
+                    DEFAULT_NON_DRIFTING_THRESHOLD_MS);
         }
 
         public static Options instance() {
@@ -284,26 +277,20 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
         }
 
         public Options(int minHeadingCogDifference, int maxHeadingCogDifference,
-                float minDriftingSpeedKnots, float maxDriftingSpeedKnots, long windowSizeMs,
-                long expiryAgeMs, double minProportion, long nonDriftingThresholdMs,
-                boolean favourMemoryOverSpeed) {
+                float minDriftingSpeedKnots, float maxDriftingSpeedKnots, long expiryAgeMs,
+                long nonDriftingThresholdMs) {
             Preconditions.checkArgument(minHeadingCogDifference >= 0);
             Preconditions.checkArgument(minDriftingSpeedKnots >= 0);
             Preconditions.checkArgument(minHeadingCogDifference <= maxHeadingCogDifference);
             Preconditions.checkArgument(minDriftingSpeedKnots <= maxDriftingSpeedKnots);
-            Preconditions.checkArgument(expiryAgeMs == 0 || expiryAgeMs > windowSizeMs);
-            Preconditions.checkArgument(minProportion >= 0 && minProportion <= 1.0);
-            Preconditions.checkArgument(windowSizeMs > 0);
+            Preconditions.checkArgument(expiryAgeMs > 0);
             Preconditions.checkArgument(nonDriftingThresholdMs >= 0);
             this.minHeadingCogDifference = minHeadingCogDifference;
             this.maxHeadingCogDifference = maxHeadingCogDifference;
             this.minDriftingSpeedKnots = minDriftingSpeedKnots;
             this.maxDriftingSpeedKnots = maxDriftingSpeedKnots;
-            this.windowSizeMs = windowSizeMs;
             this.expiryAgeMs = expiryAgeMs;
-            this.minProportion = minProportion;
             this.nonDriftingThresholdMs = nonDriftingThresholdMs;
-            this.favourMemoryOverSpeed = favourMemoryOverSpeed;
         }
 
         public int maxHeadingCogDifference() {
@@ -322,24 +309,12 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
             return minDriftingSpeedKnots;
         }
 
-        public long windowSizeMs() {
-            return windowSizeMs;
-        }
-
         public long expiryAgeMs() {
             return expiryAgeMs;
         }
 
-        public double minProportion() {
-            return minProportion;
-        }
-
         public long nonDriftingThresholdMs() {
             return nonDriftingThresholdMs;
-        }
-
-        public boolean favourMemoryOverSpeed() {
-            return favourMemoryOverSpeed;
         }
 
         @Override
@@ -353,16 +328,10 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
             b.append(minDriftingSpeedKnots);
             b.append(", maxDriftingSpeedKnots=");
             b.append(maxDriftingSpeedKnots);
-            b.append(", windowSizeMs=");
-            b.append(windowSizeMs);
             b.append(", expiryAgeMs=");
             b.append(expiryAgeMs);
-            b.append(", minProportion=");
-            b.append(minProportion);
             b.append(", nonDriftingThresholdMs=");
             b.append(nonDriftingThresholdMs);
-            b.append(", favourMemoryOverSpeed=");
-            b.append(favourMemoryOverSpeed);
             b.append("]");
             return b.toString();
         }
