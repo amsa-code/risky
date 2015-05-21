@@ -39,4 +39,8 @@ D<sub>1</sub>D<sub>2</sub>  &#8594; <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise
 
 
+N<sub>1</sub>D<sub>2</sub>  &#8594; nothing<br/>
+
+D<sub>1</sub>N<sub>3</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub>
+
 
