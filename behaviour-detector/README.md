@@ -30,6 +30,8 @@ Exiting the buffer we should only see Ds and we indicate the start of a drift pa
 
 D'<sub>1</sub>D<sub>2</sub>D'<sub>3</sub>D<sub>4</sub>
 
+A report that is kept in the buffer after being emitted is represented by bolding: <b>D<sub>1</sub></b>.
+
 Now suppose we have reports in the buffer. This is how the buffer is handled:
 
 We define the following transformation rules (which are applied repeatedly till no change) for elements in the buffer:
@@ -42,6 +44,8 @@ D<sub>1</sub>D<sub>2</sub>  &#8594; <br/>
 N<sub>1</sub>D<sub>2</sub>  &#8594; nothing<br/>
 
 D<sub>1</sub>N<sub>2</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub>
+
+<b>D<sub>1</sub></b>N<sub>2</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub>
 
 D<sub>1</sub>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>1</sub>D<sub>3</sub>, if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>
