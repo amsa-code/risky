@@ -191,7 +191,7 @@ public class DriftDetectorOperatorTest {
     }
 
     @Test
-    public void testRule3FourDriftersBigTimeGapBetweenLastTwo() {
+    public void testRule3FourDriftersBigTimeGapBetweenTwoAndThree() {
         long t = 0;
         // drifter
         Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
@@ -275,20 +275,48 @@ public class DriftDetectorOperatorTest {
         assertTrue(list.isEmpty());
     }
 
+    @Test
+    public void testTwoDriftersButDifferentMmsi() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(12344, 90, DRIFT_SPEED_KNOTS, t);
+        // drifter
+        Fix f2 = createFix(12345, 91, DRIFT_SPEED_KNOTS, t += 1);
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2));
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testOutOfOrderFixes() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
+        // drifter but before the one above
+        Fix f2 = createFix(91, DRIFT_SPEED_KNOTS, t -= 1);
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2));
+        assertTrue(list.isEmpty());
+    }
+
+    // TODO add tests for multiple mmsis and out of order fixes
+
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
         return source.compose(DriftDetector.detectDrift(testOptions)).toList().toBlocking()
                 .single();
     }
 
-    private static Fix createFix(float courseHeadingDiff, float speedKnots, long time) {
+    private static Fix createFix(long mmsi, float courseHeadingDiff, float speedKnots, long time) {
         Fix f = Mockito.mock(Fix.class);
         Mockito.when(f.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
         Mockito.when(f.headingDegrees()).thenReturn(Optional.of(10.0f + courseHeadingDiff));
         Mockito.when(f.speedOverGroundKnots()).thenReturn(Optional.of(speedKnots));
         Mockito.when(f.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
-        Mockito.when(f.mmsi()).thenReturn(123456789L);
+        Mockito.when(f.mmsi()).thenReturn(mmsi);
         Mockito.when(f.fix()).thenReturn(f);
         Mockito.when(f.time()).thenReturn(time);
         return f;
+    }
+
+    private static Fix createFix(float courseHeadingDiff, float speedKnots, long time) {
+        return createFix(123456789L, courseHeadingDiff, speedKnots, time);
     }
 }

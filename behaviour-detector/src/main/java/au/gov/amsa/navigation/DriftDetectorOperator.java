@@ -69,6 +69,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
                     b = null;
                     driftingSince = NOT_DRIFTING;
                 }
+                mmsi = fix.mmsi();
 
                 if (outOfTimeOrder(fix))
                     return;
