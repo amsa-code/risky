@@ -66,12 +66,16 @@ public final class DriftDetectorOperator2 implements Operator<DriftCandidate, Ha
                 }
             }
 
-            private void processABC(Item item) {
-                if (isDrifter(a) && !isDrifter(b) && !isDrifter(item)) {
+            private void processABC(Item c) {
+                if (isDrifter(a) && !isDrifter(b) && !isDrifter(c)) {
                     // ignore item
-                } else if (isDrifter(a) && !isDrifter(b) && isDrifter(item)) {
+                } else if (isDrifter(a) && !isDrifter(b) && isDrifter(c)) {
                     if (!a.emitted()) {
-
+                        if (withinNonDriftingThreshold(b, c) && !expired(a, c)) {
+                            driftingSince = a.time();
+                            child.onNext(new DriftCandidate(a.fix(), a.time()));
+                            child.onNext(new DriftCandidate(c.fix(), a.time()));
+                        }
                     } else {
 
                     }
@@ -112,6 +116,10 @@ public final class DriftDetectorOperator2 implements Operator<DriftCandidate, Ha
 
     private boolean expired(Item a, Item b) {
         return b.time() - a.time() >= options.expiryAgeMs();
+    }
+
+    private boolean withinNonDriftingThreshold(Item a, Item b) {
+        return b.time() - a.time() < options.nonDriftingThresholdMs();
     }
 
     private static boolean isDrifter(Item item) {
