@@ -32,6 +32,8 @@ D'<sub>1</sub>D<sub>2</sub>D'<sub>3</sub>D<sub>4</sub>
 
 A report that is kept in the buffer after being emitted is represented by bolding: <b>D<sub>1</sub></b>.
 
+Note that with the buffer we also need a record of the start time of the current drift path. That start time is reset whenever a D' is emitted from the buffer.
+
 Now suppose we have reports in the buffer. This is how the buffer is handled:
 
 We define the following transformation rules (which are applied repeatedly till no change) for elements in the buffer:
