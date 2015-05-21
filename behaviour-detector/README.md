@@ -22,5 +22,7 @@ Now let's introduce some notation that will make the algorithm much more concise
 
 We now want to process a stream of position reports (any reports out of time order are chucked). Consider a small buffer that we pass reports through and sometimes drift paths come out the other side. Using the rules below we will see that the buffer only needs to hold a maximum of three elements at a time.
 
-D<sub>1</sub>N<sub>2</sub> represents a drift detection at time t<sub>1</sub> followed by a non drift detection at time t<sub>2</sub>.
+This is how we represent a sequence of reports and how we reference time for the reports:
+
+  D<sub>1</sub>N<sub>2</sub> represents a drift detection at time t<sub>1</sub> followed by a non drift detection at time t<sub>2</sub>.
 
