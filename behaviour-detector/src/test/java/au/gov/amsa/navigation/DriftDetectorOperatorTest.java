@@ -25,7 +25,8 @@ public class DriftDetectorOperatorTest {
     private static final float DRIFT_SPEED_KNOTS = (float) ((DriftDetectorOperator.Options.DEFAULT_MIN_DRIFTING_SPEED_KNOTS + DriftDetectorOperator.Options.DEFAULT_MAX_DRIFTING_SPEED_KNOTS) * 0.5);
 
     private static Options testOptions = new Options(45, 135, 0.25f, 20f,
-            TimeUnit.MINUTES.toMillis(5), 0, 0.5f, TimeUnit.MINUTES.toMillis(2), true);
+            TimeUnit.MINUTES.toMillis(5), TimeUnit.HOURS.toMillis(4), 0.5f,
+            TimeUnit.MINUTES.toMillis(2), true);
 
     @Test
     public void testDiff() {
@@ -133,222 +134,29 @@ public class DriftDetectorOperatorTest {
     }
 
     @Test
-    public void testAddingASingleDrifterDoesNotEmitADriftCandidate() {
-        Fix fix = createFix(100f, DRIFT_SPEED_KNOTS, 0);
-        List<DriftCandidate> list = getCandidates(Observable.just(fix));
-        assertEquals(0, list.size());
+    public void testStartingWithNonDriftersDoesNothing() {
+        long t = 0;
+        // non-drifter
+        Fix f1 = createFix(0, DRIFT_SPEED_KNOTS, t);
+        // non-drifter
+        Fix f2 = createFix(1, DRIFT_SPEED_KNOTS, t += 1);
+        // non-drifter
+        Fix f3 = createFix(1, DRIFT_SPEED_KNOTS, t += 1);
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2, f3));
+        assertTrue(list.isEmpty());
     }
 
     @Test
-    public void testTwoDriftersBigTimeGapEmitsBoth() {
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, 0);
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, TimeUnit.HOURS.toMillis(1));
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2));
+    public void testTwoDrifters() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
+        // drifter
+        Fix f2 = createFix(91, DRIFT_SPEED_KNOTS, t += 1);
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2));
         assertEquals(2, list.size());
-        Fix r1 = list.get(0).fix();
-        Fix r2 = list.get(1).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
-        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
-    }
-
-    @Test
-    public void testTwoDriftersBigTimeGapThenSmallGapEmitsAll() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
-        Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3));
-        assertEquals(3, list.size());
-        Fix r1 = list.get(0).fix();
-        Fix r2 = list.get(1).fix();
-        Fix r3 = list.get(2).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
-        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
-        assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
-        assertEquals(fix3.headingDegrees(), r3.headingDegrees());
-
-        // tests start of drift
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-        assertEquals(fix1.time(), list.get(1).driftingSince());
-        assertEquals(fix1.time(), list.get(2).driftingSince());
-
-        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
-    }
-
-    @Test
-    public void testTwoDriftersBigTimeGapWithNonDriftBetweenThenSmallGapEmitsAllAndDriftingSinceIsFromSecond() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        // non drifter
-        Fix fix1a = createFix(0f, DRIFT_SPEED_KNOTS, t + 1);
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
-        Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix1a, fix2, fix3));
-        assertEquals(3, list.size());
-        Fix r1 = list.get(0).fix();
-        Fix r2 = list.get(1).fix();
-        Fix r3 = list.get(2).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
-        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
-        assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
-        assertEquals(fix3.headingDegrees(), r3.headingDegrees());
-        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
-        // tests start of drift
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-        assertEquals(fix2.time(), list.get(1).driftingSince());
-        assertEquals(fix2.time(), list.get(2).driftingSince());
-    }
-
-    @Test
-    public void testTwoDriftersBigTimeGapWithNonDriftBetweenButJustBeforeFollowingDrifterThenSmallGapEmitsAllAndDriftingSinceIsFromFirst() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        // non drifter
-        Fix fix1a = createFix(0f, DRIFT_SPEED_KNOTS, t += testOptions.windowSizeMs() * 10 - 1);
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += 1);
-        Fix fix3 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix1a, fix2, fix3));
-        assertEquals(3, list.size());
-        Fix r1 = list.get(0).fix();
-        Fix r2 = list.get(1).fix();
-        Fix r3 = list.get(2).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(fix2.courseOverGroundDegrees(), r2.courseOverGroundDegrees());
-        assertEquals(fix2.headingDegrees(), r2.headingDegrees());
-        assertEquals(fix3.courseOverGroundDegrees(), r3.courseOverGroundDegrees());
-        assertEquals(fix3.headingDegrees(), r3.headingDegrees());
-        assertEquals(4, (int) DriftDetectorOperator.queueSize.get());
-        // tests start of drift
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-        assertEquals(fix1.time(), list.get(1).driftingSince());
-        assertEquals(fix1.time(), list.get(2).driftingSince());
-
-    }
-
-    @Test
-    public void testDrifterThenThreeNonDriftersThatTogetherImplyLongNonDriftTimeButNotIndividuallyFollowedByDrifter() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        // non drifter
-        Fix fix2 = createFix(0f, DRIFT_SPEED_KNOTS, t += 1);
-        // non drifter so just more than nonDriftingThresholdMs which means
-        // driftingSince will reset for next
-        Fix fix3 = createFix(1f, DRIFT_SPEED_KNOTS, t += testOptions.nonDriftingThresholdMs() - 10);
-        Fix fix4 = createFix(2f, DRIFT_SPEED_KNOTS, t += testOptions.nonDriftingThresholdMs() - 10);
-        assertTrue(testOptions.windowSizeMs() > 2 * testOptions.nonDriftingThresholdMs());
-        Fix fix5 = createFix(95f, DRIFT_SPEED_KNOTS, t += testOptions.windowSizeMs() - 2
-                * testOptions.nonDriftingThresholdMs() + 1 + 10 + 10 + 10);
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3, fix4, fix5));
-        // only one is emitted because proportion not good for last
-        assertEquals(1, list.size());
-        Fix r1 = list.get(0).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(4, (int) DriftDetectorOperator.queueSize.get());
-        // tests start of drift
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-    }
-
-    @Test
-    public void testDrifterThenThreeNonDriftersThatTogetherImplyLongNonDriftTimeButNotIndividuallyFollowedByTwoDrifters() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        // non drifter
-        Fix fix2 = createFix(0f, DRIFT_SPEED_KNOTS, t += 1);
-        // non drifter so just more than nonDriftingThresholdMs which means
-        // driftingSince will reset for next
-        Fix fix3 = createFix(1f, DRIFT_SPEED_KNOTS, t += testOptions.nonDriftingThresholdMs() - 10);
-        Fix fix4 = createFix(2f, DRIFT_SPEED_KNOTS, t += testOptions.nonDriftingThresholdMs() - 10);
-        assertTrue(testOptions.windowSizeMs() > 2 * testOptions.nonDriftingThresholdMs());
-        Fix fix5 = createFix(95f, DRIFT_SPEED_KNOTS, t += testOptions.windowSizeMs() - 2
-                * testOptions.nonDriftingThresholdMs() + 1 + 10 + 10 + 10);
-        Fix fix6 = createFix(89f, DRIFT_SPEED_KNOTS, t += 1);
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3, fix4, fix5,
-                fix6));
-        // only one is emitted because proportion not good for last
-        assertEquals(1, list.size());
-        Fix r1 = list.get(0).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(5, (int) DriftDetectorOperator.queueSize.get());
-        // tests start of drift
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-    }
-
-    @Test
-    public void testDrifterThenThreeNonDriftersThatTogetherImplyLongNonDriftTimeButNotIndividuallyFollowedByThreeDrifters() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        // non drifter
-        Fix fix2 = createFix(0f, DRIFT_SPEED_KNOTS, t += 1);
-        // non drifter so just more than nonDriftingThresholdMs which means
-        // driftingSince will reset for next
-        Fix fix3 = createFix(1f, DRIFT_SPEED_KNOTS, t += testOptions.nonDriftingThresholdMs() - 10);
-        Fix fix4 = createFix(2f, DRIFT_SPEED_KNOTS, t += testOptions.nonDriftingThresholdMs() - 10);
-        assertTrue(testOptions.windowSizeMs() > 2 * testOptions.nonDriftingThresholdMs());
-        Fix fix5 = createFix(95f, DRIFT_SPEED_KNOTS, t += testOptions.windowSizeMs() - 2
-                * testOptions.nonDriftingThresholdMs() + 1 + 10 + 10 + 10);
-        Fix fix6 = createFix(89f, DRIFT_SPEED_KNOTS, t += 1);
-        Fix fix7 = createFix(89f, DRIFT_SPEED_KNOTS, t += 1);
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3, fix4, fix5,
-                fix6, fix7));
-        // only one is emitted because proportion not good for last
-        assertEquals(4, list.size());
-        Fix r1 = list.get(0).fix();
-        assertEquals(fix1.courseOverGroundDegrees(), r1.courseOverGroundDegrees());
-        assertEquals(fix1.headingDegrees(), r1.headingDegrees());
-        assertEquals(6, (int) DriftDetectorOperator.queueSize.get());
-        // tests start of drift
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-        assertEquals(fix5.time(), list.get(1).driftingSince());
-        assertEquals(fix5.time(), list.get(2).driftingSince());
-        assertEquals(fix5.time(), list.get(3).driftingSince());
-    }
-
-    @Test
-    public void testThreeDriftersBigTimeGapThenSmallGapEmitsAllAndQueueDropsFirst() {
-        long t = 0;
-        Fix fix1 = createFix(100f, DRIFT_SPEED_KNOTS, t);
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
-        Fix fix3 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
-        Fix fix4 = createFix(95f, DRIFT_SPEED_KNOTS, t += TimeUnit.MILLISECONDS.toMillis(1));
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2, fix3, fix4));
-        assertEquals(4, list.size());
-        assertEquals(3, (int) DriftDetectorOperator.queueSize.get());
-    }
-
-    @Test
-    public void testDrifterStartingWithNonDrifterButBigTimeGapProducesNothingAndFirstFixNotRetained() {
-        long t = 0;
-        // non-drifter because of course-heading parameter
-        Fix fix1 = createFix(0f, DRIFT_SPEED_KNOTS, t);
-        // drifter
-        Fix fix2 = createFix(90f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2));
-        assertEquals(1, list.size());
-        // fix 1 is not retained because was first fix and was not a drifter
-        assertEquals(2, (int) DriftDetectorOperator.queueSize.get());
-    }
-
-    @Test
-    public void testDrifterThenNonDrifterProducesOneAndAllRetainedInQueue() {
-        long t = 0;
-        // drifter
-        Fix fix1 = createFix(90f, DRIFT_SPEED_KNOTS, t);
-        // non-drifter because of course-heading parameter
-        Fix fix2 = createFix(0f, DRIFT_SPEED_KNOTS + 1, t += testOptions.windowSizeMs() * 10);
-        List<DriftCandidate> list = getCandidates(Observable.just(fix1, fix2));
-        assertEquals(1, list.size());
-        assertEquals(fix1.time(), list.get(0).driftingSince());
-        // fix 1 is not retained because was first fix and was not a drifter
-        assertEquals(2, (int) DriftDetectorOperator.queueSize.get());
+        assertTrue(f1 == list.get(0).fix());
+        assertTrue(f2 == list.get(1).fix());
     }
 
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {

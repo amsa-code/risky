@@ -1,12 +1,6 @@
 package au.gov.amsa.navigation;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 import rx.Observable.Operator;
 import rx.Subscriber;
@@ -14,48 +8,40 @@ import rx.functions.Func1;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasFix;
 import au.gov.amsa.risky.format.NavigationalStatus;
-import au.gov.amsa.util.RingBuffer;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 /**
- * This operator expects a stream of fixes of increasing time except when the
- * mmsi changes (it can but each fixes for each mmsi should be grouped
- * together).
+ * See
+ * https://github.com/amsa-code/risky/blob/master/behaviour-detector/README.md
+ * for documentation of the algorithm used here.
+ *
  */
-public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
+public final class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
-    // For a drifting vessel we expect the reporting interval to be 10 seconds
-    // (mandated by its speed in knots).
-    private static final long MIN_INTERVAL_BETWEEN_FIXES_MS = 10000;
-    private final Options options;
     private final Func1<Fix, Boolean> isCandidate;
-
-    // used for unit testing
-    @VisibleForTesting
-    static ThreadLocal<Integer> queueSize = new ThreadLocal<Integer>();
+    private final Options options;
 
     public DriftDetectorOperator(Options options) {
+        this.isCandidate = isCandidate(options);
         this.options = options;
-        isCandidate = isCandidate(options);
     }
 
-    public DriftDetectorOperator() {
-        this(Options.instance());
-    }
+    // because many of these are expected to be in existence simultaneously (one
+    // per vessel and between 30,000 and 40,000 vessels may appear in our
+    // coverage annually, we need to be nice and careful with how much memory
+    // this operator uses.
+
+    private static final long NOT_DRIFTING = Long.MAX_VALUE;
 
     @Override
-    public Subscriber<? super HasFix> call(final Subscriber<? super DriftCandidate> child) {
+    public Subscriber<? super HasFix> call(Subscriber<? super DriftCandidate> child) {
         return new Subscriber<HasFix>(child) {
-            // multiply the max expected size by 1.5 just to be on the safe
-            // side.
-            final int maxSize = (int) (options.windowSizeMs() * 3 / 2 / MIN_INTERVAL_BETWEEN_FIXES_MS);
-            final AtomicLong driftingSinceTime = new AtomicLong(Long.MAX_VALUE);
-            final AtomicLong nonDriftingSinceTime = new AtomicLong(Long.MAX_VALUE);
-            final AtomicLong currentMmsi = new AtomicLong(-1);
-            final Queue<FixAndStatus> q = createQueue(options.favourMemoryOverSpeed(), maxSize);
+
+            private Item a;
+            private Item b;
+            private long driftingSince = NOT_DRIFTING;
 
             @Override
             public void onCompleted() {
@@ -69,140 +55,159 @@ public class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
 
             @Override
             public void onNext(HasFix f) {
-                handleFix(f.fix(), q, child, driftingSinceTime, nonDriftingSinceTime, currentMmsi,
-                        maxSize);
+                Fix fix = f.fix();
+                if (outOfTimeOrder(fix))
+                    return;
+
+                final Item item;
+                if (isCandidate.call(fix))
+                    item = new Drifter(f, false);
+                else
+                    item = new NonDrifter(fix.time());
+                if (a == null) {
+                    a = item;
+                    processAB();
+                } else if (b == null) {
+                    b = item;
+                    processAB();
+                } else {
+                    processABC(item);
+                }
             }
 
+            private boolean outOfTimeOrder(Fix fix) {
+                if (b != null && fix.time() < b.time())
+                    return true;
+                else if (a != null && fix.time() < a.time())
+                    return true;
+                else
+                    return false;
+            }
+
+            private void processABC(Item c) {
+                if (isDrifter(a) && !isDrifter(b) && !isDrifter(c)) {
+                    // ignore item
+                } else if (isDrifter(a) && !isDrifter(b) && isDrifter(c)) {
+                    if (withinNonDriftingThreshold(b, c)) {
+                        b = c;
+                        processAB();
+                    } else {
+                        a = c;
+                        b = null;
+                    }
+                } else {
+                    unexpected();
+                }
+            }
+
+            private void unexpected() {
+                throw new RuntimeException("unexpected");
+            }
+
+            private void processAB() {
+                if (!isDrifter(a))
+                    a = null;
+                else if (b == null) {
+                    // do nothing
+                } else if (!a.emitted()) {
+                    if (isDrifter(b)) {
+                        if (!expired(a, b)) {
+                            driftingSince = a.time();
+                            child.onNext(new DriftCandidate(a.fix(), a.time()));
+                            child.onNext(new DriftCandidate(b.fix(), a.time()));
+                            // mark as emitted
+                            a = new Drifter(a.fix(), true);
+                            b = null;
+                        } else {
+                            a = b;
+                            b = null;
+                        }
+                    }
+                } else {
+                    // a has been emitted
+                    if (isDrifter(b)) {
+                        if (!expired(a, b)) {
+                            child.onNext(new DriftCandidate(b.fix(), driftingSince));
+                            a = new Drifter(b.fix(), true);
+                            b = null;
+                        }
+                    }
+                }
+            }
         };
     }
 
-    private static <T> Queue<T> createQueue(boolean favourMemoryOverSpeed, int maxSize) {
-        if (favourMemoryOverSpeed)
-            return new LinkedList<T>();
-        else
-            return RingBuffer.create(maxSize);
+    private boolean expired(Item a, Item b) {
+        return b.time() - a.time() >= options.expiryAgeMs();
     }
 
-    private static class FixAndStatus {
-        final Fix fix;
-        final boolean drifting;
-        final boolean emitted;
+    private boolean withinNonDriftingThreshold(Item a, Item b) {
+        return b.time() - a.time() < options.nonDriftingThresholdMs();
+    }
 
-        FixAndStatus(Fix fix, boolean drifting, boolean emitted) {
+    private static boolean isDrifter(Item item) {
+        return item instanceof Drifter;
+    }
+
+    private static interface Item {
+        long time();
+
+        HasFix fix();
+
+        boolean emitted();
+    }
+
+    private static class Drifter implements Item {
+
+        private final HasFix fix;
+        private final boolean emitted;
+
+        Drifter(HasFix fix, boolean emitted) {
             this.fix = fix;
-            this.drifting = drifting;
             this.emitted = emitted;
         }
 
+        @Override
+        public long time() {
+            return fix.fix().time();
+        }
+
+        @Override
+        public HasFix fix() {
+            return fix;
+        }
+
+        @Override
+        public boolean emitted() {
+            return emitted;
+        }
+
     }
 
-    private void handleFix(Fix f, Queue<FixAndStatus> q, Subscriber<? super DriftCandidate> child,
-            AtomicLong driftingSinceTime, AtomicLong nonDriftingSinceTime, AtomicLong currentMmsi,
-            int maxSize) {
-        // when a fix arrives that is a drift detection start building a queue
-        // of fixes. If a certain proportion of fixes are drift detection with a
-        // minimum window of report time from the first detection report time
-        // then report them to the child subscriber
-        if (currentMmsi.get() != f.mmsi() || q.size() == maxSize) {
-            // note that hitting maxSize in q should only happen for rubbish
-            // mmsi codes like 0 so we are happy to clear the q
-            q.clear();
-            driftingSinceTime.set(Long.MAX_VALUE);
-            nonDriftingSinceTime.set(Long.MAX_VALUE);
-            currentMmsi.set(f.mmsi());
-        }
-        if (q.isEmpty()) {
-            if (isCandidate.call(f)) {
-                q.add(new FixAndStatus(f, true, false));
-            } else {
-                q.add(new FixAndStatus(f, false, false));
-            }
-        } else if (q.peek().fix.time() < f.time()) {
-            // queue is non-empty so add to the queue
-            q.add(new FixAndStatus(f, isCandidate.call(f), false));
-        } else
-            return;
+    private static class NonDrifter implements Item {
 
-        // process the queue if time interval long enough
-        // any fixes older than latestFix.time - windowSizeMs will be trimmed if
-        // we satisfy criteria to emit
-        // fixes older than ageExpiryMs before latestFix.time will be trimmed
-        // recalculate the since fields
-        trimQueueAndEmitDriftCandidates(f, q, child, driftingSinceTime, nonDriftingSinceTime,
-                options);
-        queueSize.set(q.size());
-    }
+        private final long time;
 
-    private static void trimQueueAndEmitDriftCandidates(Fix f, Queue<FixAndStatus> q,
-            Subscriber<? super DriftCandidate> child, AtomicLong driftingSinceTime,
-            AtomicLong nonDriftingSinceTime, Options options) {
-        // count the number of candidates
-        int count = countDrifting(q);
-        boolean canEmit = (double) count / q.size() >= options.minProportion() && q.size() > 1;
-        // a decent number of drift candidates were found in the time
-        // interval so emit those that haven't been emitted already
+        NonDrifter(long time) {
+            this.time = time;
+        }
 
-        // record all fixes still within the window so we can readd them to
-        // the queue after the emission loop. We also seek to retain the
-        // latest fix before the window.
-        List<FixAndStatus> list = new ArrayList<FixAndStatus>();
-        // we are going to emit all drift candidates that haven't been
-        // emitted already but we will hang on to all fixes less than
-        // options.windowSizeMs before the latest fix
-        // and mark the drift candidates as emitted
-        FixAndStatus x;
-        Optional<FixAndStatus> lastBeforeWindow = Optional.absent();
-        long driftingSince = driftingSinceTime.get();
-        long nonDriftingSince = Long.MAX_VALUE;
-        while ((x = q.poll()) != null) {
-            final boolean inWindow = f.time() - x.fix.time() < options.windowSizeMs();
-            if (!inWindow)
-                lastBeforeWindow = Optional.of(x);
-            final boolean emitted;
-            if (x.drifting) {
-                if (driftingSince == Long.MAX_VALUE
-                        || x.fix.time() - nonDriftingSince > options.nonDriftingThresholdMs()) {
-                    driftingSince = x.fix.time();
-                }
-                nonDriftingSince = Long.MAX_VALUE;
-                if (!x.emitted && canEmit) {
-                    // emit DriftCandidate with driftingSinceTime
-                    child.onNext(new DriftCandidate(x.fix, driftingSince));
-                    emitted = true;
-                } else
-                    emitted = false;
-            } else {
-                if (nonDriftingSince == Long.MAX_VALUE)
-                    nonDriftingSince = x.fix.time();
-                emitted = false;
-            }
-            if (emitted) {
-                FixAndStatus y = new FixAndStatus(x.fix, x.drifting, true);
-                if (inWindow)
-                    list.add(y);
-                else
-                    lastBeforeWindow = Optional.of(y);
-            } else if (inWindow || (!canEmit && f.time() - x.fix.time() < options.expiryAgeMs))
-                list.add(x);
-            // otherwise don't include it in the next queue
+        @Override
+        public long time() {
+            return time;
         }
-        // queue should be empty now, let's rebuild it
-        if (lastBeforeWindow.isPresent()) {
-            q.add(lastBeforeWindow.get());
-        }
-        q.addAll(list);
-        driftingSinceTime.set(driftingSince);
-        nonDriftingSinceTime.set(nonDriftingSince);
-    }
 
-    private static int countDrifting(Queue<FixAndStatus> q) {
-        int count = 0;
-        Iterator<FixAndStatus> en = q.iterator();
-        while (en.hasNext()) {
-            if (en.next().drifting)
-                count++;
+        @Override
+        public Fix fix() {
+            return null;
         }
-        return count;
+
+        @Override
+        public boolean emitted() {
+            // never gets emitted
+            return false;
+        }
+
     }
 
     @VisibleForTesting
