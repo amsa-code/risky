@@ -208,6 +208,19 @@ public class DriftDetectorOperatorTest {
         assertEquals(f1.time(), list.get(1).driftingSince());
     }
 
+    @Test
+    public void testRule4() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
+        // non-drifter
+        Fix f2 = createFix(0, DRIFT_SPEED_KNOTS, t += 1);
+        // non-drifter
+        Fix f3 = createFix(1, DRIFT_SPEED_KNOTS, t += TimeUnit.DAYS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2, f3));
+        assertTrue(list.isEmpty());
+    }
+
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
         return source.compose(DriftDetector.detectDrift(testOptions)).toList().toBlocking()
                 .single();
