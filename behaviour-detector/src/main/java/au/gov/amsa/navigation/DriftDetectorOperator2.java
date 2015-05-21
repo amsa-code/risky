@@ -70,7 +70,7 @@ public final class DriftDetectorOperator2 implements Operator<DriftCandidate, Ha
                 if (isDrifter(a) && !isDrifter(b) && !isDrifter(item)) {
                     // ignore item
                 } else if (isDrifter(a) && !isDrifter(b) && isDrifter(item)) {
-                    if (a.emitted()) {
+                    if (!a.emitted()) {
 
                     } else {
 

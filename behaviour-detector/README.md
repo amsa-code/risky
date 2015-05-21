@@ -38,12 +38,12 @@ Now suppose we have reports in the buffer. This is how the buffer is handled:
 
 We define the following transformation rules (which are applied repeatedly till no change) for elements in the buffer:
 
-2. N<sub>1</sub>  &#8594; nothing<br/><br/>
-1. D<sub>1</sub>D<sub>2</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>2</sub></b>, emit D'<sub>1</sub>D<sub>2</sub> if t<sub>2</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise<br/><br/>
-7. <b>D<sub>1</sub></b>D<sub>2</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>2</sub></b>, emit D<sub>2</sub> if t<sub>2</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise<br/><br/>
-3. D<sub>1</sub>N<sub>2</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub><br/><br/>
-4. <b>D<sub>1</sub></b>N<sub>2</sub>N<sub>3</sub> &#8594; <b>D<sub>1</sub></b>N<sub>2</sub><br/><br/>
-5. D<sub>1</sub>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>1</sub>D<sub>3</sub>, if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise<br/><br/>
-6. <b>D<sub>1</sub></b>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>3</sub></b>, emit D<sub>3</sub> if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise<br/><br/>
+1. N<sub>1</sub>  &#8594; nothing<br/><br/>
+2. D<sub>1</sub>D<sub>2</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>2</sub></b>, emit D'<sub>1</sub>D<sub>2</sub> if t<sub>2</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise<br/><br/>
+3. <b>D<sub>1</sub></b>D<sub>2</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>2</sub></b>, emit D<sub>2</sub> if t<sub>2</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise<br/><br/>
+4. D<sub>1</sub>N<sub>2</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub><br/><br/>
+5. <b>D<sub>1</sub></b>N<sub>2</sub>N<sub>3</sub> &#8594; <b>D<sub>1</sub></b>N<sub>2</sub><br/><br/>
+6. D<sub>1</sub>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D'<sub>1</sub>D<sub>3</sub>, if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise<br/><br/>
+7. <b>D<sub>1</sub></b>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>3</sub></b>, emit D<sub>3</sub> if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise<br/><br/>
 
 In terms of memory utilization it should be noted that one of these buffers is required per vessel and is retained for the life of the application. Given that 30 to 40 thousand distinct vessels traverse the Australian SRR per year this may be important to optimize.
