@@ -87,7 +87,9 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
             private void processABC(Item c) {
                 if (isDrifter(a) && !isDrifter(b) && !isDrifter(c)) {
                     // ignore item
+                    // rule 4, 5
                 } else if (isDrifter(a) && !isDrifter(b) && isDrifter(c)) {
+                    // rule 6, 7
                     if (withinNonDriftingThreshold(b, c)) {
                         b = c;
                         processAB();
@@ -106,11 +108,13 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
 
             private void processAB() {
                 if (!isDrifter(a))
+                    // rule 1
                     a = null;
                 else if (b == null) {
                     // do nothing
                 } else if (!a.emitted()) {
                     if (isDrifter(b)) {
+                        // rule 2
                         if (!expired(a, b)) {
                             driftingSince = a.time();
                             child.onNext(new DriftCandidate(a.fix(), a.time()));
@@ -125,6 +129,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
                     }
                 } else {
                     // a has been emitted
+                    // rule 3
                     if (isDrifter(b)) {
                         if (!expired(a, b)) {
                             child.onNext(new DriftCandidate(b.fix(), driftingSince));
