@@ -26,3 +26,11 @@ This is how we represent a sequence of reports and how we reference time for the
 
 &nbsp;&nbsp;&nbsp;&nbsp;D<sub>1</sub>N<sub>2</sub> represents a drift detection at time t<sub>1</sub> followed by a non drift detection at time t<sub>2</sub>.
 
+Now suppose we have reports in the buffer. This is how the buffer is handled:
+
+We define the following transformation rules for elements in the buffer:
+
+D<sub>1</sub>D<sub>2</sub>  &#8594; 
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&Dtilde;<sub>2</sub>, emit D'<sub>1</sub>D<sub>2</sub> if t<sub>2</sub> - t<sub>1</sub> < E
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise
+
