@@ -16,6 +16,8 @@ import com.google.common.base.Preconditions;
  * See
  * https://github.com/amsa-code/risky/blob/master/behaviour-detector/README.md
  * for documentation of the algorithm used here.
+ * 
+ * Input to this operator should be grouped by mmsi and sorted ascending time.
  *
  */
 public final class DriftDetectorOperator implements Operator<DriftCandidate, HasFix> {
@@ -34,6 +36,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
     // this operator uses.
 
     private static final long NOT_DRIFTING = Long.MAX_VALUE;
+    private static final long MMSI_NOT_SET = 0;
 
     @Override
     public Subscriber<? super HasFix> call(Subscriber<? super DriftCandidate> child) {
@@ -42,6 +45,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
             private Item a;
             private Item b;
             private long driftingSince = NOT_DRIFTING;
+            private long mmsi = 0;
 
             @Override
             public void onCompleted() {
@@ -55,8 +59,17 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
 
             @Override
             public void onNext(HasFix f) {
-
+                // Note that it is assumed that the input stream is grouped by
+                // mmsi and sorted by ascending time.
                 Fix fix = f.fix();
+
+                if (mmsi != MMSI_NOT_SET && fix.mmsi() != mmsi) {
+                    // reset for a new vessel
+                    a = null;
+                    b = null;
+                    driftingSince = NOT_DRIFTING;
+                }
+
                 if (outOfTimeOrder(fix))
                     return;
 
@@ -87,7 +100,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
 
             private void processABC(Item c) {
                 if (isDrifter(a) && !isDrifter(b) && !isDrifter(c)) {
-                    // ignore item
+                    // ignore c
                     // rule 4, 5
                 } else if (isDrifter(a) && !isDrifter(b) && isDrifter(c)) {
                     // rule 6, 7
@@ -99,6 +112,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
                         b = null;
                     }
                 } else {
+                    System.out.println(a + "," + b + "," + c);
                     unexpected();
                 }
             }
@@ -108,10 +122,11 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
             }
 
             private void processAB() {
-                if (!isDrifter(a))
+                if (!isDrifter(a)) {
                     // rule 1
-                    a = null;
-                else if (b == null) {
+                    a = b;
+                    b = null;
+                } else if (b == null) {
                     // do nothing
                 } else if (!a.emitted()) {
                     if (isDrifter(b)) {
@@ -135,6 +150,9 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
                         if (!expired(a, b)) {
                             child.onNext(new DriftCandidate(b.fix(), driftingSince));
                             a = new Drifter(b.fix(), true);
+                            b = null;
+                        } else {
+                            a = b;
                             b = null;
                         }
                     }

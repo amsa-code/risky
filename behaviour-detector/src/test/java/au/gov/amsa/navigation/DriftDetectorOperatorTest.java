@@ -191,20 +191,26 @@ public class DriftDetectorOperatorTest {
     }
 
     @Test
-    public void testRule3ThreeDriftersBigTimeGapBetweenLastTwo() {
+    public void testRule3FourDriftersBigTimeGapBetweenLastTwo() {
         long t = 0;
         // drifter
         Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
         // drifter
         Fix f2 = createFix(91, DRIFT_SPEED_KNOTS, t += 1);
         // drifter
-        Fix f3 = createFix(92, DRIFT_SPEED_KNOTS, t += TimeUnit.DAYS.toMillis(1));
-        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2, f3));
-        assertEquals(2, list.size());
+        Fix f3 = createFix(92, DRIFT_SPEED_KNOTS, t += testOptions.expiryAgeMs() + 1);
+        // drifter
+        Fix f4 = createFix(93, DRIFT_SPEED_KNOTS, t += 1);
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2, f3, f4));
+        assertEquals(4, list.size());
         assertTrue(f1 == list.get(0).fix());
         assertTrue(f2 == list.get(1).fix());
+        assertTrue(f3 == list.get(2).fix());
+        assertTrue(f4 == list.get(3).fix());
         assertEquals(f1.time(), list.get(0).driftingSince());
         assertEquals(f1.time(), list.get(1).driftingSince());
+        assertEquals(f3.time(), list.get(2).driftingSince());
+        assertEquals(f3.time(), list.get(3).driftingSince());
     }
 
     @Test
