@@ -70,15 +70,20 @@ public final class DriftDetectorOperator2 implements Operator<DriftCandidate, Ha
                 if (isDrifter(a) && !isDrifter(b) && !isDrifter(c)) {
                     // ignore item
                 } else if (isDrifter(a) && !isDrifter(b) && isDrifter(c)) {
-                    if (!a.emitted()) {
-                        if (withinNonDriftingThreshold(b, c) && !expired(a, c)) {
-                            b = c;
-                            processAB();
-                        }
+                    if (withinNonDriftingThreshold(b, c)) {
+                        b = c;
+                        processAB();
                     } else {
-
+                        a = c;
+                        b = null;
                     }
+                } else {
+                    unexpected();
                 }
+            }
+
+            private void unexpected() {
+                throw new RuntimeException("unexpected");
             }
 
             private void processAB() {
