@@ -12,6 +12,10 @@ public class DriftDetector {
         return o.lift(detectDriftCandidates(options));
     }
 
+    public static DriftDetectorTransformer detectDrift() {
+        return new DriftDetectorTransformer(Options.instance());
+    }
+
     /**
      * This operator expects a stream of fixes of increasing time except when
      * the mmsi changes (it can!).
@@ -24,10 +28,6 @@ public class DriftDetector {
 
     public static DriftDetectorTransformer detectDrift(Options options) {
         return new DriftDetectorTransformer(options);
-    }
-
-    public static DriftDetectorTransformer detectDrift() {
-        return new DriftDetectorTransformer(Options.instance());
     }
 
     public static class DriftDetectorTransformer implements Transformer<HasFix, DriftCandidate> {

@@ -13,10 +13,12 @@ public class DriftDetectorMain {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         String filename = "/media/an/nmea/2013/NMEA_ITU_20130108.gz";
         Streams.nmeaFromGzip(filename)
-        //
+        // parse positions
                 .compose(AisVesselPositions.positions())
+                //
+                .take(1000)
                 // log
-                .lift(Logging.<VesselPosition> logger().showCount().every(100000).log())
+                .lift(Logging.<VesselPosition> logger().showValue().log())
                 // group by mmsi
                 .groupBy(f -> f.fix().mmsi())
                 //
