@@ -2,8 +2,6 @@ package au.gov.amsa.navigation.ais;
 
 import static com.google.common.base.Optional.fromNullable;
 import static com.google.common.base.Optional.of;
-import static rx.Observable.empty;
-import static rx.Observable.just;
 
 import java.util.Comparator;
 
@@ -31,7 +29,7 @@ public class AisVesselPositions {
                 // positions only
                 .filter(isPosition)
                 // convert to vessel positions
-                .flatMap(toVesselPosition);
+                .map(toVesselPosition);
     }
 
     public static Transformer<String, VesselPosition> positions() {
@@ -55,110 +53,112 @@ public class AisVesselPositions {
         return sortByTime(Streams.extract(nmea))
         // aggregate ship data with the message
                 .scan(new AisMessageAndVesselData(), AisMessageAndVesselData.aggregate)
-                // positions only
+                // positions only, with lat long present
                 .filter(isPosition)
                 // convert to vessel positions
-                .flatMap(toVesselPosition);
+                .map(toVesselPosition);
     }
 
-    private static final Func1<AisMessageAndVesselData, Boolean> isPosition = m -> m.message()
-            .isPresent() && m.message().get().getMessage().get().message() instanceof AisPosition;
-
-    private static final Func1<AisMessageAndVesselData, Observable<VesselPosition>> toVesselPosition = messageAndData -> {
-
-        if (messageAndData.message().isPresent()
-                && messageAndData.message().get().getMessage().get().message() instanceof AisPosition) {
-            AisPosition p = (AisPosition) messageAndData.message().get().getMessage().get()
-                    .message();
-            if (p.getCourseOverGround() == null || p.getTrueHeading() == null
-                    || p.getSpeedOverGroundKnots() == null || p.getLatitude() == null
-                    || p.getLongitude() == null)
-                return empty();
-            else {
-                VesselClass cls;
-                if (p instanceof AisPositionA)
-                    cls = VesselClass.A;
-                else
-                    cls = VesselClass.B;
-                Mmsi id = new Mmsi(p.getMmsi());
-                Optional<Vessel> vessel = messageAndData.data().get(id);
-                Optional<Integer> lengthMetres = vessel.isPresent() ? vessel.get()
-                        .getLengthMetres() : Optional.<Integer> absent();
-
-                Optional<Integer> widthMetres = vessel.isPresent() ? vessel.get().getWidthMetres()
-                        : Optional.<Integer> absent();
-
-                Optional<Double> speedMetresPerSecond = p.getSpeedOverGroundKnots() != null ? of(p
-                        .getSpeedOverGroundKnots() * 0.5144444444) : Optional.<Double> absent();
-
-                Optional<Integer> shipType = vessel.isPresent() ? vessel.get().getShipType()
-                        : Optional.<Integer> absent();
-
-                NavigationalStatus navigationalStatus;
-                if (p instanceof AisPositionA) {
-                    AisPositionA a = (AisPositionA) p;
-                    if (Util.equals(a.getNavigationalStatus(),
-                            au.gov.amsa.ais.message.NavigationalStatus.AT_ANCHOR))
-                        navigationalStatus = NavigationalStatus.AT_ANCHOR;
-                    else if (Util.equals(a.getNavigationalStatus(),
-                            au.gov.amsa.ais.message.NavigationalStatus.MOORED)) {
-                        navigationalStatus = NavigationalStatus.MOORED;
-                    } else
-                        navigationalStatus = NavigationalStatus.NOT_DEFINED;
-                } else
-                    navigationalStatus = NavigationalStatus.NOT_DEFINED;
-
-                Optional<String> positionAisNmea;
-                if (p instanceof AisPositionA) {
-                    positionAisNmea = Optional.of(messageAndData.message().get().getLine());
-                } else
-                    positionAisNmea = Optional.absent();
-
-                Optional<String> shipStaticAisNmea;
-                if (vessel.isPresent())
-                    shipStaticAisNmea = vessel.get().getNmea();
-                else
-                    shipStaticAisNmea = Optional.absent();
-
-                // TODO adjust lat, lon for position of ais set on ship
-                // given by A,B,C,D? Or instead store the position offset in
-                // metres in VesselPosition (preferred because RateOfTurn
-                // (ROT) may enter the picture later).
-                try {
-                    return just(VesselPosition.builder()
-                            .cogDegrees(fromNullable(p.getCourseOverGround()))
-                            .headingDegrees(fromNullable((double) p.getTrueHeading()))
-                            .speedMetresPerSecond(speedMetresPerSecond)
-                            // lat
-                            .lat(p.getLatitude())
-                            // lon
-                            .lon(p.getLongitude())
-                            // id
-                            .id(id)
-                            // length
-                            .lengthMetres(lengthMetres)
-                            // width
-                            .widthMetres(widthMetres)
-                            // time
-                            .time(messageAndData.message().get().getMessage().get().time())
-                            // ship type
-                            .shipType(shipType)
-                            // class
-                            .cls(cls)
-                            // at anchor
-                            .navigationalStatus(navigationalStatus)
-                            // position nmea
-                            .positionAisNmea(positionAisNmea)
-                            // ship static nmea
-                            .shipStaticAisNmea(shipStaticAisNmea)
-                            // build it
-                            .build());
-                } catch (RuntimeException e) {
-                    throw e;
-                }
-            }
+    private static final Func1<AisMessageAndVesselData, Boolean> isPosition = m -> {
+        if (m.message().isPresent()
+                && m.message().get().getMessage().get().message() instanceof AisPosition) {
+            AisPosition p = (AisPosition) m.message().get().getMessage().get().message();
+            return (p.getLatitude() != null && p.getLongitude() != null);
         } else
-            return empty();
+            return false;
     };
+
+    private static final Func1<AisMessageAndVesselData, VesselPosition> toVesselPosition = messageAndData -> {
+
+        AisPosition p = (AisPosition) messageAndData.message().get().getMessage().get().message();
+
+        VesselClass cls;
+        if (p instanceof AisPositionA)
+            cls = VesselClass.A;
+        else
+            cls = VesselClass.B;
+        Mmsi id = new Mmsi(p.getMmsi());
+        Optional<Vessel> vessel = messageAndData.data().get(id);
+        Optional<Integer> lengthMetres = vessel.isPresent() ? vessel.get().getLengthMetres()
+                : Optional.<Integer> absent();
+
+        Optional<Integer> widthMetres = vessel.isPresent() ? vessel.get().getWidthMetres()
+                : Optional.<Integer> absent();
+
+        Optional<Double> speedMetresPerSecond = p.getSpeedOverGroundKnots() != null ? of(p
+                .getSpeedOverGroundKnots() * 0.5144444444) : Optional.<Double> absent();
+
+        Optional<Integer> shipType = vessel.isPresent() ? vessel.get().getShipType() : Optional
+                .<Integer> absent();
+
+        NavigationalStatus navigationalStatus;
+        if (p instanceof AisPositionA) {
+            AisPositionA a = (AisPositionA) p;
+            if (Util.equals(a.getNavigationalStatus(),
+                    au.gov.amsa.ais.message.NavigationalStatus.AT_ANCHOR))
+                navigationalStatus = NavigationalStatus.AT_ANCHOR;
+            else if (Util.equals(a.getNavigationalStatus(),
+                    au.gov.amsa.ais.message.NavigationalStatus.MOORED)) {
+                navigationalStatus = NavigationalStatus.MOORED;
+            } else
+                navigationalStatus = NavigationalStatus.NOT_DEFINED;
+        } else
+            navigationalStatus = NavigationalStatus.NOT_DEFINED;
+
+        Optional<String> positionAisNmea;
+        if (p instanceof AisPositionA) {
+            positionAisNmea = Optional.of(messageAndData.message().get().getLine());
+        } else
+            positionAisNmea = Optional.absent();
+
+        Optional<String> shipStaticAisNmea;
+        if (vessel.isPresent())
+            shipStaticAisNmea = vessel.get().getNmea();
+        else
+            shipStaticAisNmea = Optional.absent();
+
+        // TODO adjust lat, lon for position of ais set on ship
+        // given by A,B,C,D? Or instead store the position offset in
+        // metres in VesselPosition (preferred because RateOfTurn
+        // (ROT) may enter the picture later).
+        return VesselPosition.builder()
+        // cog
+                .cogDegrees(fromNullable(p.getCourseOverGround()))
+                // heading
+                .headingDegrees(fromNullable(toDouble(p.getTrueHeading())))
+                // speed
+                .speedMetresPerSecond(speedMetresPerSecond)
+                // lat
+                .lat(p.getLatitude())
+                // lon
+                .lon(p.getLongitude())
+                // id
+                .id(id)
+                // length
+                .lengthMetres(lengthMetres)
+                // width
+                .widthMetres(widthMetres)
+                // time
+                .time(messageAndData.message().get().getMessage().get().time())
+                // ship type
+                .shipType(shipType)
+                // class
+                .cls(cls)
+                // at anchor
+                .navigationalStatus(navigationalStatus)
+                // position nmea
+                .positionAisNmea(positionAisNmea)
+                // ship static nmea
+                .shipStaticAisNmea(shipStaticAisNmea)
+                // build it
+                .build();
+    };
+
+    private static Double toDouble(Number i) {
+        if (i == null)
+            return null;
+        else
+            return i.doubleValue();
+    }
 
 }

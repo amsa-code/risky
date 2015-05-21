@@ -254,7 +254,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
         static final float DEFAULT_MIN_DRIFTING_SPEED_KNOTS = 0.25f;
         @VisibleForTesting
         static final float DEFAULT_MAX_DRIFTING_SPEED_KNOTS = 20;
-        private static final long DEFAULT_EXPIRY_AGE_MS = TimeUnit.HOURS.toMillis(5);
+        private static final long DEFAULT_EXPIRY_AGE_MS = TimeUnit.HOURS.toMillis(6);
         private static final long DEFAULT_NON_DRIFTING_THRESHOLD_MS = TimeUnit.MINUTES.toMillis(5);
 
         private final int minHeadingCogDifference;
