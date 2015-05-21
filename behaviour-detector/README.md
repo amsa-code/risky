@@ -61,3 +61,4 @@ D<sub>1</sub>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>2</sub></b>, emit D<sub>2</sub> if t<sub>2</sub> - t<sub>1</sub> &lt; E<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>2</sub> otherwise
 
+In terms of memory utilization it should be noted that one of these buffers is required per vessel and is retained for the life of the application. Given that 30 to 40 thousand distinct vessels traverse the Australian SRR per year this may be important to optimize.
