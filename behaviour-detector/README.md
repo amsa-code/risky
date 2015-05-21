@@ -45,7 +45,7 @@ N<sub>1</sub>D<sub>2</sub>  &#8594; nothing<br/>
 
 D<sub>1</sub>N<sub>2</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub>
 
-<b>D<sub>1</sub></b>N<sub>2</sub>N<sub>3</sub> &#8594; D<sub>1</sub>N<sub>2</sub>
+<b>D<sub>1</sub></b>N<sub>2</sub>N<sub>3</sub> &#8594; <b>D<sub>1</sub></b>N<sub>2</sub>
 
 D<sub>1</sub>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>1</sub>D<sub>3</sub>, if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>
