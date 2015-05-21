@@ -52,6 +52,6 @@ D<sub>1</sub>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise
 
 <b>D<sub>1</sub></b>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>1</sub>D<sub>3</sub></b>, emit D<sub>3</sub> if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>3</sub></b>, emit D<sub>3</sub> if t<sub>3</sub> - t<sub>2</sub> &lt; T and t<sub>3</sub> - t<sub>1</sub> &lt; E<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise
 
