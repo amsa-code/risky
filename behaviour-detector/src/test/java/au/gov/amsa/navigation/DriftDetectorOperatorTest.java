@@ -147,7 +147,7 @@ public class DriftDetectorOperatorTest {
     }
 
     @Test
-    public void testTwoDrifters() {
+    public void testRule2TwoDrifters() {
         long t = 0;
         // drifter
         Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
@@ -157,6 +157,55 @@ public class DriftDetectorOperatorTest {
         assertEquals(2, list.size());
         assertTrue(f1 == list.get(0).fix());
         assertTrue(f2 == list.get(1).fix());
+        assertEquals(f1.time(), list.get(0).driftingSince());
+        assertEquals(f1.time(), list.get(1).driftingSince());
+    }
+
+    @Test
+    public void testRule2TwoDriftersBigTimeGap() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
+        // drifter
+        Fix f2 = createFix(91, DRIFT_SPEED_KNOTS, t += TimeUnit.DAYS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2));
+        assertTrue(list.isEmpty());
+    }
+
+    @Test
+    public void testRule3ThreeDrifters() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
+        // drifter
+        Fix f2 = createFix(91, DRIFT_SPEED_KNOTS, t += 1);
+        // drifter
+        Fix f3 = createFix(92, DRIFT_SPEED_KNOTS, t += 1);
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2, f3));
+        assertEquals(3, list.size());
+        assertTrue(f1 == list.get(0).fix());
+        assertTrue(f2 == list.get(1).fix());
+        assertTrue(f3 == list.get(2).fix());
+        assertEquals(f1.time(), list.get(0).driftingSince());
+        assertEquals(f1.time(), list.get(1).driftingSince());
+        assertEquals(f1.time(), list.get(2).driftingSince());
+    }
+
+    @Test
+    public void testRule3ThreeDriftersBigTimeGapBetweenLastTwo() {
+        long t = 0;
+        // drifter
+        Fix f1 = createFix(90, DRIFT_SPEED_KNOTS, t);
+        // drifter
+        Fix f2 = createFix(91, DRIFT_SPEED_KNOTS, t += 1);
+        // drifter
+        Fix f3 = createFix(92, DRIFT_SPEED_KNOTS, t += TimeUnit.DAYS.toMillis(1));
+        List<DriftCandidate> list = getCandidates(Observable.just(f1, f2, f3));
+        assertEquals(2, list.size());
+        assertTrue(f1 == list.get(0).fix());
+        assertTrue(f2 == list.get(1).fix());
+        assertEquals(f1.time(), list.get(0).driftingSince());
+        assertEquals(f1.time(), list.get(1).driftingSince());
     }
 
     private List<DriftCandidate> getCandidates(Observable<Fix> source) {
