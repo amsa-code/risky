@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.navigation.DriftDetectorOperator.Options;
 import au.gov.amsa.navigation.ais.AisVesselPositions;
 
 import com.github.davidmoten.rx.slf4j.Logging;
@@ -11,14 +12,13 @@ import com.github.davidmoten.rx.slf4j.Logging;
 public class DriftDetectorMain {
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
+        System.out.println(Options.instance());
         String filename = "/media/an/nmea/2013/NMEA_ITU_20130108.gz";
         Streams.nmeaFromGzip(filename)
         // parse positions
                 .compose(AisVesselPositions.positions())
-                //
-                .take(1000)
                 // log
-                .lift(Logging.<VesselPosition> logger().showValue().log())
+                .lift(Logging.<VesselPosition> logger().showCount().every(100000).log())
                 // group by mmsi
                 .groupBy(f -> f.fix().mmsi())
                 //

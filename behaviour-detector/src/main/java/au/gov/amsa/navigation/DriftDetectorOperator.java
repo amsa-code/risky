@@ -55,14 +55,15 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
 
             @Override
             public void onNext(HasFix f) {
+
                 Fix fix = f.fix();
                 if (outOfTimeOrder(fix))
                     return;
 
                 final Item item;
-                if (isCandidate.call(fix))
+                if (isCandidate.call(fix)) {
                     item = new Drifter(f, false);
-                else
+                } else
                     item = new NonDrifter(fix.time());
                 if (a == null) {
                     a = item;
@@ -227,7 +228,6 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
                 return diff >= options.minHeadingCogDifference()
                         && diff <= options.maxHeadingCogDifference()
                         && f.speedOverGroundKnots().get() <= options.maxDriftingSpeedKnots()
-
                         && f.speedOverGroundKnots().get() > options.minDriftingSpeedKnots();
             } else
                 return false;
