@@ -20,7 +20,7 @@ Now let's introduce some notation that will make the algorithm much more concise
 
 `D` is a drift detection, `N` is a non drifting report.
 
-We now want to process a stream of position reports (any reports out of time order are chucked). Consider a small buffer that we pass reports through and sometimes drift paths come out the other side. Using the rules below we will see that the buffer only needs to hold a maximum of three elements at a time.
+We now want to process a stream of position reports (any reports out of time order are chucked). Consider a small buffer that we pass reports through (turns out a size of 2 is sufficient) and sometimes drift paths come out the other side. Using the rules below we will see that the buffer only needs to hold a maximum of three elements at a time.
 
 This is how we represent a sequence of reports and how we reference time for the reports:
 
