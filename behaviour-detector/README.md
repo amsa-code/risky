@@ -24,5 +24,5 @@ We now want to process a stream of position reports (any reports out of time ord
 
 This is how we represent a sequence of reports and how we reference time for the reports:
 
-&nbsp;&nbsp;D<sub>1</sub>N<sub>2</sub> represents a drift detection at time t<sub>1</sub> followed by a non drift detection at time t<sub>2</sub>.
+&nbsp;&nbsp;&nbsp;&nbsp;D<sub>1</sub>N<sub>2</sub> represents a drift detection at time t<sub>1</sub> followed by a non drift detection at time t<sub>2</sub>.
 
