@@ -472,7 +472,7 @@ public class VesselPosition implements HasFix {
             @Override
             public Optional<Float> speedOverGroundKnots() {
                 if (speedMetresPerSecond.isPresent())
-                    return Optional.of((float) (1 / 1852 * speedMetresPerSecond.get() * 3600));
+                    return Optional.of((float) metresPerSecondToKnots(speedMetresPerSecond.get()));
                 else
                     return Optional.absent();
             }
@@ -512,6 +512,10 @@ public class VesselPosition implements HasFix {
                 return Optional.absent();
             }
         };
+    }
+
+    static double metresPerSecondToKnots(double x) {
+        return x * 3600.0 / 1852.0;
     }
 
     private static Optional<Float> toFloat(Optional<Double> value) {
