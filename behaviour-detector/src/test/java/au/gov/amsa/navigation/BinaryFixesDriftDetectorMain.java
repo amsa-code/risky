@@ -35,7 +35,7 @@ public class BinaryFixesDriftDetectorMain {
         new File(DRIFT_CANDIDATES_TXT).delete();
         VesselPosition.validate = false;
         FixImpl.validate = false;
-        List<File> files = Files.find(new File("/media/an/binary-fixes/2012"),
+        List<File> files = Files.find(new File("/media/an/binary-fixes/2014"),
                 Pattern.compile(".*\\.track"));
         log.info("files=" + files.size());
         final AtomicLong num = new AtomicLong();
@@ -94,8 +94,7 @@ public class BinaryFixesDriftDetectorMain {
                                         .compose(Fixes.ignoreOutOfOrderFixes(false))
                                         // detect drift
                                         .compose(DriftDetector.detectDrift())
-                                        // downsample to min 5 minutes
-                                        // between
+                                        // downsample to min 5 minutes between
                                         // reports but ensure that start of
                                         // drift is always included
                                         .compose(
@@ -161,8 +160,9 @@ public class BinaryFixesDriftDetectorMain {
     private static Action1<Fix> logCount(final AtomicLong num) {
         return p -> {
             long n = num.incrementAndGet();
-            if (n % 1000000 == 0)
+            if (n % 1000000 == 0) {
                 log.info((n / 1000000.0) + "m");
+            }
         };
     }
 
