@@ -125,8 +125,9 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
             private void processAB() {
                 if (!isDrifter(a)) {
                     // rule 1
-                    a = b;
-                    b = null;
+                    a = null;
+                    if (b != null)
+                        unexpected();
                 } else if (b == null) {
                     // do nothing
                 } else if (!a.emitted()) {
@@ -224,7 +225,7 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
 
         @Override
         public Fix fix() {
-            return null;
+            throw new RuntimeException("unexpected");
         }
 
         @Override
