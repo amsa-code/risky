@@ -1,0 +1,4 @@
+#MMSI, IMO, Class, AIS Ship Type, dimA, dimB, dimC, dimD (metres)
+# -1 = not present
+373484000,9641455,A,69,17.0,12,26,4,12
+477898400,9310159,A,89,112.0,290,42,33,10

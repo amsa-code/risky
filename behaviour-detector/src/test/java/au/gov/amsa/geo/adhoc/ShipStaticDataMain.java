@@ -59,8 +59,8 @@ public class ShipStaticDataMain {
                 //
                 .doOnNext(
                         m -> {
-                            out.format("%s,%s,%s,%s,%s,%s,%s,%s\n", m.getMmsi(), m.getImo().or(-1),
-                                    "A", m.getShipType(), (float) m
+                            out.format("%s,%s,%s,%s,%s,%s,%s,%s,%s\n", m.getMmsi(),
+                                    m.getImo().or(-1), "A", m.getShipType(), (float) m
                                             .getMaximumPresentStaticDraughtMetres(), m
                                             .getDimensionA().or(-1), m.getDimensionB().or(-1), m
                                             .getDimensionC().or(-1), m.getDimensionD().or(-1));
