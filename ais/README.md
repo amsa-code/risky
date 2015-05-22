@@ -89,4 +89,101 @@ To analyze timestamped (TAG BLOCK) ais reports in file many.txt:
 
 ```mvn clean install exec:java -Dmany=many.txt```
 
+AIS Ship Types
+-----------------
+This is the decode of the ship type numbers from AIS:
+
+```
+10,Reserved - All
+11,Reserved - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+12,Reserved - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+13,Reserved - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+14,Reserved - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+15,Reserved - Reserved 5
+16,Reserved - Reserved 6
+17,Reserved - Reserved 7
+18,Reserved - Reserved 8
+19,Reserved - No additional info
+20,WIG - All
+21,WIG - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+22,WIG - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+23,WIG - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+24,WIG - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+25,WIG - Reserved 5
+26,WIG - Reserved 6
+27,WIG - Reserved 7
+28,WIG - Reserved 8
+29,WIG - No additional info
+30,Fishing
+31,Towing
+32,Towing Long/Large
+33,Engaged in dredging or underwater operations
+34,Engaged in diving operations
+35,Engaged in military operations
+36,Sailing
+37,Pleasure craft
+38,Reserved
+39,Reserved
+40,HSC - All
+41,HSC - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+42,HSC - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+43,HSC - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+44,HSC - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+45,HSC - Reserved 5
+46,HSC - Reserved 6
+47,HSC - Reserved 7
+48,HSC - Reserved 8
+49,HSC - No additional info
+50,Pilot vessel
+51,SAR
+52,Tug
+53,Port tender
+54,Vessel with anti-pollution facilities or equipment
+55,Law enforcement
+56,Local 56
+57,Local 57
+58,Medical transport
+59,Ship according to RR Resolution No. 18 (Mob-83)
+60,Passenger ship - All
+61,Passenger ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+62,Passenger ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+63,Passenger ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+64,Passenger ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+65,Passenger ship - Reserved 5
+66,Passenger ship - Reserved 6
+67,Passenger ship - Reserved 7
+68,Passenger ship - Reserved 8
+69,Passenger ship - No additional info
+70,Cargo ship - All
+71,Cargo ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+72,Cargo ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+73,Cargo ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+74,Cargo ship - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+75,Cargo ship - Reserved 5
+76,Cargo ship - Reserved 6
+77,Cargo ship - Reserved 7
+78,Cargo ship - Reserved 8
+79,Cargo ship - No additional info
+80,Tanker - All
+81,Tanker - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+82,Tanker - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+83,Tanker - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+84,Tanker - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+85,Tanker - Reserved 5
+86,Tanker - Reserved 6
+87,Tanker - Reserved 7
+88,Tanker - Reserved 8
+89,Tanker - No additional info
+90,Other - All
+91,Other - Carrying DG, HS, or MP, IMO Hazard or pollutant category A
+92,Other - Carrying DG, HS, or MP, IMO Hazard or pollutant category B
+93,Other - Carrying DG, HS, or MP, IMO Hazard or pollutant category C
+94,Other - Carrying DG, HS, or MP, IMO Hazard or pollutant category D
+95,Other - Reserved 5
+96,Other - Reserved 6
+97,Other - Reserved 7
+98,Other - Reserved 8
+99,Other - No additional info
+```
+
 
