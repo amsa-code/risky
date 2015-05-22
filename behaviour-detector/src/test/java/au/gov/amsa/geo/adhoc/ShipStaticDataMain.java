@@ -30,11 +30,11 @@ public class ShipStaticDataMain {
 
         Observable
                 .from(files)
-                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()))
+                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()) - 1)
                 .flatMap(
                         list -> Observable.from(list)
                                 .lift(Logging.<File> logger().showValue().showMemory().log())
-                                .flatMap(file -> Streams.extract(Streams.nmeaFromGzip(file))
+                                .concatMap(file -> Streams.extract(Streams.nmeaFromGzip(file))
                                 //
                                 // .lift(Logging
                                 // .<TimestampedAndLine<AisMessage>>
@@ -51,33 +51,24 @@ public class ShipStaticDataMain {
                                         //
                                         .distinct(m -> m.getMmsi()))
                                 //
+                                .distinct(m -> m.getMmsi())
+                                //
                                 .subscribeOn(Schedulers.computation()))
                 //
-                .toMap(m -> m.getMmsi(), m -> m)
+                .distinct(m -> m.getMmsi())
                 //
                 .doOnNext(
-                        map -> {
-                            System.out.println("writing map to target/out.txt");
-                            map.values()
-                                    .stream()
-                                    .forEach(
-                                            m -> {
-                                                out.format(
-                                                        "%s,%s,%s,%s,%s,%s,%s,%s\n",
-                                                        m.getMmsi(),
-                                                        m.getImo().or(-1),
-                                                        "A",
-                                                        m.getShipType(),
-                                                        (float) m
-                                                                .getMaximumPresentStaticDraughtMetres(),
-                                                        m.getDimensionA().or(-1), m.getDimensionB()
-                                                                .or(-1), m.getDimensionC().or(-1),
-                                                        m.getDimensionD().or(-1));
-                                            });
-                            ;
-                        }).toBlocking().single();
+                        m -> {
+                            out.format("%s,%s,%s,%s,%s,%s,%s,%s\n", m.getMmsi(), m.getImo().or(-1),
+                                    "A", m.getShipType(), (float) m
+                                            .getMaximumPresentStaticDraughtMetres(), m
+                                            .getDimensionA().or(-1), m.getDimensionB().or(-1), m
+                                            .getDimensionC().or(-1), m.getDimensionD().or(-1));
+                            out.flush();
+                        })
+                // go
+                .count().toBlocking().single();
         out.close();
-
     }
 
     private static Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisShipStatic>>> aisShipStaticOnly = m -> {
