@@ -18,6 +18,8 @@ import com.google.common.base.Preconditions;
  * for documentation of the algorithm used here.
  * 
  * Input to this operator should be grouped by mmsi and sorted ascending time.
+ * 
+ * Supports backpressure.
  *
  */
 public final class DriftDetectorOperator implements
