@@ -61,36 +61,41 @@ public final class DriftDetectorOperator implements
 
 			@Override
 			public void onNext(HasFix f) {
-				// Note that it is assumed that the input stream is grouped by
-				// mmsi and sorted by ascending time.
-				Fix fix = f.fix();
+				try {
+					// Note that it is assumed that the input stream is grouped
+					// by
+					// mmsi and sorted by ascending time.
+					Fix fix = f.fix();
 
-				if (mmsi != MMSI_NOT_SET && fix.mmsi() != mmsi) {
-					// reset for a new vessel
-					a = null;
-					b = null;
-					driftingSince = NOT_DRIFTING;
-				}
-				mmsi = fix.mmsi();
+					if (mmsi != MMSI_NOT_SET && fix.mmsi() != mmsi) {
+						// reset for a new vessel
+						a = null;
+						b = null;
+						driftingSince = NOT_DRIFTING;
+					}
+					mmsi = fix.mmsi();
 
-				if (outOfTimeOrder(fix)) {
-					request(1);
-					return;
-				}
+					if (outOfTimeOrder(fix)) {
+						request(1);
+						return;
+					}
 
-				final Item item;
-				if (isCandidate.call(fix)) {
-					item = new Drifter(f, false);
-				} else
-					item = new NonDrifter(fix.time());
-				if (a == null) {
-					a = item;
-					processAB();
-				} else if (b == null) {
-					b = item;
-					processAB();
-				} else {
-					processABC(item);
+					final Item item;
+					if (isCandidate.call(fix)) {
+						item = new Drifter(f, false);
+					} else
+						item = new NonDrifter(fix.time());
+					if (a == null) {
+						a = item;
+						processAB();
+					} else if (b == null) {
+						b = item;
+						processAB();
+					} else {
+						processABC(item);
+					}
+				} catch (RuntimeException e) {
+					onError(e);
 				}
 			}
 
@@ -115,6 +120,7 @@ public final class DriftDetectorOperator implements
 					} else {
 						a = c;
 						b = null;
+						request(1);
 					}
 				} else {
 					System.out.println(a + "," + b + "," + c);
