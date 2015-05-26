@@ -27,7 +27,7 @@ Complexity hits when we want to answer this question:
 ####Algorithm
 The following algorithm is proposed:
 
-<img src="src/docs/drift-detector-flow.png?raw=true" />
+<img src="src/docs/drift-detection-flow.png?raw=true" />
 
 Define `E` as the maximum time between two drift detections for them to be considered as one drift path.
 
