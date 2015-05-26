@@ -10,11 +10,22 @@ A vessel is considered to be drifting if
 * its speed is non-zero (>=0.25 knots for example) and <=20 knots
 * its course-over-ground differs from its heading by >=45 degrees
 
+###When did drift start
+
 Complexity hits when we want to answer this question:
 
 * When did the vessel **start** drifting?
 
-To answer this question the following algorithm is proposed:
+####Why is this complex?
+
+* a drift of several hours will probably encounter environmental changes (tide changes, wind changes, current changes both temporally and positionally). This means that our simple drift criteria above may from time to time indicate that a vessel has stopped drifting when it has not.
+* if vessel position reports have big time gaps it may be undesirable to assume that the vessel was drifting for the whole period.
+* some ais messages may be corrupted (though this is <0.1% of messages)
+* some ais sets are wrongly configured (wrong mmsi particularly)
+* we need to account for different reporting frequencies (small intervals near terrestrial AIS stations and larger intervals away from them).
+
+####Algorithm
+The following algorithm is proposed:
 
 Define `E` as the maximum time between two drift detections for them to be considered as one drift path.
 
