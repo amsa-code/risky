@@ -25,7 +25,7 @@ Complexity hits when we want to answer this question:
 * we need to account for different reporting frequencies (small intervals near terrestrial AIS stations and larger intervals away from them).
 
 ####Algorithm
-The following algorithm is proposed:
+The following algorithm is proposed (implemented in [DriftDetectorOperator.java](src/main/java/au/gov/amsa/navigation/DriftDetectorOperator.java):
 
 <img src="src/docs/drift-detection-flow.png?raw=true" />
 
