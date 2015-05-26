@@ -27,6 +27,8 @@ Complexity hits when we want to answer this question:
 ####Algorithm
 The following algorithm is proposed:
 
+<img src="src/docs/drift-detector-flow.png?raw=true" />
+
 Define `E` as the maximum time between two drift detections for them to be considered as one drift path.
 
 Define `T` as the maximum time that a vessel can stop drifting before breaking a drift path.
