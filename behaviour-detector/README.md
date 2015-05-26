@@ -29,15 +29,19 @@ The following algorithm is proposed:
 
 <img src="src/docs/drift-detection-flow.png?raw=true" />
 
-Define `E` as the maximum time between two drift detections for them to be considered as one drift path.
+Define 
 
-Define `T` as the maximum time that a vessel can stop drifting before breaking a drift path.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`E` is the maximum time between two drift detections for them to be considered as one drift path.
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`T` is the maximum time that a vessel can stop drifting before breaking a drift path.
 
 Before recording a drift path we require at least two drift detections on the same path.
 
 Now let's introduce some notation that will make the algorithm much more concise to explain.
 
-`D` is a drift detection, `N` is a non drifting report.
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`D` is a drift detection, 
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`N` is a non drifting report.
 
 We now want to process a stream of position reports (any reports out of time order are chucked). Consider a small buffer that we pass reports through (turns out a size of 2 is sufficient) and sometimes drift paths come out the other side. Using the rules below we will see that the buffer only needs to hold a maximum of three elements at a time.
 
@@ -47,7 +51,7 @@ This is how we represent a sequence of reports and how we reference time for the
 
 Exiting the buffer we should only see Ds and we indicate the start of a drift path by quoting a D. Here's an example:
 
-D'<sub>1</sub>D<sub>2</sub>D'<sub>3</sub>D<sub>4</sub>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D'<sub>1</sub>D<sub>2</sub>D'<sub>3</sub>D<sub>4</sub>
 
 A report that is kept in the buffer after being emitted is represented by bolding: <b>D<sub>1</sub></b>.
 
