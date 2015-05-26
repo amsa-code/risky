@@ -1,7 +1,6 @@
 behaviour-detector
 ====================
 
-
 Drift detection
 ------------------
 Using course, heading and speed we have a simple criterion for detecting if a position report is a drift candidate:
@@ -12,17 +11,18 @@ A vessel is considered to be drifting if
 
 ###When did drift start?
 
-Complexity hits when we want to answer this question:
+Things get trickier when we want to answer this question:
 
 * When did the vessel **start** drifting?
 
-####Why is this complex (a little bit)?
+####What's trickier about detecting the start of drift?
 
 * a drift of several hours will probably encounter environmental changes (tide changes, wind changes, current changes both temporally and positionally). This means that our simple drift criteria above may from time to time indicate that a vessel has stopped drifting when it has not.
 * if vessel position reports have big time gaps it may be undesirable to assume that the vessel was drifting for the whole period.
 * some ais messages may be corrupted (though this is <0.1% of messages)
 * some ais sets are wrongly configured (wrong mmsi particularly)
-* we need to account for different reporting frequencies (small intervals near terrestrial AIS stations and larger intervals away from them).
+* need to account for different reporting frequencies (small intervals near terrestrial AIS stations and larger satellite reporting intervals away from them).
+* need to buffer position reports in memory or database for every vessel (most likely in-memory because of high data rates)
 
 ####Algorithm
 The following algorithm is proposed (implemented in [DriftDetectorOperator.java](src/main/java/au/gov/amsa/navigation/DriftDetectorOperator.java):
