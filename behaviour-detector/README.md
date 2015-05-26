@@ -4,7 +4,13 @@ behaviour-detector
 
 Drift detection
 ------------------
-Using course, heading and speed we have a simple criterion for detecting if a position report is a drift candidate. Complexity hits when we want to answer this question:
+Using course, heading and speed we have a simple criterion for detecting if a position report is a drift candidate:
+
+A vessel is considered to be drifting if 
+* its speed is non-zero (>=0.25 knots for example) and <=20 knots
+* its course-over-ground differs from its heading by >=45 degrees
+
+Complexity hits when we want to answer this question:
 
 * When did the vessel **start** drifting?
 
