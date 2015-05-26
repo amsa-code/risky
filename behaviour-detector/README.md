@@ -8,6 +8,7 @@ Using course, heading and speed we have a simple criterion for detecting if a po
 A vessel is considered to be drifting if 
 * its speed is non-zero (>=0.25 knots for example) and <=20 knots
 * its course-over-ground differs from its heading by >=45 degrees
+* its AIS set is not indicating that it is at anchor or moored
 
 ###When did drift start?
 
