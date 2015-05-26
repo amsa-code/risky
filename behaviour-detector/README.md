@@ -18,7 +18,7 @@ Things get trickier when we want to answer this question:
 ####What's trickier about detecting the start of drift?
 
 * a drift of several hours will probably encounter environmental changes (tide changes, wind changes, current changes both temporally and positionally). This means that our simple drift criteria above may from time to time indicate that a vessel has stopped drifting when it has not.
-* if vessel position reports have big time gaps it may be undesirable to assume that the vessel was drifting for the whole period.
+* if vessel position reports have big time gaps it may be undesirable to indicate that the vessel was drifting for the whole period.
 * some ais messages may be corrupted (though this is <0.1% of messages)
 * some ais sets are wrongly configured (wrong mmsi particularly)
 * need to account for different reporting frequencies (small intervals near terrestrial AIS stations and larger satellite reporting intervals away from them).
