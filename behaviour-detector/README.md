@@ -10,7 +10,7 @@ A vessel is considered to be drifting if
 * its speed is non-zero (>=0.25 knots for example) and <=20 knots
 * its course-over-ground differs from its heading by >=45 degrees
 
-###When did drift start
+###When did drift start?
 
 Complexity hits when we want to answer this question:
 
