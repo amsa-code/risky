@@ -56,7 +56,6 @@ public final class ShipStaticData {
 				.filter(line -> !line.startsWith("#"))
 				.map(line -> line.trim())
 				.filter(line -> line.length() > 0)
-				.doOnNext(System.out::println)
 				.map(line -> line.split(","))
 				.map(items -> {
 					int i = 0;
