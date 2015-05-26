@@ -17,10 +17,12 @@ import com.google.common.base.Preconditions;
  * https://github.com/amsa-code/risky/blob/master/behaviour-detector/README.md
  * for documentation of the algorithm used here.
  * 
- * Input to this operator should be grouped by mmsi and sorted ascending time.
+ * Input to this operator should be grouped by mmsi and sorted by ascending
+ * time.
  * 
- * Supports backpressure.
- *
+ * Supports backpressure in combination with a buffering operator downstream
+ * <code>.lift(Operators.bufferRequests)</code> from <i>rxjava-extras</i>
+ * 
  */
 public final class DriftDetectorOperator implements
 		Operator<DriftCandidate, HasFix> {
