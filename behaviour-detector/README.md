@@ -78,5 +78,5 @@ For the area around Australia (to about 10 degrees above the equator) there are 
 
 * only include drift paths that are longer than 1nm
 * only display one point per hour for each drift path
-* 
+
 The above filters reduce the 3m points to 211K.
