@@ -58,7 +58,7 @@ public class ShapefileTest {
 						return list2;
 					}).toBlocking().single();
 			ShapefileCreator.createPolygon(coords, new File(
-					"target/shapefile-test.shp"));
+					"target/southwest.shp"));
 		}
 	}
 
