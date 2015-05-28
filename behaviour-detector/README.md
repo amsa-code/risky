@@ -3,7 +3,7 @@ behaviour-detector
 
 Drift detection
 ------------------
-Using course, heading and speed we have a simple criterion for detecting if a position report is a drift candidate:
+Using course, heading and speed we have simple criteria for detecting if a position report is a drift candidate:
 
 A vessel is considered to be drifting if 
 * its speed is non-zero (>=0.25 knots for example) and <=20 knots
@@ -71,3 +71,12 @@ We define the following transformation rules (which are applied repeatedly till 
 7. <b>D<sub>1</sub></b>N<sub>2</sub>D<sub>3</sub>  &#8594; <br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<b>D<sub>1</sub></b>D<sub>3</sub> if t<sub>3</sub> - t<sub>2</sub> &lt; T<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;D<sub>3</sub> otherwise<br/><br/>
 
 In terms of memory utilization it should be noted that one of these buffers is required per vessel and is retained for the life of the application. Given that 30 to 40 thousand distinct vessels traverse the Australian SRR per year this may be important to optimize.
+
+###Visualizations
+
+For the area around Australia (to about 10 degrees above the equator) there are 3m drift detections per year. When visualizing the drift paths we naturally seek to filter the data somewhat. These are some filtering techniques being used in AMSA visualizations:
+
+* only include drift paths that are longer than 1nm
+* only display one point per hour for each drift path
+
+The above filters reduce the 3m points to 211K.
