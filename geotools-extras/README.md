@@ -1,4 +1,4 @@
 geotools-extras
 =================
 
-Tools for reading and doing contains checks on shapefiles read as files or zip file on classpath.
+Tools for reading shapefiles from files or zip files and checking if a shape file contains a point.
