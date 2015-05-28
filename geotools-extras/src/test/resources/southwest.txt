@@ -1,0 +1,10 @@
+# polygon for the southwest drift detection are
+# longitude <space> latitude
+114.395 -34.006
+114.593 -34.641
+116.439 -65.639
+115.109 -35
+118.207 -35.603
+119.24 -35.056
+119.24 -34.542
+115.021 -34.006
