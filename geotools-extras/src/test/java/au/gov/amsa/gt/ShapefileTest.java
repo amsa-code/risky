@@ -52,9 +52,11 @@ public class ShapefileTest {
 					.doOnNext(System.out::println)
 					.map(line -> line.split(" "))
 					.map(items -> new Coordinate(parseDouble(items[0]),
-							parseDouble(items[1]))).toList().map(list -> {
+							parseDouble(items[1])))
+					.toList()
+					.map(list -> {
 						List<Coordinate> list2 = Lists.newArrayList(list);
-						list2.add(list2.get(0));
+						list2.add(new Coordinate(list.get(0).x, list.get(0).y));
 						return list2;
 					}).toBlocking().single();
 			ShapefileCreator.createPolygon(coords, new File(
