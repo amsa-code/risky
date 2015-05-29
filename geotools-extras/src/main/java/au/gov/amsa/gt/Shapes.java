@@ -36,13 +36,16 @@ public class Shapes {
 				})
 				// build map
 				.toMap(items -> items[0].trim(),
-						items -> shapefileFromZip(items[1].trim()))
+						items -> shapefileFromZip(items[1].trim(),
+								Double.parseDouble(items[2].trim())))
 				// go
 				.toBlocking().single();
 	}
 
-	private static Shapefile shapefileFromZip(String resource) {
-		return Shapefile.fromZip(Shapes.class.getResourceAsStream(resource));
+	private static Shapefile shapefileFromZip(String resource,
+			double bufferDistance) {
+		return Shapefile.fromZip(Shapes.class.getResourceAsStream(resource),
+				bufferDistance);
 	}
 
 	/**
