@@ -34,9 +34,11 @@ public final class Shapefile {
 	private static final int LOADED = 1;
 	private static final int CLOSED = 2;
 
-	private List<PreparedGeometry> geometries;
+	private volatile List<PreparedGeometry> geometries;
+	private final double bufferDistance;
 
-	private Shapefile(File file) {
+	private Shapefile(File file, double bufferDistance) {
+		this.bufferDistance = bufferDistance;
 		try {
 			Map<String, Serializable> map = new HashMap<>();
 			map.put("url", file.toURI().toURL());
@@ -47,7 +49,11 @@ public final class Shapefile {
 	}
 
 	public static Shapefile from(File file) {
-		return new Shapefile(file);
+		return from(file, 0);
+	}
+
+	public static Shapefile from(File file, double bufferDistance) {
+		return new Shapefile(file, bufferDistance);
 	}
 
 	public static void createPolygon(List<Coordinate> coords, File output) {
@@ -55,10 +61,14 @@ public final class Shapefile {
 	}
 
 	public static Shapefile fromZip(InputStream is) {
+		return fromZip(is, 0);
+	}
+
+	public static Shapefile fromZip(InputStream is, double bufferDistance) {
 		try {
 			File directory = Files.createTempDirectory("shape-").toFile();
 			ZipUtil.unzip(is, directory);
-			return new Shapefile(directory);
+			return new Shapefile(directory, bufferDistance);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -77,6 +87,8 @@ public final class Shapefile {
 					while (it.hasNext()) {
 						SimpleFeature feature = it.next();
 						Geometry g = (Geometry) feature.getDefaultGeometry();
+						if (bufferDistance > 0)
+							g = g.buffer(bufferDistance);
 						geometries.add(PreparedGeometryFactory.prepare(g));
 					}
 					it.close();

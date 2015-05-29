@@ -10,12 +10,15 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
 
+import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Test;
 
 import au.gov.amsa.streams.Strings;
 
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 public class ShapefileTest {
 
@@ -37,6 +40,35 @@ public class ShapefileTest {
 		assertFalse(shape.contains(0, 0));
 		assertEquals(4, shape.geometries().size());
 		shape.close();
+	}
+
+	@Test
+	public void testContainsInSrr() {
+		// northern border is -12, 113
+		Shapefile shape = Shapefile.fromZip(Shapefile.class
+				.getResourceAsStream("/shapefile-srr-polygon.zip"));
+
+		assertTrue(shape.contains(-13, 113));
+		assertFalse(shape.contains(-10, 113));
+	}
+
+	@Test
+	public void testShowDistanceBetweenPoints() {
+		GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
+		Point a = gf.createPoint(new Coordinate(-10, 114.0));
+		Point b = gf.createPoint(new Coordinate(-11, 113.0));
+		System.out.println("distance=" + a.distance(b));
+	}
+
+	@Test
+	public void testContainsInSrrWithBuffer() {
+		// northern border is -12, 113
+		Shapefile shape = Shapefile.fromZip(Shapefile.class
+				.getResourceAsStream("/shapefile-srr-polygon.zip"), 3);
+
+		assertTrue(shape.contains(-13, 113));
+		assertTrue(shape.contains(-10, 113));
+		assertFalse(shape.contains(-8, 113));
 	}
 
 	@Test
