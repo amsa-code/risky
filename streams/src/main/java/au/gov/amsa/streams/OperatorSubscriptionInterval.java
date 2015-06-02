@@ -8,8 +8,7 @@ import rx.Scheduler;
 import rx.Scheduler.Worker;
 import rx.Subscriber;
 import rx.observers.Subscribers;
-
-import com.github.davidmoten.rx.subjects.PublishSubjectSingleSubscriber;
+import rx.subjects.PublishSubject;
 
 public class OperatorSubscriptionInterval<T> implements Operator<T, T> {
 
@@ -29,16 +28,16 @@ public class OperatorSubscriptionInterval<T> implements Operator<T, T> {
     public Subscriber<? super T> call(Subscriber<? super T> child) {
         Subscriber<T> parent;
         if (firstTime.compareAndSet(true, false)) {
-            final PublishSubjectSingleSubscriber<T> subject = PublishSubjectSingleSubscriber
-                    .create();
+            // don't delay subscription for the first time
+            parent = Subscribers.from(child);
+        } else {
+            final PublishSubject<T> subject = PublishSubject.create();
             Worker worker = scheduler.createWorker();
             worker.schedule(() -> {
                 subject.unsafeSubscribe(child);
             }, duration, units);
             child.add(worker);
             parent = Subscribers.from(subject);
-        } else {
-            parent = Subscribers.from(child);
         }
         child.add(parent);
         return parent;
