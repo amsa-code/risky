@@ -8,16 +8,17 @@ import rx.plugins.RxJavaPlugins;
 
 public class RxJava {
 
-	private static final Logger log = LoggerFactory.getLogger(RxJava.class);
+    private static final Logger log = LoggerFactory.getLogger(RxJava.class);
 
-	public static void setErrorHandler() {
-		RxJavaErrorHandler handler = new RxJavaErrorHandler() {
+    public static void setErrorHandler() {
+        RxJavaErrorHandler handler = new RxJavaErrorHandler() {
 
-			@Override
-			public void handleError(Throwable e) {
-				log.error(e.getMessage(), e);
-			}
-		};
-		RxJavaPlugins.getInstance().registerErrorHandler(handler);
-	}
+            @Override
+            public void handleError(Throwable e) {
+                log.error(e.getMessage(), e);
+            }
+        };
+        RxJavaPlugins.getInstance().registerErrorHandler(handler);
+    }
+
 }
