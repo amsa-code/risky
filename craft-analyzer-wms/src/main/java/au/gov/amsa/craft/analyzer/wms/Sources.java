@@ -43,7 +43,7 @@ public class Sources {
     }
 
     public static Observable<VesselPosition> fixes2(File file) {
-        return DriftCandidates.fromCsv(file).filter(new Func1<DriftCandidate, Boolean>() {
+        return DriftCandidates.fromCsv(file, false).filter(new Func1<DriftCandidate, Boolean>() {
 
             @Override
             public Boolean call(DriftCandidate c) {
