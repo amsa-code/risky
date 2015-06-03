@@ -3,8 +3,10 @@ package au.gov.amsa.navigation;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.zip.GZIPInputStream;
 
 import rx.Observable;
 import rx.functions.Action1;
@@ -59,7 +61,7 @@ public final class DriftCandidates {
         return new DriftCandidate(fix, driftingSince);
     }
 
-    public static Observable<DriftCandidate> fromCsv(final File file) {
+    public static Observable<DriftCandidate> fromCsv(final File file, boolean zipped) {
         Action1<Reader> disposeAction = reader -> {
             try {
                 reader.close();
@@ -67,8 +69,14 @@ public final class DriftCandidates {
                 // ignore
             }
         };
-        Func0<Reader> resourceFactory = Checked.f0(() -> new InputStreamReader(new FileInputStream(
-                file)));
+        Func0<Reader> resourceFactory = Checked.f0(() -> {
+            InputStream is;
+            if (zipped)
+                is = new GZIPInputStream(new FileInputStream(file));
+            else
+                is = new FileInputStream(file);
+            return new InputStreamReader(is);
+        });
         Func1<Reader, Observable<DriftCandidate>> obFactory = reader -> fromCsv(reader);
         return Observable.using(resourceFactory, obFactory, disposeAction, true);
     }
