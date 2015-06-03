@@ -26,8 +26,8 @@ public class DriftCandidatesTest {
     @Test
     public void testReadFromFile() {
         List<DriftCandidate> list = DriftCandidates
-                .fromCsv(new File("src/test/resources/drift-candidates.txt")).toList().toBlocking()
-                .single();
+                .fromCsv(new File("src/test/resources/drift-candidates.txt"), false).toList()
+                .toBlocking().single();
         assertEquals(5, list.size());
         Fix f = list.get(0).fix();
         assertEquals(111450000, f.mmsi());
