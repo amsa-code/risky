@@ -22,7 +22,6 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.Raster;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Random;
 
@@ -201,8 +200,8 @@ public class FlyingSaucer extends JMapPane {
     private void setSpritePosition() {
         ReferencedEnvelope worldBounds = null;
         try {
-            worldBounds = getMapContent().getLayerBounds();
-        } catch (IOException ex) {
+            worldBounds = getMapContent().getMaxBounds();
+        } catch (Exception ex) {
             throw new IllegalStateException(ex);
         }
 
