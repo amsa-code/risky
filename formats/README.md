@@ -16,8 +16,8 @@ All values use *Big Endian* bit order.
 | latitude | float | 4 
 | longitude | float | 4
 | time | signed long | 8 | ms since 1970-01-01 00:00 UTC
-| source | signed short | 2 | 0 = not present, 1 = present but unknown, others TBA
 | latency | signed integer | 4 | unit is seconds, -1 = not present 
+| source | signed short | 2 | 0 = not present, 1 = present but unknown, others TBA
 | navigational status | signed byte | 1 | 127 = not present
 | rate of turn | signed byte | 1 | -128 = not present, others TBA
 | speed over ground | signed short | 2 |unit is 1/10 knot, 1023 = not present
