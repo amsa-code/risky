@@ -48,7 +48,7 @@ assertEquals(1, src)
 assertEquals(7, nav)
 assertEquals(75, sog)
 assertEquals(450, cog)
-assertEquals(46, heading)
+assertEquals(460, heading)
 assertEquals(1, cls)
 
 
