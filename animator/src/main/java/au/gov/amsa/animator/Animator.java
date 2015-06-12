@@ -137,7 +137,9 @@ public class Animator {
 
         WebMapServer wms;
         try {
-            wms = new WebMapServer(new URL("http://sarapps.amsa.gov.au:8080/cts-gis/wms"));
+            String url = "http://129.206.228.72/cached/osm?Request=GetCapabilities";
+            // String url = "http://sarapps.amsa.gov.au:8080/cts-gis/wms";
+            wms = new WebMapServer(new URL(url));
         } catch (ServiceException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -150,10 +152,10 @@ public class Animator {
     }
 
     public static void main(String[] args) throws Exception {
-        // System.setProperty("http.proxyHost", "proxy.amsa.gov.au");
-        // System.setProperty("http.proxyPort", "8080");
-        // System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
-        // System.setProperty("https.proxyPort", "8080");
+        System.setProperty("http.proxyHost", "proxy.amsa.gov.au");
+        System.setProperty("http.proxyPort", "8080");
+        System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
+        System.setProperty("https.proxyPort", "8080");
         new Animator().start();
     }
 
