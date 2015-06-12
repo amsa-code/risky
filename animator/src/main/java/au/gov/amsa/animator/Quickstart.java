@@ -73,11 +73,10 @@ public class Quickstart {
 
     private static Layer createExtraFeatures() throws SchemaException {
         SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
-        b.setName("locations");
+        b.setName("Location");
         b.setCRS(DefaultGeographicCRS.WGS84);
         // picture location
         b.add("geom", Point.class);
-        b.add("name", String.class);
         final SimpleFeatureType TYPE = b.buildFeatureType();
 
         GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
@@ -85,7 +84,6 @@ public class Quickstart {
 
         SimpleFeatureBuilder builder = new SimpleFeatureBuilder(TYPE);
         builder.add(point);
-        builder.add("Canberra");
         SimpleFeature feature = builder.buildFeature("Canberra");
         DefaultFeatureCollection features = new DefaultFeatureCollection(null, null);
         features.add(feature);
