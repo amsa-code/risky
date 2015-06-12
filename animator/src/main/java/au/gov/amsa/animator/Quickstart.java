@@ -1,5 +1,6 @@
 package au.gov.amsa.animator;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -9,15 +10,27 @@ import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.wms.WebMapServer;
+import org.geotools.feature.DefaultFeatureCollection;
+import org.geotools.feature.SchemaException;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
 import org.geotools.swing.wms.WMSLayerChooser;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.Point;
 
 /**
  * Prompts the user for a shapefile and displays the contents on the screen in a
@@ -50,11 +63,36 @@ public class Quickstart {
         Style style = SLD.createSimpleStyle(featureSource.getSchema());
         Layer layer = new FeatureLayer(featureSource, style);
         map.addLayer(layer);
+        map.addLayer(createExtraFeatures());
         // addWms(map);
 
         // Now display the map
         JMapFrame.showMap(map);
 
+    }
+
+    private static Layer createExtraFeatures() throws SchemaException {
+        SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
+        b.setName("locations");
+        b.setCRS(DefaultGeographicCRS.WGS84);
+        // picture location
+        b.add("geom", Point.class);
+        b.add("name", String.class);
+        final SimpleFeatureType TYPE = b.buildFeatureType();
+
+        GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
+        Point point = gf.createPoint(new Coordinate(149.1244, -35.3075));
+
+        SimpleFeatureBuilder builder = new SimpleFeatureBuilder(TYPE);
+        builder.add(point);
+        builder.add("Canberra");
+        SimpleFeature feature = builder.buildFeature("Canberra");
+        DefaultFeatureCollection features = new DefaultFeatureCollection(null, null);
+        features.add(feature);
+
+        Style style = SLD.createPointStyle("Star", Color.BLUE, Color.BLUE, 0.3f, 15);
+
+        return new FeatureLayer(features, style);
     }
 
     private static void addWms(MapContent map) {
