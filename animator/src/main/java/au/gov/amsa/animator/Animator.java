@@ -26,7 +26,6 @@ import org.geotools.map.MapContent;
 import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
-import org.geotools.renderer.GTRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
@@ -40,13 +39,6 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
-/**
- * Prompts the user for a shapefile and displays the contents on the screen in a
- * map frame.
- * <p>
- * This is the GeoTools Quickstart application used in documentationa and
- * tutorials. *
- */
 public class Animator {
 
     volatile Timer timer;
@@ -55,11 +47,8 @@ public class Animator {
         // Create a map context and add our shapefile to it
         final MapContent map = createMap();
 
-        // setup custom rendering over the top of the map
-        GTRenderer renderer = new VesselMovementRenderer();
-
         // Now display the map using the custom renderer
-        display(map, renderer);
+        display(map);
     }
 
     private MapContent createMap() {
@@ -71,32 +60,38 @@ public class Animator {
         return map;
     }
 
-    private void display(final MapContent map, GTRenderer renderer) {
+    private void display(final MapContent map) {
         EventQueue.invokeLater(() -> {
-            final JMapFrame frame = new JMapFrame(map);
-            frame.getMapPane().setRenderer(renderer);
-            frame.enableStatusBar(true);
-            frame.enableToolBar(true);
-            frame.initComponents();
-            frame.setSize(800, 600);
-            frame.getMapPane().addMouseListener(new MapMouseAdapter() {
+            // setup custom rendering over the top of the map
+                VesselMovementRenderer renderer = new VesselMovementRenderer();
+                final JMapFrame frame = new JMapFrame(map);
+                frame.getMapPane().setRenderer(renderer);
+                frame.enableStatusBar(true);
+                frame.enableToolBar(true);
+                frame.initComponents();
+                frame.setSize(800, 600);
+                FramePreferences.restoreLocationAndSize(frame, 100, 100, 800, 600, Animator.class);
+                frame.getMapPane().addMouseListener(new MapMouseAdapter() {
 
-                @Override
-                public void onMouseClicked(MapMouseEvent event) {
-                    DirectPosition2D p = event.getWorldPos();
-                    System.out.println(p);
-                }
+                    @Override
+                    public void onMouseClicked(MapMouseEvent event) {
+                        DirectPosition2D p = event.getWorldPos();
+                        System.out.println(p);
+                    }
 
+                });
+
+                frame.setVisible(true);
+                timer = new Timer(1000, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        System.out.println("timer");
+                        renderer.next();
+                        frame.getMapPane().setRenderer(renderer);
+                    }
+                });
+                timer.start();
             });
-            frame.setVisible(true);
-            timer = new Timer(200, new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent ae) {
-                    frame.getMapPane().repaint();
-                }
-            });
-
-        });
     }
 
     private Layer createCoastlineLayer() {
