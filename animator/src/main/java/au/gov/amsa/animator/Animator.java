@@ -2,30 +2,24 @@ package au.gov.amsa.animator;
 
 import java.awt.Color;
 import java.awt.EventQueue;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
-import javax.swing.JButton;
-import javax.swing.JPanel;
+import javax.swing.Timer;
 
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.wms.WebMapServer;
 import org.geotools.feature.DefaultFeatureCollection;
-import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTSFactoryFinder;
-import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
@@ -33,7 +27,6 @@ import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.renderer.GTRenderer;
-import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapFrame;
@@ -56,47 +49,29 @@ import com.vividsolutions.jts.geom.Point;
  */
 public class Animator {
 
-    /**
-     * GeoTools Quickstart demo application. Prompts the user for a shapefile
-     * and displays its contents on the screen in a map frame
-     */
-    public static void main(String[] args) throws Exception {
-        // System.setProperty("http.proxyHost", "proxy.amsa.gov.au");
-        // System.setProperty("http.proxyPort", "8080");
-        // System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
-        // System.setProperty("https.proxyPort", "8080");
-        File file = new File(
-                "/home/dxm/Downloads/shapefile-australia-coastline-polygon/cstauscd_r.shp");
+    volatile Timer timer;
 
-        FileDataStore store = FileDataStoreFinder.getDataStore(file);
-        SimpleFeatureSource featureSource = store.getFeatureSource();
-
+    public void start() {
         // Create a map context and add our shapefile to it
-        final MapContent map = new MapContent();
+        final MapContent map = createMap();
 
+        // setup custom rendering over the top of the map
+        GTRenderer renderer = new VesselMovementRenderer();
+
+        // Now display the map using the custom renderer
+        display(map, renderer);
+    }
+
+    private MapContent createMap() {
+        final MapContent map = new MapContent();
         map.setTitle("Animator");
-        Style style = SLD.createSimpleStyle(featureSource.getSchema());
-        Layer layer = new FeatureLayer(featureSource, style);
-        map.addLayer(layer);
+        map.addLayer(createCoastlineLayer());
         map.addLayer(createExtraFeatures());
         // addWms(map);
+        return map;
+    }
 
-        GTRenderer renderer = new StreamingRenderer() {
-
-            @Override
-            public void paint(Graphics2D g, Rectangle paintArea, ReferencedEnvelope mapArea,
-                    AffineTransform worldToScreen) {
-                super.paint(g, paintArea, mapArea, worldToScreen);
-                System.out.println("drawing");
-                Point2D.Float d = new Point2D.Float();
-                worldToScreen.transform(new Point2D.Float(149.1244f, -35.3075f), d);
-                g.drawString("Canberra", d.x, d.y);
-            }
-
-        };
-
-        final AtomicReference<JMapFrame> mapFrame = new AtomicReference<JMapFrame>();
-        // Now display the map
+    private void display(final MapContent map, GTRenderer renderer) {
         EventQueue.invokeLater(() -> {
             final JMapFrame frame = new JMapFrame(map);
             frame.getMapPane().setRenderer(renderer);
@@ -104,10 +79,6 @@ public class Animator {
             frame.enableToolBar(true);
             frame.initComponents();
             frame.setSize(800, 600);
-            JPanel glass = (JPanel) frame.getGlassPane();
-            glass.setLayout(null);
-            glass.add(new JButton("boo"));
-            mapFrame.set(frame);
             frame.getMapPane().addMouseListener(new MapMouseAdapter() {
 
                 @Override
@@ -118,13 +89,33 @@ public class Animator {
 
             });
             frame.setVisible(true);
-            glass.setVisible(true);
+            timer = new Timer(200, new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    frame.getMapPane().repaint();
+                }
+            });
 
         });
-
     }
 
-    private static Layer createExtraFeatures() throws SchemaException {
+    private Layer createCoastlineLayer() {
+        try {
+            File file = new File(
+                    "/home/dxm/Downloads/shapefile-australia-coastline-polygon/cstauscd_r.shp");
+
+            FileDataStore store = FileDataStoreFinder.getDataStore(file);
+            SimpleFeatureSource featureSource = store.getFeatureSource();
+
+            Style style = SLD.createSimpleStyle(featureSource.getSchema());
+            Layer layer = new FeatureLayer(featureSource, style);
+            return layer;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Layer createExtraFeatures() {
         SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
         b.setName("Location");
         b.setCRS(DefaultGeographicCRS.WGS84);
@@ -146,7 +137,7 @@ public class Animator {
         return new FeatureLayer(features, style);
     }
 
-    private static void addWms(MapContent map) {
+    static void addWms(MapContent map) {
         // URL wmsUrl = WMSChooser.showChooseWMS();
 
         WebMapServer wms;
@@ -161,6 +152,14 @@ public class Animator {
             WMSLayer displayLayer = new WMSLayer(wms, wmsLayer);
             map.addLayer(displayLayer);
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        // System.setProperty("http.proxyHost", "proxy.amsa.gov.au");
+        // System.setProperty("http.proxyPort", "8080");
+        // System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
+        // System.setProperty("https.proxyPort", "8080");
+        new Animator().start();
     }
 
 }
