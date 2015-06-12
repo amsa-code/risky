@@ -87,7 +87,7 @@ public class Animator {
                     public void actionPerformed(ActionEvent ae) {
                         System.out.println("timer");
                         renderer.next();
-                        frame.getMapPane().setRenderer(renderer);
+                        frame.getMapPane().repaint();
                     }
                 });
                 timer.start();
