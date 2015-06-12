@@ -88,7 +88,7 @@ public class Quickstart {
         DefaultFeatureCollection features = new DefaultFeatureCollection(null, null);
         features.add(feature);
 
-        Style style = SLD.createPointStyle("Star", Color.BLUE, Color.BLUE, 0.3f, 15);
+        Style style = SLD.createPointStyle("Star", Color.BLUE, Color.BLUE, 0.3f, 10);
 
         return new FeatureLayer(features, style);
     }
