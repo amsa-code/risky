@@ -243,7 +243,7 @@ public class FlyingSaucer extends JMapPane {
         frame.getContentPane().add(mapPane);
         frame.setSize(800, 500);
 
-        URL url = FlyingSaucer.class.getResource("/data/shapefiles/countries.shp");
+        URL url = FlyingSaucer.class.getResource("/shapes/countries.shp");
         FileDataStore store = FileDataStoreFinder.getDataStore(url);
         FeatureSource featureSource = store.getFeatureSource();
 

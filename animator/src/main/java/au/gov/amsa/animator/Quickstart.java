@@ -1,10 +1,18 @@
 package au.gov.amsa.animator;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
@@ -14,16 +22,24 @@ import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
+import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
 import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.renderer.GTRenderer;
+import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
-import org.geotools.swing.JMapFrame;
+import org.geotools.swing.MapPane;
+import org.geotools.swing.event.MapMouseAdapter;
+import org.geotools.swing.event.MapMouseEvent;
+import org.geotools.swing.event.MapPaneEvent;
+import org.geotools.swing.event.MapPaneListener;
 import org.geotools.swing.wms.WMSLayerChooser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -57,7 +73,7 @@ public class Quickstart {
         SimpleFeatureSource featureSource = store.getFeatureSource();
 
         // Create a map context and add our shapefile to it
-        MapContent map = new MapContent();
+        final MapContent map = new MapContent();
 
         map.setTitle("Animator");
         Style style = SLD.createSimpleStyle(featureSource.getSchema());
@@ -66,8 +82,160 @@ public class Quickstart {
         map.addLayer(createExtraFeatures());
         // addWms(map);
 
+        // GTRenderer renderer = new GTRenderer() {
+        //
+        // GTRenderer r = new StreamingRenderer();
+        //
+        // @Override
+        // public void stopRendering() {
+        // r.stopRendering();
+        // }
+        //
+        // @Override
+        // public void addRenderListener(RenderListener listener) {
+        // r.addRenderListener(listener);
+        // }
+        //
+        // @Override
+        // public void removeRenderListener(RenderListener listener) {
+        // r.removeRenderListener(listener);
+        // }
+        //
+        // @Override
+        // public void setJava2DHints(RenderingHints hints) {
+        // r.setJava2DHints(hints);
+        // }
+        //
+        // @Override
+        // public RenderingHints getJava2DHints() {
+        // return r.getJava2DHints();
+        // }
+        //
+        // @Override
+        // public void setRendererHints(Map<Object, Object> hints) {
+        // r.setRendererHints(hints);
+        // }
+        //
+        // @Override
+        // public Map<Object, Object> getRendererHints() {
+        // return r.getRendererHints();
+        // }
+        //
+        // @Override
+        // public void setContext(MapContext context) {
+        // r.setContext(context);
+        // }
+        //
+        // @Override
+        // public void setMapContent(MapContent mapContent) {
+        // r.setMapContent(mapContent);
+        // }
+        //
+        // @Override
+        // public MapContext getContext() {
+        // return r.getContext();
+        // }
+        //
+        // @Override
+        // public MapContent getMapContent() {
+        // return r.getMapContent();
+        // }
+        //
+        // @Override
+        // public void paint(Graphics2D graphics, Rectangle paintArea,
+        // AffineTransform worldToScreen) {
+        // r.paint(graphics, paintArea, worldToScreen);
+        // }
+        //
+        // @Override
+        // public void paint(Graphics2D graphics, Rectangle paintArea, Envelope
+        // mapArea) {
+        // r.paint(graphics, paintArea, mapArea);
+        // }
+        //
+        // @Override
+        // public void paint(Graphics2D graphics, Rectangle paintArea,
+        // ReferencedEnvelope mapArea) {
+        // r.paint(graphics, paintArea, mapArea);
+        // }
+        //
+        // @Override
+        // public void paint(Graphics2D graphics, Rectangle paintArea, Envelope
+        // mapArea,
+        // AffineTransform worldToScreen) {
+        // r.paint(graphics, paintArea, mapArea, worldToScreen);
+        // }
+        //
+        // @Override
+        // public void paint(Graphics2D graphics, Rectangle paintArea,
+        // ReferencedEnvelope mapArea,
+        // AffineTransform worldToScreen) {
+        // r.paint(graphics, paintArea, mapArea, worldToScreen);
+        // }
+        //
+        // };
+
+        GTRenderer renderer = new StreamingRenderer() {
+
+            @Override
+            public void paint(Graphics2D g, Rectangle paintArea, ReferencedEnvelope mapArea,
+                    AffineTransform worldToScreen) {
+                super.paint(g, paintArea, mapArea, worldToScreen);
+                System.out.println("drawing");
+                g.drawString("hi there", 50, 50);
+            }
+
+        };
+
+        final AtomicReference<AnimatorMapFrame> mapFrame = new AtomicReference<AnimatorMapFrame>();
         // Now display the map
-        JMapFrame.showMap(map);
+        SwingUtilities.invokeLater(() -> {
+            final AnimatorMapFrame frame = new AnimatorMapFrame(map, renderer);
+            frame.enableStatusBar(true);
+            frame.enableToolBar(true);
+            frame.initComponents();
+            frame.setSize(800, 600);
+            JPanel glass = (JPanel) frame.getGlassPane();
+            glass.setLayout(null);
+            glass.add(new JButton("boo"));
+            mapFrame.set(frame);
+            frame.getMapPane().addMouseListener(new MapMouseAdapter() {
+
+                @Override
+                public void onMouseClicked(MapMouseEvent event) {
+                    DirectPosition2D p = event.getWorldPos();
+                    System.out.println(p);
+                }
+
+            });
+            frame.getMapPane().addMapPaneListener(new MapPaneListener() {
+
+                @Override
+                public void onNewMapContent(MapPaneEvent ev) {
+                    System.out.println(ev);
+                }
+
+                @Override
+                public void onDisplayAreaChanged(MapPaneEvent ev) {
+                    System.out.println(ev);
+                    MapPane mapPane = ev.getSource();
+                }
+
+                @Override
+                public void onRenderingStarted(MapPaneEvent ev) {
+                    System.out.println(ev);
+                }
+
+                @Override
+                public void onRenderingStopped(MapPaneEvent ev) {
+                    System.out.println(ev);
+                }
+
+            });
+            frame.setVisible(true);
+            glass.setVisible(true);
+
+        });
 
     }
 
