@@ -2,6 +2,7 @@ package au.gov.amsa.animator;
 
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -28,7 +29,7 @@ import org.geotools.ows.ServiceException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
-import org.geotools.swing.JMapFrame;
+import org.geotools.swing.JMapPane;
 import org.geotools.swing.event.MapMouseAdapter;
 import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.swing.wms.WMSLayerChooser;
@@ -64,7 +65,15 @@ public class Animator {
         EventQueue.invokeLater(() -> {
             // setup custom rendering over the top of the map
                 VesselMovementRenderer renderer = new VesselMovementRenderer();
-                final JMapFrame frame = new JMapFrame(map);
+                JMapPane mapPane = new JMapPane(map) {
+                    @Override
+                    protected void paintComponent(Graphics g) {
+                        super.paintComponent(g);
+                        System.out.println("painting glass pane");
+                        g.drawString("Hello", 100, 100);
+                    }
+                };
+                final JMapFrame frame = new JMapFrame(map, mapPane);
                 frame.getMapPane().setRenderer(renderer);
                 frame.enableStatusBar(true);
                 frame.enableToolBar(true);
@@ -85,8 +94,7 @@ public class Animator {
                 timer = new Timer(1000, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
-                        System.out.println("timer");
-                        renderer.next();
+                        // System.out.println("timer");
                         frame.getMapPane().repaint();
                     }
                 });
@@ -96,9 +104,9 @@ public class Animator {
 
     private Layer createCoastlineLayer() {
         try {
-            File file = new File(
-                    "/home/dxm/Downloads/shapefile-australia-coastline-polygon/cstauscd_r.shp");
-
+            // File file = new File(
+            // "/home/dxm/Downloads/shapefile-australia-coastline-polygon/cstauscd_r.shp");
+            File file = new File("src/main/resources/shapes/countries.shp");
             FileDataStore store = FileDataStoreFinder.getDataStore(file);
             SimpleFeatureSource featureSource = store.getFeatureSource();
 
