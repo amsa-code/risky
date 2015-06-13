@@ -66,11 +66,13 @@ public class Animator {
             // setup custom rendering over the top of the map
                 VesselMovementRenderer renderer = new VesselMovementRenderer();
                 JMapPane mapPane = new JMapPane(map) {
+                    int n = 0;
+
                     @Override
                     protected void paintComponent(Graphics g) {
                         super.paintComponent(g);
-                        System.out.println("painting glass pane");
-                        g.drawString("Hello", 100, 100);
+                        n++;
+                        g.drawString("Hello", 100 + n, 100 + n);
                     }
                 };
                 final JMapFrame frame = new JMapFrame(map, mapPane);
@@ -94,7 +96,6 @@ public class Animator {
                 timer = new Timer(1000, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
-                        // System.out.println("timer");
                         frame.getMapPane().repaint();
                     }
                 });

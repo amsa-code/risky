@@ -11,6 +11,7 @@
 package au.gov.amsa.animator;
 
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -66,12 +67,12 @@ public class FlyingSaucer extends JMapPane {
 
     // X and Y direction of the flying saucer where a value of
     // 1 indicates increasing ordinate and -1 is decreasing
-    private int xdir = 1;
-    private int ydir = 1;
+    private volatile int xdir = 1;
+    private volatile int ydir = 1;
 
     // The rectangle (in world coordinates) that defines the flying
     // saucer's current position
-    private ReferencedEnvelope spriteEnv;
+    private volatile ReferencedEnvelope spriteEnv;
 
     private Raster spriteBackground;
     private boolean firstDisplay = true;
@@ -82,6 +83,7 @@ public class FlyingSaucer extends JMapPane {
     private final Timer animationTimer = new Timer(200, new ActionListener() {
         @Override
         public void actionPerformed(ActionEvent e) {
+            System.out.println("timer");
             drawSprite();
         }
     });
@@ -234,23 +236,31 @@ public class FlyingSaucer extends JMapPane {
 
     // Main application method
     public static void main(String[] args) throws Exception {
-        JFrame frame = new JFrame("Animation example");
-        FlyingSaucer mapPane = new FlyingSaucer();
-        frame.getContentPane().add(mapPane);
-        frame.setSize(800, 500);
+        EventQueue.invokeLater(() -> {
+            try {
+                JFrame frame = new JFrame("Animation example");
+                FlyingSaucer mapPane = new FlyingSaucer();
+                frame.getContentPane().add(mapPane);
+                frame.setSize(800, 500);
 
-        URL url = FlyingSaucer.class.getResource("/shapes/countries.shp");
-        FileDataStore store = FileDataStoreFinder.getDataStore(url);
-        FeatureSource featureSource = store.getFeatureSource();
+                URL url = FlyingSaucer.class.getResource("/shapes/countries.shp");
+                FileDataStore store = FileDataStoreFinder.getDataStore(url);
+                FeatureSource featureSource;
 
-        // Create a map context and add our shapefile to it
-        MapContent map = new MapContent();
-        Style style = SLD.createPolygonStyle(Color.BLACK, Color.CYAN, 1.0F);
-        map.addLayer(new FeatureLayer(featureSource, style));
-        mapPane.setMapContent(map);
-        mapPane.setRenderer(new StreamingRenderer());
+                featureSource = store.getFeatureSource();
 
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+                // Create a map context and add our shapefile to it
+                MapContent map = new MapContent();
+                Style style = SLD.createPolygonStyle(Color.BLACK, Color.CYAN, 1.0F);
+                map.addLayer(new FeatureLayer(featureSource, style));
+                mapPane.setMapContent(map);
+                mapPane.setRenderer(new StreamingRenderer());
+
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                frame.setVisible(true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
     }
 }
