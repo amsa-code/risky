@@ -4,13 +4,12 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.Timer;
 
@@ -37,6 +36,8 @@ import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.swing.wms.WMSLayerChooser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+
+import rx.Observable;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -75,13 +76,14 @@ public class Animator {
                     @Override
                     protected void paintComponent(Graphics g) {
                         super.paintComponent(g);
-                        Graphics2D g2 = (Graphics2D) g;
-                        n++;
-                        Point2D.Float p = new Point2D.Float(CANBERRA_LONG, CANBERRA_LAT);
-                        Point2D.Float q = new Point2D.Float();
-                        renderer.worldToScreen().transform(p, q);
-                        g2.drawString("Hello", q.x + n % 100, q.y + n % 100);
-
+                        if (renderer.worldToScreen() != null) {
+                            Graphics2D g2 = (Graphics2D) g;
+                            n++;
+                            Point2D.Float p = new Point2D.Float(CANBERRA_LONG, CANBERRA_LAT);
+                            Point2D.Float q = new Point2D.Float();
+                            renderer.worldToScreen().transform(p, q);
+                            g2.drawString("Hello", q.x + n % 100, q.y + n % 100);
+                        }
                     }
                 };
                 final JMapFrame frame = new JMapFrame(map, mapPane);
@@ -102,13 +104,9 @@ public class Animator {
                 });
 
                 frame.setVisible(true);
-                timer = new Timer(100, new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent ae) {
-                        frame.getMapPane().repaint();
-                    }
+                Observable.interval(20, TimeUnit.MILLISECONDS).forEach(n -> {
+                    frame.getMapPane().repaint();
                 });
-                timer.start();
             });
     }
 
