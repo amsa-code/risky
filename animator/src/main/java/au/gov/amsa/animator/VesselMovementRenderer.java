@@ -10,6 +10,8 @@ import org.geotools.renderer.lite.StreamingRenderer;
 
 public class VesselMovementRenderer extends StreamingRenderer {
 
+    volatile AffineTransform worldToScreen;
+
     @Override
     public void paint(Graphics2D g, Rectangle paintArea, ReferencedEnvelope mapArea,
             AffineTransform worldToScreen) {
@@ -18,6 +20,11 @@ public class VesselMovementRenderer extends StreamingRenderer {
         Point2D.Float d = new Point2D.Float();
         worldToScreen.transform(new Point2D.Float(149.1244f, -35.3075f), d);
         g.drawString("Canberra", d.x, d.y);
+        this.worldToScreen = worldToScreen;
+    }
+
+    public AffineTransform worldToScreen() {
+        return worldToScreen;
     }
 
 }

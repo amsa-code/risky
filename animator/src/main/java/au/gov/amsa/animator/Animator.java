@@ -3,8 +3,10 @@ package au.gov.amsa.animator;
 import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
@@ -42,6 +44,8 @@ import com.vividsolutions.jts.geom.Point;
 
 public class Animator {
 
+    private static final float CANBERRA_LAT = -35.3075f;
+    private static final float CANBERRA_LONG = 149.1244f;
     volatile Timer timer;
 
     public void start() {
@@ -71,8 +75,13 @@ public class Animator {
                     @Override
                     protected void paintComponent(Graphics g) {
                         super.paintComponent(g);
+                        Graphics2D g2 = (Graphics2D) g;
                         n++;
-                        g.drawString("Hello", 100 + n, 100 + n);
+                        Point2D.Float p = new Point2D.Float(CANBERRA_LONG, CANBERRA_LAT);
+                        Point2D.Float q = new Point2D.Float();
+                        renderer.worldToScreen().transform(p, q);
+                        g2.drawString("Hello", q.x + n % 100, q.y + n % 100);
+
                     }
                 };
                 final JMapFrame frame = new JMapFrame(map, mapPane);
@@ -93,7 +102,7 @@ public class Animator {
                 });
 
                 frame.setVisible(true);
-                timer = new Timer(1000, new ActionListener() {
+                timer = new Timer(100, new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         frame.getMapPane().repaint();
@@ -128,7 +137,7 @@ public class Animator {
         final SimpleFeatureType TYPE = b.buildFeatureType();
 
         GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
-        Point point = gf.createPoint(new Coordinate(149.1244, -35.3075));
+        Point point = gf.createPoint(new Coordinate(CANBERRA_LONG, CANBERRA_LAT));
 
         SimpleFeatureBuilder builder = new SimpleFeatureBuilder(TYPE);
         builder.add(point);
