@@ -1,11 +1,13 @@
 package au.gov.amsa.animator;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
@@ -28,6 +30,7 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.DirectPosition2D;
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
@@ -37,7 +40,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
-import org.geotools.swing.DefaultRenderingExecutor;
 import org.geotools.swing.JMapPane;
 import org.geotools.swing.RenderingExecutorEvent;
 import org.geotools.swing.RenderingExecutorListener;
@@ -74,22 +76,18 @@ public class Animator {
         // System.exit(0);
         width = 800;
         height = 600;
-        JMapPane mp = new JMapPane(map);
-        mp.setSize(width, height);
-        CountDownLatch latch = new CountDownLatch(1);
-        backgroundImage = createImage(width, height);
-        backgroundImage.createGraphics();
-        // init viewport
-        DefaultRenderingExecutor renderingExecutor = new DefaultRenderingExecutor();
+
+        Rectangle imageBounds = new Rectangle(0, 0, width, height);
+        BufferedImage image = new BufferedImage(imageBounds.width, imageBounds.height,
+                BufferedImage.TYPE_INT_RGB);
+        Graphics2D gr = image.createGraphics();
+        gr.setPaint(Color.WHITE);
+        gr.fill(imageBounds);
         StreamingRenderer renderer = new StreamingRenderer();
-        renderingExecutor.submit(map, renderer, (Graphics2D) backgroundImage.getGraphics(),
-                createListener(latch));
-        try {
-            if (latch.await(10, TimeUnit.SECONDS))
-                throw new RuntimeException();
-        } catch (InterruptedException e) {
-            throw new RuntimeException();
-        }
+        renderer.setMapContent(map);
+        ReferencedEnvelope mapBounds = map.getMaxBounds();
+        renderer.paint(gr, imageBounds, mapBounds);
+        backgroundImage = image;
         JFrame frame = new JFrame();
         final JPanel panel = new JPanel() {
             @Override
@@ -98,22 +96,23 @@ public class Animator {
                 g.drawImage(backgroundImage, 0, 0, null);
             }
         };
+        panel.setPreferredSize(new Dimension(width, height));
         frame.add(panel);
         frame.setSize(width, height);
         frame.setVisible(true);
 
-        // animate
-        offScreenImage = createImage(width, height);
-        long timeStep = 0;
-        long frameMs = 50;
-        while (true) {
-            long t = System.currentTimeMillis();
-            // mapPane.repaint();
-            model.updateModel(timeStep);
-            view.draw(model, offScreenImage);
-            timeStep++;
-            sleep(Math.max(0, t + frameMs - System.currentTimeMillis()));
-        }
+        // // animate
+        // offScreenImage = createImage(width, height);
+        // long timeStep = 0;
+        // long frameMs = 50;
+        // while (true) {
+        // long t = System.currentTimeMillis();
+        // // mapPane.repaint();
+        // model.updateModel(timeStep);
+        // view.draw(model, offScreenImage);
+        // timeStep++;
+        // sleep(Math.max(0, t + frameMs - System.currentTimeMillis()));
+        // }
     }
 
     private RenderingExecutorListener createListener(CountDownLatch latch) {
