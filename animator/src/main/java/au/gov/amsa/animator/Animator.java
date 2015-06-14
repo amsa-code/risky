@@ -13,7 +13,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
@@ -65,16 +69,40 @@ public class Animator {
         final MapContent map = createMap();
 
         // Now display the map using the custom renderer
-        display(map);
+        // display(map);
 
-        System.exit(0);
-
-        // animate
+        // System.exit(0);
+        width = 800;
+        height = 600;
+        JMapPane mp = new JMapPane(map);
+        mp.setSize(width, height);
+        CountDownLatch latch = new CountDownLatch(1);
         backgroundImage = createImage(width, height);
+        backgroundImage.createGraphics();
+        // init viewport
         DefaultRenderingExecutor renderingExecutor = new DefaultRenderingExecutor();
         StreamingRenderer renderer = new StreamingRenderer();
         renderingExecutor.submit(map, renderer, (Graphics2D) backgroundImage.getGraphics(),
-                createListener());
+                createListener(latch));
+        try {
+            if (latch.await(10, TimeUnit.SECONDS))
+                throw new RuntimeException();
+        } catch (InterruptedException e) {
+            throw new RuntimeException();
+        }
+        JFrame frame = new JFrame();
+        final JPanel panel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(backgroundImage, 0, 0, null);
+            }
+        };
+        frame.add(panel);
+        frame.setSize(width, height);
+        frame.setVisible(true);
+
+        // animate
         offScreenImage = createImage(width, height);
         long timeStep = 0;
         long frameMs = 50;
@@ -88,7 +116,7 @@ public class Animator {
         }
     }
 
-    private RenderingExecutorListener createListener() {
+    private RenderingExecutorListener createListener(CountDownLatch latch) {
         return new RenderingExecutorListener() {
 
             @Override
@@ -103,7 +131,7 @@ public class Animator {
 
             @Override
             public void onRenderingCompleted(RenderingExecutorEvent ev) {
-
+                latch.countDown();
             }
         };
     }
@@ -125,6 +153,7 @@ public class Animator {
     private MapContent createMap() {
         final MapContent map = new MapContent();
         map.setTitle("Animator");
+        map.getViewport();
         map.addLayer(createCoastlineLayer());
         map.addLayer(createExtraFeatures());
         // addWms(map);
