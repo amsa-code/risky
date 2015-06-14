@@ -4,14 +4,16 @@ import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.Transparency;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import javax.swing.Timer;
 
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
@@ -28,9 +30,13 @@ import org.geotools.map.MapContent;
 import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
+import org.geotools.swing.DefaultRenderingExecutor;
 import org.geotools.swing.JMapPane;
+import org.geotools.swing.RenderingExecutorEvent;
+import org.geotools.swing.RenderingExecutorListener;
 import org.geotools.swing.event.MapMouseAdapter;
 import org.geotools.swing.event.MapMouseEvent;
 import org.geotools.swing.wms.WMSLayerChooser;
@@ -38,8 +44,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
 import rx.Observable;
-import rx.Scheduler.Worker;
-import rx.schedulers.Schedulers;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -49,8 +53,12 @@ public class Animator {
 
     private static final float CANBERRA_LAT = -35.3075f;
     private static final float CANBERRA_LONG = 149.1244f;
-    volatile Timer timer;
-    final Worker worker = Schedulers.newThread().createWorker();
+    private final Model model = new Model();
+    private final View view = new View();
+    private volatile int width, height = 0;
+    private volatile Image offScreenImage;
+    private volatile JMapPane mapPane;
+    private volatile BufferedImage backgroundImage;
 
     public void start() {
         // Create a map context and add our shapefile to it
@@ -60,20 +68,57 @@ public class Animator {
         display(map);
 
         System.exit(0);
+
         // animate
+        backgroundImage = createImage(width, height);
+        DefaultRenderingExecutor renderingExecutor = new DefaultRenderingExecutor();
+        StreamingRenderer renderer = new StreamingRenderer();
+        renderingExecutor.submit(map, renderer, (Graphics2D) backgroundImage.getGraphics(),
+                createListener());
+        offScreenImage = createImage(width, height);
         long timeStep = 0;
         long frameMs = 50;
         while (true) {
             long t = System.currentTimeMillis();
             // mapPane.repaint();
-            // updateModel(timeStep);
-            // drawModel(offScreenImage);
+            model.updateModel(timeStep);
+            view.draw(model, offScreenImage);
             timeStep++;
-            try {
-                Thread.sleep(Math.max(0, t + frameMs - System.currentTimeMillis()));
-            } catch (InterruptedException e) {
-                return;
+            sleep(Math.max(0, t + frameMs - System.currentTimeMillis()));
+        }
+    }
+
+    private RenderingExecutorListener createListener() {
+        return new RenderingExecutorListener() {
+
+            @Override
+            public void onRenderingStarted(RenderingExecutorEvent ev) {
+
             }
+
+            @Override
+            public void onRenderingFailed(RenderingExecutorEvent ev) {
+
+            }
+
+            @Override
+            public void onRenderingCompleted(RenderingExecutorEvent ev) {
+
+            }
+        };
+    }
+
+    private static BufferedImage createImage(int width, int height) {
+        return GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice()
+                .getDefaultConfiguration()
+                .createCompatibleImage(width, height, Transparency.TRANSLUCENT);
+    }
+
+    private static void sleep(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -90,7 +135,7 @@ public class Animator {
         EventQueue.invokeLater(() -> {
             // setup custom rendering over the top of the map
                 BackgroundRenderer renderer = new BackgroundRenderer();
-                JMapPane mapPane = new JMapPane(map) {
+                mapPane = new JMapPane(map) {
                     int n = 0;
 
                     @Override
