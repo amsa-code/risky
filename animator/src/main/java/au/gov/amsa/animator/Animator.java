@@ -70,9 +70,9 @@ public class Animator {
     private BufferedImage offScreenImage;
 
     public Animator() {
-
         map = createMap();
         bounds = map.getMaxBounds();
+        bounds = new ReferencedEnvelope(90, 175, -50, 0, DefaultGeographicCRS.WGS84);
         subscriptions = new SubscriptionList();
         worker = Schedulers.newThread().createWorker();
         subscriptions.add(worker);
