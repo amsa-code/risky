@@ -74,6 +74,8 @@ public class Animator {
 
     private JPanel createMapPanel() {
         JPanel panel = new JPanel() {
+            private static final long serialVersionUID = 3824694997015022298L;
+
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
