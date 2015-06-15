@@ -8,6 +8,9 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +37,7 @@ import org.geotools.map.MapContent;
 import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
+import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
@@ -87,6 +91,17 @@ public class Animator {
             @Override
             public void mouseClicked(MouseEvent e) {
 
+                AffineTransform worldToScreen = RendererUtilities.worldToScreenTransform(
+                        map.getMaxBounds(),
+                        new Rectangle(0, 0, image.getWidth(), image.getHeight()));
+                Point2D.Float a = new Point2D.Float(e.getX(), e.getY());
+                Point2D.Float b = new Point2D.Float();
+                try {
+                    worldToScreen.inverseTransform(a, b);
+                } catch (NoninvertibleTransformException e1) {
+                    throw new RuntimeException(e1);
+                }
+                System.out.println(b.getX() + " " + b.getY());
             }
 
         });
