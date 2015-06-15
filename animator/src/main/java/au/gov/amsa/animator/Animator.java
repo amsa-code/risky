@@ -92,9 +92,20 @@ public class Animator {
 
             @Override
             public void mouseClicked(MouseEvent e) {
+                Point2D.Float p = toWorld(e);
+                if (e.getClickCount() == 2) {
+                    double w = bounds.getWidth() * 2 / 3;
+                    double h = bounds.getHeight() * 2 / 3;
+                    bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY()
+                            - h / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
+                    redrawAll();
+                } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
+                    System.out.println(p.getX() + " " + p.getY());
+                }
+            }
 
-                AffineTransform worldToScreen = RendererUtilities.worldToScreenTransform(
-                        map.getMaxBounds(),
+            private Point2D.Float toWorld(MouseEvent e) {
+                AffineTransform worldToScreen = RendererUtilities.worldToScreenTransform(bounds,
                         new Rectangle(0, 0, image.getWidth(), image.getHeight()));
                 Point2D.Float a = new Point2D.Float(e.getX(), e.getY());
                 Point2D.Float b = new Point2D.Float();
@@ -103,7 +114,7 @@ public class Animator {
                 } catch (NoninvertibleTransformException e1) {
                     throw new RuntimeException(e1);
                 }
-                System.out.println(b.getX() + " " + b.getY());
+                return b;
             }
 
         });
@@ -123,15 +134,13 @@ public class Animator {
                 @Override
                 public void componentResized(ComponentEvent e) {
                     super.componentResized(e);
-                    backgroundImage = null;
-                    redraw();
+                    redrawAll();
                 }
 
                 @Override
                 public void componentShown(ComponentEvent e) {
                     super.componentShown(e);
-                    backgroundImage = null;
-                    redraw();
+                    redrawAll();
                 }
             });
             frame.setVisible(true);
@@ -143,7 +152,12 @@ public class Animator {
         }, 0, 50, TimeUnit.MILLISECONDS);
     }
 
-    private void redraw() {
+    private void redrawAll() {
+        backgroundImage = null;
+        redraw();
+    }
+
+    private synchronized void redraw() {
 
         // get the frame width and height
         int width = panel.getParent().getWidth();
