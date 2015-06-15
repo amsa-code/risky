@@ -76,8 +76,10 @@ public class Animator {
         // System.exit(0);
         width = 800;
         height = 600;
-
-        Rectangle imageBounds = new Rectangle(0, 0, width, height);
+        ReferencedEnvelope mapBounds = map.getMaxBounds();
+        double ratio = mapBounds.getHeight() / mapBounds.getWidth();
+        int proportionalHeight = (int) Math.round(width * ratio);
+        Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
         BufferedImage image = new BufferedImage(imageBounds.width, imageBounds.height,
                 BufferedImage.TYPE_INT_RGB);
         Graphics2D gr = image.createGraphics();
@@ -85,7 +87,6 @@ public class Animator {
         gr.fill(imageBounds);
         StreamingRenderer renderer = new StreamingRenderer();
         renderer.setMapContent(map);
-        ReferencedEnvelope mapBounds = map.getMaxBounds();
         renderer.paint(gr, imageBounds, mapBounds);
         backgroundImage = image;
         JFrame frame = new JFrame();
