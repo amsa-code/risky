@@ -8,12 +8,16 @@ import java.awt.Rectangle;
 import java.awt.Transparency;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -43,6 +47,9 @@ import org.geotools.swing.wms.WMSLayerChooser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import rx.Scheduler.Worker;
+import rx.internal.util.SubscriptionList;
+import rx.schedulers.Schedulers;
 import rx.schedulers.SwingScheduler;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -58,27 +65,39 @@ public class Animator {
 	private volatile JMapPane mapPane;
 	private volatile BufferedImage backgroundImage;
 
-	final JPanel panel = new JPanel() {
-		@Override
-		protected void paintComponent(Graphics g) {
-			super.paintComponent(g);
-			g.drawImage(backgroundImage, 0, 0, null);
-		}
-	};
+	final JPanel panel = createMapPanel();
 	final MapContent map;
+	private final SubscriptionList subscriptions;
+	private Worker worker;
 
 	public Animator() {
 
 		map = createMap();
+		subscriptions = new SubscriptionList();
+		worker = Schedulers.newThread().createWorker();
+		subscriptions.add(worker);
+	}
+
+	private JPanel createMapPanel() {
+		JPanel panel = new JPanel() {
+			@Override
+			protected void paintComponent(Graphics g) {
+				super.paintComponent(g);
+				g.drawImage(backgroundImage, 0, 0, null);
+			}
+		};
+		panel.addMouseListener(new MouseAdapter() {
+
+			@Override
+			public void mouseClicked(MouseEvent e) {
+
+			}
+
+		});
+		return panel;
 	}
 
 	public void start() {
-		// Create a map context and add our shapefile to it
-		// Now display the map using the custom renderer
-		// display(map);
-
-		// System.exit(0);
-
 		SwingScheduler
 				.getInstance()
 				.createWorker()
@@ -104,26 +123,17 @@ public class Animator {
 									super.componentShown(e);
 									redraw();
 								}
-
 							});
 							frame.setVisible(true);
 						});
-
-		// // animate
-		// offScreenImage = createImage(width, height);
-		// long timeStep = 0;
-		// long frameMs = 50;
-		// while (true) {
-		// long t = System.currentTimeMillis();
-		// // mapPane.repaint();
-		// model.updateModel(timeStep);
-		// view.draw(model, offScreenImage);
-		// timeStep++;
-		// sleep(Math.maxs(0, t + frameMs - System.currentTimeMillis()));
-		// }
+		final AtomicInteger timeStep = new AtomicInteger();
+		worker.schedulePeriodically(() -> {
+			model.updateModel(timeStep.getAndIncrement());
+		}, 0, 50, TimeUnit.MILLISECONDS);
 	}
 
 	private void redraw() {
+		// get the frame width and height
 		int width = panel.getParent().getWidth();
 		int height = panel.getParent().getHeight();
 		ReferencedEnvelope mapBounds = map.getMaxBounds();
