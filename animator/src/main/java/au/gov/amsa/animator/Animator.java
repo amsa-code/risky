@@ -37,7 +37,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
-import org.geotools.swing.JMapPane;
 import org.geotools.swing.wms.WMSLayerChooser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -57,7 +56,6 @@ public class Animator {
 	private static final float CANBERRA_LONG = 149.1244f;
 	private final Model model = new Model();
 	private final View view = new View();
-	private volatile JMapPane mapPane;
 	private volatile BufferedImage image;
 	private volatile BufferedImage backgroundImage;
 	private volatile BufferedImage offscreenImage;
@@ -127,8 +125,8 @@ public class Animator {
 		final AtomicInteger timeStep = new AtomicInteger();
 		worker.schedulePeriodically(() -> {
 			model.updateModel(timeStep.getAndIncrement());
-
-		}, 0, 50, TimeUnit.MILLISECONDS);
+			// redrawAnimationLayer();
+			}, 0, 1000, TimeUnit.MILLISECONDS);
 	}
 
 	private void redraw() {
@@ -154,11 +152,17 @@ public class Animator {
 					imageBounds.height, BufferedImage.TYPE_INT_RGB);
 			offScreenImage.createGraphics();
 		}
-
-		offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
-		view.draw(model, offScreenImage);
-		this.image = offScreenImage;
+		redrawAnimationLayer();
 		panel.repaint();
+	}
+
+	private void redrawAnimationLayer() {
+		if (backgroundImage != null && offscreenImage != null) {
+			System.out.println("animation draw");
+			offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
+			view.draw(model, (Graphics2D) offScreenImage.getGraphics());
+			this.image = offScreenImage;
+		}
 	}
 
 	private MapContent createMap() {
