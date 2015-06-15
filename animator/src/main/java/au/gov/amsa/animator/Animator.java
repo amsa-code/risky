@@ -99,7 +99,7 @@ public class Animator {
         };
         panel.setPreferredSize(new Dimension(width, height));
         frame.add(panel);
-        frame.setSize(width, height);
+        FramePreferences.restoreLocationAndSize(frame, 100, 100, 800, 600, Animator.class);
         frame.setVisible(true);
 
         // // animate
