@@ -62,6 +62,7 @@ public class Animator {
     private final View view = new View();
     private volatile BufferedImage image;
     private volatile BufferedImage backgroundImage;
+    private volatile ReferencedEnvelope bounds;
     final JPanel panel = createMapPanel();
     final MapContent map;
     private final SubscriptionList subscriptions;
@@ -71,6 +72,7 @@ public class Animator {
     public Animator() {
 
         map = createMap();
+        bounds = map.getMaxBounds();
         subscriptions = new SubscriptionList();
         worker = Schedulers.newThread().createWorker();
         subscriptions.add(worker);
@@ -143,10 +145,9 @@ public class Animator {
 
     private void redraw() {
 
-        ReferencedEnvelope mapBounds = map.getMaxBounds();
         // get the frame width and height
         int width = panel.getParent().getWidth();
-        double ratio = mapBounds.getHeight() / mapBounds.getWidth();
+        double ratio = bounds.getHeight() / bounds.getWidth();
         int proportionalHeight = (int) Math.round(width * ratio);
         Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
         if (backgroundImage == null) {
@@ -157,7 +158,7 @@ public class Animator {
             gr.fill(imageBounds);
             StreamingRenderer renderer = new StreamingRenderer();
             renderer.setMapContent(map);
-            renderer.paint(gr, imageBounds, mapBounds);
+            renderer.paint(gr, imageBounds, bounds);
             this.backgroundImage = backgroundImage;
             this.offScreenImage = new BufferedImage(imageBounds.width, imageBounds.height,
                     BufferedImage.TYPE_INT_RGB);
