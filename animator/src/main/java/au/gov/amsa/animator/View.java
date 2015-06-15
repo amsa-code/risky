@@ -11,7 +11,9 @@ public class View {
         if (r > 50)
             r = 100 - r;
         g.setColor(Color.red);
-        System.out.println("drawing hello r=" + r);
         g.drawString("Hello", 100 + r, 100 + r);
+        g.drawString("there", 200 + r, 150 - r);
+        g.drawString("how", 130 + r, 180 - r);
+
     }
 }

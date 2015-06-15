@@ -58,8 +58,6 @@ public class Animator {
     private final View view = new View();
     private volatile BufferedImage image;
     private volatile BufferedImage backgroundImage;
-    private volatile BufferedImage offscreenImage;
-
     final JPanel panel = createMapPanel();
     final MapContent map;
     private final SubscriptionList subscriptions;
@@ -97,7 +95,9 @@ public class Animator {
         SwingScheduler.getInstance().createWorker().schedule(() -> {
             JFrame frame = new JFrame();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.add(panel);
+            synchronized (panel) {
+                frame.add(panel);
+            }
             FramePreferences.restoreLocationAndSize(frame, 100, 100, 800, 600, Animator.class);
             frame.addComponentListener(new ComponentAdapter() {
 
@@ -152,7 +152,6 @@ public class Animator {
     private void redrawAnimationLayer() {
         // if (backgroundImage != null && offscreenImage != null) {
         if (offScreenImage != null) {
-            System.out.println("animation draw");
             offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
             view.draw(model, (Graphics2D) offScreenImage.getGraphics());
         }
