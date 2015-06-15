@@ -121,7 +121,7 @@ public class Animator {
         worker.schedulePeriodically(() -> {
             model.updateModel(timeStep.getAndIncrement());
             redrawAnimationLayer();
-        }, 0, 1000, TimeUnit.MILLISECONDS);
+        }, 0, 50, TimeUnit.MILLISECONDS);
     }
 
     private void redraw() {
