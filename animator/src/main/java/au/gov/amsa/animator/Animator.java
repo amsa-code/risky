@@ -8,6 +8,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
@@ -88,20 +89,61 @@ public class Animator {
                 g.drawImage(image, 0, 0, null);
             }
         };
-        panel.addMouseListener(new MouseAdapter() {
+        MouseAdapter listener = createMouseListener();
+        panel.addMouseListener(listener);
+        panel.addMouseWheelListener(listener);
+        return panel;
+    }
+
+    private MouseAdapter createMouseListener() {
+        return new MouseAdapter() {
+
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                int notches = e.getWheelRotation();
+                Point2D.Float p = toWorld(e);
+                boolean zoomIn = notches < 0;
+                for (int i = 0; i < notches; i++) {
+                    if (zoomIn)
+                        zoomIn(p);
+                    else
+                        zoomOut(p);
+                }
+                redraw();
+            }
 
             @Override
             public void mouseClicked(MouseEvent e) {
+                boolean shiftDown = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) == MouseEvent.SHIFT_DOWN_MASK;
                 Point2D.Float p = toWorld(e);
                 if (e.getClickCount() == 2) {
-                    double w = bounds.getWidth() * 2 / 3;
-                    double h = bounds.getHeight() * 2 / 3;
-                    bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY()
-                            - h / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
+                    if (shiftDown) {
+                        // zoom out centred on p
+                        zoomOut(p);
+                    } else {
+                        // zoom in centred on p
+                        zoomIn(p);
+                    }
                     redrawAll();
                 } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
                     System.out.println(p.getX() + " " + p.getY());
                 }
+            }
+
+            private void zoomIn(Point2D.Float p) {
+                double w = bounds.getWidth() * 2 / 3;
+                double h = bounds.getHeight() * 2 / 3;
+                bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY() - h
+                        / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
+            }
+
+            private void zoomOut(Point2D.Float p) {
+                double w = bounds.getWidth() * 3 / 2;
+                double h = bounds.getHeight() * 3 / 2;
+                if (w >= map.getMaxBounds().getWidth() || h >= map.getMaxBounds().getHeight())
+                    bounds = map.getMaxBounds();
+                bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY() - h
+                        / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
             }
 
             private Point2D.Float toWorld(MouseEvent e) {
@@ -117,8 +159,7 @@ public class Animator {
                 return b;
             }
 
-        });
-        return panel;
+        };
     }
 
     public void start() {
