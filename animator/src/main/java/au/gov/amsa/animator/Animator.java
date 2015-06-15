@@ -3,9 +3,7 @@ package au.gov.amsa.animator;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.awt.Transparency;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -15,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,8 +38,6 @@ import org.geotools.renderer.lite.StreamingRenderer;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.JMapPane;
-import org.geotools.swing.RenderingExecutorEvent;
-import org.geotools.swing.RenderingExecutorListener;
 import org.geotools.swing.wms.WMSLayerChooser;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -63,12 +58,15 @@ public class Animator {
 	private final Model model = new Model();
 	private final View view = new View();
 	private volatile JMapPane mapPane;
+	private volatile BufferedImage image;
 	private volatile BufferedImage backgroundImage;
+	private volatile BufferedImage offscreenImage;
 
 	final JPanel panel = createMapPanel();
 	final MapContent map;
 	private final SubscriptionList subscriptions;
 	private Worker worker;
+	private BufferedImage offScreenImage;
 
 	public Animator() {
 
@@ -83,7 +81,7 @@ public class Animator {
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-				g.drawImage(backgroundImage, 0, 0, null);
+				g.drawImage(image, 0, 0, null);
 			}
 		};
 		panel.addMouseListener(new MouseAdapter() {
@@ -108,19 +106,19 @@ public class Animator {
 							frame.add(panel);
 							FramePreferences.restoreLocationAndSize(frame, 100,
 									100, 800, 600, Animator.class);
-							System.out.println(panel.getSize());
-							System.out.println(frame.getSize());
 							frame.addComponentListener(new ComponentAdapter() {
 
 								@Override
 								public void componentResized(ComponentEvent e) {
 									super.componentResized(e);
+									backgroundImage = null;
 									redraw();
 								}
 
 								@Override
 								public void componentShown(ComponentEvent e) {
 									super.componentShown(e);
+									backgroundImage = null;
 									redraw();
 								}
 							});
@@ -129,61 +127,38 @@ public class Animator {
 		final AtomicInteger timeStep = new AtomicInteger();
 		worker.schedulePeriodically(() -> {
 			model.updateModel(timeStep.getAndIncrement());
+
 		}, 0, 50, TimeUnit.MILLISECONDS);
 	}
 
 	private void redraw() {
+
+		ReferencedEnvelope mapBounds = map.getMaxBounds();
 		// get the frame width and height
 		int width = panel.getParent().getWidth();
-		int height = panel.getParent().getHeight();
-		ReferencedEnvelope mapBounds = map.getMaxBounds();
 		double ratio = mapBounds.getHeight() / mapBounds.getWidth();
 		int proportionalHeight = (int) Math.round(width * ratio);
 		Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
-		BufferedImage image = new BufferedImage(imageBounds.width,
-				imageBounds.height, BufferedImage.TYPE_INT_RGB);
-		Graphics2D gr = image.createGraphics();
-		gr.setPaint(Color.WHITE);
-		gr.fill(imageBounds);
-		StreamingRenderer renderer = new StreamingRenderer();
-		renderer.setMapContent(map);
-		renderer.paint(gr, imageBounds, mapBounds);
-		backgroundImage = image;
-		panel.repaint();
-	}
-
-	private RenderingExecutorListener createListener(CountDownLatch latch) {
-		return new RenderingExecutorListener() {
-
-			@Override
-			public void onRenderingStarted(RenderingExecutorEvent ev) {
-
-			}
-
-			@Override
-			public void onRenderingFailed(RenderingExecutorEvent ev) {
-
-			}
-
-			@Override
-			public void onRenderingCompleted(RenderingExecutorEvent ev) {
-				latch.countDown();
-			}
-		};
-	}
-
-	private static BufferedImage createImage(int width, int height) {
-		return GraphicsEnvironment.getLocalGraphicsEnvironment()
-				.getDefaultScreenDevice().getDefaultConfiguration()
-				.createCompatibleImage(width, height, Transparency.TRANSLUCENT);
-	}
-
-	private static void sleep(long ms) {
-		try {
-			Thread.sleep(ms);
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
+		if (backgroundImage == null) {
+			BufferedImage backgroundImage = new BufferedImage(
+					imageBounds.width, imageBounds.height,
+					BufferedImage.TYPE_INT_RGB);
+			Graphics2D gr = backgroundImage.createGraphics();
+			gr.setPaint(Color.WHITE);
+			gr.fill(imageBounds);
+			StreamingRenderer renderer = new StreamingRenderer();
+			renderer.setMapContent(map);
+			renderer.paint(gr, imageBounds, mapBounds);
+			this.backgroundImage = backgroundImage;
+			this.offScreenImage = new BufferedImage(imageBounds.width,
+					imageBounds.height, BufferedImage.TYPE_INT_RGB);
+			offScreenImage.createGraphics();
 		}
+
+		offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
+		view.draw(model, offScreenImage);
+		this.image = offScreenImage;
+		panel.repaint();
 	}
 
 	private MapContent createMap() {
