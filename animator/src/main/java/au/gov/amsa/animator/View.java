@@ -4,7 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import au.gov.amsa.risky.format.Fix;
@@ -25,10 +25,10 @@ public class View {
         // g.drawString("how", 130 + r, 180 - r);
         Point2D.Float p = toScreen(worldToScreen, -35.25f, 149.0f);
         g.drawString("Canberra", p.x - size / 4 + r, p.y - size / 4 + r);
-        Point2D.Float previous = null;
         g.setColor(Color.BLUE);
-        Map<Long, List<Fix>> fixGroups = model.recent();
-        for (List<Fix> fixes : fixGroups.values()) {
+        Map<Long, Collection<Fix>> fixGroups = model.recent();
+        for (Collection<Fix> fixes : fixGroups.values()) {
+            Point2D.Float previous = null;
             int i = 1;
             for (Fix fix : fixes) {
                 g.setColor(Color.getHSBColor(0.7833f,

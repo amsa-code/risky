@@ -1,6 +1,6 @@
 package au.gov.amsa.animator;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 
 import au.gov.amsa.risky.format.Fix;
@@ -14,7 +14,7 @@ public interface Model {
      * 
      * @return
      */
-    Map<Long, List<Fix>> recent();
+    Map<Long, Collection<Fix>> recent();
 
     long stepNumber();
 

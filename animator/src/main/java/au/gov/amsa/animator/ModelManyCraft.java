@@ -1,8 +1,10 @@
 package au.gov.amsa.animator;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import rx.Observable;
@@ -14,37 +16,36 @@ import au.gov.amsa.risky.format.Fix;
 public class ModelManyCraft implements Model {
 
     private final FixesSubscriber subscriber;
-    private volatile long timeStep;
+    private volatile long stepNumber;
 
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
         Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file));
+        // log count
         this.subscriber = new FixesSubscriber();
         source.subscribeOn(Schedulers.io()).subscribe(subscriber);
     }
 
     @Override
-    public void updateModel(long timeStep) {
-        this.timeStep = timeStep;
+    public void updateModel(long stepNumber) {
+        this.stepNumber = stepNumber;
+        subscriber.requestMore(10000);
     }
 
     @Override
-    public Map<Long, List<Fix>> recent() {
-        // TODO Auto-generated method stub
-        return null;
+    public Map<Long, Collection<Fix>> recent() {
+        return (Map<Long, Collection<Fix>>) ((Map<Long, ?>) subscriber.queues);
     }
 
     @Override
     public long stepNumber() {
-        // TODO Auto-generated method stub
-        return 0;
+        return stepNumber;
     }
 
     private static class FixesSubscriber extends Subscriber<Fix> {
 
-        volatile Fix latest;
-        private final ConcurrentLinkedQueue<Fix> queue = new ConcurrentLinkedQueue<Fix>();
-        private final int maxSize = 100;
+        private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
+        private final int maxSize = 50;
 
         @Override
         public void onStart() {
@@ -66,13 +67,25 @@ public class ModelManyCraft implements Model {
         }
 
         @Override
-        public void onNext(Fix t) {
+        public void onNext(Fix f) {
+            Queue<Fix> queue = queues.computeIfAbsent(f.mmsi(),
+                    mmsi -> new ConcurrentLinkedQueue<Fix>());
             if (queue.size() == maxSize)
                 queue.poll();
-            queue.add(t);
-            latest = t;
+            queue.add(f);
         }
-
     }
 
+    public static void main(String[] args) {
+
+        File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
+
+        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
+        // log
+                .doOnNext(fix -> {
+                    System.out.println(fix);
+                });
+        Subscriber<Fix> subscriber = new FixesSubscriber();
+        source.subscribe(subscriber);
+    }
 }

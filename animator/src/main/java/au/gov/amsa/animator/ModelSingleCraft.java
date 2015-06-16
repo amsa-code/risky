@@ -2,8 +2,8 @@ package au.gov.amsa.animator;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,8 +32,8 @@ public class ModelSingleCraft implements Model {
     }
 
     @Override
-    public Map<Long, List<Fix>> recent() {
-        HashMap<Long, List<Fix>> map = new HashMap<Long, List<Fix>>();
+    public Map<Long, Collection<Fix>> recent() {
+        HashMap<Long, Collection<Fix>> map = new HashMap<Long, Collection<Fix>>();
         ArrayList<Fix> list = new ArrayList<>(subscriber.queue);
         if (list.size() > 0)
             map.put(list.get(0).mmsi(), list);
@@ -42,7 +42,6 @@ public class ModelSingleCraft implements Model {
 
     private static class FixesSubscriber extends Subscriber<Fix> {
 
-        volatile Fix latest;
         private final ConcurrentLinkedQueue<Fix> queue = new ConcurrentLinkedQueue<Fix>();
         private final int maxSize = 100;
 
@@ -70,7 +69,6 @@ public class ModelSingleCraft implements Model {
             if (queue.size() == maxSize)
                 queue.poll();
             queue.add(t);
-            latest = t;
         }
 
     }

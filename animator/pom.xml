@@ -61,6 +61,12 @@
 		
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
+			<artifactId>streams</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>geo-analyzer</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
