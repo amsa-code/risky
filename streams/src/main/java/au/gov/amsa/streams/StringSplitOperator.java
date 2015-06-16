@@ -140,6 +140,8 @@ public final class StringSplitOperator implements Operator<String, String> {
                 // backpressure path
                 for (int i = 0; i < parts.length - 1; i++)
                     queue.add(on.next(parts[i]));
+                if (parts.length == 1)
+                    request(1);
                 drainQueue();
             }
             // we have to assign the last part as leftOver because we don't know

@@ -6,12 +6,16 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.Fixes;
 
 public class ModelManyCraft implements Model {
 
@@ -20,8 +24,18 @@ public class ModelManyCraft implements Model {
 
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file));
-        // log count
+        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
+                .groupBy(fix -> fix.mmsi())
+
+                .flatMap(g -> g
+                //
+                        .compose(Fixes.<Fix> ignoreOutOfOrderFixes(true))
+                        //
+                        .doOnNext(System.out::println)
+                        //
+                        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)));
+        //
+        // .compose(Downsample.minTimeStep(1, TimeUnit.MINUTES)));
         this.subscriber = new FixesSubscriber();
         source.subscribeOn(Schedulers.io()).subscribe(subscriber);
     }
@@ -29,7 +43,7 @@ public class ModelManyCraft implements Model {
     @Override
     public void updateModel(long stepNumber) {
         this.stepNumber = stepNumber;
-        subscriber.requestMore(10000);
+        subscriber.requestMore(1);
     }
 
     @Override
@@ -77,15 +91,27 @@ public class ModelManyCraft implements Model {
     }
 
     public static void main(String[] args) {
-
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-
         Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
-        // log
-                .doOnNext(fix -> {
-                    System.out.println(fix);
+                .groupBy(fix -> fix.mmsi())
+
+                .flatMap(g -> g
+                //
+                        .compose(Fixes.<Fix> ignoreOutOfOrderFixes(true))
+                        //
+                        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)))
+                //
+                .doOnNext(new Action1<Fix>() {
+                    int n = 0;
+
+                    @Override
+                    public void call(Fix t) {
+                        if (n++ % 1000 == 0) {
+                            System.out.println(n);
+                            Thread.currentThread().dumpStack();
+                        }
+                    }
                 });
-        Subscriber<Fix> subscriber = new FixesSubscriber();
-        source.subscribe(subscriber);
+        source.subscribe();
     }
 }
