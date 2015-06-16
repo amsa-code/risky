@@ -68,7 +68,8 @@ public class Animator {
     final MapContent map;
     private final SubscriptionList subscriptions;
     private final Worker worker;
-    private BufferedImage offScreenImage;
+    private volatile BufferedImage offScreenImage;
+    private volatile AffineTransform worldToScreen;
 
     public Animator() {
         map = createMap();
@@ -103,13 +104,13 @@ public class Animator {
                 int notches = e.getWheelRotation();
                 Point2D.Float p = toWorld(e);
                 boolean zoomIn = notches < 0;
-                for (int i = 0; i < notches; i++) {
+                for (int i = 0; i < Math.abs(notches); i++) {
                     if (zoomIn)
                         zoomIn(p);
                     else
                         zoomOut(p);
                 }
-                redraw();
+                redrawAll();
             }
 
             @Override
@@ -147,8 +148,6 @@ public class Animator {
             }
 
             private Point2D.Float toWorld(MouseEvent e) {
-                AffineTransform worldToScreen = RendererUtilities.worldToScreenTransform(bounds,
-                        new Rectangle(0, 0, image.getWidth(), image.getHeight()));
                 Point2D.Float a = new Point2D.Float(e.getX(), e.getY());
                 Point2D.Float b = new Point2D.Float();
                 try {
@@ -167,7 +166,7 @@ public class Animator {
             JFrame frame = new JFrame();
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             synchronized (panel) {
-                frame.add(panel);
+                frame.setContentPane(panel);
             }
             FramePreferences.restoreLocationAndSize(frame, 100, 100, 800, 600, Animator.class);
             frame.addComponentListener(new ComponentAdapter() {
@@ -200,12 +199,12 @@ public class Animator {
 
     private synchronized void redraw() {
 
-        // get the frame width and height
-        int width = panel.getParent().getWidth();
-        double ratio = bounds.getHeight() / bounds.getWidth();
-        int proportionalHeight = (int) Math.round(width * ratio);
-        Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
         if (backgroundImage == null) {
+            // get the frame width and height
+            int width = panel.getParent().getWidth();
+            double ratio = bounds.getHeight() / bounds.getWidth();
+            int proportionalHeight = (int) Math.round(width * ratio);
+            Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
             BufferedImage backgroundImage = new BufferedImage(imageBounds.width,
                     imageBounds.height, BufferedImage.TYPE_INT_RGB);
             Graphics2D gr = backgroundImage.createGraphics();
@@ -218,6 +217,8 @@ public class Animator {
             this.offScreenImage = new BufferedImage(imageBounds.width, imageBounds.height,
                     BufferedImage.TYPE_INT_RGB);
             offScreenImage.createGraphics();
+            worldToScreen = RendererUtilities.worldToScreenTransform(bounds, new Rectangle(0, 0,
+                    backgroundImage.getWidth(), backgroundImage.getHeight()));
         }
         redrawAnimationLayer();
     }

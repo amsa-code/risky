@@ -43,10 +43,23 @@ public final class BinaryFixes {
     protected static final char COMMA = ',';
     protected static final byte RATE_OF_TURN_ABSENT = -128;
 
+    /**
+     * Automatically detects gzip based on filename.
+     * 
+     * @param file
+     * @return
+     */
     public static Observable<Fix> from(File file) {
         return from(file, false);
     }
 
+    /**
+     * Automatically detects gzip based on filename.
+     * 
+     * @param file
+     * @param backpressure
+     * @return
+     */
     public static Observable<Fix> from(File file, boolean backpressure) {
         if (backpressure)
             return BinaryFixesOnSubscribeWithBackp.from(file);
