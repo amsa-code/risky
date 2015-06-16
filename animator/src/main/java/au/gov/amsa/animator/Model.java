@@ -41,7 +41,7 @@ public class Model {
     private static class FixesSubscriber extends Subscriber<Fix> {
 
         volatile Fix latest;
-        private ConcurrentLinkedQueue<Fix> queue = new ConcurrentLinkedQueue<Fix>();
+        private final ConcurrentLinkedQueue<Fix> queue = new ConcurrentLinkedQueue<Fix>();
         private final int maxSize = 100;
 
         @Override
@@ -55,12 +55,12 @@ public class Model {
 
         @Override
         public void onCompleted() {
-
+            System.out.println("finished");
         }
 
         @Override
         public void onError(Throwable e) {
-
+            e.printStackTrace();
         }
 
         @Override
