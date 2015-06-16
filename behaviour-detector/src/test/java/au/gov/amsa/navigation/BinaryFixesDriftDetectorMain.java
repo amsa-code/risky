@@ -35,7 +35,7 @@ public class BinaryFixesDriftDetectorMain {
         new File(DRIFT_CANDIDATES_TXT).delete();
         VesselPosition.validate = false;
         FixImpl.validate = false;
-        List<File> files = Files.find(new File("/media/an/binary-fixes/2014"),
+        List<File> files = Files.find(new File("/media/an/binary-fixes/2012"),
                 Pattern.compile(".*\\.track"));
         log.info("files=" + files.size());
         final AtomicLong num = new AtomicLong();

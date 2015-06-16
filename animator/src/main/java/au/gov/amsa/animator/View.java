@@ -5,17 +5,16 @@ import java.awt.Graphics2D;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.List;
+import java.util.Map;
 
 import au.gov.amsa.risky.format.Fix;
-
-import com.google.common.base.Optional;
 
 public class View {
 
     public void draw(Model model, Graphics2D g, AffineTransform worldToScreen) {
         if (worldToScreen == null)
             return;
-        long n = model.timeStep;
+        long n = model.stepNumber();
         int size = 20;
         long r = n % size;
         if (r > size / 2)
@@ -28,24 +27,23 @@ public class View {
         g.drawString("Canberra", p.x - size / 4 + r, p.y - size / 4 + r);
         Point2D.Float previous = null;
         g.setColor(Color.BLUE);
-        List<Fix> fixes = model.recent();
-        int i = 1;
-        for (Fix fix : fixes) {
-            g.setColor(Color.getHSBColor(0.7833f, (float) Math.pow(i / (double) fixes.size(), 2),
-                    1f));
-            Point2D.Float position = toScreen(worldToScreen, fix.lat(), fix.lon());
-            if (previous != null) {
-                g.drawLine(Math.round(previous.x), Math.round(previous.y), Math.round(position.x),
-                        Math.round(position.y));
+        Map<Long, List<Fix>> fixGroups = model.recent();
+        for (List<Fix> fixes : fixGroups.values()) {
+            int i = 1;
+            for (Fix fix : fixes) {
+                g.setColor(Color.getHSBColor(0.7833f,
+                        (float) Math.pow(i / (double) fixes.size(), 2), 1f));
+                Point2D.Float position = toScreen(worldToScreen, fix.lat(), fix.lon());
+                if (previous != null) {
+                    g.drawLine(Math.round(previous.x), Math.round(previous.y),
+                            Math.round(position.x), Math.round(position.y));
+                }
+                previous = position;
+                if (i == fixes.size()) {
+                    g.drawString("V", position.x, position.y);
+                }
+                i++;
             }
-            previous = position;
-            i++;
-        }
-        Optional<Fix> fix = model.latest();
-
-        if (fix.isPresent()) {
-            Point2D.Float position = toScreen(worldToScreen, fix.get().lat(), fix.get().lon());
-            g.drawString("V", position.x, position.y);
         }
     }
 

@@ -59,7 +59,7 @@ public class Animator {
 
     private static final float CANBERRA_LAT = -35.3075f;
     private static final float CANBERRA_LONG = 149.1244f;
-    private final Model model = new Model();
+    private final ModelSingleCraft model = new ModelSingleCraft();
     private final View view = new View();
     private volatile BufferedImage image;
     private volatile BufferedImage backgroundImage;
