@@ -145,7 +145,6 @@ public final class BinaryFixes {
             bb.put((byte) 1);
     }
 
-    // TODO move this stuff to formats/BinaryFixes.java
     public static Observable<Integer> sortBinaryFixFilesByTime(File output,
             final long downSampleIntervalMs, Scheduler scheduler) {
         final AtomicInteger numFiles = new AtomicInteger();
@@ -208,23 +207,19 @@ public final class BinaryFixes {
 
     private static Func1<File, Observable<Integer>> sortFileFixes(final long downSampleIntervalMs) {
         return file -> {
-            return BinaryFixes
-                    .from(file)
+            return BinaryFixes.from(file)
                     // to list
                     .toList()
                     // sort each list
                     .map(sortFixes())
                     // flatten
                     .flatMapIterable(Functions.<List<Fix>> identity())
-                    // downsample the sorted
-                    // fixes
+                    // downsample the sorted fixes
                     .compose(Downsample.minTimeStep(downSampleIntervalMs, TimeUnit.MILLISECONDS))
                     .cast(HasFix.class)
-                    // make into a list
-                    // again
+                    // make into a list again
                     .toList()
-                    // replace the file with
-                    // sorted fixes
+                    // replace the file with sorted fixes
                     .doOnNext(writeFixes(file))
                     // count the fixes
                     .count();
