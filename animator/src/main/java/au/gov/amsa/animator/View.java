@@ -2,18 +2,57 @@ package au.gov.amsa.animator;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
+import java.util.List;
+
+import au.gov.amsa.risky.format.Fix;
+
+import com.google.common.base.Optional;
 
 public class View {
 
-    public void draw(Model model, Graphics2D g) {
+    public void draw(Model model, Graphics2D g, AffineTransform worldToScreen) {
+        if (worldToScreen == null)
+            return;
         long n = model.timeStep;
-        long r = n % 100;
-        if (r > 50)
-            r = 100 - r;
+        int size = 20;
+        long r = n % size;
+        if (r > size / 2)
+            r = size - r;
         g.setColor(Color.red);
-        g.drawString("Hello", 100 + r, 100 + r);
-        g.drawString("there", 200 + r, 150 - r);
-        g.drawString("how", 130 + r, 180 - r);
+        // g.drawString("Hello", 100 + r, 100 + r);
+        // g.drawString("there", 200 + r, 150 - r);
+        // g.drawString("how", 130 + r, 180 - r);
+        Point2D.Float p = toScreen(worldToScreen, -35.25f, 149.0f);
+        g.drawString("Canberra", p.x - size / 4 + r, p.y - size / 4 + r);
+        Point2D.Float previous = null;
+        g.setColor(Color.BLUE);
+        List<Fix> fixes = model.recent();
+        int i = 1;
+        for (Fix fix : fixes) {
+            g.setColor(Color.getHSBColor(0.7833f, (float) Math.pow(i / (double) fixes.size(), 2),
+                    1f));
+            Point2D.Float position = toScreen(worldToScreen, fix.lat(), fix.lon());
+            if (previous != null) {
+                g.drawLine(Math.round(previous.x), Math.round(previous.y), Math.round(position.x),
+                        Math.round(position.y));
+            }
+            previous = position;
+            i++;
+        }
+        Optional<Fix> fix = model.latest();
 
+        if (fix.isPresent()) {
+            Point2D.Float position = toScreen(worldToScreen, fix.get().lat(), fix.get().lon());
+            g.drawString("V", position.x, position.y);
+        }
+    }
+
+    static Point2D.Float toScreen(AffineTransform worldToScreen, float lat, float lon) {
+        Point2D.Float a = new Point2D.Float(lon, lat);
+        Point2D.Float b = new Point2D.Float();
+        worldToScreen.transform(a, b);
+        return b;
     }
 }

@@ -222,7 +222,7 @@ public class Animator {
         // if (backgroundImage != null && offscreenImage != null) {
         if (offScreenImage != null) {
             offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
-            view.draw(model, (Graphics2D) offScreenImage.getGraphics());
+            view.draw(model, (Graphics2D) offScreenImage.getGraphics(), worldToScreen);
         }
         this.image = offScreenImage;
         panel.repaint();
