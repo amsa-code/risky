@@ -24,16 +24,20 @@ public class ModelManyCraft implements Model {
 
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
+        Observable<Fix> source = Streams
+                .extractFixes(Streams.nmeaFromGzip(file))
+                .filter(fix -> fix.mmsi() == 566674000)
                 .groupBy(fix -> fix.mmsi())
-
-                .flatMap(g -> g
-                //
+                .flatMap(
+                        g -> g
+                        //
                         .compose(Fixes.<Fix> ignoreOutOfOrderFixes(true))
-                        //
-                        .doOnNext(System.out::println)
-                        //
-                        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)));
+                                //
+                                //
+                                .doOnNext(System.out::println)
+                                .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)))
+                //
+                .doOnNext(System.out::println);
         //
         // .compose(Downsample.minTimeStep(1, TimeUnit.MINUTES)));
         this.subscriber = new FixesSubscriber();
@@ -108,7 +112,6 @@ public class ModelManyCraft implements Model {
                     public void call(Fix t) {
                         if (n++ % 1000 == 0) {
                             System.out.println(n);
-                            Thread.currentThread().dumpStack();
                         }
                     }
                 });
