@@ -104,13 +104,15 @@ public class Animator {
                 int notches = e.getWheelRotation();
                 Point2D.Float p = toWorld(e);
                 boolean zoomIn = notches < 0;
-                for (int i = 0; i < Math.abs(notches); i++) {
+                for (int i = 0; i < Math.min(Math.abs(notches), 8); i++) {
                     if (zoomIn)
-                        zoomIn(p);
+                        zoom(p, 0.9);
                     else
-                        zoomOut(p);
+                        zoom(p, 1.1);
                 }
-                redrawAll();
+                worker.schedule(() -> {
+                    redrawAll();
+                }, 100, TimeUnit.MILLISECONDS);
             }
 
             @Override
@@ -120,10 +122,10 @@ public class Animator {
                 if (e.getClickCount() == 2) {
                     if (shiftDown) {
                         // zoom out centred on p
-                        zoomOut(p);
+                        zoom(p, 1.5);
                     } else {
                         // zoom in centred on p
-                        zoomIn(p);
+                        zoom(p, 0.666);
                     }
                     redrawAll();
                 } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
@@ -131,16 +133,9 @@ public class Animator {
                 }
             }
 
-            private void zoomIn(Point2D.Float p) {
-                double w = bounds.getWidth() * 2 / 3;
-                double h = bounds.getHeight() * 2 / 3;
-                bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY() - h
-                        / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
-            }
-
-            private void zoomOut(Point2D.Float p) {
-                double w = bounds.getWidth() * 3 / 2;
-                double h = bounds.getHeight() * 3 / 2;
+            private void zoom(Point2D.Float p, double factor) {
+                double w = bounds.getWidth() * factor;
+                double h = bounds.getHeight() * factor;
                 if (w >= map.getMaxBounds().getWidth() || h >= map.getMaxBounds().getHeight())
                     bounds = map.getMaxBounds();
                 bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY() - h
