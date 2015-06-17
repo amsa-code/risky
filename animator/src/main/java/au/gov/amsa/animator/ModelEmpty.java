@@ -9,11 +9,11 @@ import rx.Observable;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 
-public class ModelSingleCraft implements Model {
+public class ModelEmpty implements Model {
 
     volatile long timeStep = 0;
 
-    public ModelSingleCraft() {
+    public ModelEmpty() {
     }
 
     @Override

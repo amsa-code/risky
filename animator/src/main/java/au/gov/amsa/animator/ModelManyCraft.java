@@ -6,14 +6,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
-import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.rx.Streams;
-import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.Fixes;
 
@@ -25,17 +22,13 @@ public class ModelManyCraft implements Model {
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
         Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
-                .filter(fix -> fix.mmsi() == 566674000).groupBy(fix -> fix.mmsi()).flatMap(g -> g
+                .filter(fix -> fix.mmsi() == 566674000 || fix.mmsi() == 413012000)
                 //
-                        .compose(Fixes.<Fix> ignoreOutOfOrderFixes(true))
-                        //
-                        //
-                        // .doOnNext(System.out::println)
-                        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)))
+                .groupBy(fix -> fix.mmsi())
                 //
-                .doOnNext(System.out::println);
+                .flatMap(g -> g.compose(Fixes.<Fix> ignoreOutOfOrderFixes(true)));
         //
-        // .compose(Downsample.minTimeStep(1, TimeUnit.MINUTES)));
+        // .doOnNext(System.out::println);
         this.subscriber = new FixesSubscriber();
         source.subscribeOn(Schedulers.io()).subscribe(subscriber);
     }
@@ -59,7 +52,7 @@ public class ModelManyCraft implements Model {
     private static class FixesSubscriber extends Subscriber<Fix> {
 
         private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
-        private final int maxSize = 50;
+        private final int maxSize = 1000;
 
         @Override
         public void onStart() {
@@ -92,25 +85,8 @@ public class ModelManyCraft implements Model {
 
     public static void main(String[] args) {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
-                .groupBy(fix -> fix.mmsi())
-
-                .flatMap(g -> g
-                //
-                        .compose(Fixes.<Fix> ignoreOutOfOrderFixes(true))
-                        //
-                        .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)))
-                //
-                .doOnNext(new Action1<Fix>() {
-                    int n = 0;
-
-                    @Override
-                    public void call(Fix t) {
-                        if (n++ % 1000 == 0) {
-                            System.out.println(n);
-                        }
-                    }
-                });
-        source.subscribe();
+        Streams.extractFixes(Streams.nmeaFromGzip(file))
+                .filter(fix -> fix.lat() < -25 && fix.lat() > -35 && fix.lon() > 110
+                        && fix.lon() < 115).forEach(System.out::println);
     }
 }

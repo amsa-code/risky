@@ -82,7 +82,7 @@ public class Animator {
     }
 
     private JPanel createMapPanel() {
-        JPanel panel = new JPanel() {
+        final JPanel panel = new JPanel() {
             private static final long serialVersionUID = 3824694997015022298L;
 
             @Override
@@ -302,7 +302,7 @@ public class Animator {
         System.setProperty("http.proxyPort", "8080");
         System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
         System.setProperty("https.proxyPort", "8080");
-        new Animator(new ModelSingleCraft()).start();
+        new Animator(new ModelManyCraft()).start();
     }
 
 }
