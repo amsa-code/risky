@@ -2,6 +2,7 @@ package au.gov.amsa.animator;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +21,7 @@ public class ModelManyCraft implements Model {
 
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file));
+        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file)).repeat();
         //
         // .doOnNext(System.out::println);
         this.subscriber = new FixesSubscriber();
@@ -46,7 +47,7 @@ public class ModelManyCraft implements Model {
     private static class FixesSubscriber extends Subscriber<Fix> {
 
         private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
-        private final ConcurrentHashMap<Long, Fix> lastFix = new ConcurrentHashMap<>();
+        private final Map<Long, Fix> lastFix = new HashMap<>();
         private final int maxSize = 1000;
 
         @Override
