@@ -46,6 +46,7 @@ public class ModelManyCraft implements Model {
     private static class FixesSubscriber extends Subscriber<Fix> {
 
         private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<Long, Fix> lastFix = new ConcurrentHashMap<>();
         private final int maxSize = 1000;
 
         @Override
@@ -73,7 +74,11 @@ public class ModelManyCraft implements Model {
                     mmsi -> new ConcurrentLinkedQueue<Fix>());
             if (queue.size() == maxSize)
                 queue.poll();
-            queue.add(f);
+            Fix last = lastFix.get(f.mmsi());
+            if (last == null || f.time() >= last.time() + 300000) {
+                queue.add(f);
+                lastFix.put(f.mmsi(), f);
+            }
         }
     }
 
