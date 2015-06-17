@@ -75,11 +75,14 @@ public class Animator {
     public Animator(Model model) {
         this.model = model;
         map = createMap();
-        bounds = map.getMaxBounds();
         bounds = new ReferencedEnvelope(90, 175, -50, 0, DefaultGeographicCRS.WGS84);
         subscriptions = new SubscriptionList();
         worker = Schedulers.newThread().createWorker();
         subscriptions.add(worker);
+    }
+
+    ReferencedEnvelope getBounds() {
+        return bounds;
     }
 
     private JPanel createMapPanel() {
@@ -166,6 +169,7 @@ public class Animator {
                 frame.setContentPane(panel);
             }
             FramePreferences.restoreLocationAndSize(frame, 100, 100, 800, 600, Animator.class);
+            bounds = FramePreferences.restoreBounds(90, 175, -50, 0, frame, Animator.this);
             frame.addComponentListener(new ComponentAdapter() {
 
                 @Override
