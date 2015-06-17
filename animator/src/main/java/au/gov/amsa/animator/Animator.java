@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -201,11 +202,8 @@ public class Animator {
             double ratio = bounds.getHeight() / bounds.getWidth();
             int proportionalHeight = (int) Math.round(width * ratio);
             Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
-            image = new BufferedImage(imageBounds.width, imageBounds.height,
-                    BufferedImage.TYPE_INT_RGB);
-            image.createGraphics();
-            BufferedImage backgroundImage = new BufferedImage(imageBounds.width,
-                    imageBounds.height, BufferedImage.TYPE_INT_RGB);
+            image = createImage(imageBounds);
+            BufferedImage backgroundImage = createImage(imageBounds);
             Graphics2D gr = backgroundImage.createGraphics();
             gr.setPaint(Color.WHITE);
             gr.fill(imageBounds);
@@ -213,14 +211,20 @@ public class Animator {
             renderer.setMapContent(map);
             renderer.paint(gr, imageBounds, bounds);
             this.backgroundImage = backgroundImage;
-            this.offScreenImage = new BufferedImage(imageBounds.width, imageBounds.height,
-                    BufferedImage.TYPE_INT_RGB);
-            offScreenImage.createGraphics();
+            this.offScreenImage = createImage(imageBounds);
             worldToScreen = RendererUtilities.worldToScreenTransform(bounds, new Rectangle(0, 0,
                     backgroundImage.getWidth(), backgroundImage.getHeight()));
         }
         redrawAnimationLayer();
 
+    }
+
+    private static BufferedImage createImage(Rectangle imageBounds) {
+        BufferedImage img = new BufferedImage(imageBounds.width, imageBounds.height,
+                BufferedImage.TYPE_INT_RGB);
+        img.createGraphics().setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+        return img;
     }
 
     private synchronized void redrawAnimationLayer() {

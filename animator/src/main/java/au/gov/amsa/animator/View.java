@@ -40,7 +40,9 @@ public class View {
                 }
                 previous = position;
                 if (i == fixes.size()) {
-                    g.drawString("V", position.x, position.y);
+                    final int sz = 2;
+                    g.drawArc(Math.round(position.x - sz / 2), Math.round(position.y - sz / 2), sz,
+                            sz, 0, 360);
                 }
                 i++;
             }

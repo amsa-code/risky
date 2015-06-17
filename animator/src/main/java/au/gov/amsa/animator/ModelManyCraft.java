@@ -1,5 +1,7 @@
 package au.gov.amsa.animator;
 
+import static au.gov.amsa.geo.distance.EffectiveSpeedChecker.effectiveSpeedOk;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,6 +14,7 @@ import rx.Observable;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
 
 public class ModelManyCraft implements Model {
@@ -49,6 +52,7 @@ public class ModelManyCraft implements Model {
         private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
         private final Map<Long, Fix> lastFix = new HashMap<>();
         private final int maxSize = 1000;
+        private final SegmentOptions options = SegmentOptions.builder().build();
 
         @Override
         public void onStart() {
@@ -76,7 +80,10 @@ public class ModelManyCraft implements Model {
             if (queue.size() == maxSize)
                 queue.poll();
             Fix last = lastFix.get(f.mmsi());
-            if (last == null || f.time() >= last.time() + 300000) {
+            if (last == null
+                    || f.time() >= last.time() + 300000
+                    && effectiveSpeedOk(last.time(), last.lat(), last.lon(), f.time(), f.lat(),
+                            f.lon(), options)) {
                 queue.add(f);
                 lastFix.put(f.mmsi(), f);
             }
