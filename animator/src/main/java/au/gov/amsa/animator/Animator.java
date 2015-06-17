@@ -222,8 +222,9 @@ public class Animator {
     private static BufferedImage createImage(Rectangle imageBounds) {
         BufferedImage img = new BufferedImage(imageBounds.width, imageBounds.height,
                 BufferedImage.TYPE_INT_RGB);
-        img.createGraphics().setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_ON);
+        Graphics2D g = img.createGraphics();
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setBackground(Color.white);
         return img;
     }
 
