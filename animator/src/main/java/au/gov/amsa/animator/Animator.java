@@ -30,6 +30,7 @@ import rx.Scheduler.Worker;
 import rx.internal.util.SubscriptionList;
 import rx.schedulers.Schedulers;
 import rx.schedulers.SwingScheduler;
+import au.gov.amsa.util.swing.FramePreferences;
 
 public class Animator {
 
@@ -142,7 +143,7 @@ public class Animator {
                 frame.setContentPane(panel);
             }
             FramePreferences.restoreLocationAndSize(frame, 100, 100, 800, 600, Animator.class);
-            bounds = FramePreferences.restoreBounds(90, 175, -50, 0, frame, Animator.this);
+            bounds = AnimatorPreferences.restoreBounds(90, 175, -50, 0, frame, Animator.this);
             frame.addComponentListener(new ComponentAdapter() {
 
                 @Override
