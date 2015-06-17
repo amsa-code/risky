@@ -59,7 +59,7 @@ public class Animator {
 
     private static final float CANBERRA_LAT = -35.3075f;
     private static final float CANBERRA_LONG = 149.1244f;
-    private final Model model = new ModelManyCraft();
+    private final Model model;
     private final View view = new View();
     private volatile BufferedImage image;
     private volatile BufferedImage backgroundImage;
@@ -71,7 +71,8 @@ public class Animator {
     private volatile BufferedImage offScreenImage;
     private volatile AffineTransform worldToScreen;
 
-    public Animator() {
+    public Animator(Model model) {
+        this.model = model;
         map = createMap();
         bounds = map.getMaxBounds();
         bounds = new ReferencedEnvelope(90, 175, -50, 0, DefaultGeographicCRS.WGS84);
@@ -301,7 +302,7 @@ public class Animator {
         System.setProperty("http.proxyPort", "8080");
         System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
         System.setProperty("https.proxyPort", "8080");
-        new Animator().start();
+        new Animator(new ModelSingleCraft()).start();
     }
 
 }
