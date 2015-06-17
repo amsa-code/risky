@@ -10,6 +10,8 @@ import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
@@ -49,6 +51,7 @@ public class Animator {
     public Animator(Model model, MapContent map) {
         this.model = model;
         this.map = map;
+        // default to Australia centred region
         bounds = new ReferencedEnvelope(90, 175, -50, 0, DefaultGeographicCRS.WGS84);
         subscriptions = new SubscriptionList();
         worker = Schedulers.newThread().createWorker();
@@ -158,6 +161,13 @@ public class Animator {
                     redrawAll();
                 }
             });
+            frame.addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    Animator.this.close();
+                }
+            });
             frame.setVisible(true);
         });
         final AtomicInteger timeStep = new AtomicInteger();
@@ -218,12 +228,10 @@ public class Animator {
         panel.repaint();
     }
 
-    public static void main(String[] args) throws Exception {
-        System.setProperty("http.proxyHost", "proxy.amsa.gov.au");
-        System.setProperty("http.proxyPort", "8080");
-        System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
-        System.setProperty("https.proxyPort", "8080");
-        new Animator(new ModelManyCraft(), Map.createMap()).start();
+    public void close() {
+        System.out.println("unsubscribing");
+        subscriptions.unsubscribe();
+        System.out.println("unsubscribed");
     }
 
 }
