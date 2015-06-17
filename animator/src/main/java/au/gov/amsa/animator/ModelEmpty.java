@@ -31,9 +31,6 @@ public class ModelEmpty implements Model {
         return timeStep;
     }
 
-    /**
-     * @param args
-     */
     public static void main(String[] args) {
         File file = new File("/media/an/binary-fixes-5-minute/2014/565187000.track");
         Observable<Fix> source = BinaryFixes.from(file, true);

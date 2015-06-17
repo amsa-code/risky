@@ -37,6 +37,7 @@ public class ModelManyCraft implements Model {
         subscriber.requestMore(1000);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Map<Long, Collection<Fix>> recent() {
         return (Map<Long, Collection<Fix>>) ((Map<Long, ?>) subscriber.queues);

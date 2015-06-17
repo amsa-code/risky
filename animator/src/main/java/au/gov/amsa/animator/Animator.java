@@ -37,7 +37,7 @@ import au.gov.amsa.util.swing.FramePreferences;
 public class Animator {
 
     private final Model model;
-    private final View view = new View();
+    private final View view;
     private volatile BufferedImage image;
     private volatile BufferedImage backgroundImage;
     private volatile ReferencedEnvelope bounds;
@@ -48,9 +48,10 @@ public class Animator {
     private volatile BufferedImage offScreenImage;
     private volatile AffineTransform worldToScreen;
 
-    public Animator(Model model, MapContent map) {
-        this.model = model;
+    public Animator(MapContent map, Model model, View view) {
         this.map = map;
+        this.model = model;
+        this.view = view;
         // default to Australia centred region
         bounds = new ReferencedEnvelope(90, 175, -50, 0, DefaultGeographicCRS.WGS84);
         subscriptions = new SubscriptionList();

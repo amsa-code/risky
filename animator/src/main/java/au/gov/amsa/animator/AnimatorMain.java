@@ -7,7 +7,7 @@ public class AnimatorMain {
         System.setProperty("http.proxyPort", "8080");
         System.setProperty("https.proxyHost", "proxy.amsa.gov.au");
         System.setProperty("https.proxyPort", "8080");
-        new Animator(new ModelManyCraft(), Map.createMap()).start();
+        new Animator(Map.createMap(), new ModelManyCraft(), new ViewRecentTracks()).start();
     }
 
 }
