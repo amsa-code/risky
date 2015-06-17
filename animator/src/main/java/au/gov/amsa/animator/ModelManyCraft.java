@@ -12,7 +12,6 @@ import rx.Subscriber;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.risky.format.Fix;
-import au.gov.amsa.risky.format.Fixes;
 
 public class ModelManyCraft implements Model {
 
@@ -21,12 +20,7 @@ public class ModelManyCraft implements Model {
 
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file))
-                .filter(fix -> fix.mmsi() == 566674000 || fix.mmsi() == 413012000)
-                //
-                .groupBy(fix -> fix.mmsi())
-                //
-                .flatMap(g -> g.compose(Fixes.<Fix> ignoreOutOfOrderFixes(true)));
+        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file));
         //
         // .doOnNext(System.out::println);
         this.subscriber = new FixesSubscriber();
@@ -36,7 +30,7 @@ public class ModelManyCraft implements Model {
     @Override
     public void updateModel(long stepNumber) {
         this.stepNumber = stepNumber;
-        subscriber.requestMore(1);
+        subscriber.requestMore(1000);
     }
 
     @Override

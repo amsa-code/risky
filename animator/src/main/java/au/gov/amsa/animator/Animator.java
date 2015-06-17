@@ -123,10 +123,10 @@ public class Animator {
                 if (e.getClickCount() == 2) {
                     if (shiftDown) {
                         // zoom out centred on p
-                        zoom(p, 1.5);
+                        zoom(p, 2.5);
                     } else {
                         // zoom in centred on p
-                        zoom(p, 0.666);
+                        zoom(p, 0.4);
                     }
                     redrawAll();
                 } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
@@ -201,6 +201,9 @@ public class Animator {
             double ratio = bounds.getHeight() / bounds.getWidth();
             int proportionalHeight = (int) Math.round(width * ratio);
             Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
+            image = new BufferedImage(imageBounds.width, imageBounds.height,
+                    BufferedImage.TYPE_INT_RGB);
+            image.createGraphics();
             BufferedImage backgroundImage = new BufferedImage(imageBounds.width,
                     imageBounds.height, BufferedImage.TYPE_INT_RGB);
             Graphics2D gr = backgroundImage.createGraphics();
@@ -220,13 +223,15 @@ public class Animator {
 
     }
 
-    private void redrawAnimationLayer() {
+    private synchronized void redrawAnimationLayer() {
         // if (backgroundImage != null && offscreenImage != null) {
         if (offScreenImage != null) {
             offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
             view.draw(model, (Graphics2D) offScreenImage.getGraphics(), worldToScreen);
+            BufferedImage temp = offScreenImage;
+            offScreenImage = image;
+            image = temp;
         }
-        this.image = offScreenImage;
         panel.repaint();
     }
 
