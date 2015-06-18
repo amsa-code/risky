@@ -192,6 +192,8 @@ public class ModelManyCraft implements Model {
                 .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
                 // flatten
                 .flatMapIterable(UtilityFunctions.identity())
+                // to string
+                .map(fix -> new Date(fix.time()) + " " + fix)
                 // go
                 .subscribe(System.out::println);
     }
