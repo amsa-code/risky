@@ -4,6 +4,7 @@ import static au.gov.amsa.geo.distance.EffectiveSpeedChecker.effectiveSpeedOk;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,10 +13,13 @@ import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.rx.Streams;
+import au.gov.amsa.geo.distance.EffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.FixImpl;
 
 public class ModelManyCraft implements Model {
 
@@ -100,17 +104,69 @@ public class ModelManyCraft implements Model {
         }
     }
 
-    public static void main(String[] args) {
-        Observable.just(1, 2, 3).delay(1, TimeUnit.SECONDS, Schedulers.immediate()).cache()
-                .repeat(2).doOnNext(System.out::println).subscribe();
-        // TestSubscriber<Integer> ts = new TestSubscriber<Integer>(0);
-        // Observable.just(1, 2,
-        // 3).doOnRequest(System.out::println).repeat().subscribe(ts);
-        // ts.requestMore(10);
-        // ts.assertValueCount(10);
-        // File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        // Streams.extractFixes(Streams.nmeaFromGzip(file))
-        // .filter(fix -> fix.lat() < -25 && fix.lat() > -35 && fix.lon() > 110
-        // && fix.lon() < 115).forEach(System.out::println);
+    private static Func1<List<Fix>, Fix> extrapolateToNext(long startTime, long intervalMs) {
+        return list -> {
+            if (list.size() == 0)
+                throw new RuntimeException("unexpected");
+            else if (list.size() == 1) {
+                return list.get(0);
+            } else {
+                Fix a = list.get(0);
+                Fix b = list.get(1);
+                long t = ((b.time() - startTime) / intervalMs + 1) * intervalMs + startTime;
+                if (EffectiveSpeedChecker.effectiveSpeedOk(a.time(), a.lat(), a.lon(), b.time(),
+                        b.lat(), b.lon(), SegmentOptions.getDefault())) {
+                    FixImpl c = new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
+                            b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
+                            b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
+                    return c;
+                } else
+                    return new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
+                            b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
+                            b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
+            }
+        };
     }
+
+    public static void main(String[] args) {
+        File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
+        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file));
+        long startTime = source.toBlocking().first().time();
+
+        final long intervalMs = TimeUnit.MINUTES.toMillis(5);
+
+        source.buffer(100000)
+                .take(1)
+                //
+                .concatMap(
+                        buffer -> Observable.from(buffer)
+                        // sort by time
+                                .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
+                                // flatten
+                                .concatMap(x -> Observable.from(x))
+                                // group by timestep
+                                .groupBy(fix -> (fix.time() - startTime) / intervalMs)
+                                //
+                                .flatMap(
+                                // group by mmsi
+                                        g -> g.groupBy(fix -> fix.mmsi())
+                                        //
+                                                .flatMap(
+                                                        g2 -> // take the last
+                                                              // two at the end
+                                                              // of the timestep
+                                                        g2.takeLast(2)
+                                                        // convert to a
+                                                        // list of 1 or
+                                                        // 2 items
+                                                                .toList()
+                                                                // predict
+                                                                // position at
+                                                                // end of
+                                                                // timestep
+                                                                .map(extrapolateToNext(startTime,
+                                                                        intervalMs)))))
+                .subscribe(System.out::println);
+    }
+
 }
