@@ -4,6 +4,7 @@ import static au.gov.amsa.geo.distance.EffectiveSpeedChecker.effectiveSpeedOk;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -14,12 +15,15 @@ import java.util.concurrent.TimeUnit;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Func1;
+import rx.internal.util.UtilityFunctions;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.geo.distance.EffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.FixImpl;
+
+import com.github.davidmoten.util.MapWithIndex;
 
 public class ModelManyCraft implements Model {
 
@@ -108,38 +112,55 @@ public class ModelManyCraft implements Model {
         return list -> {
             if (list.size() == 0)
                 throw new RuntimeException("unexpected");
-            else if (list.size() == 1) {
-                return list.get(0);
-            } else {
+            else {
                 Fix a = list.get(0);
-                Fix b = list.get(1);
-                long t = ((b.time() - startTime) / intervalMs + 1) * intervalMs + startTime;
-                if (EffectiveSpeedChecker.effectiveSpeedOk(a.time(), a.lat(), a.lon(), b.time(),
-                        b.lat(), b.lon(), SegmentOptions.getDefault())) {
-                    FixImpl c = new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
-                            b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
-                            b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
-                    return c;
-                } else
+
+                if (list.size() == 1) {
+                    Fix b = a;
+                    long t = nextIntervalStartTime(startTime, intervalMs, a);
                     return new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
                             b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
                             b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
+                } else {
+                    Fix b = list.get(1);
+                    long t = nextIntervalStartTime(startTime, intervalMs, b);
+                    if (EffectiveSpeedChecker.effectiveSpeedOk(a.time(), a.lat(), a.lon(),
+                            b.time(), b.lat(), b.lon(), SegmentOptions.getDefault())) {
+                        FixImpl c = new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
+                                b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
+                                b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
+                        return c;
+                    } else
+                        return new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
+                                b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
+                                b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
+                }
             }
         };
     }
 
+    private static long nextIntervalStartTime(long startTime, long intervalMs, Fix a) {
+        return ((a.time() - startTime) / intervalMs + 1) * intervalMs + startTime;
+    }
+
     public static void main(String[] args) {
+        Observable.range(1, 10).groupBy(n -> n % 2).flatMap(g -> g.map(t -> g.getKey() + ":" + t))
+                .subscribe(System.out::println);
+        // System.exit(0);
+
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
         Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file));
-        long startTime = source.toBlocking().first().time();
+        final long startTime = 1391212800000L;
+        System.out.println(new Date(startTime));
 
         final long intervalMs = TimeUnit.MINUTES.toMillis(5);
 
-        source.buffer(100000)
+        source.buffer(1000000)
+                .compose(MapWithIndex.<List<Fix>> instance())
                 .take(1)
                 //
                 .concatMap(
-                        buffer -> Observable.from(buffer)
+                        buffer -> Observable.from(buffer.value())
                         // sort by time
                                 .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
                                 // flatten
@@ -148,7 +169,7 @@ public class ModelManyCraft implements Model {
                                 .groupBy(fix -> (fix.time() - startTime) / intervalMs)
                                 //
                                 .flatMap(
-                                // group by mmsi
+                                // within each timestep group by mmsi
                                         g -> g.groupBy(fix -> fix.mmsi())
                                         //
                                                 .flatMap(
@@ -166,7 +187,12 @@ public class ModelManyCraft implements Model {
                                                                 // timestep
                                                                 .map(extrapolateToNext(startTime,
                                                                         intervalMs)))))
+                .cast(Fix.class)
+                // sort by time
+                .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
+                // flatten
+                .flatMapIterable(UtilityFunctions.identity())
+                // go
                 .subscribe(System.out::println);
     }
-
 }
