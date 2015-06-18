@@ -4,11 +4,11 @@ import static au.gov.amsa.geo.distance.EffectiveSpeedChecker.effectiveSpeedOk;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 import rx.Subscriber;
@@ -24,17 +24,21 @@ public class ModelManyCraft implements Model {
 
     public ModelManyCraft() {
         File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file)).repeat();
+        this.subscriber = new FixesSubscriber();
+        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file)).take(10000000)
+                .cache().onBackpressureBuffer().doOnCompleted(() -> subscriber.reset()).repeat()
+                .doOnCompleted(() -> {
+                    System.out.println("completed");
+                });
         //
         // .doOnNext(System.out::println);
-        this.subscriber = new FixesSubscriber();
         source.subscribeOn(Schedulers.io()).subscribe(subscriber);
     }
 
     @Override
     public void updateModel(long stepNumber) {
         this.stepNumber = stepNumber;
-        subscriber.requestMore(1000);
+        subscriber.requestMore(10000);
     }
 
     @SuppressWarnings("unchecked")
@@ -51,9 +55,14 @@ public class ModelManyCraft implements Model {
     private static class FixesSubscriber extends Subscriber<Fix> {
 
         private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
-        private final Map<Long, Fix> lastFix = new HashMap<>();
-        private final int maxSize = 1000;
+        private final ConcurrentHashMap<Long, Fix> lastFix = new ConcurrentHashMap<>();
+        private final int maxSize = 100;
         private final SegmentOptions options = SegmentOptions.builder().build();
+
+        synchronized void reset() {
+            queues.clear();
+            lastFix.clear();
+        }
 
         @Override
         public void onStart() {
@@ -92,9 +101,16 @@ public class ModelManyCraft implements Model {
     }
 
     public static void main(String[] args) {
-        File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
-        Streams.extractFixes(Streams.nmeaFromGzip(file))
-                .filter(fix -> fix.lat() < -25 && fix.lat() > -35 && fix.lon() > 110
-                        && fix.lon() < 115).forEach(System.out::println);
+        Observable.just(1, 2, 3).delay(1, TimeUnit.SECONDS, Schedulers.immediate()).cache()
+                .repeat(2).doOnNext(System.out::println).subscribe();
+        // TestSubscriber<Integer> ts = new TestSubscriber<Integer>(0);
+        // Observable.just(1, 2,
+        // 3).doOnRequest(System.out::println).repeat().subscribe(ts);
+        // ts.requestMore(10);
+        // ts.assertValueCount(10);
+        // File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
+        // Streams.extractFixes(Streams.nmeaFromGzip(file))
+        // .filter(fix -> fix.lat() < -25 && fix.lat() > -35 && fix.lon() > 110
+        // && fix.lon() < 115).forEach(System.out::println);
     }
 }

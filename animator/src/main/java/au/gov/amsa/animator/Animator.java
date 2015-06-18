@@ -17,6 +17,7 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.swing.JFrame;
@@ -95,7 +96,7 @@ public class Animator {
                 }
                 worker.schedule(() -> {
                     redrawAll();
-                }, 100, TimeUnit.MILLISECONDS);
+                }, 50, TimeUnit.MILLISECONDS);
             }
 
             @Override
@@ -217,16 +218,21 @@ public class Animator {
         return img;
     }
 
-    private synchronized void redrawAnimationLayer() {
-        // if (backgroundImage != null && offscreenImage != null) {
-        if (offScreenImage != null) {
-            offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
-            view.draw(model, (Graphics2D) offScreenImage.getGraphics(), worldToScreen);
-            BufferedImage temp = offScreenImage;
-            offScreenImage = image;
-            image = temp;
+    private final AtomicBoolean redrawing = new AtomicBoolean(false);
+
+    private void redrawAnimationLayer() {
+        if (redrawing.compareAndSet(false, true)) {
+            // if (backgroundImage != null && offscreenImage != null) {
+            if (offScreenImage != null) {
+                offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
+                view.draw(model, (Graphics2D) offScreenImage.getGraphics(), worldToScreen);
+                BufferedImage temp = offScreenImage;
+                offScreenImage = image;
+                image = temp;
+            }
+            panel.repaint();
+            redrawing.set(false);
         }
-        panel.repaint();
     }
 
     public void close() {
