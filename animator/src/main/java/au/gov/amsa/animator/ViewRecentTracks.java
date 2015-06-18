@@ -6,6 +6,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import au.gov.amsa.risky.format.Fix;
 
@@ -28,22 +29,30 @@ public class ViewRecentTracks implements View {
         g.drawString("Canberra", p.x - size / 4 + r, p.y - size / 4 + r);
         g.setColor(Color.BLUE);
         Map<Long, Collection<Fix>> fixGroups = model.recent();
+
         for (Collection<Fix> fixes : fixGroups.values()) {
+            Long lastTime = null;
+            for (Fix fix : fixes) {
+                lastTime = fix.time();
+            }
             Point2D.Float previous = null;
             int i = 1;
             for (Fix fix : fixes) {
-                g.setColor(Color.getHSBColor(0.7833f,
-                        (float) Math.pow(i / (double) fixes.size(), 2), 1f));
-                Point2D.Float position = toScreen(worldToScreen, fix.lat(), fix.lon());
-                if (previous != null) {
-                    g.drawLine(Math.round(previous.x), Math.round(previous.y),
-                            Math.round(position.x), Math.round(position.y));
-                }
-                previous = position;
-                if (i == fixes.size()) {
-                    final int sz = 2;
-                    g.drawArc(Math.round(position.x - sz / 2), Math.round(position.y - sz / 2), sz,
-                            sz, 0, 360);
+                if (lastTime == null || fixes.size() == 1
+                        || fix.time() + TimeUnit.HOURS.toMillis(1) > lastTime) {
+                    g.setColor(Color.getHSBColor(0.7833f,
+                            (float) Math.pow(i / (double) fixes.size(), 2), 1f));
+                    Point2D.Float position = toScreen(worldToScreen, fix.lat(), fix.lon());
+                    if (previous != null) {
+                        g.drawLine(Math.round(previous.x), Math.round(previous.y),
+                                Math.round(position.x), Math.round(position.y));
+                    }
+                    previous = position;
+                    if (i == fixes.size()) {
+                        final int sz = 2;
+                        g.drawArc(Math.round(position.x - sz / 2), Math.round(position.y - sz / 2),
+                                sz, sz, 0, 360);
+                    }
                 }
                 i++;
             }

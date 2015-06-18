@@ -56,7 +56,7 @@ public class ModelManyCraft implements Model {
 
         private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
         private final ConcurrentHashMap<Long, Fix> lastFix = new ConcurrentHashMap<>();
-        private final int maxSize = 100;
+        private final int maxSize = 10;
         private final SegmentOptions options = SegmentOptions.builder().build();
 
         synchronized void reset() {
@@ -91,7 +91,7 @@ public class ModelManyCraft implements Model {
                 queue.poll();
             Fix last = lastFix.get(f.mmsi());
             if (last == null
-                    || f.time() >= last.time() + 300000
+                    || f.time() >= last.time() + 600000
                     && effectiveSpeedOk(last.time(), last.lat(), last.lon(), f.time(), f.lat(),
                             f.lon(), options)) {
                 queue.add(f);
