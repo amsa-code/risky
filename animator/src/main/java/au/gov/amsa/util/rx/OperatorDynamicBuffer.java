@@ -86,7 +86,8 @@ public class OperatorDynamicBuffer<T> implements Operator<List<T>, T> {
                         if (list2 == null) {
                             list2 = new ArrayList<T>();
                         } else {
-                            throw new RuntimeException("unexpected");
+                            child.onError(new RuntimeException("unexpected"));
+                            return;
                         }
                         list2.add(t);
                     }
