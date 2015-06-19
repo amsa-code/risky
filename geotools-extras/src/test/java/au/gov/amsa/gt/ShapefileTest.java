@@ -99,4 +99,11 @@ public class ShapefileTest {
         writer.close();
     }
 
+    public static void main(String[] args) throws IOException {
+        Shapefile shape = Shapefile.from(new File(System.getProperty("user.home")
+                + "/temp/amb06_map_eez_pl.shp"));
+        FileWriter writer = new FileWriter("target/geojson-eez.txt");
+        shape.writeGeoJson(writer, "EPSG:3857");
+        writer.close();
+    }
 }
