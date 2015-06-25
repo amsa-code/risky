@@ -8,9 +8,6 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -24,7 +21,6 @@ import rx.schedulers.Schedulers;
 
 import com.github.davidmoten.rx.Checked;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 
 public final class StringSockets {
 
@@ -187,24 +183,24 @@ public final class StringSockets {
         };
     }
 
-    public static Observable<String> mergeLinesFrom(Collection<HostPort> hostPorts) {
-        Preconditions.checkArgument(hostPorts.size() > 0);
-        List<Observable<String>> sources = new ArrayList<Observable<String>>();
-        for (HostPort hostPort : hostPorts) {
-            Observable<String> o =
-            // connect to localhost
-            from(hostPort.getHost())
-            // connect to port
-                    .port(hostPort.getPort())
-                    // if quiet then reconnect
-                    .quietTimeoutMs(hostPort.getQuietTimeoutMs())
-                    // reconnect delay
-                    .reconnectDelayMs(hostPort.getReconnectDelayMs())
-                    // create
-                    .create();
-            Observable<String> lines = Strings.split(o, "\n").subscribeOn(Schedulers.io());
-            sources.add(lines);
-        }
-        return Observable.merge(sources);
+    public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts) {
+        return hostPorts
+        //
+                .map(hp -> StringSockets
+                        .from(hp.getHost(), hp.getPort(), hp.getQuietTimeoutMs(),
+                                hp.getReconnectDelayMs(), StandardCharsets.UTF_8)
+                        // split by new line character
+                        .compose(o -> Strings.split(o, "\n"))
+                        // make asynchronous
+                        .subscribeOn(Schedulers.io()))
+                // merge streams of lines
+                .compose(o -> Observable.merge(o));
+    }
+
+    public static void main(String[] args) {
+        Observable<HostPort> hostPorts = Observable.just(
+                HostPort.create("sarapps", 9010, 1000, 1000),
+                HostPort.create("sarapps", 9100, 1000, 1000));
+        StringSockets.mergeLinesFrom(hostPorts).doOnNext(System.out::println).toBlocking().last();
     }
 }
