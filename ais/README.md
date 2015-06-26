@@ -34,11 +34,28 @@ Every other message is classified as ```AisMessageOther```.
 
 We are very happy to receive PRs with support for extracting other message types!
 
-How to read fixes from a zipped nmea file
--------------------------------------------
+How to read AisMessage objects from a zipped nmea file
+----------------------------------------------------------
+
 ```java
 import au.gov.amsa.ais.rx.Streams;
 
+File file = new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz");
+Streams.nmeaFromGzip(file)
+       .compose(o -> Streams.extract(o))
+       .forEach(System.out::println);
+```
+
+will print out
+
+```
+message=Optional.of(Timestamped [time=1432130399000, message=AisPositionA [source=null, messageId=1, repeatIndicator=0, mmsi=503783000, navigationalStatus=UNDER_WAY_USING_ENGINE, rateOfTurn=-127, speedOverGroundKnots=4.0, isHighAccuracyPosition=true, longitude=151.78541666666666, latitude=-32.92156, courseOverGround=82.8, trueHeading=55, timeSecondsOnly=0, specialManoeuvreIndicator=0, spare=0, isUsingRAIM=true, communications=Communications [startIndex=149, syncState=0, slotTimeout=1, receivedStations=null, slotNumber=null, hourUtc=0, minuteUtc=0, slotOffset=null]]]), line=\c:1432130399*5C\!ABVDM,1,1,,A,17PLNF0P@`bnlHUe:H63?1f02400,0*4E
+message=Optional.of(Timestamped [time=1432130399000, message=AisPositionA [source=null, messageId=3, repeatIndicator=2, mmsi=477831800, navigationalStatus=UNDER_WAY_USING_ENGINE, rateOfTurn=-4, speedOverGroundKnots=8.3, isHighAccuracyPosition=true, longitude=115.81217666666667, latitude=-34.908, courseOverGround=297.6, trueHeading=294, timeSecondsOnly=59, specialManoeuvreIndicator=0, spare=0, isUsingRAIM=false, communications=Communications [startIndex=149, syncState=0, slotTimeout=0, receivedStations=null, slotNumber=null, hourUtc=null, minuteUtc=null, slotOffset=0]]]), line=\c:1432130399*5C\!BSVDM,1,1,,B,3W7dRN0w1C`B9FEd1`H;`9=n0000,0*76
+...
+```
+How to read fixes from a zipped nmea file
+-------------------------------------------
+```java
 File file = new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz");
 Streams.nmeaFromGzip(file)
        .compose(o -> Streams.extractFixes(o))
