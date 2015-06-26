@@ -37,6 +37,8 @@ We are very happy to receive PRs with support for extracting other message types
 How to read fixes from a zipped nmea file
 -------------------------------------------
 ```java
+import au.gov.amsa.ais.rx.Streams;
+
 File file = new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz");
 Streams.nmeaFromGzip(file)
        .compose(o -> Streams.extractFixes(o))
