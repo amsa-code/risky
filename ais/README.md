@@ -51,8 +51,6 @@ Fix [mmsi=503472000, lat=-20.31346, lon=118.573654, time=1432130924000, navigati
 Fix [mmsi=503250800, lat=-32.062496, lon=115.74797, time=1432130924000, navigationalStatus=Optional.of(UNDER_WAY_USING_ENGINE), speedOverGroundKnots=Optional.of(0.0), courseOverGroundDegrees=Optional.of(0.1), headingDegrees=Optional.absent(), aisClass=A, latencySeconds=Optional.absent(), source=Optional.absent()]
 ...
 ```
-
-
 NmeaSaver
 -----------
 The obvious format for saving NMEA AIS messages is the raw NMEA message itself supplemented with a 
