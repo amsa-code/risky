@@ -34,6 +34,40 @@ Every other message is classified as ```AisMessageOther```.
 
 We are very happy to receive PRs with support for extracting other message types!
 
+How to read AisMessage objects from a zipped nmea file
+----------------------------------------------------------
+
+```java
+import au.gov.amsa.ais.rx.Streams;
+
+File file = new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz");
+Streams.nmeaFromGzip(file)
+       .compose(o -> Streams.extract(o))
+       .forEach(System.out::println);
+```
+
+will print out
+
+```
+message=Optional.of(Timestamped [time=1432130399000, message=AisPositionA [source=null, messageId=1, repeatIndicator=0, mmsi=503783000, navigationalStatus=UNDER_WAY_USING_ENGINE, rateOfTurn=-127, speedOverGroundKnots=4.0, isHighAccuracyPosition=true, longitude=151.78541666666666, latitude=-32.92156, courseOverGround=82.8, trueHeading=55, timeSecondsOnly=0, specialManoeuvreIndicator=0, spare=0, isUsingRAIM=true, communications=Communications [startIndex=149, syncState=0, slotTimeout=1, receivedStations=null, slotNumber=null, hourUtc=0, minuteUtc=0, slotOffset=null]]]), line=\c:1432130399*5C\!ABVDM,1,1,,A,17PLNF0P@`bnlHUe:H63?1f02400,0*4E
+message=Optional.of(Timestamped [time=1432212545000, message=AisShipStaticA [source=null, messageId=5, repeatIndicator=0, mmsi=566749000, aisVersionIndicator=0, imo=Optional.of(9610987), callsign=9V9719, name=GLOVIS MAESTRO, dimensionA=Optional.of(161), dimensionB=Optional.of(30), dimensionC=Optional.of(12), dimensionD=Optional.of(20), typeOfElectronicPositionFixingDevice=0, expectedTimeOfArrival=1432375200000, expectedTimeOfArrivalUnprocessed=375424, maximumPresentStaticDraughtMetres=78.0, destination=GEELONG, dataTerminalAvailable=true, spare=0, shipType=70]]), line=\c:1432212545,g:1-1-6*1F\!BSVDM,1,1,6,B,58LOWB02BafgUKWO7V0LhuHU>0l4E=A8v2222216D8N<D1Kb0CQiAC3kQp8888888888880,0*6C
+...
+```
+How to read fixes from a zipped nmea file
+-------------------------------------------
+```java
+File file = new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz");
+Streams.nmeaFromGzip(file)
+       .compose(o -> Streams.extractFixes(o))
+       .forEach(System.out::println);
+```
+
+will print out 
+```
+Fix [mmsi=503472000, lat=-20.31346, lon=118.573654, time=1432130924000, navigationalStatus=Optional.of(UNDER_WAY_USING_ENGINE), speedOverGroundKnots=Optional.of(0.0), courseOverGroundDegrees=Optional.of(349.9), headingDegrees=Optional.of(123.0), aisClass=A, latencySeconds=Optional.absent(), source=Optional.absent()]
+Fix [mmsi=503250800, lat=-32.062496, lon=115.74797, time=1432130924000, navigationalStatus=Optional.of(UNDER_WAY_USING_ENGINE), speedOverGroundKnots=Optional.of(0.0), courseOverGroundDegrees=Optional.of(0.1), headingDegrees=Optional.absent(), aisClass=A, latencySeconds=Optional.absent(), source=Optional.absent()]
+...
+```
 NmeaSaver
 -----------
 The obvious format for saving NMEA AIS messages is the raw NMEA message itself supplemented with a 
