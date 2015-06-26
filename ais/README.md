@@ -34,6 +34,23 @@ Every other message is classified as ```AisMessageOther```.
 
 We are very happy to receive PRs with support for extracting other message types!
 
+How to read fixes from a zipped nmea file
+-------------------------------------------
+```java
+File file = new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz");
+Streams.nmeaFromGzip(file)
+       .compose(o -> Streams.extractFixes(o))
+       .forEach(System.out::println);
+```
+
+will print out 
+```
+Fix [mmsi=503472000, lat=-20.31346, lon=118.573654, time=1432130924000, navigationalStatus=Optional.of(UNDER_WAY_USING_ENGINE), speedOverGroundKnots=Optional.of(0.0), courseOverGroundDegrees=Optional.of(349.9), headingDegrees=Optional.of(123.0), aisClass=A, latencySeconds=Optional.absent(), source=Optional.absent()]
+Fix [mmsi=503250800, lat=-32.062496, lon=115.74797, time=1432130924000, navigationalStatus=Optional.of(UNDER_WAY_USING_ENGINE), speedOverGroundKnots=Optional.of(0.0), courseOverGroundDegrees=Optional.of(0.1), headingDegrees=Optional.absent(), aisClass=A, latencySeconds=Optional.absent(), source=Optional.absent()]
+...
+```
+
+
 NmeaSaver
 -----------
 The obvious format for saving NMEA AIS messages is the raw NMEA message itself supplemented with a 
