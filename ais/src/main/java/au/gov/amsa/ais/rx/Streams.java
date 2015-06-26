@@ -677,11 +677,8 @@ public class Streams {
     }
 
     public static void main(String[] args) {
-        // print(connectAndExtract("mariweb", 9010).take(10));
-        long t = System.currentTimeMillis();
-        int count = extractMessages(nmeaFrom(new File("/home/dxm/temp/NMEA_ITU_20150101"))).count()
-                .toBlocking().single();
-        double rate = count * 1000.0 / (System.currentTimeMillis() - t);
-        System.out.println("read " + count + " records, rateMsgsPerSecond = " + rate);
+        Streams.nmeaFromGzip(new File("/media/an/nmea/2015/NMEA_ITU_20150521.gz"))
+                .compose(o -> Streams.extract(o)).takeLast(10000).forEach(System.out::println);
+
     }
 }

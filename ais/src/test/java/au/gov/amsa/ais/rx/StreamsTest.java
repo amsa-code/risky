@@ -15,6 +15,9 @@ import org.junit.Test;
 
 import rx.Observable;
 import rx.functions.Func1;
+import au.gov.amsa.ais.AisMessage;
+import au.gov.amsa.ais.message.AisShipStaticA;
+import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
@@ -34,6 +37,21 @@ public class StreamsTest {
         int count = Streams.extract(Streams.nmeaFrom(is)).count().toBlocking().single();
         assertEquals(200, count);
         is.close();
+    }
+
+    @Test
+    public void testExtractShipStaticA() {
+        String line = "\\c:1432212545,g:1-1-6*1F\\!BSVDM,1,1,6,B,58LOWB02BafgUKWO7V0LhuHU>0l4E=A8v2222216D8N<D1Kb0CQiAC3kQp8888888888880,0*6C";
+        TimestampedAndLine<AisMessage> x = Streams.extract(Observable.just(line)).toBlocking()
+                .single();
+        AisShipStaticA m = (AisShipStaticA) x.getMessage().get().message();
+        assertEquals(566749000, m.getMmsi());
+        assertEquals(9610987, (int) m.getImo().get());
+        assertEquals("9V9719", m.getCallsign());
+        assertEquals("GLOVIS MAESTRO", m.getName());
+        assertEquals(161, (int) m.getDimensionA().get());
+        assertEquals(70, m.getShipType());
+        System.out.println(x);
     }
 
     @Test
