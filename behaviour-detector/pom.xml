@@ -33,6 +33,12 @@
 			<artifactId>guava</artifactId>
 			<version>${guava.version}</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>com.github.davidmoten</groupId>
+			<artifactId>rxjava-extras</artifactId>
+			<version>${rxjava.extras.version}</version>
+		</dependency>
 
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
@@ -50,12 +56,6 @@
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>rxjava-slf4j</artifactId>
 			<version>${rxjava.slf4j.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>com.github.davidmoten</groupId>
-			<artifactId>rxjava-extras</artifactId>
-			<version>${rxjava.extras.version}</version>
 		</dependency>
 
 		<dependency>
@@ -79,6 +79,12 @@
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>risky-util</artifactId>
+			<version>${project.parent.version}</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>au.gov.amsa.risky</groupId>
+			<artifactId>geotools-extras</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
 

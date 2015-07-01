@@ -1,5 +1,10 @@
 package au.gov.amsa.risky.format;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
@@ -126,21 +131,22 @@ public final class FixImpl implements HasFix, Fix {
         b.append(", lon=");
         b.append(lon);
         b.append(", time=");
-        b.append(time);
+        b.append(DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(
+                Instant.ofEpochMilli(time), ZoneId.of("UTC"))));
         b.append(", navigationalStatus=");
-        b.append(navigationalStatus);
+        b.append(navigationalStatus.orNull());
         b.append(", speedOverGroundKnots=");
-        b.append(speedOverGroundKnots);
+        b.append(speedOverGroundKnots.orNull());
         b.append(", courseOverGroundDegrees=");
-        b.append(courseOverGroundDegrees);
+        b.append(courseOverGroundDegrees.orNull());
         b.append(", headingDegrees=");
-        b.append(headingDegrees);
+        b.append(headingDegrees.orNull());
         b.append(", aisClass=");
         b.append(aisClass);
         b.append(", latencySeconds=");
-        b.append(latencySeconds);
+        b.append(latencySeconds.orNull());
         b.append(", source=");
-        b.append(source);
+        b.append(source.orNull());
         b.append("]");
         return b.toString();
     }
