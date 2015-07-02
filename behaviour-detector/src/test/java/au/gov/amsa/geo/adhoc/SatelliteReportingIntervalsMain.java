@@ -1,20 +1,45 @@
 package au.gov.amsa.geo.adhoc;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
+import rx.Observable;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.streams.Strings;
 
-import com.github.davidmoten.rx.Transformers;
-
 public class SatelliteReportingIntervalsMain {
 
+    /**
+     * 
+     * Used this oracle query to get time diffs by mmsi for satellite reports
+     * from cts.position.
+     * 
+     * <pre>
+     * select mmsi, timeMs from 
+     * (
+     * select mmsi, EXTRACT( DAY    FROM diff ) * 24*60*60000
+     *      + EXTRACT( HOUR   FROM diff ) *  60*60000
+     *      + EXTRACT( MINUTE FROM diff ) *  60000
+     *      + EXTRACT( SECOND FROM diff ) * 1000 timeMs from 
+     * (
+     * select mmsi, position_time - to_timestamp('1970-01-01', 'yyyy-mm-dd') diff from cts.position 
+     * where position_time >= to_date('2015/06/28','yyyy/mm/dd') and position_time < to_date('2015/06/30','yyyy/mm/dd') 
+     * and (source_detail like 'AISSat%' or source_detail like 'NORAIS%' or source_detail like 'rEV%')
+     * )
+     * ) order by mmsi, timeMs
+     * </pre>
+     * 
+     * @param args
+     */
     public static void main(String[] args) {
-        Strings.from(new File("/home/dxm/temp.txt"))
+
+        // used this oracle query
+
+        Observable<BucketCount> buckets = Strings
+                .from(new File("/home/dxm/times.both.txt"))
                 //
                 .compose(o -> Strings.split(o, "\n"))
                 //
@@ -22,30 +47,45 @@ public class SatelliteReportingIntervalsMain {
                 //
                 .map(line -> line.split("\t"))
                 //
-                .doOnNext(items -> System.out.println(Arrays.asList(items)))
+                // .doOnNext(items -> System.out.println(Arrays.asList(items)))
                 //
                 .map(items -> new Record(Long.parseLong(items[0]), Long.parseLong(items[1])
                         / ((double) TimeUnit.HOURS.toMillis(1))))
                 //
                 .groupBy(record -> record.mmsi)
                 //
-                .flatMap(
-                        g -> g.buffer(2)
-                                //
-                                .filter(list -> list.size() == 2)
-                                // time diff
-                                .map(list -> list.get(1).timeHrs - list.get(0).timeHrs)
-                                .doOnNext(diff -> System.out.println("diff=" + diff))
-                                .map(diff -> Math.round(diff * 100))).cast(Long.class)
-                .groupBy(diff -> diff)
-                .flatMap(g -> g.compose(Transformers.<Long> mapWithIndex()).takeLast(1))
-                .collect(() -> new HashMap<Long, Integer>(), (m, x) -> {
-                    if (m.get(x.value()) == null)
-                        m.put(x.value(), 0);
-                    m.put(x.value(), m.get(x.value()) + 1);
-                }).doOnNext(System.out::println)
+                .flatMap(g -> g.buffer(2)
                 //
-                .count().toBlocking().single();
+                        .filter(list -> list.size() == 2)
+                        // time diff
+                        .map(list -> list.get(1).timeHrs - list.get(0).timeHrs))
+                // sort
+                .toSortedList()
+                .flatMap(list -> Observable.from(list))
+                .cast(Double.class)
+                //
+                .map(diff -> Math.floor(diff * 10) / 10.0)
+                .collect(() -> new HashMap<Double, Integer>(), (map, x) -> {
+                    if (map.get(x) == null)
+                        map.put(x, 1);
+                    else
+                        map.put(x, map.get(x) + 1);
+                })
+                // sort keys
+                .map(map -> new TreeMap<Double, Integer>(map))
+                // flatten
+                .flatMap(map -> Observable.from(map.entrySet()))
+                // map to bucket
+                .map(entry -> new BucketCount(entry.getKey(), entry.getValue()))
+                //
+                .scan(new BucketCount(0.0, 0),
+                        (b1, b2) -> new BucketCount(b2.bucket, b1.count + b2.count))
+                // cache
+                .cache();
+        double max = buckets.last().map(b -> b.count).toBlocking().single();
+        buckets.doOnNext(b -> System.out.println(b.bucket + "\t" + b.count / max * 100)).count()
+                .toBlocking().single();
+
         System.exit(0);
 
         File file = new File("/home/dxm/2015-06-29.txt.gz");
@@ -66,6 +106,18 @@ public class SatelliteReportingIntervalsMain {
                 .count()
                 //
                 .toBlocking().single();
+    }
+
+    private static class BucketCount {
+        final double bucket;
+        final int count;
+
+        BucketCount(double bucket, int count) {
+            super();
+            this.bucket = bucket;
+            this.count = count;
+        }
+
     }
 
     private static class Record {
