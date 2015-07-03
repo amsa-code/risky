@@ -52,7 +52,7 @@ public class SatelliteReportingIntervalsMain {
                 //
                 .groupBy(record -> record.mmsi)
                 //
-                .flatMap(g -> g.buffer(2)
+                .flatMap(g -> g.buffer(2, 1)
                 //
                         .filter(list -> list.size() == 2)
                         // time diff
