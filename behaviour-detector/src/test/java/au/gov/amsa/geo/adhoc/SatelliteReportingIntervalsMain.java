@@ -9,6 +9,7 @@ import rx.Observable;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.streams.Strings;
+import au.gov.amsa.util.Pair;
 
 public class SatelliteReportingIntervalsMain {
 
@@ -36,11 +37,8 @@ public class SatelliteReportingIntervalsMain {
      */
     public static void main(String[] args) {
 
-        // used this oracle query
-
-        Observable<BucketCount> buckets = Strings
-                .from(new File("/home/dxm/times.both.txt"))
-                //
+        Observable<Double> splits = Strings.from(new File("/home/dxm/times.txt"))
+        //
                 .compose(o -> Strings.split(o, "\n"))
                 //
                 .filter(line -> line.trim().length() > 0)
@@ -61,10 +59,23 @@ public class SatelliteReportingIntervalsMain {
                         .map(list -> list.get(1).timeHrs - list.get(0).timeHrs))
                 // sort
                 .toSortedList()
+                // flatten
                 .flatMap(list -> Observable.from(list))
-                .cast(Double.class)
                 //
+                .cast(Double.class).cache();
+
+        splits.reduce(Pair.create(0, 0.0), (p1, x) -> Pair.create(p1.a() + 1, x + p1.b()))
+        //
+                .map(pair -> pair.b() / pair.a())
+                //
+                .doOnNext(value -> System.out.println("average interval hours=" + value))
+                //
+                .subscribe();
+
+        Observable<BucketCount> buckets = splits
+        //
                 .map(diff -> Math.floor(diff * 10) / 10.0)
+                // collect into discrete interval buckets
                 .collect(() -> new HashMap<Double, Integer>(), (map, x) -> {
                     if (map.get(x) == null)
                         map.put(x, 1);
