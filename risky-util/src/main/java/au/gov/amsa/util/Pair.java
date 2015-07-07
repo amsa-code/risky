@@ -30,4 +30,14 @@ public class Pair<T, S> {
         return b;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Pair [a=");
+        builder.append(a);
+        builder.append(", b=");
+        builder.append(b);
+        builder.append("]");
+        return builder.toString();
+    }
 }
