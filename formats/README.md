@@ -35,6 +35,9 @@ Observable<Fix> fixes = BinaryFixes.from(new File("123.track"));
 
 How to use with R
 ----------------------------
+
+July 7 2015: The R routine for reading binary fixes does not seem to work properly. Not sure why yet, but not an AMSA priority to resolve at the moment.
+
 To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). 
 To test, generate the sample files (see below), then:
 
