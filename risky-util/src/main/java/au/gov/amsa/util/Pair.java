@@ -33,9 +33,9 @@ public class Pair<T, S> {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Pair [a=");
+        builder.append("Pair [left=");
         builder.append(a);
-        builder.append(", b=");
+        builder.append(", right=");
         builder.append(b);
         builder.append("]");
         return builder.toString();
