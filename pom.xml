@@ -64,6 +64,7 @@
         <module>spark</module>
         <module>animator</module>
         <module>geotools-extras</module>
+        <module>mariweb-archive-parser</module>
     </modules>
 
     <build>
