@@ -39,15 +39,15 @@ public class BackupReaderTest {
         String nmea = BackupReader.getNmea(is).toBlocking().first();
         System.out.println(nmea);
         assertEquals(
-                "\\s:Lockhart River,c:1325941276,at:1383695082*62\\!AIVDM,1,1,,B,1E@LR2200Rbrdgqe@Pl68S4H0000,0*07",
+                "\\s:Lockhart River,c:1325980876,at:1383734682*69\\!AIVDM,1,1,,B,1E@LR2200Rbrdgqe@Pl68S4H0000,0*07",
                 nmea);
         NmeaMessage n = new NmeaMessageParser().parse(nmea);
-        assertEquals("1383695082", n.getTags().get("at"));
-        assertEquals("1325941276", n.getTags().get("c"));
+        assertEquals("1383734682", n.getTags().get("at"));
+        assertEquals("1325980876", n.getTags().get("c"));
         AisMessage m = new AisNmeaMessage(nmea).getMessage();
         assertEquals("Lockhart River", m.getSource());
         assertEquals(1, m.getMessageId());
-        assertEquals("62", NmeaUtil.getChecksum("s:Lockhart River,c:1325941276,at:1383695082"));
+        assertEquals("69", NmeaUtil.getChecksum("s:Lockhart River,c:1325980876,at:1383734682"));
 
     }
 

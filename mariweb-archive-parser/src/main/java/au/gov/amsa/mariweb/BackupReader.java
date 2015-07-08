@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -42,6 +43,7 @@ import com.google.common.base.Preconditions;
 
 public class BackupReader {
 
+    private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
     private static final Set<String> TABLES = new HashSet<String>(Arrays.asList("ITU21_data",
             "ITU411_data", "ITU123_data", "ITU5_data", "ITU18_data", "ITU19_data"));
 
@@ -89,6 +91,7 @@ public class BackupReader {
                 LinkedHashMap<String, String> tags = NmeaMessageParser.extractTags(tagBlock
                         .substring(1, tagBlock.length() - 1));
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                sdf.setTimeZone(UTC);
                 try {
                     long unixSeconds = sdf.parse(arrivalTime).getTime() / 1000;
                     StringBuilder s = new StringBuilder();
