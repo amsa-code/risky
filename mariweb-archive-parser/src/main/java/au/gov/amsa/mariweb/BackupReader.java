@@ -231,7 +231,8 @@ public class BackupReader {
         Preconditions.checkArgument(directory.isDirectory(), "file is not a directory: "
                 + directory);
         File[] files = directory.listFiles((dir, name) -> {
-            return name.startsWith("ITU_20") && name.endsWith(".bu.gz");
+            return (name.startsWith("LSS_20") || name.startsWith("ITU_20"))
+                    && name.endsWith(".bu.gz");
         });
         // sort by ascending filename
         Arrays.sort(files, (a, b) -> {
