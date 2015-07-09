@@ -4,9 +4,10 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import org.junit.Test;
 
@@ -62,9 +63,11 @@ public class BackupReaderTest {
         assertEquals(2, list.size());
     }
 
-    public static void main(String[] args) throws FileNotFoundException {
-        System.out.println(BackupReader.getNmea(new FileInputStream("/home/dxm/temp.txt")).count()
-                .toBlocking().single());
+    public static void main(String[] args) throws IOException {
+        System.out.println("running");
+        System.out.println(BackupReader
+                .getNmea(new GZIPInputStream(new FileInputStream("/media/an/ITU_20150101.bu.gz")))
+                .count().toBlocking().single());
 
     }
 

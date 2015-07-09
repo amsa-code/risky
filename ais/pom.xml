@@ -9,9 +9,6 @@
 	<artifactId>ais</artifactId>
 	<name>${project.artifactId}</name>
 	<description>Utilities for parsing AIS NMEA and XML messages and for processing AIS message streams.</description>
-	<properties>
-		<jmh.version>1.3.3</jmh.version>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -159,6 +156,7 @@
 										<argument>org.openjdk.jmh.Main</argument>
 										<!-- -h for help -->
 										<argument>-f</argument>
+										<argument>1</argument>
 										<argument>-i</argument>
 										<argument>10</argument>
 										<argument>-wi</argument>
