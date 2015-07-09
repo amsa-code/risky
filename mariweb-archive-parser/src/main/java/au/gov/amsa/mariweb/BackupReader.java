@@ -248,7 +248,7 @@ public class BackupReader {
     }
 
     static void convertFileToNmea(File file) {
-        String baseName = "NMEA_" + file.getName().replace(".bu", "");
+        String baseName = "NMEA_" + file.getName().replace(".bu", "").replace("LSS_", "ITU_");
         File output = new File(file.getParentFile(), baseName + ".tmp");
         File finalOutput = new File(file.getParentFile(), baseName);
         if (!finalOutput.exists()) {
