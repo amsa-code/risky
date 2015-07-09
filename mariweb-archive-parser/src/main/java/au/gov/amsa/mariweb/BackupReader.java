@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -161,14 +160,14 @@ public class BackupReader {
         final PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(os,
                 Charset.forName("UTF-8"))));
         try {
-            final AtomicLong count = new AtomicLong(0);
             final AtomicReference<Throwable> exception = new AtomicReference<Throwable>();
             getNmea(is)
             // subscribe
                     .subscribe(new Observer<String>() {
 
                         Long time = System.currentTimeMillis();
-                        final int rateEvery = 100000;
+                        final int rateEvery = 1000000;
+                        long count;
 
                         @Override
                         public void onCompleted() {
@@ -183,11 +182,11 @@ public class BackupReader {
                         @Override
                         public void onNext(String line) {
                             writer.println(line);
-                            incrementCount(count);
+                            incrementCount();
                         }
 
-                        private void incrementCount(final AtomicLong count) {
-                            long n = count.incrementAndGet();
+                        private void incrementCount() {
+                            long n = ++count;
                             if (n % rateEvery == 0) {
                                 long t = System.currentTimeMillis();
                                 double rate = rateEvery * 1000.0 / (t - time);
