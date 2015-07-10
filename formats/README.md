@@ -35,6 +35,8 @@ Observable<Fix> fixes = BinaryFixes.from(new File("123.track"));
 
 How to use with R
 ----------------------------
+Note: the method below doesn't read the timestamp properly (R doesn't offer a 64-bit integer type), needs fixing.
+
 To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). 
 To test, generate the sample files (see below), then:
 
