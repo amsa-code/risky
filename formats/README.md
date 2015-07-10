@@ -167,7 +167,7 @@ of processing power for downstream).
 Performance
 --------------
 Using Intel Xeon CPU ES-1650 @ 3.2GHz and SSD, binary format is read in at up to **9m records per second** single-threaded.
-This compares very favourably with NMEA decode which is about 75K records/second (probably lots worse because the decode does extractions lazily).
+This compares very favourably with NMEA decode which is about 300K records/second (probably lots worse because the decode does extractions lazily).
 
 Characteristics
 -------------------
