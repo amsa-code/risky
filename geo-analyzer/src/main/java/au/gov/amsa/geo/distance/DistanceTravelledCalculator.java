@@ -67,7 +67,10 @@ public class DistanceTravelledCalculator {
         log.info("numFiles=" + numFiles);
         return files
                 // buffer for parallel processing of groups of files
-                .buffer(Math.max(1, numFiles / Runtime.getRuntime().availableProcessors()))
+                .buffer(Math.max(
+                        1,
+                        (int) Math.round(Math.ceil(numFiles
+                                / Runtime.getRuntime().availableProcessors())) - 1))
                 .flatMap(fileList ->
                 // extract fixes from each file
                         Observable
@@ -75,12 +78,11 @@ public class DistanceTravelledCalculator {
                                 .lift(Logging.<File> logger().showCount().showValue().log())
                                 .map(file -> BinaryFixes.from(file))
                                 // for one craft aggregate distance (not a
-                                // problem with
-                                // SerializedObserver buffering because each
-                                // file relatively
-                                // small), also subscribes on computation() to
-                                // get concurrency
-                                .flatMap(toCraftCellAndDistancesInParallel)
+                                // problem with SerializedObserver buffering
+                                // because each file relatively small), also
+                                // subscribes on computation() to get
+                                // concurrency
+                                .flatMap(toCraftCellAndDistances)
                                 .subscribeOn(Schedulers.computation()))
                 // sum distances into global map
                 .lift(new OperatorSumCellDistances())
@@ -92,7 +94,7 @@ public class DistanceTravelledCalculator {
                 .doOnNext(sumNauticalMiles());
     }
 
-    private final Func1<Observable<Fix>, Observable<CellAndDistance>> toCraftCellAndDistancesInParallel = new Func1<Observable<Fix>, Observable<CellAndDistance>>() {
+    private final Func1<Observable<Fix>, Observable<CellAndDistance>> toCraftCellAndDistances = new Func1<Observable<Fix>, Observable<CellAndDistance>>() {
 
         @Override
         public Observable<CellAndDistance> call(Observable<Fix> allFixesForASingleCraft) {

@@ -19,8 +19,6 @@ public class OperatorSumCellDistances implements Operator<Map<Cell, AtomicDouble
 
     private static Logger log = Logger.getLogger(OperatorSumCellDistances.class);
 
-    private long count = 0;
-
     /**
      * This takes about 100 bytes per entry of memory;
      */
@@ -32,6 +30,7 @@ public class OperatorSumCellDistances implements Operator<Map<Cell, AtomicDouble
             final Subscriber<? super Map<Cell, AtomicDouble>> child) {
 
         Subscriber<CellAndDistance> parent = new Subscriber<CellAndDistance>() {
+            long count = 0;
 
             @Override
             public void onCompleted() {
@@ -53,8 +52,8 @@ public class OperatorSumCellDistances implements Operator<Map<Cell, AtomicDouble
 
             @Override
             public void onNext(CellAndDistance cd) {
-                long n = ++count;
-                if (n % 1000000 == 0)
+                double n = ++count;
+                if (n % 10000 == 0)
                     log.info("cells received " + n / 1000000 + "m mapSize="
                             + (map.size() / 1000000.0) + "m, " + Util.memoryUsage());
                 Cell key = cd.getCell();
