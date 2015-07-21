@@ -75,7 +75,7 @@ public class DistanceTravelledCalculator {
                 // extract fixes from each file
                         Observable
                                 .from(fileList)
-                                .lift(Logging.<File> logger().showCount().showValue().log())
+                                .lift(Logging.<File> logger().showCount().every(1000).log())
                                 .map(file -> BinaryFixes.from(file))
                                 // for one craft aggregate distance (not a
                                 // problem with SerializedObserver buffering
