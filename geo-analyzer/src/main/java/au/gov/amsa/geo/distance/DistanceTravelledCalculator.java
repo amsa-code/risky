@@ -1,11 +1,9 @@
 package au.gov.amsa.geo.distance;
 
-import static au.gov.amsa.geo.Util.COMPARE_FIXES_BY_POSITION_TIME;
-import static au.gov.amsa.geo.Util.TO_OBSERVABLE;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -19,19 +17,20 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.geo.BinaryFixesObservable;
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Cell;
 import au.gov.amsa.geo.model.CellValue;
-import au.gov.amsa.geo.model.Fix;
 import au.gov.amsa.geo.model.GridTraversor;
-import au.gov.amsa.geo.model.HasPosition;
 import au.gov.amsa.geo.model.Options;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.geo.model.Util;
+import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.HasPosition;
 import au.gov.amsa.util.navigation.Position;
 import au.gov.amsa.util.rx.OperatorMapEntries;
 
+import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -64,14 +63,25 @@ public class DistanceTravelledCalculator {
         // ('maps') the fixes by craft to multiple threads (number determined by
         // available processors) and is passed the 'reduce'
         // calculateDistanceByCellFromFile() method to combine the results.
-
+        int numFiles = files.count().toBlocking().single();
+        log.info("numFiles=" + numFiles);
         return files
-        // extract fixes from each file
-                .map(BinaryFixesObservable.TO_FIXES)
-                // for one craft aggregate distance (not a problem with
-                // SerializedObserver buffering because each file relatively
-                // small), also subscribes on computation() to get concurrency
-                .flatMap(toCraftCellAndDistancesInParallel)
+                // buffer for parallel processing of groups of files
+                .buffer(Math.max(1, numFiles / Runtime.getRuntime().availableProcessors()))
+                .flatMap(fileList ->
+                // extract fixes from each file
+                        Observable
+                                .from(fileList)
+                                .lift(Logging.<File> logger().showCount().showValue().log())
+                                .map(file -> BinaryFixes.from(file))
+                                // for one craft aggregate distance (not a
+                                // problem with
+                                // SerializedObserver buffering because each
+                                // file relatively
+                                // small), also subscribes on computation() to
+                                // get concurrency
+                                .flatMap(toCraftCellAndDistancesInParallel)
+                                .subscribeOn(Schedulers.computation()))
                 // sum distances into global map
                 .lift(new OperatorSumCellDistances())
                 // wait for the map to have been filled by the last reporter
@@ -95,9 +105,9 @@ public class DistanceTravelledCalculator {
                     // restrict to fixes in filter bounds
                     .filter(inRegion)
                     // sort fixes by position time
-                    .toSortedList(COMPARE_FIXES_BY_POSITION_TIME)
+                    .toSortedList(au.gov.amsa.geo.Util.COMPARE_FIXES_BY_POSITION_TIME)
                     // convert list to Observable and flatten
-                    .concatMap(TO_OBSERVABLE)
+                    .concatMap(au.gov.amsa.geo.Util.TO_OBSERVABLE)
                     // keep only positions that pass effective speed
                     .lift(filterOnEffectiveSpeedOk())
                     // update metrics with fixes passing effective speed check
@@ -113,10 +123,7 @@ public class DistanceTravelledCalculator {
                     // update counts of cells in each segment
                     .doOnNext(countSegmentCells)
                     // use memory to buffer if producing fast
-                    .onBackpressureBuffer()
-                    // process each craft with a different Scheduler to get
-                    // concurrent processing
-                    .subscribeOn(Schedulers.computation());
+                    .onBackpressureBuffer();
         }
 
     };
@@ -140,9 +147,9 @@ public class DistanceTravelledCalculator {
         public Boolean call(Fix fix) {
 
             boolean lowerBoundOk = !options.getStartTime().isPresent()
-                    || fix.getTime() >= options.getStartTime().get();
+                    || fix.time() >= options.getStartTime().get();
             boolean upperBoundOk = !options.getFinishTime().isPresent()
-                    || fix.getTime() < options.getFinishTime().get();
+                    || fix.time() < options.getFinishTime().get();
             boolean result = lowerBoundOk && upperBoundOk;
             if (result)
                 metrics.fixesInTimeRange.incrementAndGet();
@@ -165,7 +172,7 @@ public class DistanceTravelledCalculator {
     };
 
     private static boolean timeDifferenceOk(Fix a, Fix b, SegmentOptions o) {
-        long timeDiffMs = Math.abs(a.getTime() - b.getTime());
+        long timeDiffMs = Math.abs(a.time() - b.time());
         return o.maxTimePerSegmentMs() == null || timeDiffMs <= o.maxTimePerSegmentMs();
     }
 
@@ -438,31 +445,19 @@ public class DistanceTravelledCalculator {
      */
     public static Observable<Options> partition(final Options options, final int horizontal,
             final int vertical) {
-        return Observable.create(new OnSubscribe<Options>() {
-
-            @Override
-            public void call(Subscriber<? super Options> subscriber) {
-                Bounds bounds = options.getBounds();
-                double h = bounds.getWidthDegrees() / horizontal;
-                double v = bounds.getHeightDegrees() / vertical;
-                int count = 0;
-                for (int i = 0; i < horizontal; i++) {
-                    for (int j = 0; j < vertical; j++) {
-                        count++;
-                        double lat = bounds.getTopLeftLat() - j * v;
-                        double lon = bounds.getTopLeftLon() + i * h;
-                        Bounds b = new Bounds(lat, lon, lat - v, lon + h);
-
-                        if (subscriber.isUnsubscribed())
-                            return;
-                        log.info("emitting options " + count + " of " + horizontal * vertical);
-                        subscriber.onNext(options.buildFrom().bounds(b)
-                                .filterBounds(b.expand(7, 7)).build());
-                    }
-                }
-                subscriber.onCompleted();
+        List<Options> list = new ArrayList<>();
+        Bounds bounds = options.getBounds();
+        double h = bounds.getWidthDegrees() / horizontal;
+        double v = bounds.getHeightDegrees() / vertical;
+        for (int i = 0; i < horizontal; i++) {
+            for (int j = 0; j < vertical; j++) {
+                double lat = bounds.getTopLeftLat() - j * v;
+                double lon = bounds.getTopLeftLon() + i * h;
+                Bounds b = new Bounds(lat, lon, lat - v, lon + h);
+                list.add(options.buildFrom().bounds(b).filterBounds(b.expand(7, 7)).build());
             }
-        });
+        }
+        return Observable.from(list);
     }
 
     private OperatorMapEntries<Cell, AtomicDouble, CellAndDistance> emitMapEntries() {

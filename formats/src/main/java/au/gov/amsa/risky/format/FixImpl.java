@@ -24,6 +24,11 @@ public final class FixImpl implements HasFix, Fix {
     private final Optional<Integer> latencySeconds;
     private final Optional<Short> source;
 
+    public FixImpl(long mmsi, float lat, float lon, long time, AisClass aisClass) {
+        this(mmsi, lat, lon, time, Optional.absent(), Optional.absent(), Optional.absent(),
+                Optional.absent(), Optional.absent(), Optional.absent(), aisClass);
+    }
+
     public FixImpl(long mmsi, float lat, float lon, long time, Optional<Integer> latencySeconds,
             Optional<Short> source, Optional<NavigationalStatus> navigationalStatus,
             Optional<Float> speedOverGroundKnots, Optional<Float> courseOverGroundDegrees,

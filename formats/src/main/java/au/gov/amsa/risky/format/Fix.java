@@ -2,15 +2,11 @@ package au.gov.amsa.risky.format;
 
 import com.google.common.base.Optional;
 
-public interface Fix extends HasFix {
+public interface Fix extends HasFix, HasPosition {
 
     long mmsi();
 
     long time();
-
-    float lat();
-
-    float lon();
 
     Optional<NavigationalStatus> navigationalStatus();
 

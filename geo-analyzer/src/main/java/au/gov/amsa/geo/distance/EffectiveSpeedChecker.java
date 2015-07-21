@@ -2,8 +2,8 @@ package au.gov.amsa.geo.distance;
 
 import java.util.concurrent.TimeUnit;
 
-import au.gov.amsa.geo.model.Fix;
 import au.gov.amsa.geo.model.SegmentOptions;
+import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.navigation.Position;
 
 import com.google.common.base.Optional;
@@ -11,8 +11,7 @@ import com.google.common.base.Optional;
 public class EffectiveSpeedChecker {
 
     public static boolean effectiveSpeedOk(Fix a, Fix b, SegmentOptions o) {
-        return effectiveSpeedOk(a.getTime(), a.getPosition().getLat(), a.getPosition().getLon(),
-                a.getTime(), a.getPosition().getLat(), a.getPosition().getLon(), o);
+        return effectiveSpeedOk(a.time(), a.lat(), a.lon(), a.time(), a.lat(), a.lon(), o);
     }
 
     public static boolean effectiveSpeedOk(long aTime, double aLat, double aLon, long bTime,
@@ -22,8 +21,7 @@ public class EffectiveSpeedChecker {
     }
 
     public static Optional<Double> effectiveSpeedKnots(Fix a, Fix b, SegmentOptions o) {
-        return effectiveSpeedKnots(a.getTime(), a.getPosition().getLat(), a.getPosition().getLon(),
-                a.getTime(), a.getPosition().getLat(), a.getPosition().getLon(), o);
+        return effectiveSpeedKnots(a.time(), a.lat(), a.lon(), a.time(), a.lat(), a.lon(), o);
     }
 
     public static Optional<Double> effectiveSpeedKnots(long aTime, double aLat, double aLon,

@@ -2,15 +2,10 @@ package au.gov.amsa.geo.distance;
 
 import static au.gov.amsa.geo.distance.EffectiveSpeedChecker.effectiveSpeedOk;
 import static com.google.common.base.Optional.of;
-
-import org.apache.log4j.Logger;
-
 import rx.Observable.Operator;
-import rx.Observer;
 import rx.Subscriber;
-import rx.observers.Subscribers;
-import au.gov.amsa.geo.model.Fix;
 import au.gov.amsa.geo.model.SegmentOptions;
+import au.gov.amsa.risky.format.Fix;
 
 import com.google.common.base.Optional;
 
@@ -22,71 +17,76 @@ import com.google.common.base.Optional;
  */
 public class OperatorEffectiveSpeedFilter implements Operator<Fix, Fix> {
 
-	private static Logger log = Logger
-			.getLogger(OperatorEffectiveSpeedFilter.class);
+    private final SegmentOptions options;
 
-	private final SegmentOptions options;
+    public OperatorEffectiveSpeedFilter(SegmentOptions options) {
+        this.options = options;
+    }
 
-	public OperatorEffectiveSpeedFilter(SegmentOptions options) {
-		this.options = options;
-	}
+    @Override
+    public Subscriber<? super Fix> call(Subscriber<? super Fix> child) {
+        Subscriber<Fix> parent = createSubscriber(child, options);
+        return parent;
 
-	@Override
-	public Subscriber<? super Fix> call(Subscriber<? super Fix> child) {
-		Subscriber<Fix> parent = Subscribers
-				.from(createObserver(child, options));
-		child.add(parent);
-		return parent;
+    }
 
-	}
+    private static Subscriber<Fix> createSubscriber(final Subscriber<? super Fix> child,
+            final SegmentOptions options) {
 
-	private static Observer<Fix> createObserver(
-			final Subscriber<? super Fix> child, final SegmentOptions options) {
+        return new Subscriber<Fix>(child) {
 
-		return new Observer<Fix>() {
+            private Optional<Fix> previousFix = Optional.absent();
+            private Optional<Fix> first = Optional.absent();
 
-			private Optional<Fix> previousFix = Optional.absent();
-			private Optional<Fix> first = Optional.absent();
+            @Override
+            public void onCompleted() {
+                child.onCompleted();
+            }
 
-			@Override
-			public void onCompleted() {
-				child.onCompleted();
-			}
+            @Override
+            public void onError(Throwable e) {
+                child.onError(e);
+            }
 
-			@Override
-			public void onError(Throwable e) {
-				child.onError(e);
-			}
+            @Override
+            public void onNext(Fix fix) {
 
-			@Override
-			public void onNext(Fix fix) {
+                if (!previousFix.isPresent()) {
+                    if (!first.isPresent()) {
+                        // buffer the very first fix. It will get emitted only
+                        // if passes effective speed check with the following
+                        // fix. If it does not then the next fix will be
+                        // considered as the next candidate for being the first
+                        // fix.
+                        first = of(fix);
+                        // because no emission we request again to honour
+                        // backpressure
+                        request(1);
+                    } else if (effectiveSpeedOk(first.get(), fix, options)) {
+                        previousFix = of(fix);
+                        child.onNext(first.get());
+                        child.onNext(fix);
+                    } else {
+                        first = of(fix);
+                        // because no emission we request again to honour
+                        // backpressure
+                        request(1);
+                    }
+                } else if (effectiveSpeedOk(previousFix.get(), fix, options)) {
+                    previousFix = of(fix);
+                    child.onNext(fix);
+                } else {
+                    // because no emission we request again to honour
+                    // backpressure
+                    request(1);
+                    // log.info("eff speed not ok " + previousFix.get() + "->" +
+                    // fix);
+                }
 
-				if (!previousFix.isPresent()) {
-					if (!first.isPresent())
-						// buffer the very first fix. It will get emitted only
-						// if passes effective speed check with the following
-						// fix. If it does not then the next fix will be
-						// considered as the next candidate for being the first
-						// fix.
-						first = of(fix);
-					else if (effectiveSpeedOk(first.get(), fix, options)) {
-						previousFix = of(fix);
-						child.onNext(first.get());
-						child.onNext(fix);
-					} else {
-						first = of(fix);
-					}
-				} else if (effectiveSpeedOk(previousFix.get(), fix, options)) {
-					previousFix = of(fix);
-					child.onNext(fix);
-				} else
-					// log.info("eff speed not ok " + previousFix.get() + "->" +
-					// fix);
-					;
-				// else ignore the fix and try effective speed check with the
-				// next one
-			}
-		};
-	}
+                // else ignore the fix and try effective speed check with the
+                // next one
+            }
+        };
+    }
 
 }

@@ -9,8 +9,8 @@ import org.apache.log4j.Logger;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.functions.Func2;
-import au.gov.amsa.geo.model.Fix;
-import au.gov.amsa.geo.model.HasPosition;
+import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.risky.format.HasPosition;
 import au.gov.amsa.util.Files;
 import au.gov.amsa.util.navigation.Position;
 
@@ -29,7 +29,7 @@ public class Util {
     }
 
     public static Position toPos(HasPosition a) {
-        return new Position(a.getPosition().getLat(), a.getPosition().getLon());
+        return new Position(a.lat(), a.lon());
     }
 
     public static Observable<File> getFiles(String directory, final String pattern) {
@@ -39,7 +39,7 @@ public class Util {
     public static final Func2<Fix, Fix, Integer> COMPARE_FIXES_BY_POSITION_TIME = new Func2<Fix, Fix, Integer>() {
         @Override
         public Integer call(Fix a, Fix b) {
-            return ((Long) a.getTime()).compareTo(b.getTime());
+            return Long.compare(a.time(), b.time());
         }
     };
 
