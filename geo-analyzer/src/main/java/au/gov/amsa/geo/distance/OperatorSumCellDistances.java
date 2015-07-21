@@ -53,7 +53,7 @@ public class OperatorSumCellDistances implements Operator<Map<Cell, AtomicDouble
             @Override
             public void onNext(CellAndDistance cd) {
                 double n = ++count;
-                if (n % 10000 == 0)
+                if (n % 1000000 == 0)
                     log.info("cells received " + n / 1000000 + "m mapSize="
                             + (map.size() / 1000000.0) + "m, " + Util.memoryUsage());
                 Cell key = cd.getCell();
