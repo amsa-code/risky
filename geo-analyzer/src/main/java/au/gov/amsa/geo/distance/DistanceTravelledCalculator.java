@@ -70,7 +70,7 @@ public class DistanceTravelledCalculator {
                 .buffer(Math.max(
                         1,
                         (int) Math.round(Math.ceil(numFiles
-                                / Runtime.getRuntime().availableProcessors())) - 1))
+                                / Runtime.getRuntime().availableProcessors()))))
                 .flatMap(fileList ->
                 // extract fixes from each file
                         Observable
