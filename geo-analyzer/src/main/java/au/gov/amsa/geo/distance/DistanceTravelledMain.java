@@ -46,8 +46,10 @@ public class DistanceTravelledMain {
         saveAsPng(Renderer.createImage(options, 2, 1280, resultFromFile),
                 new File("target/map.png"));
 
-        // saveCalculationResultAsText(options, result, "target/densities.txt");
-        // saveCalculationResultAsBinary(options, result,
+        DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
+                "target/densities.txt");
+        // DistanceTravelledCalculator.saveCalculationResultAsBinary(options,
+        // result,
         // "target/densities.bin");
     }
 
@@ -93,7 +95,7 @@ public class DistanceTravelledMain {
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
         else
-            cellSizeDegrees = 0.05;
+            cellSizeDegrees = 0.02;
 
         final Options options = createOptions(cellSizeDegrees);
         run(directory, options, false);
