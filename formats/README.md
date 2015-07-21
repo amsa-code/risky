@@ -3,7 +3,7 @@ formats
 
 Java routines for manipulating binary formatted files of vessel positions and static vessel data. 
 
-The *BinaryFixes* format provides very good read rates from Java code, up to **9m** records per second from one SSD (and up to **30m** per second in parallel) which beats the hell out of decoding raw NMEA at about 75K records/second.
+The *BinaryFixes* format provides very good read rates from Java code, up to **9m** records per second from one SSD (and up to **30m** per second in parallel) which beats the hell out of decoding raw NMEA at ~300K records/second.
 
 The *Netcdf* format is another binary format option to hold fixes.
 
@@ -35,6 +35,8 @@ Observable<Fix> fixes = BinaryFixes.from(new File("123.track"));
 
 How to use with R
 ----------------------------
+Note: the method below doesn't read the timestamp properly (R doesn't offer a 64-bit integer type), needs fixing.
+
 To read the above binary format using the R language see [read-binary-fixes.r](src/test/resources/read-binary-fixes.r). 
 To test, generate the sample files (see below), then:
 
@@ -165,7 +167,7 @@ of processing power for downstream).
 Performance
 --------------
 Using Intel Xeon CPU ES-1650 @ 3.2GHz and SSD, binary format is read in at up to **9m records per second** single-threaded.
-This compares very favourably with NMEA decode which is about 75K records/second (probably lots worse because the decode does extractions lazily).
+This compares very favourably with NMEA decode which is about 300K records/second (probably lots worse because the decode does extractions lazily).
 
 Characteristics
 -------------------
