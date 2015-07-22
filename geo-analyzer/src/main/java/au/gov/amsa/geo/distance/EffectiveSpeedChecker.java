@@ -36,7 +36,7 @@ public class EffectiveSpeedChecker {
                     Position.create(bLat, bLon));
             if (o.maxDistancePerSegmentNm() != null
                     && distanceBetweenFixesNm > o.maxDistancePerSegmentNm())
-                return Optional.absent();
+                return Optional.of(Double.MAX_VALUE);
             if (distanceBetweenFixesNm > o.speedCheckDistanceThresholdNm()) {
                 double timeDiffHoursFloored = (double) Math.max(timeDiffMs,
                         o.speedCheckMinTimeDiffMs())

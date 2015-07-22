@@ -100,6 +100,10 @@ public class SegmentOptions {
             return this;
         }
 
+        public Builder speedCheckMinTimeDiff(long duration, TimeUnit unit) {
+            return speedCheckMinTimeDiffMs(unit.toMillis(duration));
+        }
+
         public Builder maxSpeedKnots(double maxSpeedKnots) {
             this.maxSpeedKnots = maxSpeedKnots;
             return this;
@@ -113,6 +117,10 @@ public class SegmentOptions {
         public Builder maxTimePerSegmentMs(Long maxTimePerSegmentMs) {
             this.maxTimePerSegmentMs = maxTimePerSegmentMs;
             return this;
+        }
+
+        public Builder maxTimePerSegment(long duration, TimeUnit unit) {
+            return maxTimePerSegmentMs(unit.toMillis(duration));
         }
 
         public SegmentOptions build() {

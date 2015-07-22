@@ -17,6 +17,7 @@ import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.CellValue;
 import au.gov.amsa.geo.model.Options;
 import au.gov.amsa.geo.model.SegmentOptions;
+import au.gov.amsa.util.identity.MmsiValidator2;
 import au.gov.amsa.util.rx.OperatorWriteBytes;
 
 public class DistanceTravelledMain {
@@ -24,7 +25,13 @@ public class DistanceTravelledMain {
 
     private static void run(String directory, Options options, boolean gui) {
 
-        final Observable<File> files = Util.getFiles(directory, ".*\\.track");
+        final Observable<File> files = Util.getFiles(directory, ".*\\.track")
+        // remove bad mmsi numbers
+                .filter(file -> {
+                    String s = file.getName();
+                    String mmsi = s.substring(0, s.indexOf(".track"));
+                    return MmsiValidator2.INSTANCE.isValid(Long.parseLong(mmsi));
+                });
 
         CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
 
@@ -43,8 +50,8 @@ public class DistanceTravelledMain {
         CalculationResult resultFromFile = new CalculationResult(BinaryCellValuesObservable
                 .readValues(new File(filename)).skip(1).cast(CellValue.class), result.getMetrics());
         // 8:5 is ok ratio
-        saveAsPng(Renderer.createImage(options, 2, 1280, resultFromFile),
-                new File("target/map.png"));
+        saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File(
+                "target/map.png"));
 
         // DistanceTravelledCalculator.saveCalculationResultAsText(options,
         // result,
@@ -74,9 +81,15 @@ public class DistanceTravelledMain {
                 // set segment options
                 .segmentOptions(SegmentOptions.builder()
                 // set max speed knots
-                        .maxSpeedKnots(1000)
+                        .maxSpeedKnots(100)
+                        //
+                        .speedCheckDistanceThresholdNm(30)
+                        //
+                        .speedCheckMinTimeDiff(3, TimeUnit.MINUTES)
                         // set max time per segment
-                        .maxTimePerSegmentMs(TimeUnit.DAYS.toMillis(1))
+                        .maxTimePerSegment(1, TimeUnit.DAYS)
+                        //
+                        .maxDistancePerSegmentNm(200.0)
                         // build
                         .build())
                 // build options
@@ -96,7 +109,7 @@ public class DistanceTravelledMain {
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
         else
-            cellSizeDegrees = 0.5;
+            cellSizeDegrees = 0.02;
 
         final Options options = createOptions(cellSizeDegrees);
         run(directory, options, false);

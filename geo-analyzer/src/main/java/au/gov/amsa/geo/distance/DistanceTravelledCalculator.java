@@ -92,7 +92,7 @@ public class DistanceTravelledCalculator {
                                         .showMemory().log())
                                 // sum cell distances and emit maps of up to
                                 // 100K entries
-                                .lift(OperatorSumCellDistances.create(100_000))
+                                .lift(OperatorSumCellDistances.create(1_000_000))
                                 .subscribeOn(Schedulers.computation()))
                 // sum distances into global map
                 .collect(() -> new HashMap<Cell, Double>(20_000_000, 1.0f), (a, b) -> {
@@ -130,9 +130,9 @@ public class DistanceTravelledCalculator {
                     // restrict to fixes in filter bounds
                     .filter(inRegion)
                     // sort fixes by position time
-                    .toSortedList(au.gov.amsa.geo.Util.COMPARE_FIXES_BY_POSITION_TIME)
+                    // .toSortedList(au.gov.amsa.geo.Util.COMPARE_FIXES_BY_POSITION_TIME)
                     // convert list to Observable and flatten
-                    .concatMap(au.gov.amsa.geo.Util.TO_OBSERVABLE)
+                    // .concatMap(au.gov.amsa.geo.Util.TO_OBSERVABLE)
                     // keep only positions that pass effective speed
                     .lift(filterOnEffectiveSpeedOk())
                     // update metrics with fixes passing effective speed check
@@ -143,6 +143,9 @@ public class DistanceTravelledCalculator {
                     .filter(PAIRS_ONLY)
                     // remove segments with invalid time separation
                     .filter(timeDifferenceOk)
+                    // remove segments with invalid distance separation
+                    // TODO should be covered by effective speed filter!
+                    .filter(distanceOk)
                     // calculate distances
                     .flatMap(toCellAndDistance)
                     // update counts of cells in each segment
@@ -196,9 +199,27 @@ public class DistanceTravelledCalculator {
         }
     };
 
+    private final Func1<List<Fix>, Boolean> distanceOk = new Func1<List<Fix>, Boolean>() {
+        @Override
+        public Boolean call(List<Fix> pair) {
+            Preconditions.checkArgument(pair.size() == 2);
+            Fix a = pair.get(0);
+            Fix b = pair.get(1);
+            boolean ok = distanceOk(a, b, options.getSegmentOptions());
+            // if (ok)
+            // metrics.segmentsTimeDifferenceOk.incrementAndGet();
+            // metrics.segments.incrementAndGet();
+            return ok;
+        }
+    };
+
     private static boolean timeDifferenceOk(Fix a, Fix b, SegmentOptions o) {
         long timeDiffMs = Math.abs(a.time() - b.time());
         return o.maxTimePerSegmentMs() == null || timeDiffMs <= o.maxTimePerSegmentMs();
+    }
+
+    private static boolean distanceOk(Fix a, Fix b, SegmentOptions o) {
+        return o.maxDistancePerSegmentNm() > Util.greatCircleDistanceNm(a, b);
     }
 
     private static final Func1<List<Fix>, Boolean> PAIRS_ONLY = new Func1<List<Fix>, Boolean>() {

@@ -101,6 +101,11 @@
             <artifactId>formats</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+         <dependency>
+            <groupId>au.gov.amsa.risky</groupId>
+            <artifactId>ais</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

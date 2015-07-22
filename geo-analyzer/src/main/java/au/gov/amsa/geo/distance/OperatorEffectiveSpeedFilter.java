@@ -35,7 +35,14 @@ public class OperatorEffectiveSpeedFilter implements Operator<Fix, Fix> {
 
         return new Subscriber<Fix>(child) {
 
+            /**
+             * The last emitted fix.
+             */
             private Optional<Fix> previousFix = Optional.absent();
+
+            /**
+             * The latest fix.
+             */
             private Optional<Fix> first = Optional.absent();
 
             @Override
