@@ -47,12 +47,7 @@ public class NetcdfFixesWriterTest {
         System.out.println(attributes);
         assertFalse(attributes.isEmpty());
         System.out.println(nc.getDimensions());
-        {
-            Array array = nc.readSection("navigational_status");
-            assertEquals(NavigationalStatus.ENGAGED_IN_FISHING.ordinal(), array.getByte(0));
-            assertEquals(NavigationalStatus.AT_ANCHOR.ordinal(), array.getByte(1));
-            assertEquals(2, array.getSize());
-        }
+
         {
             Array array = nc.readSection("latitude");
             assertEquals(-10f, array.getFloat(0), PRECISION);
@@ -63,6 +58,54 @@ public class NetcdfFixesWriterTest {
             Array array = nc.readSection("longitude");
             assertEquals(135f, array.getFloat(0), PRECISION);
             assertEquals(135.2f, array.getFloat(1), PRECISION);
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("source");
+            assertEquals((short) 1, array.getShort(0));
+            assertEquals((short) 2, array.getShort(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("latency");
+            assertEquals(12, array.getInt(0));
+            assertEquals(13, array.getInt(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("navigational_status");
+            assertEquals(NavigationalStatus.ENGAGED_IN_FISHING.ordinal(), array.getByte(0));
+            assertEquals(NavigationalStatus.AT_ANCHOR.ordinal(), array.getByte(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("rate_of_turn");
+            assertEquals(-128, array.getByte(0));
+            assertEquals(-128, array.getByte(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("speed_over_ground");
+            assertEquals(75, array.getInt(0));
+            assertEquals(45, array.getInt(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("course_over_ground");
+            assertEquals(450, array.getShort(0));
+            assertEquals(200, array.getShort(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("heading");
+            assertEquals(46, array.getShort(0));
+            assertEquals(30, array.getShort(1));
+            assertEquals(2, array.getSize());
+        }
+        {
+            Array array = nc.readSection("ais_class");
+            assertEquals(1, array.getInt(0));
+            assertEquals(1, array.getInt(1));
             assertEquals(2, array.getSize());
         }
     }

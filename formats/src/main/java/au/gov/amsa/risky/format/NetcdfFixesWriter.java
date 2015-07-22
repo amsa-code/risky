@@ -160,7 +160,7 @@ public class NetcdfFixesWriter {
                 // heading
                 final short heading;
                 if (fix.courseOverGroundDegrees().isPresent())
-                    heading = (short) Math.floor(fix.courseOverGroundDegrees().get() + 0.01f);
+                    heading = (short) Math.floor(fix.headingDegrees().get() + 0.01f);
                 else
                     heading = (short) 360;
                 dataHeading.setShort(i, heading);
