@@ -17,7 +17,6 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Cell;
@@ -141,10 +140,11 @@ public class DistanceTravelledCalculator {
                     .buffer(2, 1)
                     // segments only
                     .filter(PAIRS_ONLY)
+                    // count segments
+                    .doOnNext(segment -> metrics.segments.incrementAndGet())
                     // remove segments with invalid time separation
                     .filter(timeDifferenceOk)
                     // remove segments with invalid distance separation
-                    // TODO should be covered by effective speed filter!
                     .filter(distanceOk)
                     // calculate distances
                     .flatMap(toCellAndDistance)
@@ -194,7 +194,6 @@ public class DistanceTravelledCalculator {
             boolean ok = timeDifferenceOk(a, b, options.getSegmentOptions());
             if (ok)
                 metrics.segmentsTimeDifferenceOk.incrementAndGet();
-            metrics.segments.incrementAndGet();
             return ok;
         }
     };
@@ -206,9 +205,8 @@ public class DistanceTravelledCalculator {
             Fix a = pair.get(0);
             Fix b = pair.get(1);
             boolean ok = distanceOk(a, b, options.getSegmentOptions());
-            // if (ok)
-            // metrics.segmentsTimeDifferenceOk.incrementAndGet();
-            // metrics.segments.incrementAndGet();
+            if (ok)
+                metrics.segmentsDistanceOk.incrementAndGet();
             return ok;
         }
     };
@@ -505,13 +503,5 @@ public class DistanceTravelledCalculator {
         }
         return Observable.from(list);
     }
-
-    private static Func2<Cell, Double, CellAndDistance> TO_CELL_DISTANCE = new Func2<Cell, Double, CellAndDistance>() {
-
-        @Override
-        public CellAndDistance call(Cell cell, Double value) {
-            return new CellAndDistance(cell, value.doubleValue());
-        }
-    };
 
 }
