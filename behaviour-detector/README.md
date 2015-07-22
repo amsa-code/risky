@@ -6,7 +6,7 @@ Drift detection
 Using course, heading and speed we have simple criteria for detecting if a position report is a drift candidate:
 
 A vessel is considered to be drifting if 
-* its speed is non-zero (>=0.25 knots for example) and <=20 knots
+* its speed is non-zero (&gte;0.25 knots for example) and <=20 knots
 * its course-over-ground differs from its heading by >=45 degrees
 * its AIS set is not indicating that it is at anchor or moored
 
