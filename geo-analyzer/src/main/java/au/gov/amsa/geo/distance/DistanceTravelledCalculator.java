@@ -6,7 +6,6 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -68,7 +67,6 @@ public class DistanceTravelledCalculator {
         log.info("numFiles=" + numFiles);
         AtomicLong fileCount = new AtomicLong();
         AtomicLong cellCount = new AtomicLong(1);
-        Map<Cell, Double> bigMap = new HashMap<Cell, Double>(10_000_000, 1.0f);
         return files
                 // buffer for parallel processing of groups of files
                 .buffer(Math.max(
@@ -97,8 +95,8 @@ public class DistanceTravelledCalculator {
                                 .lift(OperatorSumCellDistances.create(100_000))
                                 .subscribeOn(Schedulers.computation()))
                 // sum distances into global map
-                .reduce(bigMap, (a, b) -> {
-                    // bit cheeky but not making copy of a, just mutating it
+                .collect(() -> new HashMap<Cell, Double>(20_000_000, 1.0f), (a, b) -> {
+                    // put all entries in b into a
                         long t = System.currentTimeMillis();
                         log.info("reducing");
                         for (Entry<Cell, Double> entry : b.entrySet()) {
@@ -108,7 +106,6 @@ public class DistanceTravelledCalculator {
                             }
                         }
                         log.info("reduced in " + (System.currentTimeMillis() - t) + "ms");
-                        return a;
                     })
                 // report the cell distances for the grid
                 .flatMap(
