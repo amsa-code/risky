@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -16,6 +17,8 @@ import rx.Observable.OnSubscribe;
 import rx.Observer;
 import rx.Subscriber;
 import rx.functions.Action1;
+import rx.functions.Action2;
+import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.geo.model.Bounds;
@@ -71,49 +74,60 @@ public class DistanceTravelledCalculator {
                 .buffer(Math.max(
                         1,
                         (int) Math.round(Math.ceil(numFiles
-                                / Runtime.getRuntime().availableProcessors())) - 1))
-                .flatMap(fileList ->
-                // extract fixes from each file
-                        Observable
-                                .from(fileList)
-                                .lift(Logging.<File> logger().showCount(fileCount).every(1000)
-                                        .log())
-                                .map(file -> BinaryFixes.from(file))
-                                // for one craft aggregate distance (not a
-                                // problem with SerializedObserver buffering
-                                // because each file relatively small), also
-                                // subscribes on computation() to get
-                                // concurrency
-                                .flatMap(toCraftCellAndDistances)
-                                // log
-                                .lift(Logging.<CellAndDistance> logger()
-                                        .showCount("cellsReceived", cellCount).every(1_000_000)
-                                        .showMemory().log())
-                                // sum cell distances and emit maps of up to
-                                // 100K entries
-                                .lift(OperatorSumCellDistances.create(1_000_000))
-                                .subscribeOn(Schedulers.computation()))
+                                / Runtime.getRuntime().availableProcessors()))))
+                .flatMap(fileList -> extractCellDistances(fileCount, cellCount, fileList))
                 // sum distances into global map
-                .collect(() -> new HashMap<Cell, Double>(20_000_000, 1.0f), (a, b) -> {
-                    // put all entries in b into a
-                        long t = System.currentTimeMillis();
-                        log.info("reducing");
-                        for (Entry<Cell, Double> entry : b.entrySet()) {
-                            Double val = a.putIfAbsent(entry.getKey(), entry.getValue());
-                            if (val != null) {
-                                a.put(entry.getKey(), val + entry.getValue());
-                            }
-                        }
-                        log.info("reduced in " + (System.currentTimeMillis() - t) + "ms");
-                    })
+                .collect(bigMapFactory(), collectCellDistances())
                 // report the cell distances for the grid
-                .flatMap(
-                        map -> Observable.from(map.entrySet()).map(
-                                entry -> new CellAndDistance(entry.getKey(), entry.getValue())))
-                // why need to cast, dunno!
-                .cast(CellAndDistance.class)
+                .flatMap(listCellDistances())
                 // record total nm in metrics
                 .doOnNext(sumNauticalMiles());
+    }
+
+    private Func1<? super HashMap<Cell, Double>, Observable<CellAndDistance>> listCellDistances() {
+        return map -> Observable.from(map.entrySet()).map(
+                entry -> new CellAndDistance(entry.getKey(), entry.getValue()));
+    }
+
+    private Func0<HashMap<Cell, Double>> bigMapFactory() {
+        return () -> new HashMap<Cell, Double>(20_000_000, 1.0f);
+    }
+
+    private Action2<HashMap<Cell, Double>, Map<Cell, Double>> collectCellDistances() {
+        return (a, b) -> {
+            // put all entries in b into a
+            long t = System.currentTimeMillis();
+            log.info("reducing");
+            for (Entry<Cell, Double> entry : b.entrySet()) {
+                Double val = a.putIfAbsent(entry.getKey(), entry.getValue());
+                if (val != null) {
+                    a.put(entry.getKey(), val + entry.getValue());
+                }
+            }
+            log.info("reduced in " + (System.currentTimeMillis() - t) + "ms");
+        };
+    }
+
+    private Observable<Map<Cell, Double>> extractCellDistances(AtomicLong fileCount,
+            AtomicLong cellCount, List<File> fileList) {
+        return // extract fixes from each file
+        Observable
+                .from(fileList)
+                .lift(Logging.<File> logger().showCount(fileCount).every(1000).log())
+                .map(file -> BinaryFixes.from(file))
+                // for one craft aggregate distance (not a
+                // problem with SerializedObserver buffering
+                // because each file relatively small), also
+                // subscribes on computation() to get
+                // concurrency
+                .flatMap(toCraftCellAndDistances)
+                // log
+                .lift(Logging.<CellAndDistance> logger().showCount("cellsReceived", cellCount)
+                        .every(1_000_000).showMemory().log())
+                // sum cell distances and emit maps of up to
+                // 100K entries
+                .lift(OperatorSumCellDistances.create(1_000_000))
+                .subscribeOn(Schedulers.computation());
     }
 
     private final Func1<Observable<Fix>, Observable<CellAndDistance>> toCraftCellAndDistances = new Func1<Observable<Fix>, Observable<CellAndDistance>>() {

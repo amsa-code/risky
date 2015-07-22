@@ -113,7 +113,7 @@ public class DistanceTravelledMain {
                         // set max time per segment
                         .maxTimePerSegment(1, TimeUnit.DAYS)
                         //
-                        .maxDistancePerSegmentNm(200.0)
+                        .maxDistancePerSegmentNm(500.0)
                         // build
                         .build())
                 // build options
@@ -133,7 +133,7 @@ public class DistanceTravelledMain {
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
         else
-            cellSizeDegrees = 0.02;
+            cellSizeDegrees = 0.5;
 
         final Options options = createOptions(cellSizeDegrees);
         run(directory, options, false);
