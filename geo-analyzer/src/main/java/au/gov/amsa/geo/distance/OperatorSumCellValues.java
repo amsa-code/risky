@@ -14,8 +14,6 @@ import rx.observers.Subscribers;
 import au.gov.amsa.geo.model.CellValue;
 import au.gov.amsa.geo.model.Position;
 
-import com.google.common.util.concurrent.AtomicDouble;
-
 public class OperatorSumCellValues implements Operator<CellValue, CellValue> {
 
     private static Logger log = Logger.getLogger(OperatorSumCellValues.class);
@@ -25,13 +23,13 @@ public class OperatorSumCellValues implements Operator<CellValue, CellValue> {
     /**
      * This takes about 100 bytes per entry of memory;
      */
-    final Map<Position, AtomicDouble> map;
+    final Map<Position, Double> map;
 
     public OperatorSumCellValues(boolean useDisk) {
         if (useDisk)
             map = MapDb.INSTANCE.getDb().getHashMap(UUID.randomUUID().toString());
         else
-            map = new HashMap<Position, AtomicDouble>(INITIAL_CAPACITY, 1.0f);
+            map = new HashMap<Position, Double>(INITIAL_CAPACITY, 1.0f);
     }
 
     public OperatorSumCellValues() {
@@ -51,7 +49,7 @@ public class OperatorSumCellValues implements Operator<CellValue, CellValue> {
                 try {
                     log.info("starting to emit map values");
                     synchronized (map) {
-                        for (Entry<Position, AtomicDouble> entry : map.entrySet()) {
+                        for (Entry<Position, Double> entry : map.entrySet()) {
                             CellValue cv = new CellValue(entry.getKey().lat(),
                                     entry.getKey().lon(), entry.getValue().doubleValue());
                             child.onNext(cv);
@@ -71,26 +69,11 @@ public class OperatorSumCellValues implements Operator<CellValue, CellValue> {
 
             @Override
             public void onNext(CellValue cv) {
-                // long n = count.incrementAndGet();
-                // if (n % 1000000 == 0)
-                // log.info("cells received " + n / 1000000 + "m");
-
                 Position position = new Position((float) cv.getCentreLat(), (float) cv
                         .getCentreLon());
-
-                AtomicDouble val = map.get(position);
-                // double checked locking pattern
-                if (val == null) {
-                    synchronized (map) {
-                        val = map.get(position);
-                        if (val == null) {
-                            map.put(position, new AtomicDouble(cv.getValue()));
-                        } else
-                            val.addAndGet(cv.getValue());
-                    }
-                } else {
-                    val.addAndGet(cv.getValue());
-                }
+                Double val = map.putIfAbsent(position, cv.getValue());
+                if (val != null)
+                    map.put(position, val + cv.getValue());
             }
         });
         child.add(parent);

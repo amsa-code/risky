@@ -1,44 +1,46 @@
 package au.gov.amsa.geo.distance;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Logger;
 
 import rx.Observable.Operator;
 import rx.Subscriber;
-import au.gov.amsa.geo.Util;
 import au.gov.amsa.geo.model.Cell;
 
-import com.google.common.util.concurrent.AtomicDouble;
+public final class OperatorSumCellDistances implements Operator<Map<Cell, Double>, CellAndDistance> {
 
-public class OperatorSumCellDistances implements Operator<Map<Cell, AtomicDouble>, CellAndDistance> {
-
-    private static final int INITIAL_CAPACITY = 100000000;
+    private static final int INITIAL_CAPACITY = 100000;
 
     private static Logger log = Logger.getLogger(OperatorSumCellDistances.class);
 
     /**
      * This takes about 100 bytes per entry of memory;
      */
-    private final Map<Cell, AtomicDouble> map = new ConcurrentHashMap<Cell, AtomicDouble>(
-            INITIAL_CAPACITY, 1.0f);
+    private Map<Cell, Double> map = createMap();
+
+    private final int maxSize;
+
+    private OperatorSumCellDistances(int maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public static OperatorSumCellDistances create(int maxSize) {
+        return new OperatorSumCellDistances(maxSize);
+    }
 
     @Override
     public Subscriber<? super CellAndDistance> call(
-            final Subscriber<? super Map<Cell, AtomicDouble>> child) {
+            final Subscriber<? super Map<Cell, Double>> child) {
 
-        Subscriber<CellAndDistance> parent = new Subscriber<CellAndDistance>() {
-            long count = 0;
+        Subscriber<CellAndDistance> parent = new Subscriber<CellAndDistance>(child) {
 
             @Override
             public void onCompleted() {
                 try {
-                    log.info("finished a parallel fork");
-                    synchronized (map) {
-                        child.onNext(Collections.unmodifiableMap(map));
-                    }
+                    child.onNext(Collections.unmodifiableMap(map));
                     child.onCompleted();
                 } catch (Throwable t) {
                     onError(t);
@@ -52,26 +54,26 @@ public class OperatorSumCellDistances implements Operator<Map<Cell, AtomicDouble
 
             @Override
             public void onNext(CellAndDistance cd) {
-                double n = ++count;
-                if (n % 1000000 == 0)
-                    log.info("cells received " + n / 1000000 + "m mapSize="
-                            + (map.size() / 1000000.0) + "m, " + Util.memoryUsage());
                 Cell key = cd.getCell();
-                AtomicDouble val = map.get(key);
-                // double checked locking pattern
-                if (val == null)
-                    synchronized (map) {
-                        val = map.get(key);
-                        if (val == null)
-                            map.put(key, new AtomicDouble(cd.getDistanceNm()));
-                        else
-                            val.addAndGet(cd.getDistanceNm());
-                    }
-                else
-                    val.addAndGet(cd.getDistanceNm());
+
+                Double val = map.putIfAbsent(key, cd.getDistanceNm());
+                if (val != null) {
+                    map.put(key, val + cd.getDistanceNm());
+                    request(1);
+                } else {
+                    if (map.size() == maxSize) {
+                        Map<Cell, Double> m = map;
+                        map = createMap();
+                        child.onNext(Collections.unmodifiableMap(m));
+                    } else
+                        request(1);
+                }
             }
         };
-        child.add(parent);
         return parent;
+    }
+
+    private static Map<Cell, Double> createMap() {
+        return new HashMap<Cell, Double>(INITIAL_CAPACITY, 1.0f);
     }
 }

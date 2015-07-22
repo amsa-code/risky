@@ -6,6 +6,9 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
@@ -28,13 +31,11 @@ import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasPosition;
 import au.gov.amsa.util.navigation.Position;
-import au.gov.amsa.util.rx.OperatorMapEntries;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
-import com.google.common.util.concurrent.AtomicDouble;
 
 public class DistanceTravelledCalculator {
 
@@ -65,17 +66,21 @@ public class DistanceTravelledCalculator {
         // calculateDistanceByCellFromFile() method to combine the results.
         int numFiles = files.count().toBlocking().single();
         log.info("numFiles=" + numFiles);
+        AtomicLong fileCount = new AtomicLong();
+        AtomicLong cellCount = new AtomicLong(1);
+        Map<Cell, Double> bigMap = new HashMap<Cell, Double>(10_000_000, 1.0f);
         return files
                 // buffer for parallel processing of groups of files
                 .buffer(Math.max(
                         1,
                         (int) Math.round(Math.ceil(numFiles
-                                / Runtime.getRuntime().availableProcessors()))))
+                                / Runtime.getRuntime().availableProcessors())) - 1))
                 .flatMap(fileList ->
                 // extract fixes from each file
                         Observable
                                 .from(fileList)
-                                .lift(Logging.<File> logger().showCount().every(1000).log())
+                                .lift(Logging.<File> logger().showCount(fileCount).every(1000)
+                                        .log())
                                 .map(file -> BinaryFixes.from(file))
                                 // for one craft aggregate distance (not a
                                 // problem with SerializedObserver buffering
@@ -83,13 +88,34 @@ public class DistanceTravelledCalculator {
                                 // subscribes on computation() to get
                                 // concurrency
                                 .flatMap(toCraftCellAndDistances)
+                                // log
+                                .lift(Logging.<CellAndDistance> logger()
+                                        .showCount("cellsReceived", cellCount).every(1_000_000)
+                                        .showMemory().log())
+                                // sum cell distances and emit maps of up to
+                                // 100K entries
+                                .lift(OperatorSumCellDistances.create(100_000))
                                 .subscribeOn(Schedulers.computation()))
                 // sum distances into global map
-                .lift(new OperatorSumCellDistances())
-                // wait for the map to have been filled by the last reporter
-                .lastOrDefault(new HashMap<Cell, AtomicDouble>())
+                .reduce(bigMap, (a, b) -> {
+                    // bit cheeky but not making copy of a, just mutating it
+                        long t = System.currentTimeMillis();
+                        log.info("reducing");
+                        for (Entry<Cell, Double> entry : b.entrySet()) {
+                            Double val = a.putIfAbsent(entry.getKey(), entry.getValue());
+                            if (val != null) {
+                                a.put(entry.getKey(), val + entry.getValue());
+                            }
+                        }
+                        log.info("reduced in " + (System.currentTimeMillis() - t) + "ms");
+                        return a;
+                    })
                 // report the cell distances for the grid
-                .lift(emitMapEntries())
+                .flatMap(
+                        map -> Observable.from(map.entrySet()).map(
+                                entry -> new CellAndDistance(entry.getKey(), entry.getValue())))
+                // why need to cast, dunno!
+                .cast(CellAndDistance.class)
                 // record total nm in metrics
                 .doOnNext(sumNauticalMiles());
     }
@@ -462,14 +488,10 @@ public class DistanceTravelledCalculator {
         return Observable.from(list);
     }
 
-    private OperatorMapEntries<Cell, AtomicDouble, CellAndDistance> emitMapEntries() {
-        return new OperatorMapEntries<Cell, AtomicDouble, CellAndDistance>(TO_CELL_DISTANCE);
-    }
-
-    private static Func2<Cell, AtomicDouble, CellAndDistance> TO_CELL_DISTANCE = new Func2<Cell, AtomicDouble, CellAndDistance>() {
+    private static Func2<Cell, Double, CellAndDistance> TO_CELL_DISTANCE = new Func2<Cell, Double, CellAndDistance>() {
 
         @Override
-        public CellAndDistance call(Cell cell, AtomicDouble value) {
+        public CellAndDistance call(Cell cell, Double value) {
             return new CellAndDistance(cell, value.doubleValue());
         }
     };
