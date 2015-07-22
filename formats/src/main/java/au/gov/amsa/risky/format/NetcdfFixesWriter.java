@@ -76,17 +76,17 @@ public class NetcdfFixesWriter {
                     Arrays.asList(dimRateOfTurn));
             varRateOfTurn.addAttribute(new Attribute("encoding", "-128=not present, others TBA"));
 
-            Variable varSpeedOverGround = f.addVariable(null, "speed_over_ground", DataType.BYTE,
+            Variable varSpeedOverGround = f.addVariable(null, "speed_over_ground", DataType.SHORT,
                     Arrays.asList(dimSpeedOverGround));
             varSpeedOverGround.addAttribute(new Attribute("units", "1/10 knot"));
             varSpeedOverGround.addAttribute(new Attribute("encoding", "1023=not present"));
 
-            Variable varCourseOverGround = f.addVariable(null, "course_over_ground", DataType.BYTE,
-                    Arrays.asList(dimCourseOverGround));
+            Variable varCourseOverGround = f.addVariable(null, "course_over_ground",
+                    DataType.SHORT, Arrays.asList(dimCourseOverGround));
             varCourseOverGround.addAttribute(new Attribute("units", "1/10 degree"));
             varCourseOverGround.addAttribute(new Attribute("encoding", "3600=not present"));
 
-            Variable varHeading = f.addVariable(null, "heading", DataType.BYTE,
+            Variable varHeading = f.addVariable(null, "heading", DataType.SHORT,
                     Arrays.asList(dimHeading));
             varHeading.addAttribute(new Attribute("units", "degrees"));
             varHeading.addAttribute(new Attribute("encoding", "360=not present"));
@@ -183,6 +183,7 @@ public class NetcdfFixesWriter {
             f.write(varSpeedOverGround, dataSpeedOverGround);
             f.write(varCourseOverGround, dataCourseOverGround);
             f.write(varHeading, dataHeading);
+            f.write(varAisClass, dataAisClass);
 
             f.close();
 
