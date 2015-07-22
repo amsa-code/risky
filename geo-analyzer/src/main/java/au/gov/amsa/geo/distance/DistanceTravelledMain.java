@@ -4,7 +4,13 @@ import static au.gov.amsa.geo.distance.DistanceTravelledCalculator.calculateTraf
 import static au.gov.amsa.geo.distance.Renderer.saveAsPng;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
 
@@ -17,20 +23,37 @@ import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.CellValue;
 import au.gov.amsa.geo.model.Options;
 import au.gov.amsa.geo.model.SegmentOptions;
+import au.gov.amsa.navigation.ShipStaticData;
+import au.gov.amsa.navigation.ShipStaticData.Info;
 import au.gov.amsa.util.identity.MmsiValidator2;
 import au.gov.amsa.util.rx.OperatorWriteBytes;
+
+import com.google.common.base.Charsets;
 
 public class DistanceTravelledMain {
     private static Logger log = Logger.getLogger(DistanceTravelledMain.class);
 
     private static void run(String directory, Options options, boolean gui) {
-
-        final Observable<File> files = Util.getFiles(directory, ".*\\.track")
-        // remove bad mmsi numbers
+        InputStream is;
+        try {
+            is = new GZIPInputStream(new FileInputStream(
+                    "/media/an/ship-data/ais/ship-data-2014.txt.gz"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        Map<Long, Info> shipInfo = ShipStaticData.getMapFromReader(new InputStreamReader(is,
+                Charsets.UTF_8));
+        final Observable<File> files = Util
+                .getFiles(directory, ".*\\.track")
+                // remove bad mmsi numbers
                 .filter(file -> {
                     String s = file.getName();
-                    String mmsi = s.substring(0, s.indexOf(".track"));
-                    return MmsiValidator2.INSTANCE.isValid(Long.parseLong(mmsi));
+                    String mmsiString = s.substring(0, s.indexOf(".track"));
+                    long mmsi = Long.parseLong(mmsiString);
+                    Info info = shipInfo.get(mmsi);
+                    return MmsiValidator2.INSTANCE.isValid(mmsi)
+                            && (info == null || !info.shipType.isPresent() || (info.shipType.get() >= 60 && info.shipType
+                                    .get() <= 89));
                 });
 
         CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
@@ -49,16 +72,17 @@ public class DistanceTravelledMain {
 
         CalculationResult resultFromFile = new CalculationResult(BinaryCellValuesObservable
                 .readValues(new File(filename)).skip(1).cast(CellValue.class), result.getMetrics());
-        // 8:5 is ok ratio
-        saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File(
-                "target/map.png"));
 
-        // DistanceTravelledCalculator.saveCalculationResultAsText(options,
-        // result,
-        // "target/densities.txt");
-        // DistanceTravelledCalculator.saveCalculationResultAsBinary(options,
-        // result,
-        // "target/densities.bin");
+        int output = 1;
+
+        if (output == 1) {
+            // 8:5 is ok ratio
+            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File(
+                    "target/map.png"));
+        } else if (output == 2) {
+            DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
+                    "target/densities.txt");
+        }
     }
 
     private static Options createOptions(double cellSizeDegrees) {
@@ -109,7 +133,7 @@ public class DistanceTravelledMain {
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
         else
-            cellSizeDegrees = 0.02;
+            cellSizeDegrees = 0.5;
 
         final Options options = createOptions(cellSizeDegrees);
         run(directory, options, false);

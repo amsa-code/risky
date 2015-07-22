@@ -103,7 +103,7 @@
         </dependency>
          <dependency>
             <groupId>au.gov.amsa.risky</groupId>
-            <artifactId>ais</artifactId>
+            <artifactId>behaviour-detector</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>

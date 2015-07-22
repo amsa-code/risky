@@ -86,10 +86,14 @@ public final class ShipStaticData {
     }
 
     public static Map<Long, Info> getMapFromResource(String resource) {
+        return getMapFromReader(new InputStreamReader(
+                ShipStaticData.class.getResourceAsStream(resource), Charsets.UTF_8));
+    }
+
+    public static Map<Long, Info> getMapFromReader(Reader reader) {
         return ShipStaticData
-                // read ship static data from classpath
-                .from(new InputStreamReader(ShipStaticData.class.getResourceAsStream(resource),
-                        Charsets.UTF_8))
+        // read ship static data from classpath
+                .from(reader)
                 // make a map
                 .toMap(info -> info.mmsi)
                 // go
