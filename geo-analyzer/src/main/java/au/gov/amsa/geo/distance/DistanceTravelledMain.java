@@ -25,6 +25,7 @@ import au.gov.amsa.geo.model.Options;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.navigation.ShipStaticData;
 import au.gov.amsa.navigation.ShipStaticData.Info;
+import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.util.identity.MmsiValidator2;
 import au.gov.amsa.util.rx.OperatorWriteBytes;
 
@@ -43,17 +44,16 @@ public class DistanceTravelledMain {
         }
         Map<Long, Info> shipInfo = ShipStaticData.getMapFromReader(new InputStreamReader(is,
                 Charsets.UTF_8));
-        final Observable<File> files = Util
-                .getFiles(directory, ".*\\.track")
-                // remove bad mmsi numbers
+        final Observable<File> files = Util.getFiles(directory, ".*\\.track")
+        // remove bad mmsi numbers
                 .filter(file -> {
                     String s = file.getName();
                     String mmsiString = s.substring(0, s.indexOf(".track"));
                     long mmsi = Long.parseLong(mmsiString);
                     Info info = shipInfo.get(mmsi);
-                    return MmsiValidator2.INSTANCE.isValid(mmsi)
-                            && (info == null || !info.shipType.isPresent() || (info.shipType.get() >= 60 && info.shipType
-                                    .get() <= 89));
+                    return MmsiValidator2.INSTANCE.isValid(mmsi) && info != null
+                            && info.shipType.isPresent() && info.cls == AisClass.A
+                            && (info.shipType.get() >= 60 && info.shipType.get() <= 89);
                 });
 
         CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
