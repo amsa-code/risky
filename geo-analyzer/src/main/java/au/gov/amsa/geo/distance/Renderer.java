@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 public class Renderer {
 
     private static Logger log = Logger.getLogger(Renderer.class);
+    private final static boolean coloured = true;
     private static final String UNICODE_GREATER_THAN_OR_EQUAL = "\u2265 ";
 
     public static void paintAll(Graphics2D g, Options options, int numberStandardDeviations, int w,
@@ -202,7 +203,12 @@ public class Renderer {
     }
 
     private static Color toColor(double minSaturation, double prop) {
-        return Color.getHSBColor(0.0f, (float) (prop * (1 - minSaturation) + minSaturation), 1.0f);
+        if (coloured) {
+            return Color.getHSBColor((float) (1 - prop) * 0.5f, 1.0f, 1.0f);
+        } else {
+            return Color.getHSBColor(0.0f, (float) (prop * (1 - minSaturation) + minSaturation),
+                    1.0f);
+        }
     }
 
     private static Statistics getStatistics(Observable<CellValue> cells) {
