@@ -38,7 +38,7 @@ import com.google.common.util.concurrent.AtomicDouble;
 public class Renderer {
 
     private static Logger log = Logger.getLogger(Renderer.class);
-    private final static boolean coloured = true;
+    private final static boolean coloured = false;
     private static final String UNICODE_GREATER_THAN_OR_EQUAL = "\u2265 ";
 
     public static void paintAll(Graphics2D g, Options options, int numberStandardDeviations, int w,

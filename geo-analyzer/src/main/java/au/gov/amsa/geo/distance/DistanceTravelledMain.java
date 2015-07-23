@@ -73,7 +73,7 @@ public class DistanceTravelledMain {
         CalculationResult resultFromFile = new CalculationResult(BinaryCellValuesObservable
                 .readValues(new File(filename)).skip(1).cast(CellValue.class), result.getMetrics());
 
-        int output = 1;
+        int output = 2;
 
         if (output == 1) {
             // 8:5 is ok ratio
