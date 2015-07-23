@@ -73,13 +73,16 @@ public class DistanceTravelledMain {
         CalculationResult resultFromFile = new CalculationResult(BinaryCellValuesObservable
                 .readValues(new File(filename)).skip(1).cast(CellValue.class), result.getMetrics());
 
-        int output = 2;
+        boolean produceImage = true;
+        boolean produceDensitiesText = true;
 
-        if (output == 1) {
+        if (produceImage) {
             // 8:5 is ok ratio
             saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File(
                     "target/map.png"));
-        } else if (output == 2) {
+        }
+
+        if (produceDensitiesText) {
             DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
                     "target/densities.txt");
         }
