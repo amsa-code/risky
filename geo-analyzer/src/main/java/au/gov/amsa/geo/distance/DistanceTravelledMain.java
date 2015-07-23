@@ -53,7 +53,7 @@ public class DistanceTravelledMain {
                     Info info = shipInfo.get(mmsi);
                     return MmsiValidator2.INSTANCE.isValid(mmsi) && info != null
                             && info.shipType.isPresent() && info.cls == AisClass.A
-                            && (info.shipType.get() >= 60 && info.shipType.get() <= 89);
+                            && (info.shipType.get() >= 60 && info.shipType.get() <= 99);
                 });
 
         CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
