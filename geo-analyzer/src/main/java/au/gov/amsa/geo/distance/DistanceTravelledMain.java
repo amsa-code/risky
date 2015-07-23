@@ -15,6 +15,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.log4j.Logger;
 
 import rx.Observable;
+import rx.functions.Func1;
 import au.gov.amsa.geo.BinaryCellValuesObservable;
 import au.gov.amsa.geo.OperatorCellValuesToBytes;
 import au.gov.amsa.geo.Util;
@@ -44,16 +45,20 @@ public class DistanceTravelledMain {
         }
         Map<Long, Info> shipInfo = ShipStaticData.getMapFromReader(new InputStreamReader(is,
                 Charsets.UTF_8));
+
+        // filter out undesired mmsi numbers and ship types
+        Func1<Info, Boolean> shipSelector = info -> info != null && info.cls == AisClass.A
+                && (info.shipType.get() >= 60 && info.shipType.get() <= 99)
+                && MmsiValidator2.INSTANCE.isValid(info.mmsi) && info.shipType.isPresent();
+
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
-        // remove bad mmsi numbers
+        //
                 .filter(file -> {
                     String s = file.getName();
                     String mmsiString = s.substring(0, s.indexOf(".track"));
                     long mmsi = Long.parseLong(mmsiString);
                     Info info = shipInfo.get(mmsi);
-                    return MmsiValidator2.INSTANCE.isValid(mmsi) && info != null
-                            && info.shipType.isPresent() && info.cls == AisClass.A
-                            && (info.shipType.get() >= 60 && info.shipType.get() <= 99);
+                    return shipSelector.call(info);
                 });
 
         CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
