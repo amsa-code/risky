@@ -1,6 +1,5 @@
 package au.gov.amsa.geo.distance;
 
-import static au.gov.amsa.geo.distance.DistanceTravelledCalculator.calculateTrafficDensity;
 import static au.gov.amsa.geo.distance.Renderer.saveAsPng;
 
 import java.io.File;
@@ -8,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -46,11 +47,44 @@ public class DistanceTravelledMain {
         Map<Long, Info> shipInfo = ShipStaticData.getMapFromReader(new InputStreamReader(is,
                 Charsets.UTF_8));
 
-        // filter out undesired mmsi numbers and ship types
-        Func1<Info, Boolean> shipSelector = info -> info != null && info.cls == AisClass.A
-                && (info.shipType.get() >= 60 && info.shipType.get() <= 99)
-                && MmsiValidator2.INSTANCE.isValid(info.mmsi) && info.shipType.isPresent();
+        List<Setting> settings = new ArrayList<>();
+        settings.add(Setting.create(30, 30, "fishing"));
+        settings.add(Setting.create(52, 52, "tug"));
+        settings.add(Setting.create(60, 69, "passenger"));
+        settings.add(Setting.create(70, 79, "cargo"));
+        settings.add(Setting.create(80, 89, "tanker"));
+        settings.add(Setting.create(90, 99, "other"));
 
+        for (Setting setting : settings) {
+            // filter out undesired mmsi numbers and ship types
+            Func1<Info, Boolean> shipSelector = info -> info != null
+                    && info.cls == AisClass.A
+                    && (info.shipType.isPresent() && info.shipType.get() >= setting.lowerBound && info.shipType
+                            .get() <= setting.upperBound)
+                    && MmsiValidator2.INSTANCE.isValid(info.mmsi);
+            calculateTrafficDensity2(directory, options, gui, shipInfo, shipSelector,
+                    setting.prefix);
+        }
+    }
+
+    private static class Setting {
+        final int lowerBound;
+        final int upperBound;
+        final String prefix;
+
+        Setting(int lowerBound, int upperBound, String prefix) {
+            this.lowerBound = lowerBound;
+            this.upperBound = upperBound;
+            this.prefix = prefix;
+        }
+
+        public static Setting create(int lowerBound, int upperBound, String prefix) {
+            return new Setting(lowerBound, upperBound, prefix);
+        }
+    }
+
+    private static void calculateTrafficDensity2(String directory, Options options, boolean gui,
+            Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String prefix) {
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
         //
                 .filter(file -> {
@@ -61,7 +95,8 @@ public class DistanceTravelledMain {
                     return shipSelector.call(info);
                 });
 
-        CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
+        CalculationResult result = DistanceTravelledCalculator.calculateTrafficDensity(options,
+                files, 1, 1);
 
         if (gui) {
             DisplayPanel.displayGui(files, options, result);
@@ -83,13 +118,13 @@ public class DistanceTravelledMain {
 
         if (produceImage) {
             // 8:5 is ok ratio
-            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File(
-                    "target/map.png"));
+            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File("target/"
+                    + prefix + "map.png"));
         }
 
         if (produceDensitiesText) {
-            DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
-                    "target/densities.txt");
+            DistanceTravelledCalculator.saveCalculationResultAsText(options, result, "target/"
+                    + prefix + "densities.txt");
         }
     }
 
