@@ -62,29 +62,28 @@ public class DistanceTravelledMain {
                     && (info.shipType.isPresent() && info.shipType.get() >= setting.lowerBound && info.shipType
                             .get() <= setting.upperBound)
                     && MmsiValidator2.INSTANCE.isValid(info.mmsi);
-            calculateTrafficDensity2(directory, options, gui, shipInfo, shipSelector,
-                    setting.prefix);
+            calculateTrafficDensity2(directory, options, gui, shipInfo, shipSelector, setting.name);
         }
     }
 
     private static class Setting {
         final int lowerBound;
         final int upperBound;
-        final String prefix;
+        final String name;
 
-        Setting(int lowerBound, int upperBound, String prefix) {
+        Setting(int lowerBound, int upperBound, String name) {
             this.lowerBound = lowerBound;
             this.upperBound = upperBound;
-            this.prefix = prefix;
+            this.name = name;
         }
 
-        public static Setting create(int lowerBound, int upperBound, String prefix) {
-            return new Setting(lowerBound, upperBound, prefix);
+        public static Setting create(int lowerBound, int upperBound, String name) {
+            return new Setting(lowerBound, upperBound, name);
         }
     }
 
     private static void calculateTrafficDensity2(String directory, Options options, boolean gui,
-            Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String prefix) {
+            Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
         //
                 .filter(file -> {
@@ -119,12 +118,12 @@ public class DistanceTravelledMain {
         if (produceImage) {
             // 8:5 is ok ratio
             saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File("target/"
-                    + prefix + "map.png"));
+                    + name + "-map.png"));
         }
 
         if (produceDensitiesText) {
             DistanceTravelledCalculator.saveCalculationResultAsText(options, result, "target/"
-                    + prefix + "densities.txt");
+                    + name + "-densities.txt");
         }
     }
 
