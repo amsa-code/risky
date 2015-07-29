@@ -17,7 +17,7 @@
         <rxjava.version>1.0.13</rxjava.version>
         <rxjava.string.version>0.22.0</rxjava.string.version>
 		<rxjava.math.version>1.0.0</rxjava.math.version>
-        <rxjava.extras.version>0.5.8</rxjava.extras.version>
+        <rxjava.extras.version>0.5.12</rxjava.extras.version>
 		<rxjava.slf4j.version>0.5.4</rxjava.slf4j.version>
         <rtree.version>0.6.3</rtree.version>
 		<slf4j.version>1.7.12</slf4j.version>
