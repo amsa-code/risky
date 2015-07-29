@@ -15,23 +15,23 @@ import com.google.common.base.Optional;
  * the first fix then following fixes are discarded from the sequence that fail
  * the effective speed check with the last confirmed fix.
  */
-public class OperatorEffectiveSpeedFilter implements Operator<Fix, Fix> {
+public class OperatorEffectiveSpeedChecker implements Operator<EffectiveSpeedCheck, Fix> {
 
     private final SegmentOptions options;
 
-    public OperatorEffectiveSpeedFilter(SegmentOptions options) {
+    public OperatorEffectiveSpeedChecker(SegmentOptions options) {
         this.options = options;
     }
 
     @Override
-    public Subscriber<? super Fix> call(Subscriber<? super Fix> child) {
+    public Subscriber<? super Fix> call(Subscriber<? super EffectiveSpeedCheck> child) {
         Subscriber<Fix> parent = createSubscriber(child, options);
         return parent;
 
     }
 
-    private static Subscriber<Fix> createSubscriber(final Subscriber<? super Fix> child,
-            final SegmentOptions options) {
+    private static Subscriber<Fix> createSubscriber(
+            final Subscriber<? super EffectiveSpeedCheck> child, final SegmentOptions options) {
 
         return new Subscriber<Fix>(child) {
 
@@ -71,8 +71,8 @@ public class OperatorEffectiveSpeedFilter implements Operator<Fix, Fix> {
                         request(1);
                     } else if (effectiveSpeedOk(first.get(), fix, options)) {
                         previousFix = of(fix);
-                        child.onNext(first.get());
-                        child.onNext(fix);
+                        child.onNext(new EffectiveSpeedCheck(first.get(), true));
+                        child.onNext(new EffectiveSpeedCheck(fix, true));
                     } else {
                         first = of(fix);
                         // because no emission we request again to honour
@@ -81,17 +81,11 @@ public class OperatorEffectiveSpeedFilter implements Operator<Fix, Fix> {
                     }
                 } else if (effectiveSpeedOk(previousFix.get(), fix, options)) {
                     previousFix = of(fix);
-                    child.onNext(fix);
+                    child.onNext(new EffectiveSpeedCheck(fix, true));
                 } else {
-                    // because no emission we request again to honour
-                    // backpressure
-                    request(1);
-                    // log.info("eff speed not ok " + previousFix.get() + "->" +
-                    // fix);
+                    // failed effective speed check
+                    child.onNext(new EffectiveSpeedCheck(fix, false));
                 }
-
-                // else ignore the fix and try effective speed check with the
-                // next one
             }
         };
     }

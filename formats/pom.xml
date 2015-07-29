@@ -28,6 +28,11 @@
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava-extras</artifactId>
+            <version>${rxjava.extras.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-slf4j</artifactId>
             <version>${rxjava.slf4j.version}</version>
             <exclusions>
@@ -37,11 +42,7 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
-            <groupId>com.github.davidmoten</groupId>
-            <artifactId>rxjava-extras</artifactId>
-            <version>${rxjava.extras.version}</version>
-        </dependency>
+       
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>

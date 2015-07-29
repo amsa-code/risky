@@ -148,6 +148,10 @@ public class DistanceTravelledCalculator {
                     // .concatMap(au.gov.amsa.geo.Util.TO_OBSERVABLE)
                     // keep only positions that pass effective speed
                     .lift(filterOnEffectiveSpeedOk())
+                    // filter on passed effective speed check
+                    .filter(check -> check.isOk())
+                    // map back to the fix again
+                    .map(check -> check.fix())
                     // update metrics with fixes passing effective speed check
                     .doOnNext(countFixesPassedEffectiveSpeedCheck)
                     // pair them up again
@@ -170,8 +174,8 @@ public class DistanceTravelledCalculator {
 
     };
 
-    private OperatorEffectiveSpeedFilter filterOnEffectiveSpeedOk() {
-        return new OperatorEffectiveSpeedFilter(options.getSegmentOptions());
+    private OperatorEffectiveSpeedChecker filterOnEffectiveSpeedOk() {
+        return new OperatorEffectiveSpeedChecker(options.getSegmentOptions());
     }
 
     private final Func1<Fix, Boolean> inRegion = new Func1<Fix, Boolean>() {
