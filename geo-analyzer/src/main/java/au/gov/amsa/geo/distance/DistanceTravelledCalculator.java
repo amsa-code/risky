@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -16,8 +17,9 @@ import rx.Observable.OnSubscribe;
 import rx.Observer;
 import rx.Subscriber;
 import rx.functions.Action1;
+import rx.functions.Action2;
+import rx.functions.Func0;
 import rx.functions.Func1;
-import rx.functions.Func2;
 import rx.schedulers.Schedulers;
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Cell;
@@ -72,49 +74,60 @@ public class DistanceTravelledCalculator {
                 .buffer(Math.max(
                         1,
                         (int) Math.round(Math.ceil(numFiles
-                                / Runtime.getRuntime().availableProcessors())) - 1))
-                .flatMap(fileList ->
-                // extract fixes from each file
-                        Observable
-                                .from(fileList)
-                                .lift(Logging.<File> logger().showCount(fileCount).every(1000)
-                                        .log())
-                                .map(file -> BinaryFixes.from(file))
-                                // for one craft aggregate distance (not a
-                                // problem with SerializedObserver buffering
-                                // because each file relatively small), also
-                                // subscribes on computation() to get
-                                // concurrency
-                                .flatMap(toCraftCellAndDistances)
-                                // log
-                                .lift(Logging.<CellAndDistance> logger()
-                                        .showCount("cellsReceived", cellCount).every(1_000_000)
-                                        .showMemory().log())
-                                // sum cell distances and emit maps of up to
-                                // 100K entries
-                                .lift(OperatorSumCellDistances.create(1_000_000))
-                                .subscribeOn(Schedulers.computation()))
+                                / Runtime.getRuntime().availableProcessors()))))
+                .flatMap(fileList -> extractCellDistances(fileCount, cellCount, fileList))
                 // sum distances into global map
-                .collect(() -> new HashMap<Cell, Double>(20_000_000, 1.0f), (a, b) -> {
-                    // put all entries in b into a
-                        long t = System.currentTimeMillis();
-                        log.info("reducing");
-                        for (Entry<Cell, Double> entry : b.entrySet()) {
-                            Double val = a.putIfAbsent(entry.getKey(), entry.getValue());
-                            if (val != null) {
-                                a.put(entry.getKey(), val + entry.getValue());
-                            }
-                        }
-                        log.info("reduced in " + (System.currentTimeMillis() - t) + "ms");
-                    })
+                .collect(bigMapFactory(), collectCellDistances())
                 // report the cell distances for the grid
-                .flatMap(
-                        map -> Observable.from(map.entrySet()).map(
-                                entry -> new CellAndDistance(entry.getKey(), entry.getValue())))
-                // why need to cast, dunno!
-                .cast(CellAndDistance.class)
+                .flatMap(listCellDistances())
                 // record total nm in metrics
                 .doOnNext(sumNauticalMiles());
+    }
+
+    private Func1<? super HashMap<Cell, Double>, Observable<CellAndDistance>> listCellDistances() {
+        return map -> Observable.from(map.entrySet()).map(
+                entry -> new CellAndDistance(entry.getKey(), entry.getValue()));
+    }
+
+    private Func0<HashMap<Cell, Double>> bigMapFactory() {
+        return () -> new HashMap<Cell, Double>(20_000_000, 1.0f);
+    }
+
+    private Action2<HashMap<Cell, Double>, Map<Cell, Double>> collectCellDistances() {
+        return (a, b) -> {
+            // put all entries in b into a
+            long t = System.currentTimeMillis();
+            log.info("reducing");
+            for (Entry<Cell, Double> entry : b.entrySet()) {
+                Double val = a.putIfAbsent(entry.getKey(), entry.getValue());
+                if (val != null) {
+                    a.put(entry.getKey(), val + entry.getValue());
+                }
+            }
+            log.info("reduced in " + (System.currentTimeMillis() - t) + "ms");
+        };
+    }
+
+    private Observable<Map<Cell, Double>> extractCellDistances(AtomicLong fileCount,
+            AtomicLong cellCount, List<File> fileList) {
+        return // extract fixes from each file
+        Observable
+                .from(fileList)
+                .lift(Logging.<File> logger().showCount(fileCount).every(1000).log())
+                .map(file -> BinaryFixes.from(file))
+                // for one craft aggregate distance (not a
+                // problem with SerializedObserver buffering
+                // because each file relatively small), also
+                // subscribes on computation() to get
+                // concurrency
+                .flatMap(toCraftCellAndDistances)
+                // log
+                .lift(Logging.<CellAndDistance> logger().showCount("cellsReceived", cellCount)
+                        .every(1_000_000).showMemory().log())
+                // sum cell distances and emit maps of up to
+                // 100K entries
+                .lift(OperatorSumCellDistances.create(1_000_000))
+                .subscribeOn(Schedulers.computation());
     }
 
     private final Func1<Observable<Fix>, Observable<CellAndDistance>> toCraftCellAndDistances = new Func1<Observable<Fix>, Observable<CellAndDistance>>() {
@@ -135,16 +148,21 @@ public class DistanceTravelledCalculator {
                     // .concatMap(au.gov.amsa.geo.Util.TO_OBSERVABLE)
                     // keep only positions that pass effective speed
                     .lift(filterOnEffectiveSpeedOk())
+                    // filter on passed effective speed check
+                    .filter(check -> check.isOk())
+                    // map back to the fix again
+                    .map(check -> check.fix())
                     // update metrics with fixes passing effective speed check
                     .doOnNext(countFixesPassedEffectiveSpeedCheck)
                     // pair them up again
                     .buffer(2, 1)
                     // segments only
                     .filter(PAIRS_ONLY)
+                    // count segments
+                    .doOnNext(segment -> metrics.segments.incrementAndGet())
                     // remove segments with invalid time separation
                     .filter(timeDifferenceOk)
                     // remove segments with invalid distance separation
-                    // TODO should be covered by effective speed filter!
                     .filter(distanceOk)
                     // calculate distances
                     .flatMap(toCellAndDistance)
@@ -156,8 +174,8 @@ public class DistanceTravelledCalculator {
 
     };
 
-    private OperatorEffectiveSpeedFilter filterOnEffectiveSpeedOk() {
-        return new OperatorEffectiveSpeedFilter(options.getSegmentOptions());
+    private OperatorEffectiveSpeedChecker filterOnEffectiveSpeedOk() {
+        return new OperatorEffectiveSpeedChecker(options.getSegmentOptions());
     }
 
     private final Func1<Fix, Boolean> inRegion = new Func1<Fix, Boolean>() {
@@ -194,7 +212,6 @@ public class DistanceTravelledCalculator {
             boolean ok = timeDifferenceOk(a, b, options.getSegmentOptions());
             if (ok)
                 metrics.segmentsTimeDifferenceOk.incrementAndGet();
-            metrics.segments.incrementAndGet();
             return ok;
         }
     };
@@ -206,9 +223,8 @@ public class DistanceTravelledCalculator {
             Fix a = pair.get(0);
             Fix b = pair.get(1);
             boolean ok = distanceOk(a, b, options.getSegmentOptions());
-            // if (ok)
-            // metrics.segmentsTimeDifferenceOk.incrementAndGet();
-            // metrics.segments.incrementAndGet();
+            if (ok)
+                metrics.segmentsDistanceOk.incrementAndGet();
             return ok;
         }
     };
@@ -505,13 +521,5 @@ public class DistanceTravelledCalculator {
         }
         return Observable.from(list);
     }
-
-    private static Func2<Cell, Double, CellAndDistance> TO_CELL_DISTANCE = new Func2<Cell, Double, CellAndDistance>() {
-
-        @Override
-        public CellAndDistance call(Cell cell, Double value) {
-            return new CellAndDistance(cell, value.doubleValue());
-        }
-    };
 
 }

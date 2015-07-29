@@ -11,7 +11,7 @@ import com.google.common.base.Optional;
 public class EffectiveSpeedChecker {
 
     public static boolean effectiveSpeedOk(Fix a, Fix b, SegmentOptions o) {
-        return effectiveSpeedOk(a.time(), a.lat(), a.lon(), a.time(), a.lat(), a.lon(), o);
+        return effectiveSpeedOk(a.time(), a.lat(), a.lon(), b.time(), b.lat(), b.lon(), o);
     }
 
     public static boolean effectiveSpeedOk(long aTime, double aLat, double aLon, long bTime,
@@ -21,7 +21,7 @@ public class EffectiveSpeedChecker {
     }
 
     public static Optional<Double> effectiveSpeedKnots(Fix a, Fix b, SegmentOptions o) {
-        return effectiveSpeedKnots(a.time(), a.lat(), a.lon(), a.time(), a.lat(), a.lon(), o);
+        return effectiveSpeedKnots(a.time(), a.lat(), a.lon(), b.time(), b.lat(), b.lon(), o);
     }
 
     public static Optional<Double> effectiveSpeedKnots(long aTime, double aLat, double aLon,
@@ -34,9 +34,6 @@ public class EffectiveSpeedChecker {
         } else {
             double distanceBetweenFixesNm = 1.852 * Position.create(aLat, aLon).getDistanceToKm(
                     Position.create(bLat, bLon));
-            if (o.maxDistancePerSegmentNm() != null
-                    && distanceBetweenFixesNm > o.maxDistancePerSegmentNm())
-                return Optional.of(Double.MAX_VALUE);
             if (distanceBetweenFixesNm > o.speedCheckDistanceThresholdNm()) {
                 double timeDiffHoursFloored = (double) Math.max(timeDiffMs,
                         o.speedCheckMinTimeDiffMs())

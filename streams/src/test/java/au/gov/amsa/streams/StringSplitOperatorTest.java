@@ -12,6 +12,9 @@ import org.junit.Test;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.observers.TestSubscriber;
+
+import com.github.davidmoten.rx.operators.OperatorBufferEmissions;
 
 public class StringSplitOperatorTest {
 
@@ -104,6 +107,22 @@ public class StringSplitOperatorTest {
         Observable<String> o = Observable.just("hello", "there", ":how");
         List<String> expected = asList("hellothere", "how");
         checkWithBackpressure(o, expected);
+    }
+
+    @Test
+    public void testBackpressureOneByOneWithBufferEmissions() {
+        Observable<String> o = Observable.just("boo:an", "d:you")
+                .lift(new StringSplitOperator(Pattern.compile(":")))
+                .lift(new OperatorBufferEmissions());
+        List<String> expected = asList("boo", "and", "you");
+        TestSubscriber<String> ts = TestSubscriber.create(0);
+        o.subscribe(ts);
+        ts.requestMore(1);
+        ts.assertValues("boo");
+        ts.requestMore(1);
+        ts.assertValues("boo", "and");
+        ts.requestMore(1);
+        ts.assertValues("boo", "and", "you");
     }
 
     private static void checkWithBackpressure(Observable<String> o, List<String> expected) {

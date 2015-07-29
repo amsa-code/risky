@@ -1,6 +1,5 @@
 package au.gov.amsa.geo.distance;
 
-import static au.gov.amsa.geo.distance.DistanceTravelledCalculator.calculateTrafficDensity;
 import static au.gov.amsa.geo.distance.Renderer.saveAsPng;
 
 import java.io.File;
@@ -8,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -15,6 +16,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.log4j.Logger;
 
 import rx.Observable;
+import rx.functions.Func1;
 import au.gov.amsa.geo.BinaryCellValuesObservable;
 import au.gov.amsa.geo.OperatorCellValuesToBytes;
 import au.gov.amsa.geo.Util;
@@ -44,19 +46,56 @@ public class DistanceTravelledMain {
         }
         Map<Long, Info> shipInfo = ShipStaticData.getMapFromReader(new InputStreamReader(is,
                 Charsets.UTF_8));
+
+        List<Setting> settings = new ArrayList<>();
+        settings.add(Setting.create(30, 30, "fishing"));
+        settings.add(Setting.create(52, 52, "tug"));
+        settings.add(Setting.create(60, 69, "passenger"));
+        settings.add(Setting.create(70, 79, "cargo"));
+        settings.add(Setting.create(80, 89, "tanker"));
+        settings.add(Setting.create(90, 99, "other"));
+
+        for (Setting setting : settings) {
+            // filter out undesired mmsi numbers and ship types
+            Func1<Info, Boolean> shipSelector = info -> info != null
+                    && info.cls == AisClass.A
+                    && (info.shipType.isPresent() && info.shipType.get() >= setting.lowerBound && info.shipType
+                            .get() <= setting.upperBound)
+                    && MmsiValidator2.INSTANCE.isValid(info.mmsi);
+            calculateTrafficDensity2(directory, options, gui, shipInfo, shipSelector, setting.name);
+        }
+    }
+
+    private static class Setting {
+        final int lowerBound;
+        final int upperBound;
+        final String name;
+
+        Setting(int lowerBound, int upperBound, String name) {
+            this.lowerBound = lowerBound;
+            this.upperBound = upperBound;
+            this.name = name;
+        }
+
+        public static Setting create(int lowerBound, int upperBound, String name) {
+            return new Setting(lowerBound, upperBound, name);
+        }
+    }
+
+    private static void calculateTrafficDensity2(String directory, Options options, boolean gui,
+            Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
-        // remove bad mmsi numbers
+        //
                 .filter(file -> {
                     String s = file.getName();
                     String mmsiString = s.substring(0, s.indexOf(".track"));
                     long mmsi = Long.parseLong(mmsiString);
                     Info info = shipInfo.get(mmsi);
-                    return MmsiValidator2.INSTANCE.isValid(mmsi) && info != null
-                            && info.shipType.isPresent() && info.cls == AisClass.A
-                            && (info.shipType.get() >= 60 && info.shipType.get() <= 89);
+                    return shipSelector.call(info);
                 });
 
-        CalculationResult result = calculateTrafficDensity(options, files, 1, 1);
+        CalculationResult result = DistanceTravelledCalculator.calculateTrafficDensity(options,
+                files, 1, 1);
 
         if (gui) {
             DisplayPanel.displayGui(files, options, result);
@@ -73,15 +112,18 @@ public class DistanceTravelledMain {
         CalculationResult resultFromFile = new CalculationResult(BinaryCellValuesObservable
                 .readValues(new File(filename)).skip(1).cast(CellValue.class), result.getMetrics());
 
-        int output = 1;
+        boolean produceImage = true;
+        boolean produceDensitiesText = true;
 
-        if (output == 1) {
+        if (produceImage) {
             // 8:5 is ok ratio
-            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File(
-                    "target/map.png"));
-        } else if (output == 2) {
-            DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
-                    "target/densities.txt");
+            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File("target/"
+                    + name + "-map.png"));
+        }
+
+        if (produceDensitiesText) {
+            DistanceTravelledCalculator.saveCalculationResultAsText(options, result, "target/"
+                    + name + "-densities.txt");
         }
     }
 
@@ -113,7 +155,7 @@ public class DistanceTravelledMain {
                         // set max time per segment
                         .maxTimePerSegment(1, TimeUnit.DAYS)
                         //
-                        .maxDistancePerSegmentNm(200.0)
+                        .maxDistancePerSegmentNm(500.0)
                         // build
                         .build())
                 // build options

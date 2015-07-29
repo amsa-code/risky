@@ -14,7 +14,7 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 
-import com.github.davidmoten.rx.operators.OperatorBufferEmissions;
+import com.github.davidmoten.rx.Transformers;
 
 /**
  * Utilities for stream processing of lines of text from
@@ -54,8 +54,8 @@ public final class Strings {
     }
 
     public static Observable<String> split(Observable<String> source, String pattern) {
-        return source.lift(new StringSplitOperator(Pattern.compile(pattern))).lift(
-                new OperatorBufferEmissions<String>());
+        return source.lift(new StringSplitOperator(Pattern.compile(pattern))).compose(
+                Transformers.bufferEmissions());
     }
 
     public static Observable<String> from(File file) {
