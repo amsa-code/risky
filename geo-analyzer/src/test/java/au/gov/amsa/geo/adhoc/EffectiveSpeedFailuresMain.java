@@ -25,12 +25,12 @@ public class EffectiveSpeedFailuresMain {
                         .filter(check -> !check.isOk())
                         .reduce(new MmsiCount(0, 0),
                                 (mc, fix) -> new MmsiCount(fix.fix().mmsi(), mc.count + 1))
-                        .filter(mc -> mc.count >= 100))
+                        .filter(mc -> mc.count >= 1000))
                 .toSortedList((a, b) -> Long.compare(b.count, a.count))
                 // flatten
                 .flatMapIterable(x -> x)
                 // print answer
-                .doOnNext(mc -> System.out.println(mc.mmsi + " " + mc.count))
+                .doOnNext(mc -> System.out.println(mc.mmsi))
                 //
                 .count()
                 // go
