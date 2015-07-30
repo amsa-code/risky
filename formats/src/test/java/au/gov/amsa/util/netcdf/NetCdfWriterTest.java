@@ -9,8 +9,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.google.common.base.Optional;
-
 import au.gov.amsa.util.netcdf.NetCdfWriter.Var;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
@@ -25,8 +23,8 @@ public class NetCdfWriterTest {
         file.delete();
 
         NetCdfWriter n = new NetCdfWriter(file, 2);
-        Var<Long> v = n.addVariable("time", Optional.of("time in epoch milliseconds"),
-                Optional.of("epoch milliseconds"), Optional.<String> absent(), Long.class);
+        Var<Long> v = n.addVariable("time", Long.class).longName("time in epoch milliseconds")
+                .units("epoch milliseconds").build();
         v.add(100L);
         v.add(200L);
         n.close();

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import ucar.ma2.Array;
@@ -19,7 +20,7 @@ import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.NetcdfFileWriter.Version;
 import ucar.nc2.Variable;
 
-public class NetCdfWriter {
+public class NetCdfWriter implements AutoCloseable {
 
     private final NetcdfFileWriter f;
     private final int numRecords;
@@ -36,10 +37,24 @@ public class NetCdfWriter {
         }
     }
 
-    public <T> Var<T> addVariable(String standardName, Optional<String> longName,
+    public NetCdfWriter addAttribute(String name, String value) {
+        f.addGroupAttribute(null, new Attribute(name, value));
+        return this;
+    }
+
+    public <T> VarBuilder<T> addVariable(String shortName, Class<T> cls) {
+        return new VarBuilder<T>(this, shortName, cls);
+    }
+
+    public <T> Var<T> addVariable(String shortName, Optional<String> longName,
             Optional<String> units, Optional<String> encoding, Class<T> cls) {
-        Dimension dimension = f.addDimension(null, standardName, numRecords);
-        Variable variable = f.addVariable(null, standardName, toDataType(cls),
+        Preconditions.checkNotNull(shortName);
+        Preconditions.checkNotNull(longName);
+        Preconditions.checkNotNull(units);
+        Preconditions.checkNotNull(encoding);
+        Preconditions.checkNotNull(cls);
+        Dimension dimension = f.addDimension(null, shortName, numRecords);
+        Variable variable = f.addVariable(null, shortName, toDataType(cls),
                 Arrays.asList(dimension));
         if (units.isPresent())
             variable.addAttribute(new Attribute("units", units.get()));
@@ -48,7 +63,7 @@ public class NetCdfWriter {
         return new Var<T>(this, variable, cls);
     }
 
-    public <T> void add(Var<T> variable, T value) {
+    public <T> NetCdfWriter add(Var<T> variable, T value) {
         @SuppressWarnings("unchecked")
         List<Object> list = (List<Object>) map.get(variable);
         if (list == null) {
@@ -56,8 +71,10 @@ public class NetCdfWriter {
             map.put(variable, list);
         }
         list.add(value);
+        return this;
     }
 
+    @Override
     public void close() {
 
         try {
@@ -81,6 +98,41 @@ public class NetCdfWriter {
 
     private static DataType toDataType(Class<?> cls) {
         return DataType.DOUBLE;
+    }
+
+    public static class VarBuilder<T> {
+        private final NetCdfWriter writer;
+        final String shortName;
+        final Class<T> cls;
+        Optional<String> longName = Optional.absent();
+        Optional<String> units = Optional.absent();
+        Optional<String> encoding = Optional.absent();
+
+        VarBuilder(NetCdfWriter writer, String shortName, Class<T> cls) {
+            this.writer = writer;
+            this.shortName = shortName;
+            this.cls = cls;
+        }
+
+        public VarBuilder<T> longName(String s) {
+            longName = Optional.of(s);
+            return this;
+        }
+
+        public VarBuilder<T> units(String s) {
+            longName = Optional.of(s);
+            return this;
+        }
+
+        public VarBuilder<T> encoding(String s) {
+            longName = Optional.of(s);
+            return this;
+        }
+
+        public Var<T> build() {
+            return writer.addVariable(shortName, longName, units, encoding, cls);
+        }
+
     }
 
     public static class Var<T> {

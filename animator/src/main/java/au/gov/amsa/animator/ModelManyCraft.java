@@ -12,41 +12,48 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Subscriber;
-import rx.functions.Func1;
-import rx.internal.util.UtilityFunctions;
-import rx.schedulers.Schedulers;
+import com.github.davidmoten.util.MapWithIndex;
+
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.geo.distance.EffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.FixImpl;
-
-import com.github.davidmoten.util.MapWithIndex;
+import rx.Observable;
+import rx.Subscriber;
+import rx.functions.Func1;
+import rx.internal.util.UtilityFunctions;
+import rx.schedulers.Schedulers;
 
 public class ModelManyCraft implements Model {
 
     private final FixesSubscriber subscriber;
+    private final int fixesPerModelStep;
     private volatile long stepNumber;
 
-    public ModelManyCraft() {
-        File file = new File("/media/an/nmea/2014/NMEA_ITU_20140201.gz");
+    public ModelManyCraft(Observable<Fix> fixes, int fixesPerModelStep) {
+        this.fixesPerModelStep = fixesPerModelStep;
         this.subscriber = new FixesSubscriber();
-        Observable<Fix> source = Streams.extractFixes(Streams.nmeaFromGzip(file)).take(10000000)
-                .cache().onBackpressureBuffer().doOnCompleted(() -> subscriber.reset()).repeat()
+        Observable<Fix> source = fixes
+                // cache for repeat
+                .cache()
+                //
+                .onBackpressureBuffer()
+                //
+                .doOnCompleted(() -> subscriber.reset())
+                // repeat stream
+                .repeat()
+                // log
                 .doOnCompleted(() -> {
                     System.out.println("completed");
                 });
-        //
-        // .doOnNext(System.out::println);
         source.subscribeOn(Schedulers.io()).subscribe(subscriber);
     }
 
     @Override
     public void updateModel(long stepNumber) {
         this.stepNumber = stepNumber;
-        subscriber.requestMore(10000);
+        subscriber.requestMore(fixesPerModelStep);
     }
 
     @SuppressWarnings("unchecked")
@@ -98,10 +105,8 @@ public class ModelManyCraft implements Model {
             if (queue.size() == maxSize)
                 queue.poll();
             Fix last = lastFix.get(f.mmsi());
-            if (last == null
-                    || f.time() >= last.time() + 600000
-                    && effectiveSpeedOk(last.time(), last.lat(), last.lon(), f.time(), f.lat(),
-                            f.lon(), options)) {
+            if (last == null || f.time() >= last.time() + 600000 && effectiveSpeedOk(last.time(),
+                    last.lat(), last.lon(), f.time(), f.lat(), f.lon(), options)) {
                 queue.add(f);
                 lastFix.put(f.mmsi(), f);
             }
@@ -124,8 +129,8 @@ public class ModelManyCraft implements Model {
                 } else {
                     Fix b = list.get(1);
                     long t = nextIntervalStartTime(startTime, intervalMs, b);
-                    if (EffectiveSpeedChecker.effectiveSpeedOk(a.time(), a.lat(), a.lon(),
-                            b.time(), b.lat(), b.lon(), SegmentOptions.getDefault())) {
+                    if (EffectiveSpeedChecker.effectiveSpeedOk(a.time(), a.lat(), a.lon(), b.time(),
+                            b.lat(), b.lon(), SegmentOptions.getDefault())) {
                         FixImpl c = new FixImpl(b.mmsi(), b.lat(), b.lon(), t, b.latencySeconds(),
                                 b.source(), b.navigationalStatus(), b.speedOverGroundKnots(),
                                 b.courseOverGroundDegrees(), b.headingDegrees(), b.aisClass());
@@ -155,39 +160,33 @@ public class ModelManyCraft implements Model {
 
         final long intervalMs = TimeUnit.MINUTES.toMillis(5);
 
-        source.buffer(1000000)
-                .compose(MapWithIndex.<List<Fix>> instance())
-                .take(1)
+        source.buffer(1000000).compose(MapWithIndex.<List<Fix>> instance()).take(1)
                 //
-                .concatMap(
-                        buffer -> Observable.from(buffer.value())
+                .concatMap(buffer -> Observable.from(buffer.value())
                         // sort by time
-                                .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
-                                // flatten
-                                .concatMap(x -> Observable.from(x))
-                                // group by timestep
-                                .groupBy(fix -> (fix.time() - startTime) / intervalMs)
-                                //
-                                .flatMap(
+                        .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
+                        // flatten
+                        .concatMap(x -> Observable.from(x))
+                        // group by timestep
+                        .groupBy(fix -> (fix.time() - startTime) / intervalMs)
+                        //
+                        .flatMap(
                                 // within each timestep group by mmsi
-                                        g -> g.groupBy(fix -> fix.mmsi())
+                                g -> g.groupBy(fix -> fix.mmsi())
                                         //
-                                                .flatMap(
-                                                        g2 -> // take the last
-                                                              // two at the end
-                                                              // of the timestep
-                                                        g2.takeLast(2)
-                                                        // convert to a
-                                                        // list of 1 or
-                                                        // 2 items
-                                                                .toList()
-                                                                // predict
-                                                                // position at
-                                                                // end of
-                                                                // timestep
-                                                                .map(extrapolateToNext(startTime,
-                                                                        intervalMs)))))
-                .cast(Fix.class)
+                                        .flatMap(g2 -> // take the last
+                                                       // two at the end
+                                                       // of the timestep
+        g2.takeLast(2)
+                // convert to a
+                // list of 1 or
+                // 2 items
+                .toList()
+                // predict
+                // position at
+                // end of
+                // timestep
+                .map(extrapolateToNext(startTime, intervalMs))))).cast(Fix.class)
                 // sort by time
                 .toSortedList((a, b) -> (((Long) a.time()).compareTo(b.time())))
                 // flatten

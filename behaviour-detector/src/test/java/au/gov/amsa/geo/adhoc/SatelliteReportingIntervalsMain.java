@@ -5,11 +5,11 @@ import java.util.HashMap;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.Pair;
+import rx.Observable;
 
 public class SatelliteReportingIntervalsMain {
 
@@ -38,7 +38,7 @@ public class SatelliteReportingIntervalsMain {
     public static void main(String[] args) {
 
         Observable<Double> splits = Strings.from(new File("/home/dxm/times.txt"))
-        //
+                //
                 .compose(o -> Strings.split(o, "\n"))
                 //
                 .filter(line -> line.trim().length() > 0)
@@ -47,13 +47,13 @@ public class SatelliteReportingIntervalsMain {
                 //
                 // .doOnNext(items -> System.out.println(Arrays.asList(items)))
                 //
-                .map(items -> new Record(Long.parseLong(items[0]), Long.parseLong(items[1])
-                        / ((double) TimeUnit.HOURS.toMillis(1))))
+                .map(items -> new Record(Long.parseLong(items[0]),
+                        Long.parseLong(items[1]) / ((double) TimeUnit.HOURS.toMillis(1))))
                 //
                 .groupBy(record -> record.mmsi)
                 //
                 .flatMap(g -> g.buffer(2, 1)
-                //
+                        //
                         .filter(list -> list.size() == 2)
                         // time diff
                         .map(list -> list.get(1).timeHrs - list.get(0).timeHrs))
@@ -64,8 +64,9 @@ public class SatelliteReportingIntervalsMain {
                 //
                 .cast(Double.class).cache();
 
-        splits.reduce(Pair.create(0, 0.0), (p1, x) -> Pair.create(p1.a() + 1, x + p1.b()))
-        //
+        splits.reduce(Pair.create(0, 0.0),
+                (p1, x) -> Pair.<Integer, Double> create(p1.a() + 1, x + p1.b()))
+                //
                 .map(pair -> pair.b() / pair.a())
                 //
                 .doOnNext(value -> System.out.println("average interval hours=" + value))
@@ -73,7 +74,7 @@ public class SatelliteReportingIntervalsMain {
                 .subscribe();
 
         Observable<BucketCount> buckets = splits
-        //
+                //
                 .map(diff -> Math.floor(diff * 10) / 10.0)
                 // collect into discrete interval buckets
                 .collect(() -> new HashMap<Double, Integer>(), (map, x) -> {
@@ -101,7 +102,7 @@ public class SatelliteReportingIntervalsMain {
 
         File file = new File("/home/dxm/2015-06-29.txt.gz");
         Streams.nmeaFromGzip(file)
-        // to AisMessage
+                // to AisMessage
                 .compose(o -> Streams.extractMessages(o))
                 // filter on positions
                 .filter(m -> m.message() instanceof AisPosition)
@@ -144,9 +145,8 @@ public class SatelliteReportingIntervalsMain {
     }
 
     private static boolean isSatellite(String source) {
-        return source != null
-                && (source.startsWith("rEV") || source.startsWith("AISSat") || source
-                        .startsWith("NORAIS"));
+        return source != null && (source.startsWith("rEV") || source.startsWith("AISSat")
+                || source.startsWith("NORAIS"));
     }
 
     private static boolean isNorwaySatellite(String source) {

@@ -2,11 +2,11 @@ package au.gov.amsa.geo.distance;
 
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.base.Optional;
+
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.navigation.Position;
-
-import com.google.common.base.Optional;
 
 public class EffectiveSpeedChecker {
 
@@ -32,12 +32,11 @@ public class EffectiveSpeedChecker {
                 && timeDiffMs >= TimeUnit.HOURS.toMillis(o.acceptAnyFixAfterHours())) {
             return Optional.absent();
         } else {
-            double distanceBetweenFixesNm = 1.852 * Position.create(aLat, aLon).getDistanceToKm(
-                    Position.create(bLat, bLon));
+            double distanceBetweenFixesNm = Position.create(aLat, aLon)
+                    .getDistanceToKm(Position.create(bLat, bLon)) / 1.852;
             if (distanceBetweenFixesNm > o.speedCheckDistanceThresholdNm()) {
                 double timeDiffHoursFloored = (double) Math.max(timeDiffMs,
-                        o.speedCheckMinTimeDiffMs())
-                        / TimeUnit.HOURS.toMillis(1);
+                        o.speedCheckMinTimeDiffMs()) / TimeUnit.HOURS.toMillis(1);
                 double effectiveSpeedKnots = distanceBetweenFixesNm / timeDiffHoursFloored;
                 return Optional.of(effectiveSpeedKnots);
             } else
