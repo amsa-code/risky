@@ -4,17 +4,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
+import au.gov.amsa.geo.model.Cell;
 import rx.Observable.Operator;
 import rx.Subscriber;
-import au.gov.amsa.geo.model.Cell;
 
-public final class OperatorSumCellDistances implements Operator<Map<Cell, Double>, CellAndDistance> {
+public final class OperatorSumCellDistances
+        implements Operator<Map<Cell, Double>, CellAndDistance> {
 
     private static final int INITIAL_CAPACITY = 100000;
-
-    private static Logger log = Logger.getLogger(OperatorSumCellDistances.class);
 
     /**
      * This takes about 100 bytes per entry of memory;

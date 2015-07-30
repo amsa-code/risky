@@ -11,14 +11,7 @@ import java.io.FileFilter;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.observables.ConnectableObservable;
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Options;
 import au.gov.amsa.geo.model.Position;
@@ -26,10 +19,13 @@ import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.FixImpl;
 import au.gov.amsa.util.navigation.Position.LongitudePair;
+import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Subscriber;
+import rx.functions.Action1;
+import rx.observables.ConnectableObservable;
 
 public class DistanceTravelledCalculatorTest {
-
-    private static Logger log = LoggerFactory.getLogger(DistanceTravelledCalculatorTest.class);
 
     private static final Fix f1 = new FixImpl(1, -35.0f, 142.0f, 0, AisClass.A);
     private static final Fix f3 = new FixImpl(3, -35.12f, 142.12f, HOURS.toMillis(2), AisClass.A);
@@ -44,8 +40,8 @@ public class DistanceTravelledCalculatorTest {
     public void testWithFiles() {
 
         long t = System.currentTimeMillis();
-        Observable<File> files = from(new File("src/test/resources/fixes")
-                .listFiles(new FileFilter() {
+        Observable<File> files = from(
+                new File("src/test/resources/fixes").listFiles(new FileFilter() {
 
                     @Override
                     public boolean accept(File file) {
@@ -56,17 +52,17 @@ public class DistanceTravelledCalculatorTest {
         DistanceCalculationMetrics metrics = new DistanceCalculationMetrics();
         new DistanceTravelledCalculator(Options.builder().originLat(0).originLon(0)
                 .cellSizeDegrees(0.1).bounds(new Bounds(0, 120, -60, 175)).build(), metrics)
-                .calculateDistanceByCellFromFiles(files).toBlocking()
-                .forEach(new Action1<CellAndDistance>() {
+                        .calculateDistanceByCellFromFiles(files).toBlocking()
+                        .forEach(new Action1<CellAndDistance>() {
 
-                    @Override
-                    public void call(CellAndDistance cell) {
-                        System.out.println(cell);
-                        count.incrementAndGet();
-                    }
-                });
-        System.out.println(count.get() + " cells returned in " + (System.currentTimeMillis() - t)
-                + "ms");
+                            @Override
+                            public void call(CellAndDistance cell) {
+                                System.out.println(cell);
+                                count.incrementAndGet();
+                            }
+                        });
+        System.out.println(
+                count.get() + " cells returned in " + (System.currentTimeMillis() - t) + "ms");
     }
 
     @Test
@@ -84,7 +80,7 @@ public class DistanceTravelledCalculatorTest {
     public void testGetCellDistancesEqualSingleLegGreatCircleDistanceAlmost() {
 
         Options options = Options.builder()
-        // setup origin
+                // setup origin
                 .originLat(0).originLon(0)
                 // set cell size
                 .cellSizeDegrees(1)
@@ -110,7 +106,7 @@ public class DistanceTravelledCalculatorTest {
         Position b = new Position(-31.7, 142.6);
         System.out.println(toPos(a).getBearingDegrees(toPos(b)));
         Options options = Options.builder()
-        // setup origin
+                // setup origin
                 .originLat(0).originLon(0)
                 // set cell size
                 .cellSizeDegrees(1.0)
@@ -123,8 +119,8 @@ public class DistanceTravelledCalculatorTest {
         System.out.println("totalBearing=" + toPos(a).getBearingDegrees(toPos(b)));
         LongitudePair gcIntercept = toPos(a).getLongitudeOnGreatCircle(toPos(b), -31.0);
         System.out.println("gc long=" + gcIntercept);
-        au.gov.amsa.util.navigation.Position nextPos = au.gov.amsa.util.navigation.Position.create(
-                -31.0, gcIntercept.getLon2());
+        au.gov.amsa.util.navigation.Position nextPos = au.gov.amsa.util.navigation.Position
+                .create(-31.0, gcIntercept.getLon2());
         System.out.println("bearingToFinal=" + nextPos.getBearingDegrees(toPos(b)));
         System.out.println("nextLat = " + nextPos.getLatitudeOnGreatCircle(toPos(b), 141.0));
 
