@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>io.reactivex</groupId>
 			<artifactId>rxjava</artifactId>
-			<version>1.0.12</version>
+			<version>${rxjava.version}</version>
 		</dependency>
 
 		<dependency>
