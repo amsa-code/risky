@@ -15,8 +15,8 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
 
-import rx.Observable;
-import rx.functions.Func1;
+import com.google.common.base.Charsets;
+
 import au.gov.amsa.geo.BinaryCellValuesObservable;
 import au.gov.amsa.geo.OperatorCellValuesToBytes;
 import au.gov.amsa.geo.Util;
@@ -30,8 +30,8 @@ import au.gov.amsa.navigation.ShipStaticData.Info;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.util.identity.MmsiValidator2;
 import au.gov.amsa.util.rx.OperatorWriteBytes;
-
-import com.google.common.base.Charsets;
+import rx.Observable;
+import rx.functions.Func1;
 
 public class DistanceTravelledMain {
     private static Logger log = Logger.getLogger(DistanceTravelledMain.class);
@@ -39,13 +39,13 @@ public class DistanceTravelledMain {
     private static void run(String directory, Options options, boolean gui) {
         InputStream is;
         try {
-            is = new GZIPInputStream(new FileInputStream(
-                    "/media/an/ship-data/ais/ship-data-2014.txt.gz"));
+            is = new GZIPInputStream(
+                    new FileInputStream("/media/an/ship-data/ais/ship-data-2014.txt.gz"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Map<Long, Info> shipInfo = ShipStaticData.getMapFromReader(new InputStreamReader(is,
-                Charsets.UTF_8));
+        Map<Long, Info> shipInfo = ShipStaticData
+                .getMapFromReader(new InputStreamReader(is, Charsets.UTF_8));
 
         List<Setting> settings = new ArrayList<>();
         settings.add(Setting.create(30, 30, "fishing"));
@@ -57,10 +57,9 @@ public class DistanceTravelledMain {
 
         for (Setting setting : settings) {
             // filter out undesired mmsi numbers and ship types
-            Func1<Info, Boolean> shipSelector = info -> info != null
-                    && info.cls == AisClass.A
-                    && (info.shipType.isPresent() && info.shipType.get() >= setting.lowerBound && info.shipType
-                            .get() <= setting.upperBound)
+            Func1<Info, Boolean> shipSelector = info -> info != null && info.cls == AisClass.A
+                    && (info.shipType.isPresent() && info.shipType.get() >= setting.lowerBound
+                            && info.shipType.get() <= setting.upperBound)
                     && MmsiValidator2.INSTANCE.isValid(info.mmsi);
             calculateTrafficDensity2(directory, options, gui, shipInfo, shipSelector, setting.name);
         }
@@ -85,7 +84,7 @@ public class DistanceTravelledMain {
     private static void calculateTrafficDensity2(String directory, Options options, boolean gui,
             Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
-        //
+                //
                 .filter(file -> {
                     String s = file.getName();
                     String mmsiString = s.substring(0, s.indexOf(".track"));
@@ -101,7 +100,7 @@ public class DistanceTravelledMain {
             DisplayPanel.displayGui(files, options, result);
         }
         String filename = result.getCells()
-        // to bytes
+                // to bytes
                 .lift(new OperatorCellValuesToBytes(options))
                 // save bytes to a file
                 .lift(new OperatorWriteBytes())
@@ -117,19 +116,19 @@ public class DistanceTravelledMain {
 
         if (produceImage) {
             // 8:5 is ok ratio
-            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile), new File("target/"
-                    + name + "-map.png"));
+            saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile),
+                    new File("target/" + name + "-map.png"));
         }
 
         if (produceDensitiesText) {
-            DistanceTravelledCalculator.saveCalculationResultAsText(options, result, "target/"
-                    + name + "-densities.txt");
+            DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
+                    "target/" + name + "-densities.txt");
         }
     }
 
     private static Options createOptions(double cellSizeDegrees) {
         return Options.builder()
-        // set origin latitude
+                // set origin latitude
                 .originLat(0)
                 // set origin longitudue
                 .originLon(0)
@@ -146,7 +145,7 @@ public class DistanceTravelledMain {
                 // .finishTime("2014-06-06")
                 // set segment options
                 .segmentOptions(SegmentOptions.builder()
-                // set max speed knots
+                        // set max speed knots
                         .maxSpeedKnots(100)
                         //
                         .speedCheckDistanceThresholdNm(30)

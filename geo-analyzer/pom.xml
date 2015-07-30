@@ -47,11 +47,6 @@
             <version>${rxjava.math.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.davidmoten</groupId>
-            <artifactId>rxjava-slf4j</artifactId>
-            <version>${rxjava.slf4j.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
             <version>3.3</version>
@@ -105,6 +100,11 @@
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>behaviour-detector</artifactId>
             <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>rxjava-slf4j</artifactId>
+            <version>${rxjava.slf4j.version}</version>
         </dependency>
     </dependencies>
     <build>
