@@ -9,13 +9,13 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.google.common.base.Optional;
+
+import au.gov.amsa.util.netcdf.NetCdfWriter.Var;
 import ucar.ma2.Array;
 import ucar.ma2.InvalidRangeException;
 import ucar.nc2.Attribute;
 import ucar.nc2.NetcdfFile;
-import au.gov.amsa.util.netcdf.NetCdfWriter.Var;
-
-import com.google.common.base.Optional;
 
 public class NetCdfWriterTest {
 
@@ -27,8 +27,8 @@ public class NetCdfWriterTest {
         NetCdfWriter n = new NetCdfWriter(file, 2);
         Var<Long> v = n.addVariable("time", Optional.of("time in epoch milliseconds"),
                 Optional.of("epoch milliseconds"), Optional.<String> absent(), Long.class);
-        n.add(v, 100L);
-        n.add(v, 200L);
+        v.add(100L);
+        v.add(200L);
         n.close();
 
         // now read the file just written and assert

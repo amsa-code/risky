@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
+
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
 import ucar.ma2.InvalidRangeException;
@@ -15,9 +18,6 @@ import ucar.nc2.Dimension;
 import ucar.nc2.NetcdfFileWriter;
 import ucar.nc2.NetcdfFileWriter.Version;
 import ucar.nc2.Variable;
-
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
 
 public class NetCdfWriter {
 
@@ -45,7 +45,7 @@ public class NetCdfWriter {
             variable.addAttribute(new Attribute("units", units.get()));
         if (encoding.isPresent())
             variable.addAttribute(new Attribute("encoding", encoding.get()));
-        return new Var<T>(variable, cls);
+        return new Var<T>(this, variable, cls);
     }
 
     public <T> void add(Var<T> variable, T value) {
@@ -87,8 +87,10 @@ public class NetCdfWriter {
 
         private final Variable variable;
         private final Class<T> cls;
+        private final NetCdfWriter writer;
 
-        public Var(Variable variable, Class<T> cls) {
+        public Var(NetCdfWriter writer, Variable variable, Class<T> cls) {
+            this.writer = writer;
             this.variable = variable;
             this.cls = cls;
         }
@@ -99,6 +101,15 @@ public class NetCdfWriter {
 
         public Class<T> cls() {
             return cls;
+        }
+
+        public NetCdfWriter writer() {
+            return writer;
+        }
+
+        public Var<T> add(T t) {
+            writer.add(this, t);
+            return this;
         }
 
     }
