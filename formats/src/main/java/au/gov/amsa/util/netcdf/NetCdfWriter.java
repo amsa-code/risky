@@ -23,11 +23,9 @@ import ucar.nc2.Variable;
 public class NetCdfWriter implements AutoCloseable {
 
     private final NetcdfFileWriter f;
-    private final int numRecords;
     private final Map<Var<?>, List<?>> map = new HashMap<>();
 
-    public NetCdfWriter(File file, int numRecords, String version) {
-        this.numRecords = numRecords;
+    public NetCdfWriter(File file, String version) {
         try {
             f = NetcdfFileWriter.createNew(Version.netcdf3, file.getPath());
             // add version attribute
@@ -51,7 +49,7 @@ public class NetCdfWriter implements AutoCloseable {
     }
 
     public <T> Var<T> addVariable(String shortName, Optional<String> longName,
-            Optional<String> units, Optional<String> encoding, Class<T> cls) {
+            Optional<String> units, Optional<String> encoding, Class<T> cls, int numRecords) {
         Preconditions.checkNotNull(shortName);
         Preconditions.checkNotNull(longName);
         Preconditions.checkNotNull(units);
@@ -113,6 +111,7 @@ public class NetCdfWriter implements AutoCloseable {
         Optional<String> longName = Optional.absent();
         Optional<String> units = Optional.absent();
         Optional<String> encoding = Optional.absent();
+        Optional<Integer> numRecords = Optional.absent();
 
         VarBuilder(NetCdfWriter writer, String shortName, Class<T> cls) {
             this.writer = writer;
@@ -135,8 +134,13 @@ public class NetCdfWriter implements AutoCloseable {
             return this;
         }
 
+        public VarBuilder<T> numRecords(int n) {
+            this.numRecords = Optional.of(n);
+            return this;
+        }
+
         public Var<T> build() {
-            return writer.addVariable(shortName, longName, units, encoding, cls);
+            return writer.addVariable(shortName, longName, units, encoding, cls, numRecords.get());
         }
 
     }
