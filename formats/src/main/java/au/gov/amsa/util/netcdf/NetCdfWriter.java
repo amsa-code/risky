@@ -26,15 +26,19 @@ public class NetCdfWriter implements AutoCloseable {
     private final int numRecords;
     private final Map<Var<?>, List<?>> map = new HashMap<>();
 
-    public NetCdfWriter(File file, int numRecords) {
+    public NetCdfWriter(File file, int numRecords, String version) {
         this.numRecords = numRecords;
         try {
             f = NetcdfFileWriter.createNew(Version.netcdf3, file.getPath());
             // add version attribute
-            f.addGroupAttribute(null, new Attribute("version", "0.1"));
+            f.addGroupAttribute(null, new Attribute("version", version));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public NetcdfFileWriter writer() {
+        return f;
     }
 
     public NetCdfWriter addAttribute(String name, String value) {
@@ -56,6 +60,8 @@ public class NetCdfWriter implements AutoCloseable {
         Dimension dimension = f.addDimension(null, shortName, numRecords);
         Variable variable = f.addVariable(null, shortName, toDataType(cls),
                 Arrays.asList(dimension));
+        if (longName.isPresent())
+            variable.addAttribute(new Attribute("long_name", longName.get()));
         if (units.isPresent())
             variable.addAttribute(new Attribute("units", units.get()));
         if (encoding.isPresent())

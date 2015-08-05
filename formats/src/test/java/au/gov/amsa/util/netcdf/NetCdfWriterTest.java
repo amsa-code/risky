@@ -22,7 +22,7 @@ public class NetCdfWriterTest {
         File file = new File("target/temp.nc");
         file.delete();
 
-        NetCdfWriter n = new NetCdfWriter(file, 2);
+        NetCdfWriter n = new NetCdfWriter(file, 2, "0.1");
         Var<Long> v = n.addVariable("time", Long.class).longName("time in epoch milliseconds")
                 .units("epoch milliseconds").build();
         v.add(100L);
