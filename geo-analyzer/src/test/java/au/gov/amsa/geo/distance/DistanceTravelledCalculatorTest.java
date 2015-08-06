@@ -8,6 +8,8 @@ import static rx.Observable.from;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -150,5 +152,17 @@ public class DistanceTravelledCalculatorTest {
         o.connect();
         assertEquals(1, (int) o.count().toBlocking().single());
         assertEquals(1, (int) o.count().toBlocking().single());
+    }
+
+    @Test
+    public void testConstantDifference() {
+        List<Double> list = DistanceTravelledCalculator
+                .makeConstantDifference(Arrays.asList(1.0, 2.0, 3.1, 4.2));
+        assertEquals(4, list.size());
+        double precision = 0.000001;
+        assertEquals(1.0, list.get(0), precision);
+        assertEquals(2.0, list.get(1), precision);
+        assertEquals(3.0, list.get(2), precision);
+        assertEquals(4.0, list.get(3), precision);
     }
 }

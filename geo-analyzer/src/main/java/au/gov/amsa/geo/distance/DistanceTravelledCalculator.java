@@ -2,8 +2,10 @@ package au.gov.amsa.geo.distance;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,15 +14,11 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
-import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Observer;
-import rx.Subscriber;
-import rx.functions.Action1;
-import rx.functions.Action2;
-import rx.functions.Func0;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import com.github.davidmoten.rx.slf4j.Logging;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Cell;
 import au.gov.amsa.geo.model.CellValue;
@@ -32,11 +30,24 @@ import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasPosition;
 import au.gov.amsa.util.navigation.Position;
-
-import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Observer;
+import rx.Subscriber;
+import rx.functions.Action1;
+import rx.functions.Action2;
+import rx.functions.Func0;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+import ucar.ma2.Array;
+import ucar.ma2.ArrayDouble;
+import ucar.ma2.DataType;
+import ucar.ma2.Index2D;
+import ucar.ma2.InvalidRangeException;
+import ucar.nc2.Attribute;
+import ucar.nc2.Dimension;
+import ucar.nc2.NetcdfFileWriter;
+import ucar.nc2.Variable;
 
 public class DistanceTravelledCalculator {
 
@@ -71,10 +82,9 @@ public class DistanceTravelledCalculator {
         AtomicLong cellCount = new AtomicLong(1);
         return files
                 // buffer for parallel processing of groups of files
-                .buffer(Math.max(
-                        1,
-                        (int) Math.round(Math.ceil(numFiles
-                                / Runtime.getRuntime().availableProcessors()))))
+                .buffer(Math.max(1,
+                        (int) Math.round(
+                                Math.ceil(numFiles / Runtime.getRuntime().availableProcessors()))))
                 .flatMap(fileList -> extractCellDistances(fileCount, cellCount, fileList))
                 // sum distances into global map
                 .collect(bigMapFactory(), collectCellDistances())
@@ -85,8 +95,8 @@ public class DistanceTravelledCalculator {
     }
 
     private Func1<? super HashMap<Cell, Double>, Observable<CellAndDistance>> listCellDistances() {
-        return map -> Observable.from(map.entrySet()).map(
-                entry -> new CellAndDistance(entry.getKey(), entry.getValue()));
+        return map -> Observable.from(map.entrySet())
+                .map(entry -> new CellAndDistance(entry.getKey(), entry.getValue()));
     }
 
     private Func0<HashMap<Cell, Double>> bigMapFactory() {
@@ -111,8 +121,7 @@ public class DistanceTravelledCalculator {
     private Observable<Map<Cell, Double>> extractCellDistances(AtomicLong fileCount,
             AtomicLong cellCount, List<File> fileList) {
         return // extract fixes from each file
-        Observable
-                .from(fileList)
+        Observable.from(fileList)
                 .lift(Logging.<File> logger().showCount(fileCount).every(1000).log())
                 .map(file -> BinaryFixes.from(file))
                 // for one craft aggregate distance (not a
@@ -136,7 +145,7 @@ public class DistanceTravelledCalculator {
         public Observable<CellAndDistance> call(Observable<Fix> allFixesForASingleCraft) {
 
             return allFixesForASingleCraft
-            // count fixes
+                    // count fixes
                     .doOnNext(incrementFixesCount)
                     // filter on time between startTime and finishTime if exist
                     .filter(inTimeRange)
@@ -344,9 +353,10 @@ public class DistanceTravelledCalculator {
     }
 
     public static Observable<CellValue> calculateDensityByCellFromFiles(Options options,
-            Observable<File> files, int horizontal, int vertical, DistanceCalculationMetrics metrics) {
+            Observable<File> files, int horizontal, int vertical,
+            DistanceCalculationMetrics metrics) {
         Observable<CellValue> cells = partition(options, horizontal, vertical)
-        // get results (blocks to limit memory use)
+                // get results (blocks to limit memory use)
                 .concatMap(calculateDistanceTravelled(files, metrics));
 
         if (horizontal > 1 || vertical > 1)
@@ -367,7 +377,7 @@ public class DistanceTravelledCalculator {
                 // blocks to return answer, this is desirable because we need to
                 // back the results with a file because they can get so large
                 return Observable.from(c.calculateDistanceByCellFromFiles(files)
-                // as cell density values
+                        // as cell density values
                         .map(toCellDensityValue(options))
                         // as list
                         .toList()
@@ -377,12 +387,13 @@ public class DistanceTravelledCalculator {
         };
     }
 
-    public static CalculationResult calculateTrafficDensity(Options options, Observable<File> files) {
+    public static CalculationResult calculateTrafficDensity(Options options,
+            Observable<File> files) {
         return calculateTrafficDensity(options, files, 1, 1);
     }
 
-    public static CalculationResult calculateTrafficDensity(Options options,
-            Observable<File> files, int horizontal, int vertical) {
+    public static CalculationResult calculateTrafficDensity(Options options, Observable<File> files,
+            int horizontal, int vertical) {
         int maxNumCells = (int) Math.round(options.getBounds().getWidthDegrees()
                 * options.getBounds().getHeightDegrees() / options.getCellSizeDegreesAsDouble()
                 / options.getCellSizeDegreesAsDouble());
@@ -398,8 +409,8 @@ public class DistanceTravelledCalculator {
 
             @Override
             public CellValue call(CellAndDistance cd) {
-                return new CellValue(cd.getCell().getCentreLat(options), cd.getCell().getCentreLon(
-                        options), cd.getTrafficDensity(options));
+                return new CellValue(cd.getCell().getCentreLat(options),
+                        cd.getCell().getCentreLon(options), cd.getTrafficDensity(options));
             }
         };
     }
@@ -409,7 +420,8 @@ public class DistanceTravelledCalculator {
         try {
             final PrintWriter out = new PrintWriter(filename);
             Bounds b = options.getBounds();
-            out.println("#originLat, originLon, cellSizeDegrees, topLefLat, topLeftLon, bottomRightLat, bottomRightLon");
+            out.println(
+                    "#originLat, originLon, cellSizeDegrees, topLefLat, topLeftLon, bottomRightLat, bottomRightLon");
             out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\n", options.getOriginLat(),
                     options.getOriginLon(), options.getCellSizeDegrees(), b.getTopLeftLat(),
                     b.getTopLeftLon(), b.getBottomRightLat(), b.getBottomRightLon());
@@ -437,6 +449,126 @@ public class DistanceTravelledCalculator {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void saveCalculationResultAsNetcdf(Options options,
+            CalculationResult calculationResult, String filename) {
+
+        List<CellValue> list = calculationResult.getCells().toList().toBlocking().single();
+
+        int maxLonIndex = list.stream()
+                .map(cell -> options.getGrid().cellAt(cell.getCentreLat(), cell.getCentreLon()))
+                .filter(x -> x.isPresent()).map(x -> x.get().getLonIndex())
+                .max(Comparator.<Long> naturalOrder()).get().intValue();
+        int maxLatIndex = list.stream()
+                .map(cell -> options.getGrid().cellAt(cell.getCentreLat(), cell.getCentreLon()))
+                .filter(x -> x.isPresent()).map(x -> x.get().getLatIndex())
+                .max(Comparator.<Long> naturalOrder()).get().intValue();
+
+        File file = new File(filename);
+
+        // Create the file.
+        NetcdfFileWriter f = null;
+        try {
+            // Create new netcdf-3 file with the given filename
+            f = NetcdfFileWriter.createNew(NetcdfFileWriter.Version.netcdf3, file.getPath());
+
+            // In addition to the latitude and longitude dimensions, we will
+            // also create latitude and longitude netCDF variables which will
+            // hold the actual latitudes and longitudes. Since they hold data
+            // about the coordinate system, the netCDF term for these is:
+            // "coordinate variables."
+            Dimension dimLat = f.addDimension(null, "latitude", maxLatIndex + 1);
+            Dimension dimLon = f.addDimension(null, "longitude", maxLonIndex + 1);
+
+            List<Dimension> dims = new ArrayList<Dimension>();
+            dims.add(dimLat);
+            dims.add(dimLon);
+
+            // coordinate variables
+            Variable vLat = f.addVariable(null, "latitude", DataType.DOUBLE, "latitude");
+            Variable vLon = f.addVariable(null, "longitude", DataType.DOUBLE, "longitude");
+
+            // value variables
+            Variable vDensity = f.addVariable(null, "traffic_density", DataType.DOUBLE, dims);
+
+            // Define units attributes for coordinate vars. This attaches a
+            // text attribute to each of the coordinate variables, containing
+            // the units.
+
+            vLon.addAttribute(new Attribute("units", "degrees_east"));
+            vLat.addAttribute(new Attribute("units", "degrees_north"));
+
+            // Define units attributes for variables.
+            vDensity.addAttribute(new Attribute("units", "nm-1"));
+            vDensity.addAttribute(new Attribute("long_name", ""));
+
+            // Write the coordinate variable data. This will put the latitudes
+            // and longitudes of our data grid into the netCDF file.
+            f.create();
+            {
+                Array dataLat = Array.factory(DataType.DOUBLE, new int[] { dimLat.getLength() });
+                Array dataLon = Array.factory(DataType.DOUBLE, new int[] { dimLon.getLength() });
+
+                // set latitudes
+                for (int i = 0; i <= maxLatIndex; i++) {
+                    dataLat.setDouble(i, options.getGrid().centreLat(i));
+                }
+
+                // set longitudes
+                for (int i = 0; i <= maxLonIndex; i++) {
+                    dataLon.setDouble(i, options.getGrid().centreLon(i));
+                }
+
+                f.write(vLat, dataLat);
+                f.write(vLon, dataLon);
+            }
+
+            // write the value variable data
+            {
+                int[] iDim = new int[] { dimLat.getLength(), dimLon.getLength() };
+                Array dataDensity = ArrayDouble.D2.factory(DataType.DOUBLE, iDim);
+
+                Index2D idx = new Index2D(iDim);
+
+                for (CellValue point : list) {
+                    Optional<Cell> cell = options.getGrid().cellAt(point.getCentreLat(),
+                            point.getCentreLon());
+                    if (cell.isPresent()) {
+                        idx.set((int) cell.get().getLatIndex(), (int) cell.get().getLonIndex());
+                        dataDensity.setDouble(idx, point.getValue());
+                    }
+                }
+                f.write(vDensity, dataDensity);
+            }
+        } catch (IOException | InvalidRangeException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (f != null) {
+                try {
+                    f.close();
+                } catch (IOException ioe) {
+                    throw new RuntimeException(ioe);
+                }
+            }
+        }
+    }
+
+    static List<Double> makeConstantDifference(List<Double> list) {
+        List<Double> result = new ArrayList<>();
+        double diff = list.get(1) - list.get(0);
+        Double previous = null;
+        for (int i = 0; i < list.size(); i++) {
+            double next;
+            if (previous == null) {
+                next = list.get(0);
+            } else {
+                next = previous + diff;
+            }
+            result.add(next);
+            previous = next;
+        }
+        return result;
     }
 
     // public static void saveCalculationResultAsBinary(Options options,

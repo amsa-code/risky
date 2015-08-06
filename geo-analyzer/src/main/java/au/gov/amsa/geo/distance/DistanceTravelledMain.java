@@ -48,12 +48,13 @@ public class DistanceTravelledMain {
                 .getMapFromReader(new InputStreamReader(is, Charsets.UTF_8));
 
         List<Setting> settings = new ArrayList<>();
-        settings.add(Setting.create(30, 30, "fishing"));
-        settings.add(Setting.create(52, 52, "tug"));
-        settings.add(Setting.create(60, 69, "passenger"));
-        settings.add(Setting.create(70, 79, "cargo"));
-        settings.add(Setting.create(80, 89, "tanker"));
-        settings.add(Setting.create(90, 99, "other"));
+        // settings.add(Setting.create(30, 30, "fishing"));
+        // settings.add(Setting.create(52, 52, "tug"));
+        // settings.add(Setting.create(60, 69, "passenger"));
+        // settings.add(Setting.create(70, 79, "cargo"));
+        // settings.add(Setting.create(80, 89, "tanker"));
+        // settings.add(Setting.create(90, 99, "other"));
+        settings.add(Setting.create(0, 100, "all"));
 
         for (Setting setting : settings) {
             // filter out undesired mmsi numbers and ship types
@@ -61,7 +62,7 @@ public class DistanceTravelledMain {
                     && (info.shipType.isPresent() && info.shipType.get() >= setting.lowerBound
                             && info.shipType.get() <= setting.upperBound)
                     && MmsiValidator2.INSTANCE.isValid(info.mmsi);
-            calculateTrafficDensity2(directory, options, gui, shipInfo, shipSelector, setting.name);
+            calculateTrafficDensity(directory, options, gui, shipInfo, shipSelector, setting.name);
         }
     }
 
@@ -81,7 +82,7 @@ public class DistanceTravelledMain {
         }
     }
 
-    private static void calculateTrafficDensity2(String directory, Options options, boolean gui,
+    private static void calculateTrafficDensity(String directory, Options options, boolean gui,
             Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
                 //
@@ -111,8 +112,9 @@ public class DistanceTravelledMain {
         CalculationResult resultFromFile = new CalculationResult(BinaryCellValuesObservable
                 .readValues(new File(filename)).skip(1).cast(CellValue.class), result.getMetrics());
 
-        boolean produceImage = true;
-        boolean produceDensitiesText = true;
+        boolean produceImage = false;
+        boolean produceDensitiesText = false;
+        boolean produceDensitiesNetcdf = true;
 
         if (produceImage) {
             // 8:5 is ok ratio
@@ -123,6 +125,11 @@ public class DistanceTravelledMain {
         if (produceDensitiesText) {
             DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
                     "target/" + name + "-densities.txt");
+        }
+
+        if (produceDensitiesNetcdf) {
+            DistanceTravelledCalculator.saveCalculationResultAsNetcdf(options, result,
+                    "target/" + name + "-densities.nc");
         }
     }
 
@@ -174,9 +181,11 @@ public class DistanceTravelledMain {
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
         else
-            cellSizeDegrees = 0.02;
+            cellSizeDegrees = 0.5;
 
         final Options options = createOptions(cellSizeDegrees);
+        for (int i = 0; i <= 10; i++)
+            System.out.println(options.getGrid().centreLon(i));
         run(directory, options, false);
     }
 }
