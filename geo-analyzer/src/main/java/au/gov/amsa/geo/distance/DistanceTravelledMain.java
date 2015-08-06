@@ -181,7 +181,7 @@ public class DistanceTravelledMain {
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
         else
-            cellSizeDegrees = 0.5;
+            cellSizeDegrees = 0.02;
 
         final Options options = createOptions(cellSizeDegrees);
         for (int i = 0; i <= 10; i++)
