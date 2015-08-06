@@ -48,14 +48,14 @@ public class DistanceTravelledMain {
                 .getMapFromReader(new InputStreamReader(is, Charsets.UTF_8));
 
         List<Setting> settings = new ArrayList<>();
-        settings.add(Setting.create(30, 30, "fishing"));
-        settings.add(Setting.create(52, 52, "tug"));
-        settings.add(Setting.create(60, 69, "passenger"));
-        settings.add(Setting.create(70, 79, "cargo"));
-        settings.add(Setting.create(80, 89, "tanker"));
-        settings.add(Setting.create(90, 99, "other"));
+        // settings.add(Setting.create(30, 30, "fishing"));
+        // settings.add(Setting.create(52, 52, "tug"));
+        // settings.add(Setting.create(60, 69, "passenger"));
+        // settings.add(Setting.create(70, 79, "cargo"));
+        // settings.add(Setting.create(80, 89, "tanker"));
+        // settings.add(Setting.create(90, 99, "other"));
         settings.add(Setting.create(-1, -1, "class_b"));
-        settings.add(Setting.create(0, 100, "all"));
+        // settings.add(Setting.create(0, 100, "all"));
 
         for (Setting setting : settings) {
             // filter out undesired mmsi numbers and ship types
@@ -87,6 +87,10 @@ public class DistanceTravelledMain {
 
     private static void calculateTrafficDensity(String directory, Options options, boolean gui,
             Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
+        System.out.println("-----------------------------------------------------");
+        System.out.println("------ " + name);
+        System.out.println("-----------------------------------------------------");
+
         final Observable<File> files = Util.getFiles(directory, ".*\\.track")
                 //
                 .filter(file -> {
