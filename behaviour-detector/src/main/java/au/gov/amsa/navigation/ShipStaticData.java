@@ -7,13 +7,14 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Map;
 
-import rx.Observable;
-import au.gov.amsa.risky.format.AisClass;
-import au.gov.amsa.streams.Strings;
-
 import com.github.davidmoten.rx.Checked;
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
+
+import au.gov.amsa.ais.message.AisShipStaticUtil;
+import au.gov.amsa.risky.format.AisClass;
+import au.gov.amsa.streams.Strings;
+import rx.Observable;
 
 public final class ShipStaticData {
 
@@ -27,11 +28,12 @@ public final class ShipStaticData {
         public final Optional<Integer> dimensionBMetres;
         public final Optional<Integer> dimensionCMetres;
         public final Optional<Integer> dimensionDMetres;
+        public final Optional<String> name;
 
         public Info(long mmsi, Optional<String> imo, AisClass cls, Optional<Integer> shipType,
                 Optional<Float> maxDraftMetres, Optional<Integer> dimensionAMetres,
                 Optional<Integer> dimensionBMetres, Optional<Integer> dimensionCMetres,
-                Optional<Integer> dimensionDMetres) {
+                Optional<Integer> dimensionDMetres, Optional<String> name) {
             this.mmsi = mmsi;
             this.imo = imo;
             this.cls = cls;
@@ -41,21 +43,17 @@ public final class ShipStaticData {
             this.dimensionBMetres = dimensionBMetres;
             this.dimensionCMetres = dimensionCMetres;
             this.dimensionDMetres = dimensionDMetres;
+            this.name = name;
         }
 
         public Optional<Integer> lengthMetres() {
-            Optional<Integer> a = dimensionAMetres;
-            Optional<Integer> b = dimensionBMetres;
-            if (a.isPresent() && b.isPresent())
-                return Optional.of(a.get() + b.get());
-            else {
-                Optional<Integer> c = dimensionCMetres;
-                Optional<Integer> d = dimensionDMetres;
-                if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
-                    return b;
-                else
-                    return Optional.absent();
-            }
+            return AisShipStaticUtil.lengthMetres(dimensionAMetres, dimensionBMetres,
+                    dimensionCMetres, dimensionDMetres);
+        }
+
+        public Optional<Integer> widthMetres() {
+            return AisShipStaticUtil.widthMetres(dimensionAMetres, dimensionBMetres,
+                    dimensionCMetres, dimensionDMetres);
         }
 
         @Override
@@ -72,13 +70,15 @@ public final class ShipStaticData {
             builder.append(", maxDraftMetres=");
             builder.append(maxDraftMetres);
             builder.append(", dimensionAMetres=");
-            builder.append(dimensionAMetres);
+            builder.append(dimensionAMetres.or(-1));
             builder.append(", dimensionBMetres=");
-            builder.append(dimensionBMetres);
+            builder.append(dimensionBMetres.or(-1));
             builder.append(", dimensionCMetres=");
-            builder.append(dimensionCMetres);
+            builder.append(dimensionCMetres.or(-1));
             builder.append(", dimensionDMetres=");
-            builder.append(dimensionDMetres);
+            builder.append(dimensionDMetres.or(-1));
+            builder.append(", name=");
+            builder.append(name.or(""));
             builder.append("]");
             return builder.toString();
         }
@@ -92,7 +92,7 @@ public final class ShipStaticData {
 
     public static Map<Long, Info> getMapFromReader(Reader reader) {
         return ShipStaticData
-        // read ship static data from classpath
+                // read ship static data from classpath
                 .from(reader)
                 // make a map
                 .toMap(info -> info.mmsi)
@@ -105,19 +105,22 @@ public final class ShipStaticData {
     }
 
     public static Observable<Info> from(Reader reader) {
-        return Strings
-                .lines(reader)
+        return Strings.lines(reader)
                 // ignore comments
                 .filter(line -> !line.startsWith("#"))
+                //
                 .map(line -> line.trim())
+                //
                 .filter(line -> line.length() > 0)
-                .map(line -> line.split(","))
+                //
+                .map(line -> line.split("\t"))
+                //
                 .map(items -> {
                     int i = 0;
                     long mmsi = Long.parseLong(items[i++]);
                     String imoTemp = items[i++];
                     Optional<String> imo;
-                    if (imoTemp.trim().length() == 0)
+                    if (imoTemp.trim().length() == 0 || Integer.parseInt(imoTemp.trim()) == -1)
                         imo = Optional.absent();
                     else
                         imo = Optional.of(imoTemp);
@@ -134,9 +137,15 @@ public final class ShipStaticData {
                     Optional<Integer> dimensionBMetres = b == -1 ? absent() : of(b);
                     Optional<Integer> dimensionCMetres = c == -1 ? absent() : of(c);
                     Optional<Integer> dimensionDMetres = d == -1 ? absent() : of(d);
-
+                    // skip length and width
+                    i += 2;
+                    Optional<String> name;
+                    if (i >= items.length || items[i].trim().length() == 0)
+                        name = Optional.absent();
+                    else
+                        name = Optional.of(items[i].trim());
                     return new Info(mmsi, imo, cls, shipType, maxDraftMetres, dimensionAMetres,
-                            dimensionBMetres, dimensionCMetres, dimensionDMetres);
+                            dimensionBMetres, dimensionCMetres, dimensionDMetres, name);
                 });
     }
 }

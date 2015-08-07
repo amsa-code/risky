@@ -69,8 +69,9 @@ public final class ShipStaticDataCreator {
                 .doOnNext(indexed -> {
                     if (indexed.index() == 0) {
                         out.println(
-                                "#MMSI, IMO, AisClass, AisShipType, MaxPresentStaticDraughtMetres, DimAMetres, DimBMetres, DimCMetres, DimDMetres, LengthMetres, WidthMetres, Name");
-                        out.println("#columns are tab delimited");
+                                "# MMSI, IMO, AisClass, AisShipType, MaxPresentStaticDraughtMetres, DimAMetres, DimBMetres, DimCMetres, DimDMetres, LengthMetres, WidthMetres, Name");
+                        out.println("# columns are tab delimited");
+                        out.println("# -1 = not present");
                     }
                 })
                 //
