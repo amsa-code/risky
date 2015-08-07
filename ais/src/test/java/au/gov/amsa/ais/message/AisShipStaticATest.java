@@ -32,7 +32,7 @@ public class AisShipStaticATest {
         assertEquals(30, (int) s.getWidthMetres().get());
         assertEquals(1, s.getTypeOfElectronicPositionFixingDevice());
         assertEquals(118912, s.getExpectedTimeOfArrivalUnprocessed());
-        assertEquals(91.0, s.getMaximumPresentStaticDraughtMetres(), PRECISION);
+        assertEquals(9.1, s.getMaximumPresentStaticDraughtMetres(), PRECISION);
         assertEquals("RIO DE JANEIRO", s.getDestination());
         assertTrue(s.getDataTerminalAvailable());
         assertEquals(0, s.getSpare());

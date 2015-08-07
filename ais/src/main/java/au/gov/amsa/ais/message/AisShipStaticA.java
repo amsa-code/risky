@@ -217,7 +217,7 @@ public class AisShipStaticA implements AisShipStatic {
 
     public double getMaximumPresentStaticDraughtMetres() {
         if (maximumPresentStaticDraughtMetres == null)
-            maximumPresentStaticDraughtMetres = (double) extractor.getValue(294, 302);
+            maximumPresentStaticDraughtMetres = extractor.getValue(294, 302) / 10.0;
         return maximumPresentStaticDraughtMetres;
     }
 
