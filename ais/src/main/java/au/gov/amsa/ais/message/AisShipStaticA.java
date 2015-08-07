@@ -3,13 +3,13 @@ package au.gov.amsa.ais.message;
 import java.util.Calendar;
 import java.util.TimeZone;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
 import au.gov.amsa.ais.AisMessageType;
 import au.gov.amsa.ais.Util;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 
 /**
  * Decoder for AIS ship static and voyage related data (message type 5).
