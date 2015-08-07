@@ -16,7 +16,8 @@ public class ShipStaticDataMain {
         List<File> files = Files.find(new File("/media/an/nmea/2014/"),
                 Pattern.compile("NMEA_ITU.*.gz"));
 
-        ShipStaticDataCreator.writeStaticDataToFile(files, outputFile);
+        ShipStaticDataCreator.writeStaticDataToFile(files, outputFile).count().toBlocking()
+                .single();
 
     }
 

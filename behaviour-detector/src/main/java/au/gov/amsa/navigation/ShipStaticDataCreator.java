@@ -69,7 +69,7 @@ public final class ShipStaticDataCreator {
                 .doOnNext(indexed -> {
                     if (indexed.index() == 0) {
                         out.println(
-                                "#MMSI, IMO, AisClass, AisShipType, MaxPresentStaticDraughtMetres, DimA, DimB, DimC, DimD,LengthMetres, WidthMetres, Name");
+                                "#MMSI, IMO, AisClass, AisShipType, MaxPresentStaticDraughtMetres, DimAMetres, DimBMetres, DimCMetres, DimDMetres, LengthMetres, WidthMetres, Name");
                         out.println("#columns are tab delimited");
                     }
                 })
@@ -77,7 +77,7 @@ public final class ShipStaticDataCreator {
                 .map(indexed -> indexed.value())
                 //
                 .doOnNext(m -> {
-                    out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
+                    out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
                             getImo(m).or(-1), m instanceof AisShipStaticA ? "A" : "B",
                             m.getShipType(), getMaximumPresentStaticDraughtMetres(m).or(-1F),
                             m.getDimensionA().or(-1), m.getDimensionB().or(-1),
