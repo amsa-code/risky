@@ -10,11 +10,11 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
+import com.github.davidmoten.rx.internal.operators.OperatorBufferEmissions;
+
 import rx.Observable;
 import rx.Subscriber;
 import rx.observers.TestSubscriber;
-
-import com.github.davidmoten.rx.operators.OperatorBufferEmissions;
 
 public class StringSplitOperatorTest {
 
@@ -113,8 +113,7 @@ public class StringSplitOperatorTest {
     public void testBackpressureOneByOneWithBufferEmissions() {
         Observable<String> o = Observable.just("boo:an", "d:you")
                 .lift(new StringSplitOperator(Pattern.compile(":")))
-                .lift(new OperatorBufferEmissions());
-        List<String> expected = asList("boo", "and", "you");
+                .lift(new OperatorBufferEmissions<String>());
         TestSubscriber<String> ts = TestSubscriber.create(0);
         o.subscribe(ts);
         ts.requestMore(1);
@@ -127,8 +126,8 @@ public class StringSplitOperatorTest {
 
     private static void checkWithBackpressure(Observable<String> o, List<String> expected) {
         final List<String> list = new ArrayList<String>();
-        o.lift(new StringSplitOperator(Pattern.compile(":"))).subscribe(
-                createBackpressureSubscriber(list));
+        o.lift(new StringSplitOperator(Pattern.compile(":")))
+                .subscribe(createBackpressureSubscriber(list));
         assertEquals(expected, list);
     }
 

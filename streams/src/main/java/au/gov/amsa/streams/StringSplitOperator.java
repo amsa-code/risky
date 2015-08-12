@@ -2,10 +2,10 @@ package au.gov.amsa.streams;
 
 import java.util.regex.Pattern;
 
+import com.github.davidmoten.rx.internal.operators.OperatorBufferEmissions;
+
 import rx.Observable.Operator;
 import rx.Subscriber;
-
-import com.github.davidmoten.rx.operators.OperatorBufferEmissions;
 
 /**
  * Splits and joins items in a sequence of strings based on a regex pattern.
