@@ -2,15 +2,15 @@ package au.gov.amsa.navigation;
 
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable.Operator;
-import rx.Subscriber;
-import rx.functions.Func1;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasFix;
 import au.gov.amsa.risky.format.NavigationalStatus;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
+import rx.Observable.Operator;
+import rx.Subscriber;
+import rx.functions.Func1;
 
 /**
  * See
@@ -260,11 +260,11 @@ public final class DriftDetectorOperator implements Operator<DriftCandidate, Has
     @VisibleForTesting
     static Func1<Fix, Boolean> isCandidate(Options options) {
         return f -> {
-            if (f.courseOverGroundDegrees().isPresent()
-                    && f.headingDegrees().isPresent()
+            if (f.courseOverGroundDegrees().isPresent() && f.headingDegrees().isPresent()
                     && f.speedOverGroundKnots().isPresent()
-                    && (!f.navigationalStatus().isPresent() || (f.navigationalStatus().get() != NavigationalStatus.AT_ANCHOR && f
-                            .navigationalStatus().get() != NavigationalStatus.MOORED))) {
+                    && (!f.navigationalStatus().isPresent()
+                            || (f.navigationalStatus().get() != NavigationalStatus.AT_ANCHOR && f
+                                    .navigationalStatus().get() != NavigationalStatus.MOORED))) {
                 double diff = diff(f.courseOverGroundDegrees().get(), f.headingDegrees().get());
                 return diff >= options.minHeadingCogDifference()
                         && diff <= options.maxHeadingCogDifference()

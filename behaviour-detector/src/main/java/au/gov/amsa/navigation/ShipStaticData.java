@@ -104,6 +104,12 @@ public final class ShipStaticData {
         return Observable.using(() -> reader, r -> from(r), Checked.a1(r -> r.close()));
     }
 
+    public static Observable<Info> from(String resource) {
+        return Observable.using(
+                () -> new InputStreamReader(ShipStaticData.class.getResourceAsStream(resource)),
+                r -> from(r), Checked.a1(r -> r.close()));
+    }
+
     public static Observable<Info> from(Reader reader) {
         return Strings.lines(reader)
                 // ignore comments
