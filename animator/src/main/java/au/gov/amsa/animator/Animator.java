@@ -29,11 +29,11 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
 
+import au.gov.amsa.util.swing.FramePreferences;
 import rx.Scheduler.Worker;
 import rx.internal.util.SubscriptionList;
 import rx.schedulers.Schedulers;
 import rx.schedulers.SwingScheduler;
-import au.gov.amsa.util.swing.FramePreferences;
 
 public class Animator {
 
@@ -96,12 +96,13 @@ public class Animator {
                 }
                 worker.schedule(() -> {
                     redrawAll();
-                }, 50, TimeUnit.MILLISECONDS);
+                } , 50, TimeUnit.MILLISECONDS);
             }
 
             @Override
             public void mouseClicked(MouseEvent e) {
-                boolean shiftDown = (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) == MouseEvent.SHIFT_DOWN_MASK;
+                boolean shiftDown = (e.getModifiersEx()
+                        & MouseEvent.SHIFT_DOWN_MASK) == MouseEvent.SHIFT_DOWN_MASK;
                 Point2D.Float p = toWorld(e);
                 if (e.getClickCount() == 2) {
                     if (shiftDown) {
@@ -122,8 +123,8 @@ public class Animator {
                 double h = bounds.getHeight() * factor;
                 if (w >= map.getMaxBounds().getWidth() || h >= map.getMaxBounds().getHeight())
                     bounds = map.getMaxBounds();
-                bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2, p.getY() - h
-                        / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
+                bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2,
+                        p.getY() - h / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
             }
 
             private Point2D.Float toWorld(MouseEvent e) {
@@ -176,7 +177,7 @@ public class Animator {
         worker.schedulePeriodically(() -> {
             model.updateModel(timeStep.getAndIncrement());
             redrawAnimationLayer();
-        }, 0, 50, TimeUnit.MILLISECONDS);
+        } , 50, 50, TimeUnit.MILLISECONDS);
     }
 
     private void redrawAll() {
@@ -202,8 +203,8 @@ public class Animator {
             renderer.paint(gr, imageBounds, bounds);
             this.backgroundImage = backgroundImage;
             this.offScreenImage = createImage(imageBounds);
-            worldToScreen = RendererUtilities.worldToScreenTransform(bounds, new Rectangle(0, 0,
-                    backgroundImage.getWidth(), backgroundImage.getHeight()));
+            worldToScreen = RendererUtilities.worldToScreenTransform(bounds,
+                    new Rectangle(0, 0, backgroundImage.getWidth(), backgroundImage.getHeight()));
         }
         redrawAnimationLayer();
 

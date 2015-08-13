@@ -38,8 +38,6 @@ public class ModelManyCraft implements Model {
                 // cache for repeat
                 .cache()
                 //
-                .onBackpressureBuffer()
-                //
                 .doOnCompleted(() -> subscriber.reset())
                 // repeat stream
                 .repeat()
