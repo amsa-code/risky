@@ -80,9 +80,6 @@ public class ViewRecentTracks implements View {
                         if (speedKnots > 0) {
                             if (options.contains(ViewRecentTracksOption.SHOW_SPEED))
                                 g.drawString(df.format(speedKnots), position.x, position.y);
-                            if (speedKnots > 50) {
-                                System.out.println(speedKnots);
-                            }
                         }
                     }
                 }
