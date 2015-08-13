@@ -12,7 +12,7 @@ public class IhsReaderMain {
     private static final Logger log = Logger.getLogger(IhsReaderMain.class);
 
     public static void main(String[] args) {
-        File file = new File("/media/an/ship-data/ihs/608750-2014-03-13.zip");
+        File file = new File("/media/an/ship-data/ihs/608750-2015-04-01.zip");
         // log.info(IhsReader.fromZip(file).count().toBlocking().single() +
         // " ships");
         // log.info(IhsReader.fromZip(file).filter(ship ->
