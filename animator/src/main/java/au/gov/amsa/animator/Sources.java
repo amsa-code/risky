@@ -29,7 +29,7 @@ public class Sources {
                     public Integer call(Fix a, Fix b) {
                         return Long.compare(a.time(), b.time());
                     }
-                }).flatMapIterable(x -> x);
+                }).doOnNext(list -> System.out.println("sorted")).flatMapIterable(x -> x);
     }
 
 }

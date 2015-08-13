@@ -14,6 +14,12 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
+
+		<dependency>
+			<groupId>io.reactivex</groupId>
+			<artifactId>rxjava</artifactId>
+			<version>${rxjava.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
@@ -58,19 +64,19 @@
 			<artifactId>formats</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>streams</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>geo-analyzer</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
-		
+
 
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -94,12 +100,6 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-epsg-hsql</artifactId>
 			<version>${geotools.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.reactivex</groupId>
-			<artifactId>rxjava</artifactId>
-			<version>${rxjava.version}</version>
 		</dependency>
 
 		<dependency>
