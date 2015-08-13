@@ -23,16 +23,16 @@ public class SabineMain {
                 Key.StatCode5, Key.ShipStatus, Key.ShipStatusCode, Key.ShipStatusEffectiveDate,
                 Key.FlagCode, Key.ClassificationSocietyCode,
                 Key.DocumentofComplianceDOCCompanyCode);
-        PrintStream out = new PrintStream("target/ships.txt");
-        out.println(keys.stream().map(key -> key.name()).collect(Collectors.joining(",")));
-        IhsReader.fromZip(file).map(map -> {
-            return keys.stream().map(key -> map.get(key.name())).map(x -> x == null ? "" : x)
-                    .collect(Collectors.joining(","));
-        })
-                //
-                .doOnNext(out::println)
-                //
-                .subscribe();
-        out.close();
+        try (PrintStream out = new PrintStream("target/ships.txt")) {
+            out.println(keys.stream().map(key -> key.name()).collect(Collectors.joining("\t")));
+            IhsReader.fromZip(file).map(map -> {
+                return keys.stream().map(key -> map.get(key.name())).map(x -> x == null ? "" : x)
+                        .collect(Collectors.joining("\t"));
+            })
+                    //
+                    .doOnNext(out::println)
+                    //
+                    .subscribe();
+        }
     }
 }
