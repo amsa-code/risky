@@ -9,12 +9,12 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.regex.Pattern;
 
+import com.github.davidmoten.rx.Transformers;
+
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
-
-import com.github.davidmoten.rx.Transformers;
 
 /**
  * Utilities for stream processing of lines of text from
@@ -53,9 +53,13 @@ public final class Strings {
         return split(from(reader, 8192), "\n");
     }
 
+    public static Observable<String> lines(File file) {
+        return split(from(file), "\n");
+    }
+
     public static Observable<String> split(Observable<String> source, String pattern) {
-        return source.lift(new StringSplitOperator(Pattern.compile(pattern))).compose(
-                Transformers.bufferEmissions());
+        return source.lift(new StringSplitOperator(Pattern.compile(pattern)))
+                .compose(Transformers.bufferEmissions());
     }
 
     public static Observable<String> from(File file) {

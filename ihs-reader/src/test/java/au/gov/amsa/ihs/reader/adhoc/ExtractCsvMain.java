@@ -1,4 +1,4 @@
-package au.gov.amsa.ihs.reader;
+package au.gov.amsa.ihs.reader.adhoc;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -9,6 +9,7 @@ import org.joda.time.DateTime;
 import com.google.common.base.Optional;
 
 import au.gov.amsa.ihs.model.Ship;
+import au.gov.amsa.ihs.reader.IhsReader;
 import rx.functions.Action1;
 
 public class ExtractCsvMain {

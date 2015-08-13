@@ -1,9 +1,6 @@
 package au.gov.amsa.ihs.reader;
 
 import java.io.File;
-import java.util.Map;
-
-import au.gov.amsa.ihs.model.Ship;
 
 public class IhsReaderMain {
 
@@ -17,7 +14,9 @@ public class IhsReaderMain {
         // ship.getMmsi().isPresent()).count()
         // .toBlocking().single()
         // + " ships");
-        Map<String, Ship> map = IhsReader.fromZipAsMapByMmsi(file).toBlocking().single();
-        System.out.println(map.get("503595000"));
+        // Map<String, Ship> map = IhsReader.fromZipAsMapByMmsi(file).map(x ->
+        // IhsReader.toShip(x))
+        // .toBlocking().single();
+        // System.out.println(map.get("503595000"));
     }
 }

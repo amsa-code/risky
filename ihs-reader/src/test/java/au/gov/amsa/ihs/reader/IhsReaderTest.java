@@ -4,10 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
 import au.gov.amsa.ihs.model.Ship;
+import au.gov.amsa.streams.Strings;
 import rx.Observable;
 
 public class IhsReaderTest {
@@ -17,7 +20,8 @@ public class IhsReaderTest {
     @Test
     public void testReaderFromInputStream() {
         IhsReader r = new IhsReader();
-        Observable<Ship> o = r.from(IhsReaderTest.class.getResourceAsStream("/ShipData.xml"));
+        Observable<Ship> o = r.from(IhsReaderTest.class.getResourceAsStream("/ShipData.xml"))
+                .map(IhsReader::toShip);
         Ship ship = o.last().toBlocking().single();
         System.out.println(ship);
         assertEquals("4544107", ship.getImo());
@@ -48,8 +52,37 @@ public class IhsReaderTest {
 
     @Test
     public void testReaderFromZip() {
-        Observable<Ship> o = IhsReader.fromZip(new File("src/test/resources/ShipData.xml.zip"));
+        Observable<Ship> o = IhsReader.fromZip(new File("src/test/resources/ShipData.xml.zip"))
+                .map(x -> IhsReader.toShip(x));
         Ship ship = o.last().toBlocking().single();
         assertEquals("4544107", ship.getImo());
+    }
+
+    public static void main(String[] args) {
+        // Pattern pattern = Pattern.compile("^.*\\<([^\\>/]*)\\>.*$");
+        Pattern pattern = Pattern.compile("^.*name=\"([^\"]*)\".*$");
+        System.out.println("public enum Key {");
+        Strings.lines(new File("/home/dxm/test.txt"))
+                //
+                .filter(line -> line.trim().length() > 0)
+                //
+                .map(line -> {
+                    Matcher m = pattern.matcher(line);
+                    if (m.find())
+                        return m.group(1);
+                    else
+                        return null;
+                })
+                //
+                .filter(value -> value != null)
+                //
+                .filter(x -> !x.equals("NewDataSet"))
+                //
+                .filter(x -> !x.equals("ShipData"))
+                //
+                .doOnNext(line -> System.out.println("//\n" + line + ","))
+                //
+                .subscribe();
+        System.out.println("}");
     }
 }
