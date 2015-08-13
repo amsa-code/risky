@@ -3,13 +3,11 @@ package au.gov.amsa.ihs.reader;
 import java.io.File;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
-
 import au.gov.amsa.ihs.model.Ship;
 
 public class IhsReaderMain {
 
-    private static final Logger log = Logger.getLogger(IhsReaderMain.class);
+    // private static final Logger log = Logger.getLogger(IhsReaderMain.class);
 
     public static void main(String[] args) {
         File file = new File("/media/an/ship-data/ihs/608750-2015-04-01.zip");

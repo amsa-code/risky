@@ -30,6 +30,7 @@ public class Ship {
     private final Optional<Float> speedKnots;
     private final Optional<DateTime> lastUpdateTime;
     private final Optional<String> name;
+    private final Optional<String> shipBuilderCompanyCode;
 
     private Ship(String imo, Optional<String> mmsi, Optional<String> type2, Optional<String> type3,
             Optional<String> type4, Optional<String> type5, Optional<Long> grossTonnage,
@@ -41,7 +42,8 @@ public class Ship {
             Optional<String> statCode5, Optional<Float> lengthOverallMetres,
             Optional<Float> breadthMetres, Optional<Float> displacementTonnage,
             Optional<Float> draughtMetres, Optional<Float> speedKnots,
-            Optional<DateTime> lastUpdateTime, Optional<String> name) {
+            Optional<DateTime> lastUpdateTime, Optional<String> name,
+            Optional<String> shipBuilderCompanyCode) {
         Preconditions.checkNotNull(imo);
         Preconditions.checkNotNull(mmsi);
         Preconditions.checkNotNull(type2);
@@ -65,6 +67,7 @@ public class Ship {
         Preconditions.checkNotNull(speedKnots);
         Preconditions.checkNotNull(lastUpdateTime);
         Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(shipBuilderCompanyCode);
         this.imo = imo;
         this.mmsi = mmsi;
         this.type2 = type2;
@@ -91,6 +94,7 @@ public class Ship {
         this.speedKnots = speedKnots;
         this.lastUpdateTime = lastUpdateTime;
         this.name = name;
+        this.shipBuilderCompanyCode = shipBuilderCompanyCode;
     }
 
     public Optional<String> getName() {
@@ -185,6 +189,10 @@ public class Ship {
         return lastUpdateTime;
     }
 
+    public Optional<String> getShipBuilderCompanyCode() {
+        return shipBuilderCompanyCode;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -214,6 +222,7 @@ public class Ship {
         private Optional<Float> speedKnots;
         private Optional<DateTime> lastUpdateTime;
         private Optional<String> name;
+        private Optional<String> shipBuilderCompanyCode;
 
         private Builder() {
         }
@@ -335,12 +344,18 @@ public class Ship {
             return this;
         }
 
+        public Builder shipBuilderCompanyCode(Optional<String> shipBuilderCompanyCode) {
+            this.shipBuilderCompanyCode = shipBuilderCompanyCode;
+            return this;
+        }
+
         public Ship build() {
             return new Ship(imo, mmsi, type2, type3, type4, type5, grossTonnage,
                     classificationSocietyCode, flagCode, groupBeneficialOwnerCompanyCode,
                     groupBeneficialOwnerCountryOfDomicileCode, countryOfBuildCode, yearOfBuild,
                     monthOfBuild, deadweightTonnage, statCode5, lengthOverallMetres, breadthMetres,
-                    displacementTonnage, draughtMetres, speedKnots, lastUpdateTime, name);
+                    displacementTonnage, draughtMetres, speedKnots, lastUpdateTime, name,
+                    shipBuilderCompanyCode);
         }
     }
 
@@ -393,6 +408,8 @@ public class Ship {
         b.append(lastUpdateTime);
         b.append(", name=");
         b.append(name);
+        b.append(", shipBuilderCompanyCode=");
+        b.append(shipBuilderCompanyCode);
         b.append("]");
         return b.toString();
     }

@@ -43,6 +43,7 @@ public class IhsReaderTest {
         assertEquals(22.0, ship.getSpeedKnots().get(), PRECISION);
         assertEquals("2014-01-16T14:47:29.780Z", ship.getLastUpdateTime().get().toString());
         assertEquals("PROTECTOR", ship.getName().get());
+        assertEquals("FIN020050", ship.getShipBuilderCompanyCode().get());
     }
 
     @Test

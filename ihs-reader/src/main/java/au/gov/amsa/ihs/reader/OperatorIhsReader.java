@@ -144,6 +144,7 @@ public class OperatorIhsReader implements Operator<Ship, InputStream> {
                         .draughtMetres(toFloat(value("Draught")))
                         .speedKnots(toFloat(value("Speed")))
                         .lastUpdateTime(toDateTime(value("LastUpdateDate"))).name(value("ShipName"))
+                        .shipBuilderCompanyCode(value("ShipbuilderCompanyCode"))
                         // build it
                         .build();
             }
