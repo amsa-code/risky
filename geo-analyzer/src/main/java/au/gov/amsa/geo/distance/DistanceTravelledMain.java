@@ -36,11 +36,11 @@ import rx.functions.Func1;
 public class DistanceTravelledMain {
     private static Logger log = Logger.getLogger(DistanceTravelledMain.class);
 
-    private static void run(String directory, Options options, boolean gui) {
+    private static void run(String directory, Options options, boolean gui, String dataSetName) {
         InputStream is;
         try {
             is = new GZIPInputStream(
-                    new FileInputStream("/media/an/ship-data/ais/ship-data-2014.txt.gz"));
+                    new FileInputStream("/media/an/ship-data/ais/ship-data-2014-v2.txt.gz"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -48,14 +48,14 @@ public class DistanceTravelledMain {
                 .getMapFromReader(new InputStreamReader(is, Charsets.UTF_8));
 
         List<Setting> settings = new ArrayList<>();
-        // settings.add(Setting.create(30, 30, "fishing"));
-        // settings.add(Setting.create(52, 52, "tug"));
-        // settings.add(Setting.create(60, 69, "passenger"));
-        // settings.add(Setting.create(70, 79, "cargo"));
-        // settings.add(Setting.create(80, 89, "tanker"));
-        // settings.add(Setting.create(90, 99, "other"));
+        settings.add(Setting.create(30, 30, "fishing"));
+        settings.add(Setting.create(52, 52, "tug"));
+        settings.add(Setting.create(60, 69, "passenger"));
+        settings.add(Setting.create(70, 79, "cargo"));
+        settings.add(Setting.create(80, 89, "tanker"));
+        settings.add(Setting.create(90, 99, "other"));
         settings.add(Setting.create(-1, -1, "class_b"));
-        // settings.add(Setting.create(0, 100, "all"));
+        settings.add(Setting.create(0, 100, "all"));
 
         for (Setting setting : settings) {
             // filter out undesired mmsi numbers and ship types
@@ -65,7 +65,8 @@ public class DistanceTravelledMain {
                                     && info.shipType.get() >= setting.lowerBound
                                     && info.shipType.get() <= setting.upperBound)))
                     && MmsiValidator2.INSTANCE.isValid(info.mmsi);
-            calculateTrafficDensity(directory, options, gui, shipInfo, shipSelector, setting.name);
+            calculateTrafficDensity(directory, options, gui, shipInfo, shipSelector,
+                    setting.name + "-" + dataSetName);
         }
     }
 
@@ -123,20 +124,22 @@ public class DistanceTravelledMain {
         boolean produceDensitiesText = false;
         boolean produceDensitiesNetcdf = true;
 
+        File outputDirectory = new File("/media/an/traffic-density/netcdf");
+
         if (produceImage) {
             // 8:5 is ok ratio
             saveAsPng(Renderer.createImage(options, 2, 12800, resultFromFile),
-                    new File("target/" + name + "-map.png"));
+                    new File(outputDirectory, name + "-map.png"));
         }
 
         if (produceDensitiesText) {
             DistanceTravelledCalculator.saveCalculationResultAsText(options, result,
-                    "target/" + name + "-densities.txt");
+                    new File(outputDirectory, name + "-densities.txt").getAbsolutePath());
         }
 
         if (produceDensitiesNetcdf) {
             DistanceTravelledCalculator.saveCalculationResultAsNetcdf(options, result,
-                    "target/" + name + "-densities.nc");
+                    new File(outputDirectory, name + "-densities.nc").getAbsolutePath());
         }
     }
 
@@ -176,12 +179,13 @@ public class DistanceTravelledMain {
     }
 
     public static void main(String[] args) throws InterruptedException {
+
         log.info("starting");
         String directory;
         if (args.length > 0)
             directory = args[0];
         else
-            directory = "/media/an/binary-fixes-5-minute/2014";
+            directory = "/media/an/binary-fixes-5-minute/2013";
         // directory = System.getProperty("user.home")
         // + "/Downloads/positions-183-days";
         final double cellSizeDegrees;
@@ -193,6 +197,9 @@ public class DistanceTravelledMain {
         final Options options = createOptions(cellSizeDegrees);
         for (int i = 0; i <= 10; i++)
             System.out.println(options.getGrid().centreLon(i));
-        run(directory, options, false);
+
+        for (int i = 2012; i <= 2014; i++) {
+            run(directory, options, false, i + "");
+        }
     }
 }
