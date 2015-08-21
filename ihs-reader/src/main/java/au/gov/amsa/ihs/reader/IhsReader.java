@@ -22,12 +22,12 @@ import rx.Subscriber;
 
 public class IhsReader {
 
-    public Observable<Map<String, String>> from(InputStream is) {
-        return Observable.just(is).lift(new OperatorIhsReader());
+    public Observable<Map<String, String>> from(InputStream is, String parentElementName) {
+        return Observable.just(is).lift(new OperatorIhsReader(parentElementName));
     }
 
     public static Observable<Map<String, String>> fromZip(File file) {
-        return shipDataFilesAsInputStreamFromZip(file).lift(new OperatorIhsReader());
+        return shipDataFilesAsInputStreamFromZip(file).lift(new OperatorIhsReader("ShipData"));
     }
 
     public static Observable<Map<String, Map<String, String>>> fromZipAsMapByImo(File file) {

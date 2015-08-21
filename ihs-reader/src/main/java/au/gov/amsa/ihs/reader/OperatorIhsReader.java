@@ -21,8 +21,11 @@ import rx.Subscriber;
 public class OperatorIhsReader implements Operator<Map<String, String>, InputStream> {
 
     private static final Logger log = Logger.getLogger(OperatorIhsReader.class);
+    private final String parentElementName;
 
-    protected static final String ELEMENT_SHIP_DATA = "ShipData";
+    public OperatorIhsReader(String parentElementName) {
+        this.parentElementName = parentElementName;
+    }
 
     @Override
     public Subscriber<? super InputStream> call(
@@ -44,7 +47,7 @@ public class OperatorIhsReader implements Operator<Map<String, String>, InputStr
                 try {
                     SAXParserFactory factory = SAXParserFactory.newInstance();
                     SAXParser parser = factory.newSAXParser();
-                    DefaultHandler handler = createHandler(child);
+                    DefaultHandler handler = createHandler(child, parentElementName);
                     parser.parse(is, handler);
                 } catch (UnsubscribedSAXException e) {
                     child.onCompleted();
@@ -73,20 +76,23 @@ public class OperatorIhsReader implements Operator<Map<String, String>, InputStr
         private final Map<String, String> values = new HashMap<String, String>();
         private Optional<String> currentElement = Optional.absent();
         private final Subscriber<? super Map<String, String>> subscriber;
+        private final String parentElementName;
 
-        public MyDefaultHandler(Subscriber<? super Map<String, String>> subscriber) {
+        public MyDefaultHandler(Subscriber<? super Map<String, String>> subscriber,
+                String parentElementName) {
             this.subscriber = subscriber;
+            this.parentElementName = parentElementName;
         }
 
         @Override
         public void startElement(String uri, String localName, String qName, Attributes attributes)
                 throws SAXException {
             checkSubscription(subscriber);
-            if (ELEMENT_SHIP_DATA.equals(qName)) {
+            if (parentElementName.equals(qName)) {
                 values.clear();
                 count++;
                 if (count % 1000 == 0)
-                    log.info(count + " ships read");
+                    log.info(count + " records read");
             }
             currentElement = Optional.of(qName);
         }
@@ -113,7 +119,7 @@ public class OperatorIhsReader implements Operator<Map<String, String>, InputStr
         @Override
         public void endElement(String uri, String localName, String qName) throws SAXException {
             checkSubscription(subscriber);
-            if (ELEMENT_SHIP_DATA.equals(qName)) {
+            if (parentElementName.equals(qName)) {
                 try {
                     subscriber.onNext(new HashMap<>(values));
                 } catch (RuntimeException e) {
@@ -125,8 +131,8 @@ public class OperatorIhsReader implements Operator<Map<String, String>, InputStr
     }
 
     private static DefaultHandler createHandler(
-            final Subscriber<? super Map<String, String>> subscriber) {
-        return new MyDefaultHandler(subscriber);
+            final Subscriber<? super Map<String, String>> subscriber, String parentElementName) {
+        return new MyDefaultHandler(subscriber, parentElementName);
     }
 
 }

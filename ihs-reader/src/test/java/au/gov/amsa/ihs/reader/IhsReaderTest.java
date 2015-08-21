@@ -20,7 +20,8 @@ public class IhsReaderTest {
     @Test
     public void testReaderFromInputStream() {
         IhsReader r = new IhsReader();
-        Observable<Ship> o = r.from(IhsReaderTest.class.getResourceAsStream("/ShipData.xml"))
+        Observable<Ship> o = r
+                .from(IhsReaderTest.class.getResourceAsStream("/ShipData.xml"), "ShipData")
                 .map(IhsReader::toShip);
         Ship ship = o.last().toBlocking().single();
         System.out.println(ship);
