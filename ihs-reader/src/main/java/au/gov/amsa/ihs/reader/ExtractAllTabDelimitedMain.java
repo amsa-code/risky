@@ -17,7 +17,7 @@ import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 
-public class ExtractAllCsvMain {
+public class ExtractAllTabDelimitedMain {
 
     public static Observable<Map<String, String>> extractMaps(File file, String parentElementName) {
         Func0<InputStream> resourceFactory = Checked.f0(() -> new FileInputStream(file));
@@ -27,7 +27,7 @@ public class ExtractAllCsvMain {
         return Observable.using(resourceFactory, observableFactory, disposeAction);
     }
 
-    public static void writeCsv(String parentElementName, File output, File... files) {
+    public static void writeDelimited(String parentElementName, File output, File... files) {
         Observable<Map<String, String>> o = Observable.from(files)
                 .flatMap(file -> extractMaps(file, parentElementName));
         TreeSet<String> keys = o
@@ -71,15 +71,32 @@ public class ExtractAllCsvMain {
 
         extract(directory, output, "ShipData", "ShipData.xml", "ShipData1.xml");
         extract(directory, output, "ShipData", "ShipData1.xml");
-        extract(directory, output, "tblBuilderAndSubcontractorDetails",
-                "tblBuilderAndSubcontractorDetails.xml");
-
+        extractSimple(directory, output, "tblBuilderAndSubcontractorLinkFile");
+        extractSimple(directory, output, "tblClassCodes");
+        extractSimple(directory, output, "tblCompanyDetailsAll");
+        extractSimple(directory, output, "tblCompanyFullDetailsWithCodesAndParent");
+        extractSimple(directory, output, "tblEngineBuilderCodes");
+        extractSimple(directory, output, "tblEngineDesignerCodes");
+        extractSimple(directory, output, "tblFlagCodes");
+        extractSimple(directory, output, "tblFlagHistory");
+        extractSimple(directory, output, "tblHullTypeCodes");
+        extractSimple(directory, output, "tblNameHistory");
+        extractSimple(directory, output, "tblPandICodes");
+        extractSimple(directory, output, "tblPortOfRegistryFullCodes");
+        extractSimple(directory, output, "tblPropulsionTypeDecode");
+        extractSimple(directory, output, "tblShipTypeCodes");
+        extractSimple(directory, output, "tblStatusCodes");
     }
 
-    private static void extract(File directory, File output, String parentElement,
+    private static void extractSimple(File directory, File outputDirectory, String parentElement) {
+        extract(directory, outputDirectory, parentElement, parentElement + ".xml");
+    }
+
+    private static void extract(File directory, File outputDirectory, String parentElement,
             String... names) {
         File[] files = Arrays.stream(names).map(name -> new File(directory, name))
                 .toArray(n -> new File[n]);
-        writeCsv(parentElement, new File(output, names[0].replace("xml", "txt")), files);
+        writeDelimited(parentElement, new File(outputDirectory, names[0].replace("xml", "txt")),
+                files);
     }
 }
