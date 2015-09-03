@@ -7,7 +7,7 @@ import rx.functions.Func1;
 
 import com.github.davidmoten.rx.testing.TestingHelper;
 
-public class StringSplitOperatorMoreTest extends TestCase {
+public class StringSplitMoreTest extends TestCase {
 
 	public static TestSuite suite() {
 		return TestingHelper
@@ -34,7 +34,7 @@ public class StringSplitOperatorMoreTest extends TestCase {
 				.name("testSeparatorOnlyProducesTwoBlanks").from(":")
 				.expect("", "")
 				// get suite
-				.testSuite(StringSplitOperatorMoreTest.class);
+				.testSuite(StringSplitMoreTest.class);
 	}
 
 	public void testDummy() {

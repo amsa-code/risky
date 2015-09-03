@@ -7,9 +7,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
-import java.util.regex.Pattern;
-
-import com.github.davidmoten.rx.Transformers;
 
 import rx.Observable;
 import rx.functions.Action1;
@@ -50,20 +47,19 @@ public final class Strings {
     }
 
     public static Observable<String> lines(Reader reader) {
-        return split(from(reader, 8192), "\n");
+        return from(reader, 8192).compose(Transformers.split("\n"));
     }
 
     public static Observable<String> lines(File file) {
-        return split(from(file), "\n");
-    }
-
-    public static Observable<String> split(Observable<String> source, String pattern) {
-        return source.lift(new StringSplitOperator(Pattern.compile(pattern)))
-                .compose(Transformers.bufferEmissions());
+        return from(file).compose(Transformers.split("\n"));
     }
 
     public static Observable<String> from(File file) {
         return from(file, DEFAULT_CHARSET);
+    }
+
+    public static Observable<String> split(Observable<String> o, String pattern) {
+        return o.compose(Transformers.split(pattern));
     }
 
     public static Observable<String> from(final File file, final Charset charset) {
