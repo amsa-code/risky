@@ -24,8 +24,14 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.functions.Func1;
+import com.github.davidmoten.rx.slf4j.Logging;
+import com.google.common.base.Optional;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.prep.PreparedGeometry;
+import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
+
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.ShipTypeDecoder;
 import au.gov.amsa.ais.Timestamped;
@@ -35,14 +41,8 @@ import au.gov.amsa.ais.message.AisShipStatic;
 import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
-
-import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
+import rx.Observable;
+import rx.functions.Func1;
 
 public class ShipTypeBreakdownMain {
 
@@ -77,25 +77,22 @@ public class ShipTypeBreakdownMain {
         final Set<Long> mmsiA = new HashSet<Long>();
         final Set<Long> mmsiB = new HashSet<Long>();
 
-        Streams.extract(Streams.nmeaFromGzip(filename))
-                .flatMap(aisPositionsOnly)
-                .lift(Logging.<TimestampedAndLine<AisPosition>> logger().showCount().every(100000)
-                        .log())
-                .doOnNext(
-                        m -> {
-                            AisPosition p = m.getMessage().get().message();
-                            if (p.getLatitude() != null && p.getLongitude() != null
-                                    && contains(gf, geometries, p.getLatitude(), p.getLongitude())) {
-                                long mmsiNo = m.getMessage().get().message().getMmsi();
-                                mmsi.add(mmsiNo);
-                                if (m.getMessage().get().message() instanceof AisPositionA)
-                                    mmsiA.add(mmsiNo);
-                                else
-                                    mmsiB.add(mmsiNo);
-                            }
-                        }).subscribe();
+        Streams.extract(Streams.nmeaFromGzip(filename)).flatMap(aisPositionsOnly).lift(
+                Logging.<TimestampedAndLine<AisPosition>> logger().showCount().every(100000).log())
+                .doOnNext(m -> {
+                    AisPosition p = m.getMessage().get().message();
+                    if (p.getLatitude() != null && p.getLongitude() != null
+                            && contains(gf, geometries, p.getLatitude(), p.getLongitude())) {
+                        long mmsiNo = m.getMessage().get().message().getMmsi();
+                        mmsi.add(mmsiNo);
+                        if (m.getMessage().get().message() instanceof AisPositionA)
+                            mmsiA.add(mmsiNo);
+                        else
+                            mmsiB.add(mmsiNo);
+                    }
+                }).subscribe();
 
-        final Map<ShipTypeClass, Set<Long>> countsByShipType = new ConcurrentHashMap<>();
+        final Map<ShipTypeClass, Set<Integer>> countsByShipType = new ConcurrentHashMap<>();
 
         Streams.extract(Streams.nmeaFromGzip(filename)).flatMap(aisShipStaticOnly).doOnNext(m -> {
             AisShipStatic s = m.getMessage().get().message();
@@ -103,7 +100,7 @@ public class ShipTypeBreakdownMain {
                 boolean isClassA = s instanceof AisShipStaticA;
                 ShipTypeClass shipTypeClass = new ShipTypeClass(isClassA, s.getShipType());
                 if (countsByShipType.get(shipTypeClass) == null)
-                    countsByShipType.put(shipTypeClass, new HashSet<Long>());
+                    countsByShipType.put(shipTypeClass, new HashSet<Integer>());
                 else
                     countsByShipType.get(shipTypeClass).add(s.getMmsi());
             }
@@ -113,7 +110,7 @@ public class ShipTypeBreakdownMain {
         Set<String> set = new TreeSet<String>();
         int sizeA = 0;
         int sizeB = 0;
-        for (Entry<ShipTypeClass, Set<Long>> s : countsByShipType.entrySet()) {
+        for (Entry<ShipTypeClass, Set<Integer>> s : countsByShipType.entrySet()) {
             set.add(ShipTypeDecoder.getShipType(s.getKey().shipType) + "\t"
                     + (s.getKey().isClassA ? "A" : "B") + "\t" + s.getValue().size());
             if (s.getKey().isClassA)

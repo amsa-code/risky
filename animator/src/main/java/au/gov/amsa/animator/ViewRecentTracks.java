@@ -39,7 +39,7 @@ public class ViewRecentTracks implements View {
         Point2D.Float p = toScreen(worldToScreen, -35.25f, 149.0f);
         g.drawString("Canberra", p.x - size / 4 + r, p.y - size / 4 + r);
         g.setColor(Color.BLUE);
-        Map<Long, Collection<Fix>> fixGroups = model.recent();
+        Map<Integer, Collection<Fix>> fixGroups = model.recent();
 
         DecimalFormat df = new DecimalFormat("0");
 

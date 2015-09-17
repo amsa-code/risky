@@ -12,6 +12,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Optional;
+
 import rx.Observable;
 import rx.Observable.OnSubscribe;
 import rx.Subscriber;
@@ -23,12 +25,15 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
 
     private final File file;
 
-    public BinaryFixesOnSubscribeFastPath(File file) {
+    private final boolean recordIncludesMmsi;
+
+    public BinaryFixesOnSubscribeFastPath(File file, boolean recordIncludesMmsi) {
         this.file = file;
+        this.recordIncludesMmsi = recordIncludesMmsi;
     }
 
     public static Observable<Fix> from(File file) {
-        return Observable.create(new BinaryFixesOnSubscribeFastPath(file));
+        return Observable.create(new BinaryFixesOnSubscribeFastPath(file, false));
     }
 
     @Override
@@ -38,7 +43,12 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
         try {
             fis = new FileInputStream(file);
             subscriber.add(createSubscription(fis, closed));
-            reportFixes(BinaryFixesUtil.getMmsi(file), subscriber, fis);
+            Optional<Integer> mmsi;
+            if (recordIncludesMmsi)
+                mmsi = Optional.absent();
+            else
+                mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));
+            reportFixes(mmsi, subscriber, fis);
             if (!subscriber.isUnsubscribed()) {
                 // eagerly close
                 if (closed.compareAndSet(false, true))
@@ -74,8 +84,8 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
         };
     }
 
-    private static void reportFixes(long mmsi, Subscriber<? super Fix> subscriber, InputStream fis)
-            throws IOException {
+    private static void reportFixes(Optional<Integer> mmsi, Subscriber<? super Fix> subscriber,
+            InputStream fis) throws IOException {
         byte[] bytes = new byte[4096 * BINARY_FIX_BYTES];
         int length = 0;
         if (subscriber.isUnsubscribed())
@@ -85,9 +95,15 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
                 if (subscriber.isUnsubscribed())
                     return;
                 ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
+                int m;
+                if (mmsi.isPresent()) {
+                    m = mmsi.get();
+                } else {
+                    m = bb.getInt();
+                }
                 Fix fix = null;
                 try {
-                    fix = BinaryFixesUtil.toFix(mmsi, bb);
+                    fix = BinaryFixesUtil.toFix(m, bb);
                 } catch (RuntimeException e) {
                     log.warn(e.getMessage());
                 }
@@ -95,5 +111,9 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
                     subscriber.onNext(fix);
             }
         }
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Integer.MAX_VALUE);
     }
 }

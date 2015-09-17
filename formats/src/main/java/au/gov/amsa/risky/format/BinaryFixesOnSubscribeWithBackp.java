@@ -12,30 +12,32 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.zip.GZIPInputStream;
 
+import com.github.davidmoten.util.Optional;
+
+import au.gov.amsa.risky.format.BinaryFixesOnSubscribeWithBackp.State;
 import rx.Observable;
 import rx.Subscriber;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.observables.AbstractOnSubscribe;
-import au.gov.amsa.risky.format.BinaryFixesOnSubscribeWithBackp.State;
 
 public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, State> {
 
-    private InputStream is;
-    private long mmsi;
+    private final InputStream is;
+    private final Optional<Integer> mmsi;
 
-    public BinaryFixesOnSubscribeWithBackp(InputStream is, long mmsi) {
+    public BinaryFixesOnSubscribeWithBackp(InputStream is, Optional<Integer> mmsi) {
         this.is = is;
         this.mmsi = mmsi;
     }
 
     public static class State {
         final InputStream is;
-        final long mmsi;
+        final Optional<Integer> mmsi;
         final Queue<Fix> queue;
 
-        public State(InputStream is, long mmsi, Queue<Fix> queue) {
+        public State(InputStream is, Optional<Integer> mmsi, Queue<Fix> queue) {
             this.is = is;
             this.mmsi = mmsi;
             this.queue = queue;
@@ -50,7 +52,7 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
      * @param file
      * @return fixes stream
      */
-    public static Observable<Fix> from(final File file) {
+    public static Observable<Fix> from(final File file, boolean recordIncludesMmsi) {
 
         Func0<InputStream> resourceFactory = new Func0<InputStream>() {
 
@@ -73,8 +75,13 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
 
             @Override
             public Observable<Fix> call(InputStream is) {
-                return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, BinaryFixesUtil
-                        .getMmsi(file)));
+                Optional<Integer> mmsi;
+                if (recordIncludesMmsi)
+                    mmsi = Optional.absent();
+                else
+                    mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));
+
+                return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, mmsi));
             }
         };
         Action1<InputStream> disposeAction = new Action1<InputStream>() {
@@ -109,7 +116,13 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
                 if ((length = state.state().is.read(bytes)) > 0) {
                     for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
                         ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
-                        Fix fix = BinaryFixesUtil.toFix(state.state().mmsi, bb);
+                        final int mmsi;
+                        if (state.state().mmsi.isPresent()) {
+                            mmsi = state.state().mmsi.get();
+                        } else {
+                            mmsi = bb.getInt();
+                        }
+                        Fix fix = BinaryFixesUtil.toFix(mmsi, bb);
                         state.state().queue.add(fix);
                     }
                     state.onNext(state.state().queue.remove());

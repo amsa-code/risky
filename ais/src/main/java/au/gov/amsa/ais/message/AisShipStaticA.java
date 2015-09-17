@@ -66,7 +66,7 @@ public class AisShipStaticA implements AisShipStatic {
     }
 
     @Override
-    public long getMmsi() {
+    public int getMmsi() {
         return mmsi;
     }
 

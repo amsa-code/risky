@@ -14,7 +14,7 @@ public interface Model {
      * 
      * @return
      */
-    Map<Long, Collection<Fix>> recent();
+    Map<Integer, Collection<Fix>> recent();
 
     long stepNumber();
 

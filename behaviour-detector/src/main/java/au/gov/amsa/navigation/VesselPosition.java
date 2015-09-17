@@ -5,12 +5,12 @@ import static java.lang.Math.toRadians;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasFix;
-
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 public class VesselPosition implements HasFix {
 
@@ -32,8 +32,8 @@ public class VesselPosition implements HasFix {
     private final Optional<Double> cogDegrees;
     private final Optional<Double> headingDegrees;
     private final Optional<Double> speedMetresPerSecond;
-    private Optional<String> positionAisNmea;
-    private Optional<String> shipStaticAisNmea;
+    private final Optional<String> positionAisNmea;
+    private final Optional<String> shipStaticAisNmea;
     private final NavigationalStatus navigationalStatus;
     private final long time;
     private final Identifier id;
@@ -41,14 +41,15 @@ public class VesselPosition implements HasFix {
     private final Optional<Integer> shipType;
 
     private static AtomicLong counter = new AtomicLong();
-    private long messageId;
-    private Optional<?> data;
+    private final long messageId;
+    private final Optional<?> data;
 
     private VesselPosition(long messageId, Identifier id, double lat, double lon,
             Optional<Integer> lengthMetres, Optional<Integer> widthMetres, Optional<Double> cog,
             Optional<Double> heading, Optional<Double> speedMetresPerSecond, VesselClass cls,
             NavigationalStatus navigationalStatus, long time, Optional<Integer> shipType,
-            Optional<String> positionAisNmea, Optional<String> shipStaticAisNmea, Optional<?> data) {
+            Optional<String> positionAisNmea, Optional<String> shipStaticAisNmea,
+            Optional<?> data) {
 
         if (validate) {
             Preconditions.checkArgument(lat >= -90 && lat <= 90);
@@ -310,9 +311,9 @@ public class VesselPosition implements HasFix {
 
     private Optional<Vector> velocity() {
         if (speedMetresPerSecond.isPresent() && cogDegrees.isPresent())
-            return Optional.of(new Vector(speedMetresPerSecond.get()
-                    * Math.sin(Math.toRadians(cogDegrees.get())), speedMetresPerSecond.get()
-                    * Math.cos(Math.toRadians(cogDegrees.get()))));
+            return Optional.of(new Vector(
+                    speedMetresPerSecond.get() * Math.sin(Math.toRadians(cogDegrees.get())),
+                    speedMetresPerSecond.get() * Math.cos(Math.toRadians(cogDegrees.get()))));
         else
             return Optional.absent();
     }
@@ -443,8 +444,8 @@ public class VesselPosition implements HasFix {
             }
 
             @Override
-            public long mmsi() {
-                return ((Mmsi) id).uniqueId();
+            public int mmsi() {
+                return (int) ((Mmsi) id).uniqueId();
             }
 
             @Override
@@ -464,9 +465,8 @@ public class VesselPosition implements HasFix {
 
             @Override
             public Optional<au.gov.amsa.risky.format.NavigationalStatus> navigationalStatus() {
-                return Optional
-                        .of(au.gov.amsa.risky.format.NavigationalStatus.values()[navigationalStatus
-                                .ordinal()]);
+                return Optional.of(au.gov.amsa.risky.format.NavigationalStatus
+                        .values()[navigationalStatus.ordinal()]);
             }
 
             @Override

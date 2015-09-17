@@ -13,8 +13,8 @@ import java.nio.charset.Charset;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
-import rx.Observable;
-import rx.functions.Func1;
+import com.google.common.base.Optional;
+
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
@@ -24,8 +24,7 @@ import au.gov.amsa.risky.format.BinaryFixesWriter;
 import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
-
-import com.google.common.base.Optional;
+import rx.Observable;
 
 public class StreamsTest {
 
@@ -133,12 +132,8 @@ public class StreamsTest {
     @Test
     public void testNumberCraftInTestFile() throws IOException {
         InputStream is = StreamsTest.class.getResourceAsStream(NMEA_RESOURCE);
-        int count = Streams.extractFixes(Streams.nmeaFrom(is)).map(new Func1<Fix, Long>() {
-            @Override
-            public Long call(Fix fix) {
-                return fix.mmsi();
-            }
-        }).distinct().count().toBlocking().single();
+        int count = Streams.extractFixes(Streams.nmeaFrom(is)).map(fix -> fix.mmsi()).distinct()
+                .count().toBlocking().single();
         assertEquals(DISTINCT_MMSI, count);
         is.close();
     }

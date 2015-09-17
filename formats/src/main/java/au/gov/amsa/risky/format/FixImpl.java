@@ -12,7 +12,7 @@ public final class FixImpl implements HasFix, Fix {
 
     public static boolean validate = true;
 
-    private final long mmsi;
+    private final int mmsi;
     private final float lat;
     private final float lon;
     private final long time;
@@ -24,12 +24,12 @@ public final class FixImpl implements HasFix, Fix {
     private final Optional<Integer> latencySeconds;
     private final Optional<Short> source;
 
-    public FixImpl(long mmsi, float lat, float lon, long time, AisClass aisClass) {
+    public FixImpl(int mmsi, float lat, float lon, long time, AisClass aisClass) {
         this(mmsi, lat, lon, time, Optional.absent(), Optional.absent(), Optional.absent(),
                 Optional.absent(), Optional.absent(), Optional.absent(), aisClass);
     }
 
-    public FixImpl(long mmsi, float lat, float lon, long time, Optional<Integer> latencySeconds,
+    public FixImpl(int mmsi, float lat, float lon, long time, Optional<Integer> latencySeconds,
             Optional<Short> source, Optional<NavigationalStatus> navigationalStatus,
             Optional<Float> speedOverGroundKnots, Optional<Float> courseOverGroundDegrees,
             Optional<Float> headingDegrees, AisClass aisClass) {
@@ -42,8 +42,8 @@ public final class FixImpl implements HasFix, Fix {
             Preconditions.checkNotNull(latencySeconds);
             Preconditions.checkNotNull(source);
             if (courseOverGroundDegrees.isPresent()) {
-                Preconditions.checkArgument(courseOverGroundDegrees.get() < 360
-                        && courseOverGroundDegrees.get() >= 0,
+                Preconditions.checkArgument(
+                        courseOverGroundDegrees.get() < 360 && courseOverGroundDegrees.get() >= 0,
                         "cog=" + courseOverGroundDegrees.get());
             }
             if (headingDegrees.isPresent()) {
@@ -67,7 +67,7 @@ public final class FixImpl implements HasFix, Fix {
     }
 
     @Override
-    public long mmsi() {
+    public int mmsi() {
         return mmsi;
     }
 
@@ -136,8 +136,8 @@ public final class FixImpl implements HasFix, Fix {
         b.append(", lon=");
         b.append(lon);
         b.append(", time=");
-        b.append(DateTimeFormatter.ISO_DATE_TIME.format(ZonedDateTime.ofInstant(
-                Instant.ofEpochMilli(time), ZoneId.of("UTC"))));
+        b.append(DateTimeFormatter.ISO_DATE_TIME
+                .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), ZoneId.of("UTC"))));
         b.append(", navigationalStatus=");
         b.append(navigationalStatus.orNull());
         b.append(", speedOverGroundKnots=");

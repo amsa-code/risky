@@ -1,11 +1,11 @@
 package au.gov.amsa.ais.message;
 
+import com.google.common.base.Optional;
+
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
 import au.gov.amsa.ais.AisMessageType;
 import au.gov.amsa.ais.Util;
-
-import com.google.common.base.Optional;
 
 public class AisPositionBExtended implements AisPosition, AisShipStatic {
 
@@ -31,8 +31,8 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     private final int dimensionC;
     private final int dimensionD;
     private final int timeSecondsOnly;
-    private boolean isHighAccuracyPosition;
-    private boolean isUsingRAIM;
+    private final boolean isHighAccuracyPosition;
+    private final boolean isUsingRAIM;
 
     public AisPositionBExtended(String message, int padBits) {
         this(message, null, padBits);
@@ -115,48 +115,58 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
         return messageId;
     }
 
+    @Override
     public int getRepeatIndicator() {
         return repeatIndicator;
     }
 
     @Override
-    public long getMmsi() {
+    public int getMmsi() {
         return mmsi;
     }
 
+    @Override
     public Double getSpeedOverGroundKnots() {
         return speedOverGroundKnots;
     }
 
+    @Override
     public Double getLongitude() {
         return longitude;
     }
 
+    @Override
     public Double getLatitude() {
         return latitude;
     }
 
+    @Override
     public Double getCourseOverGround() {
         return courseOverGround;
     }
 
+    @Override
     public Integer getTrueHeading() {
         return trueHeading;
     }
 
+    @Override
     public int getTimeSecondsOnly() {
         return timeSecondsOnly;
     }
 
+    @Override
     public String getName() {
         return name;
 
     }
 
+    @Override
     public int getShipType() {
         return shipType;
     }
 
+    @Override
     public Optional<Integer> getDimensionA() {
         if (dimensionA == 0)
             return Optional.absent();
@@ -164,6 +174,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
             return Optional.of(dimensionA);
     }
 
+    @Override
     public Optional<Integer> getDimensionB() {
         if (dimensionB == 0)
             return Optional.absent();
@@ -171,6 +182,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
             return Optional.of(dimensionB);
     }
 
+    @Override
     public Optional<Integer> getDimensionC() {
         if (dimensionC == 0)
             return Optional.absent();
@@ -178,6 +190,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
             return Optional.of(dimensionC);
     }
 
+    @Override
     public Optional<Integer> getDimensionD() {
         if (dimensionD == 0)
             return Optional.absent();
@@ -185,6 +198,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
             return Optional.of(dimensionD);
     }
 
+    @Override
     public Optional<Integer> getLengthMetres() {
         Optional<Integer> a = getDimensionA();
         if (!a.isPresent())
@@ -195,6 +209,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
         return Optional.of(a.get() + b.get());
     }
 
+    @Override
     public Optional<Integer> getWidthMetres() {
         Optional<Integer> c = getDimensionC();
         if (!c.isPresent())

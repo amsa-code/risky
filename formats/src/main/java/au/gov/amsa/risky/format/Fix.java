@@ -4,7 +4,7 @@ import com.google.common.base.Optional;
 
 public interface Fix extends HasFix, HasPosition {
 
-    long mmsi();
+    int mmsi();
 
     long time();
 

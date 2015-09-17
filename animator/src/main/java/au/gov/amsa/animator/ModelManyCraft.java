@@ -56,8 +56,8 @@ public class ModelManyCraft implements Model {
 
     @SuppressWarnings("unchecked")
     @Override
-    public Map<Long, Collection<Fix>> recent() {
-        return (Map<Long, Collection<Fix>>) ((Map<Long, ?>) subscriber.queues);
+    public Map<Integer, Collection<Fix>> recent() {
+        return (Map<Integer, Collection<Fix>>) ((Map<Integer, ?>) subscriber.queues);
     }
 
     @Override
@@ -67,8 +67,8 @@ public class ModelManyCraft implements Model {
 
     private static class FixesSubscriber extends Subscriber<Fix> {
 
-        private final ConcurrentHashMap<Long, Queue<Fix>> queues = new ConcurrentHashMap<>();
-        private final ConcurrentHashMap<Long, Fix> lastFix = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<Integer, Queue<Fix>> queues = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<Integer, Fix> lastFix = new ConcurrentHashMap<>();
         private final int maxSize = 10;
         private final SegmentOptions options = SegmentOptions.builder().build();
 

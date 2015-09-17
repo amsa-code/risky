@@ -330,7 +330,7 @@ public class DriftDetectorOperatorTest {
                 .single();
     }
 
-    private static Fix createFix(long mmsi, float courseHeadingDiff, float speedKnots, long time) {
+    private static Fix createFix(int mmsi, float courseHeadingDiff, float speedKnots, long time) {
         Fix f = Mockito.mock(Fix.class);
         Mockito.when(f.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
         Mockito.when(f.headingDegrees()).thenReturn(Optional.of(10.0f + courseHeadingDiff));
@@ -343,7 +343,7 @@ public class DriftDetectorOperatorTest {
     }
 
     private static Fix createFix(float courseHeadingDiff, float speedKnots, long time) {
-        return createFix(123456789L, courseHeadingDiff, speedKnots, time);
+        return createFix(123456789, courseHeadingDiff, speedKnots, time);
     }
 
 }

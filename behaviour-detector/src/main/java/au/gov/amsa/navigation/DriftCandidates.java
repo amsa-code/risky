@@ -8,23 +8,23 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.zip.GZIPInputStream;
 
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func0;
-import rx.functions.Func1;
+import com.github.davidmoten.rx.Checked;
+import com.google.common.base.Optional;
+
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.FixImpl;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
-
-import com.github.davidmoten.rx.Checked;
-import com.google.common.base.Optional;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func0;
+import rx.functions.Func1;
 
 public final class DriftCandidates {
 
     public static Observable<DriftCandidate> fromCsv(Reader reader) {
         return Strings.lines(reader)
-        // remove blank lines
+                // remove blank lines
                 .filter(nonBlankLinesOnly())
                 // parse candidate
                 .map(line -> toDriftCandidate(line));
@@ -33,7 +33,7 @@ public final class DriftCandidates {
     private static DriftCandidate toDriftCandidate(String line) {
         String[] items = line.split(",");
         int i = 0;
-        long mmsi = Long.parseLong(items[i++]);
+        int mmsi = Integer.parseInt(items[i++]);
         float lat = Float.parseFloat(items[i++]);
         float lon = Float.parseFloat(items[i++]);
         long time = Long.parseLong(items[i++]);

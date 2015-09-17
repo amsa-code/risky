@@ -5,9 +5,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
-import rx.Observable;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
+import rx.Observable;
 
 public class ModelEmpty implements Model {
 
@@ -22,7 +22,7 @@ public class ModelEmpty implements Model {
     }
 
     @Override
-    public Map<Long, Collection<Fix>> recent() {
+    public Map<Integer, Collection<Fix>> recent() {
         return Collections.emptyMap();
     }
 

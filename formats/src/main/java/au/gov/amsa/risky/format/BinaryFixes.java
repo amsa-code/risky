@@ -18,14 +18,14 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.davidmoten.rx.Functions;
+import com.github.davidmoten.rx.slf4j.Logging;
+
+import au.gov.amsa.util.Files;
 import rx.Observable;
 import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import au.gov.amsa.util.Files;
-
-import com.github.davidmoten.rx.Functions;
-import com.github.davidmoten.rx.slf4j.Logging;
 
 public final class BinaryFixes {
 
@@ -62,7 +62,7 @@ public final class BinaryFixes {
      */
     public static Observable<Fix> from(File file, boolean backpressure) {
         if (backpressure)
-            return BinaryFixesOnSubscribeWithBackp.from(file);
+            return BinaryFixesOnSubscribeWithBackp.from(file, false);
         else
             return BinaryFixesOnSubscribeFastPath.from(file);
     }
@@ -85,8 +85,8 @@ public final class BinaryFixes {
             s.append(f.rateOfTurn().or(RATE_OF_TURN_ABSENT));
             s.append(COMMA);
             // TODO add the rest of the fields
-                return s.toString();
-            });
+            return s.toString();
+        });
     }
 
     public static void write(Fix fix, OutputStream os) {
@@ -151,7 +151,7 @@ public final class BinaryFixes {
         final AtomicLong totalSizeBytes = new AtomicLong();
         final Action1<File> preSortAction = createLogAction(numFiles, totalSizeBytes);
         return Observable.just(output)
-        // just does not support backpressure so add it
+                // just does not support backpressure so add it
                 .onBackpressureBuffer()
                 // log
                 .lift(Logging.<File> logger().prefix("sorting files in folder ").log())
@@ -178,7 +178,7 @@ public final class BinaryFixes {
                 double timeToFinishMins;
                 if (n > 1) {
                     timeToFinishMins = (t - startTime) / (double) bytes
-                            * (double) (totalSizeBytes.get() - bytes) / 1000.0 / 60.0;
+                            * (totalSizeBytes.get() - bytes) / 1000.0 / 60.0;
                 } else
                     timeToFinishMins = -1;
                 DecimalFormat df = new DecimalFormat("0.000");
@@ -194,7 +194,7 @@ public final class BinaryFixes {
             final Action1<File> preSortAction) {
         return files -> {
             return Observable
-            // from list of files
+                    // from list of files
                     .from(files)
                     // log
                     .doOnNext(preSortAction)
