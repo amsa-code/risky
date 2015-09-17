@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
+import com.github.davidmoten.rx.Functions;
+
 import rx.Observable;
 import rx.Observable.Transformer;
 import rx.functions.Action2;
 import rx.functions.Func1;
-
-import com.github.davidmoten.rx.Functions;
 
 /**
  * Assumes input stream is in time order.
@@ -56,11 +56,11 @@ public class Downsample<T extends HasFix> implements Transformer<T, T> {
     public static Observable<Integer> downsample(final File input, final File output,
             Pattern pattern, final long duration, final TimeUnit unit) {
         return Formats.transform(input, output, pattern, Downsample.minTimeStep(duration, unit),
-                FIXES_WRITER, Functions.<String> identity());
+                FIXES_WRITER_WITHOUT_MMSI, Functions.<String> identity());
     }
 
-    private static Action2<List<HasFix>, File> FIXES_WRITER = (list, file) -> {
-        BinaryFixesWriter.writeFixes(list, file, false, false);
+    private static Action2<List<HasFix>, File> FIXES_WRITER_WITHOUT_MMSI = (list, file) -> {
+        BinaryFixesWriter.writeFixes(list, file, false, false, false);
     };
 
 }

@@ -14,7 +14,7 @@ public class ZipMain {
         final File output = new File(System.getProperty("output"));
         Pattern pattern = Pattern.compile(System.getProperty("pattern"));
         Action2<List<HasFix>, File> fixesWriter = (fixes, file) -> {
-            BinaryFixesWriter.writeFixes(fixes, file, false, true);
+            BinaryFixesWriter.writeFixes(fixes, file, false, true, false);
         };
         Func1<String, String> renamer = name -> name + ".zip";
         Formats.transform(input, output, pattern, Transformers.<HasFix> identity(), fixesWriter,

@@ -244,7 +244,7 @@ public final class BinaryFixes {
     }
 
     private static Action1<List<HasFix>> writeFixes(final File file) {
-        return list -> BinaryFixesWriter.writeFixes(list, file, false, false);
+        return list -> BinaryFixesWriter.writeFixes(list, file, false, false, false);
     }
 
     private static Func1<List<Fix>, List<Fix>> sortFixes() {
