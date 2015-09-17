@@ -198,7 +198,8 @@ public class DistanceTravelledMain {
         for (int i = 0; i <= 10; i++)
             System.out.println(options.getGrid().centreLon(i));
 
-        for (int i = 2012; i <= 2014; i++) {
+        for (int i = 2012; i <= 2013; i++) {
+            directory = "/media/an/binary-fixes-5-minute/" + i;
             run(directory, options, false, i + "");
         }
     }
