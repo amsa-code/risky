@@ -52,7 +52,7 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
      * @param file
      * @return fixes stream
      */
-    public static Observable<Fix> from(final File file, boolean recordIncludesMmsi) {
+    public static Observable<Fix> from(final File file, BinaryFixesFormat format) {
 
         Func0<InputStream> resourceFactory = new Func0<InputStream>() {
 
@@ -76,7 +76,7 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
             @Override
             public Observable<Fix> call(InputStream is) {
                 Optional<Integer> mmsi;
-                if (recordIncludesMmsi)
+                if (format == BinaryFixesFormat.WITH_MMSI)
                     mmsi = Optional.absent();
                 else
                     mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));

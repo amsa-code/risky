@@ -60,11 +60,15 @@ public final class BinaryFixes {
      * @param backpressure
      * @return
      */
-    public static Observable<Fix> from(File file, boolean backpressure) {
+    public static Observable<Fix> from(File file, boolean backpressure, BinaryFixesFormat format) {
         if (backpressure)
-            return BinaryFixesOnSubscribeWithBackp.from(file, false);
+            return BinaryFixesOnSubscribeWithBackp.from(file, format);
         else
-            return BinaryFixesOnSubscribeFastPath.from(file);
+            return BinaryFixesOnSubscribeFastPath.from(file, format);
+    }
+
+    public static Observable<Fix> from(File file, boolean backpressure) {
+        return from(file, backpressure, BinaryFixesFormat.WITHOUT_MMSI);
     }
 
     public static Observable<String> csv(Observable<Fix> fixes) {

@@ -27,7 +27,7 @@ public final class BinaryFixesTest {
     public void testWriteAndReadBinaryFixes() throws IOException {
         File trace = new File("target/123456789.track");
         int numFixes = 10000;
-        writeTrace(trace, numFixes);
+        writeTrace(trace, numFixes, BinaryFixesFormat.WITHOUT_MMSI);
 
         System.out.println("wrote " + numFixes + " fixes");
 
@@ -47,13 +47,38 @@ public final class BinaryFixesTest {
         assertEquals(AisClass.B, f.aisClass());
     }
 
-    private void writeTrace(File trace, int repetitions) throws IOException {
+    @Test
+    public void testWriteAndReadBinaryFixesWithMmsi() throws IOException {
+        File trace = new File("target/many-craft.fix");
+        int numFixes = 10000;
+        writeTrace(trace, numFixes, BinaryFixesFormat.WITH_MMSI);
+
+        System.out.println("wrote " + numFixes + " fixes");
+
+        List<Fix> fixes = BinaryFixes.from(trace).toList().toBlocking().single();
+        assertEquals(numFixes, fixes.size());
+        Fix f = fixes.get(fixes.size() - 1);
+        assertEquals(123456789, f.mmsi());
+        assertEquals(-10.0, f.lat(), PRECISION);
+        assertEquals(135, f.lon(), PRECISION);
+        assertEquals(1000, f.time(), PRECISION);
+        assertEquals(12, (int) f.latencySeconds().get());
+        assertEquals(1, (int) f.source().get());
+        assertEquals(NavigationalStatus.ENGAGED_IN_FISHING, f.navigationalStatus().get());
+        assertEquals(7.5, f.speedOverGroundKnots().get(), PRECISION);
+        assertEquals(45, f.courseOverGroundDegrees().get(), PRECISION);
+        assertEquals(46, f.headingDegrees().get(), PRECISION);
+        assertEquals(AisClass.B, f.aisClass());
+    }
+
+    private void writeTrace(File trace, int repetitions, BinaryFixesFormat format)
+            throws IOException {
         OutputStream os = new BufferedOutputStream(new FileOutputStream(trace));
         Fix fix = new FixImpl(213456789, -10f, 135f, 1000, of(12), of((short) 1),
                 of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
         byte[] bytes = new byte[BinaryFixes.BINARY_FIX_BYTES];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
-        BinaryFixes.write(fix, bb, BinaryFixesFormat.WITHOUT_MMSI);
+        BinaryFixes.write(fix, bb, format);
         for (int i = 0; i < repetitions; i++)
             os.write(bytes);
         os.close();
@@ -63,7 +88,7 @@ public final class BinaryFixesTest {
     public void testReadPerformance() throws IOException {
         File trace = new File("target/123456788.track");
         int numFixes = 1000000;
-        writeTrace(trace, numFixes);
+        writeTrace(trace, numFixes, BinaryFixesFormat.WITHOUT_MMSI);
         System.out.println("testing performance reading numFixes=" + numFixes);
         long t = System.currentTimeMillis();
         BinaryFixes.from(trace).subscribe();

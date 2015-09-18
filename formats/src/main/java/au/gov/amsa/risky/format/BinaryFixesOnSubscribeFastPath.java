@@ -25,15 +25,15 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
 
     private final File file;
 
-    private final boolean recordIncludesMmsi;
+    private final BinaryFixesFormat format;
 
-    public BinaryFixesOnSubscribeFastPath(File file, boolean recordIncludesMmsi) {
+    public BinaryFixesOnSubscribeFastPath(File file, BinaryFixesFormat format) {
         this.file = file;
-        this.recordIncludesMmsi = recordIncludesMmsi;
+        this.format = format;
     }
 
-    public static Observable<Fix> from(File file) {
-        return Observable.create(new BinaryFixesOnSubscribeFastPath(file, false));
+    public static Observable<Fix> from(File file, BinaryFixesFormat format) {
+        return Observable.create(new BinaryFixesOnSubscribeFastPath(file, format));
     }
 
     @Override
@@ -44,7 +44,7 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
             fis = new FileInputStream(file);
             subscriber.add(createSubscription(fis, closed));
             Optional<Integer> mmsi;
-            if (recordIncludesMmsi)
+            if (format == BinaryFixesFormat.WITH_MMSI)
                 mmsi = Optional.absent();
             else
                 mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));
