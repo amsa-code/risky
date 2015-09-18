@@ -16,7 +16,7 @@ public class DownsampleMainTest {
         File file = new File(filename);
         file.getParentFile().mkdirs();
         File outFile = new File("target/ds-output/123456789.track");
-        TestingUtil.writeTwoBinaryFixes(filename);
+        TestingUtil.writeTwoBinaryFixes(filename, BinaryFixesFormat.WITHOUT_MMSI);
         setProperty("input", file.getParent());
         setProperty("output", outFile.getParent());
         setProperty("pattern", ".*.track");
@@ -25,6 +25,6 @@ public class DownsampleMainTest {
         // only one file should be there
         assertEquals(1, outFile.getParentFile().list().length);
         // only one of the fixes should make it through to the output file
-        assertEquals(BinaryFixes.BINARY_FIX_BYTES, outFile.length());
+        assertEquals(BinaryFixes.recordSize(BinaryFixesFormat.WITHOUT_MMSI), outFile.length());
     }
 }

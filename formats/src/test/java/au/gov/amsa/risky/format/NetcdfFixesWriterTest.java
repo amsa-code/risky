@@ -33,10 +33,9 @@ public class NetcdfFixesWriterTest {
 
     @Test
     public void testNetcdfConverter() throws IOException, InvalidRangeException {
-        TestingUtil.writeTwoBinaryFixes("target/987654321.track");
-        int count = NetcdfFixesWriter
-                .convertToNetcdf(new File("target"), new File("target/nc"),
-                        Pattern.compile("987654321.track")).count().toBlocking().single();
+        TestingUtil.writeTwoBinaryFixes("target/987654321.track", BinaryFixesFormat.WITHOUT_MMSI);
+        int count = NetcdfFixesWriter.convertToNetcdf(new File("target"), new File("target/nc"),
+                Pattern.compile("987654321.track")).count().toBlocking().single();
         assertEquals(1, count);
         // test output
         File ncFile = new File("target/nc/987654321.nc");

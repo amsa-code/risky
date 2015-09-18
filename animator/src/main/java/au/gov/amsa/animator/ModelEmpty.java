@@ -6,7 +6,6 @@ import java.util.Collections;
 import java.util.Map;
 
 import au.gov.amsa.risky.format.BinaryFixes;
-import au.gov.amsa.risky.format.BinaryFixesFormat;
 import au.gov.amsa.risky.format.Fix;
 import rx.Observable;
 
@@ -34,7 +33,7 @@ public class ModelEmpty implements Model {
 
     public static void main(String[] args) {
         File file = new File("/media/an/binary-fixes-5-minute/2014/565187000.track");
-        Observable<Fix> source = BinaryFixes.from(file, true, BinaryFixesFormat.WITHOUT_MMSI);
+        Observable<Fix> source = BinaryFixes.from(file, true);
         source.subscribe(System.out::println);
     }
 

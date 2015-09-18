@@ -1,7 +1,5 @@
 package au.gov.amsa.risky.format;
 
-import static au.gov.amsa.risky.format.BinaryFixes.BINARY_FIX_BYTES;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +46,7 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
                 mmsi = Optional.absent();
             else
                 mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));
-            reportFixes(mmsi, subscriber, fis);
+            reportFixes(mmsi, subscriber, fis, format);
             if (!subscriber.isUnsubscribed()) {
                 // eagerly close
                 if (closed.compareAndSet(false, true))
@@ -85,16 +83,17 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
     }
 
     private static void reportFixes(Optional<Integer> mmsi, Subscriber<? super Fix> subscriber,
-            InputStream fis) throws IOException {
-        byte[] bytes = new byte[4096 * BINARY_FIX_BYTES];
+            InputStream fis, BinaryFixesFormat format) throws IOException {
+        int recordSize = BinaryFixes.recordSize(format);
+        byte[] bytes = new byte[4096 * recordSize];
         int length = 0;
         if (subscriber.isUnsubscribed())
             return;
         while ((length = fis.read(bytes)) > 0) {
-            for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
+            for (int i = 0; i < length; i += recordSize) {
                 if (subscriber.isUnsubscribed())
                     return;
-                ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
+                ByteBuffer bb = ByteBuffer.wrap(bytes, i, recordSize);
                 int m;
                 if (mmsi.isPresent()) {
                     m = mmsi.get();

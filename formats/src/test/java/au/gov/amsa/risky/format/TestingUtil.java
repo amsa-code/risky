@@ -9,7 +9,7 @@ import java.io.OutputStream;
 
 public class TestingUtil {
 
-    static void writeTwoBinaryFixes(String filename) {
+    static void writeTwoBinaryFixes(String filename, BinaryFixesFormat format) {
         try {
             OutputStream os = new BufferedOutputStream(new FileOutputStream(filename));
             long t = 1421708455237L;
@@ -19,8 +19,8 @@ public class TestingUtil {
             Fix fix2 = new FixImpl(213456789, -10.1f, 135.2f, t + 1000 * 3600 * 2L, of(13),
                     of((short) 2), of(NavigationalStatus.AT_ANCHOR), of(4.5f), of(20f), of(30f),
                     AisClass.B);
-            BinaryFixes.write(fix1, os);
-            BinaryFixes.write(fix2, os);
+            BinaryFixes.write(fix1, os, format);
+            BinaryFixes.write(fix2, os, format);
             os.close();
         } catch (IOException e) {
             throw new RuntimeException(e);

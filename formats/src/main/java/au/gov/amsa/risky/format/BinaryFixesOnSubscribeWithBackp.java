@@ -1,7 +1,5 @@
 package au.gov.amsa.risky.format;
 
-import static au.gov.amsa.risky.format.BinaryFixes.BINARY_FIX_BYTES;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,10 +24,13 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
 
     private final InputStream is;
     private final Optional<Integer> mmsi;
+    private final BinaryFixesFormat format;
 
-    public BinaryFixesOnSubscribeWithBackp(InputStream is, Optional<Integer> mmsi) {
+    public BinaryFixesOnSubscribeWithBackp(InputStream is, Optional<Integer> mmsi,
+            BinaryFixesFormat format) {
         this.is = is;
         this.mmsi = mmsi;
+        this.format = format;
     }
 
     public static class State {
@@ -81,7 +82,7 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
                 else
                     mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));
 
-                return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, mmsi));
+                return Observable.create(new BinaryFixesOnSubscribeWithBackp(is, mmsi, format));
             }
         };
         Action1<InputStream> disposeAction = new Action1<InputStream>() {
@@ -106,16 +107,17 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
 
     @Override
     protected void next(rx.observables.AbstractOnSubscribe.SubscriptionState<Fix, State> state) {
+        int recordSize = BinaryFixes.recordSize(format);
         Fix f = state.state().queue.poll();
         if (f != null)
             state.onNext(f);
         else {
-            byte[] bytes = new byte[4096 * BINARY_FIX_BYTES];
+            byte[] bytes = new byte[4096 * BinaryFixes.recordSize(format)];
             int length;
             try {
                 if ((length = state.state().is.read(bytes)) > 0) {
-                    for (int i = 0; i < length; i += BINARY_FIX_BYTES) {
-                        ByteBuffer bb = ByteBuffer.wrap(bytes, i, BINARY_FIX_BYTES);
+                    for (int i = 0; i < length; i += recordSize) {
+                        ByteBuffer bb = ByteBuffer.wrap(bytes, i, recordSize);
                         final int mmsi;
                         if (state.state().mmsi.isPresent()) {
                             mmsi = state.state().mmsi.get();

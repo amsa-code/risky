@@ -82,7 +82,7 @@ public final class BinaryFixesWriter {
             os = new BufferedOutputStream(s);
 
             // write the fixes to the output stream
-            ByteBuffer bb = BinaryFixes.createFixByteBuffer();
+            ByteBuffer bb = BinaryFixes.createFixByteBuffer(format);
             for (HasFix fix : fixes) {
                 bb.rewind();
                 BinaryFixes.write(fix.fix(), bb, format);

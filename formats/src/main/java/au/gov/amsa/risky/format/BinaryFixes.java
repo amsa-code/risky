@@ -31,7 +31,8 @@ public final class BinaryFixes {
 
     private static Logger log = LoggerFactory.getLogger(BinaryFixes.class);
 
-    public static final int BINARY_FIX_BYTES = 31;
+    private static final int BINARY_FIX_BYTES = 31;
+    private static final int BINARY_FIX_WITH_MMSI_BYTES = 35;
     public static final short SOG_ABSENT = 1023;
     public static final short COG_ABSENT = 3600;
     public static final short HEADING_ABSENT = 360;
@@ -42,6 +43,13 @@ public final class BinaryFixes {
     public static final byte SOURCE_PRESENT_BUT_UNKNOWN = 1;
     protected static final char COMMA = ',';
     protected static final byte RATE_OF_TURN_ABSENT = -128;
+
+    public static int recordSize(BinaryFixesFormat format) {
+        if (format == BinaryFixesFormat.WITH_MMSI)
+            return BINARY_FIX_WITH_MMSI_BYTES;
+        else
+            return BINARY_FIX_BYTES;
+    }
 
     /**
      * Automatically detects gzip based on filename.
@@ -93,10 +101,10 @@ public final class BinaryFixes {
         });
     }
 
-    public static void write(Fix fix, OutputStream os) {
-        byte[] bytes = new byte[BINARY_FIX_BYTES];
+    public static void write(Fix fix, OutputStream os, BinaryFixesFormat format) {
+        byte[] bytes = new byte[recordSize(format)];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
-        write(fix, bb, BinaryFixesFormat.WITHOUT_MMSI);
+        write(fix, bb, format);
         try {
             os.write(bytes);
         } catch (IOException e) {
@@ -104,8 +112,8 @@ public final class BinaryFixes {
         }
     }
 
-    public static ByteBuffer createFixByteBuffer() {
-        return ByteBuffer.allocate(BINARY_FIX_BYTES);
+    public static ByteBuffer createFixByteBuffer(BinaryFixesFormat format) {
+        return ByteBuffer.allocate(recordSize(format));
     }
 
     public static void write(Fix fix, ByteBuffer bb, BinaryFixesFormat format) {

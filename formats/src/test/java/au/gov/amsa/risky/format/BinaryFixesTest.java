@@ -55,10 +55,11 @@ public final class BinaryFixesTest {
 
         System.out.println("wrote " + numFixes + " fixes");
 
-        List<Fix> fixes = BinaryFixes.from(trace).toList().toBlocking().single();
+        List<Fix> fixes = BinaryFixes.from(trace, true, BinaryFixesFormat.WITH_MMSI).toList()
+                .toBlocking().single();
         assertEquals(numFixes, fixes.size());
         Fix f = fixes.get(fixes.size() - 1);
-        assertEquals(123456789, f.mmsi());
+        assertEquals(213456789, f.mmsi());
         assertEquals(-10.0, f.lat(), PRECISION);
         assertEquals(135, f.lon(), PRECISION);
         assertEquals(1000, f.time(), PRECISION);
@@ -76,7 +77,7 @@ public final class BinaryFixesTest {
         OutputStream os = new BufferedOutputStream(new FileOutputStream(trace));
         Fix fix = new FixImpl(213456789, -10f, 135f, 1000, of(12), of((short) 1),
                 of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
-        byte[] bytes = new byte[BinaryFixes.BINARY_FIX_BYTES];
+        byte[] bytes = new byte[BinaryFixes.recordSize(format)];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         BinaryFixes.write(fix, bb, format);
         for (int i = 0; i < repetitions; i++)
@@ -100,7 +101,7 @@ public final class BinaryFixesTest {
 
     @Test
     public void testWriteTwoBinaryFixes() throws IOException {
-        TestingUtil.writeTwoBinaryFixes("target/123456790.track");
+        TestingUtil.writeTwoBinaryFixes("target/123456790.track", BinaryFixesFormat.WITHOUT_MMSI);
     }
 
     @Test
