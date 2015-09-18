@@ -9,8 +9,6 @@ public class ByMmsiToDailyMain {
         System.setProperty("output", "/media/an/daily-fixes-5-minute/2014");
         File input = new File(System.getProperty("input"));
         File output = new File(System.getProperty("output"));
-        ByMmsiToDailyConverter
-                .sortFixFile(new File("/media/an/daily-fixes-5-minute/2014/2014-11-19.fix"));
         ByMmsiToDailyConverter.convert(input, output);
         ByMmsiToDailyConverter.sort(output);
     }
