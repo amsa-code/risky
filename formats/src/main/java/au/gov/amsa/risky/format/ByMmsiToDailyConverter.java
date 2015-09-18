@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -80,6 +81,9 @@ public class ByMmsiToDailyConverter {
     }
 
     static void sortFixFile(File file) {
+        log.info("sorting " + file.getName() + ", size="
+                + new DecimalFormat("0.00").format(file.length() / 1024.0 / 1024.0));
+
         try {
             File temp = new File(file.getParent(), file.getName() + ".tmp");
             temp.delete();
@@ -92,7 +96,9 @@ public class ByMmsiToDailyConverter {
                     BinaryFixes.write(fix, os, BinaryFixesFormat.WITH_MMSI);
                 }
             }
-            FileUtils.copyFile(temp, file);
+            file.delete();
+            temp.renameTo(file);
+            log.info("sorted");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
