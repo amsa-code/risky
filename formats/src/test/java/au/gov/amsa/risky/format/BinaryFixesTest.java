@@ -14,10 +14,10 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
+import au.gov.amsa.util.Files;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.util.Files;
 
 public final class BinaryFixesTest {
 
@@ -53,7 +53,7 @@ public final class BinaryFixesTest {
                 of(NavigationalStatus.ENGAGED_IN_FISHING), of(7.5f), of(45f), of(46f), AisClass.B);
         byte[] bytes = new byte[BinaryFixes.BINARY_FIX_BYTES];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
-        BinaryFixes.write(fix, bb);
+        BinaryFixes.write(fix, bb, BinaryFixesFormat.WITHOUT_MMSI);
         for (int i = 0; i < repetitions; i++)
             os.write(bytes);
         os.close();
@@ -69,8 +69,8 @@ public final class BinaryFixesTest {
         BinaryFixes.from(trace).subscribe();
         double rate = numFixes * 1000.0 / (System.currentTimeMillis() - t);
         double size = trace.length() / 1000000.0;
-        System.out.println("read " + numFixes + ", fileSizeMB=" + size + ", rateMsgPerSecond="
-                + rate);
+        System.out.println(
+                "read " + numFixes + ", fileSizeMB=" + size + ", rateMsgPerSecond=" + rate);
     }
 
     @Test
@@ -82,15 +82,15 @@ public final class BinaryFixesTest {
     public void testConcurrencyDemo() {
         // using concurrency, count all the fixes across all files in the target
         // directory
-        Observable<File> files = Observable.from(Files.find(new File("target"),
-                Pattern.compile("\\d+\\.track")));
+        Observable<File> files = Observable
+                .from(Files.find(new File("target"), Pattern.compile("\\d+\\.track")));
         int count = files
-        // group the files against each processor
+                // group the files against each processor
                 .buffer(Runtime.getRuntime().availableProcessors() - 1)
                 // do the work per buffer on a separate scheduler
                 .flatMap(list -> {
                     return Observable.from(list)
-                    // count the fixes in each file
+                            // count the fixes in each file
                             .flatMap(countFixes())
                             // perform concurrently
                             .subscribeOn(Schedulers.computation());

@@ -60,7 +60,7 @@ public class Downsample<T extends HasFix> implements Transformer<T, T> {
     }
 
     private static Action2<List<HasFix>, File> FIXES_WRITER_WITHOUT_MMSI = (list, file) -> {
-        BinaryFixesWriter.writeFixes(list, file, false, false, false);
+        BinaryFixesWriter.writeFixes(list, file, false, false, BinaryFixesFormat.WITHOUT_MMSI);
     };
 
 }

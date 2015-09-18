@@ -39,6 +39,7 @@ import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.BinaryFixesFormat;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.FixImpl;
@@ -609,7 +610,9 @@ public class Streams {
                     .doOnNext(logger)
                     // one file at a time
                     .concatMap(file -> Streams.nmeaFromGzip(file.getAbsolutePath())));
-            return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false, false)
+            return BinaryFixesWriter
+                    .writeFixes(fileMapper, fixes, writeBufferSize, false,
+                            BinaryFixesFormat.WITHOUT_MMSI)
                     // total counts
                     .reduce(0, countFixes())
                     // do async

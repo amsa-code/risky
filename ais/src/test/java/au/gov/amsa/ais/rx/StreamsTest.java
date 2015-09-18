@@ -20,6 +20,7 @@ import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.BinaryFixesFormat;
 import au.gov.amsa.risky.format.BinaryFixesWriter;
 import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
 import au.gov.amsa.risky.format.Fix;
@@ -146,7 +147,8 @@ public class StreamsTest {
         File directory = new File(base);
         FileUtils.deleteDirectory(directory);
         ByMonth fileMapper = new BinaryFixesWriter.ByMonth(directory);
-        BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false, false).subscribe();
+        BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false, BinaryFixesFormat.WITHOUT_MMSI)
+                .subscribe();
         is.close();
         File f = new File(base + File.separator + "2014" + File.separator + "12");
         assertTrue(f.exists());

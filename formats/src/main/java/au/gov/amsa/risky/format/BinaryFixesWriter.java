@@ -24,14 +24,14 @@ import rx.observables.GroupedObservable;
 public final class BinaryFixesWriter {
 
     public static Observable<List<Fix>> writeFixes(final Func1<Fix, String> fileMapper,
-            Observable<Fix> fixes, int bufferSize, boolean zip, boolean recordIncludesMmsi) {
+            Observable<Fix> fixes, int bufferSize, boolean zip, BinaryFixesFormat format) {
         return fixes
                 // group by filename
                 .groupBy(fileMapper)
                 // buffer fixes by filename
                 .flatMap(buffer(bufferSize))
                 // write each list to a file
-                .doOnNext(writeFixList(fileMapper, zip, recordIncludesMmsi));
+                .doOnNext(writeFixList(fileMapper, zip, format));
     }
 
     private static Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>> buffer(
@@ -41,13 +41,12 @@ public final class BinaryFixesWriter {
 
     @SuppressWarnings("unchecked")
     private static Action1<List<Fix>> writeFixList(final Func1<Fix, String> fileMapper,
-            final boolean zip, boolean recordIncludesMmsi) {
+            final boolean zip, BinaryFixesFormat format) {
         return fixes -> {
             if (fixes.size() == 0)
                 return;
             String filename = fileMapper.call(fixes.get(0));
-            writeFixes((List<HasFix>) (List<?>) fixes, new File(filename), true, zip,
-                    recordIncludesMmsi);
+            writeFixes((List<HasFix>) (List<?>) fixes, new File(filename), true, zip, format);
         };
     }
 
@@ -61,7 +60,7 @@ public final class BinaryFixesWriter {
     private static final Striped<Lock> fileLocks = Striped.lock(NUMBER_FILE_LOCKS);
 
     public static void writeFixes(List<HasFix> fixes, File file, boolean append, boolean zip,
-            boolean recordIncludesMmsi) {
+            BinaryFixesFormat format) {
         Preconditions.checkArgument(!zip || !append, "cannot perform append and zip at same time");
 
         // get the lock for the file
@@ -86,10 +85,7 @@ public final class BinaryFixesWriter {
             ByteBuffer bb = BinaryFixes.createFixByteBuffer();
             for (HasFix fix : fixes) {
                 bb.rewind();
-                if (recordIncludesMmsi) {
-                    bb.putInt(fix.fix().mmsi());
-                }
-                BinaryFixes.write(fix.fix(), bb);
+                BinaryFixes.write(fix.fix(), bb, format);
                 os.write(bb.array());
             }
         } catch (IOException e) {

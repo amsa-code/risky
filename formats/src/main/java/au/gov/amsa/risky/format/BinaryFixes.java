@@ -92,7 +92,7 @@ public final class BinaryFixes {
     public static void write(Fix fix, OutputStream os) {
         byte[] bytes = new byte[BINARY_FIX_BYTES];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
-        write(fix, bb);
+        write(fix, bb, BinaryFixesFormat.WITHOUT_MMSI);
         try {
             os.write(bytes);
         } catch (IOException e) {
@@ -104,7 +104,10 @@ public final class BinaryFixes {
         return ByteBuffer.allocate(BINARY_FIX_BYTES);
     }
 
-    public static void write(Fix fix, ByteBuffer bb) {
+    public static void write(Fix fix, ByteBuffer bb, BinaryFixesFormat format) {
+        if (format.equals(BinaryFixesFormat.WITH_MMSI)) {
+            bb.putInt(fix.mmsi());
+        }
         bb.putFloat(fix.lat());
         bb.putFloat(fix.lon());
         bb.putLong(fix.time());
@@ -244,7 +247,8 @@ public final class BinaryFixes {
     }
 
     private static Action1<List<HasFix>> writeFixes(final File file) {
-        return list -> BinaryFixesWriter.writeFixes(list, file, false, false, false);
+        return list -> BinaryFixesWriter.writeFixes(list, file, false, false,
+                BinaryFixesFormat.WITHOUT_MMSI);
     }
 
     private static Func1<List<Fix>, List<Fix>> sortFixes() {
