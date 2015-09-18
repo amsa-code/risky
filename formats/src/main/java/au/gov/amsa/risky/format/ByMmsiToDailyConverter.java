@@ -81,7 +81,8 @@ public class ByMmsiToDailyConverter {
 
     static void sortFixFile(File file) {
         try {
-            File temp = File.createTempFile("sorted", ".fix");
+            File temp = new File(file.getParent(), file.getName() + ".tmp");
+            temp.delete();
             ArrayList<Fix> fixes = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI)
                     .collect(() -> new ArrayList<Fix>(20_000_000), (list, fix) -> list.add(fix))
                     .toBlocking().single();
