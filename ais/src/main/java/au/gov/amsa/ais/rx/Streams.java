@@ -25,17 +25,10 @@ import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.Observable.OnSubscribe;
-import rx.Observable.Transformer;
-import rx.Observer;
-import rx.Scheduler;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func0;
-import rx.functions.Func1;
-import rx.functions.Func2;
+import com.github.davidmoten.rx.Checked;
+import com.github.davidmoten.rx.slf4j.Logging;
+import com.google.common.base.Optional;
+
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.AisNmeaBuffer;
 import au.gov.amsa.ais.AisNmeaMessage;
@@ -55,10 +48,17 @@ import au.gov.amsa.util.Files;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
-
-import com.github.davidmoten.rx.Checked;
-import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
+import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Observable.Transformer;
+import rx.Observer;
+import rx.Scheduler;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.functions.Action1;
+import rx.functions.Func0;
+import rx.functions.Func1;
+import rx.functions.Func2;
 
 public class Streams {
 
@@ -75,13 +75,15 @@ public class Streams {
         return connectOnce(socket).timeout(1, TimeUnit.MINUTES).retry();
     }
 
-    public static Observable<TimestampedAndLine<AisMessage>> connectAndExtract(String host, int port) {
+    public static Observable<TimestampedAndLine<AisMessage>> connectAndExtract(String host,
+            int port) {
         return extract(connect(host, port));
     }
 
-    public static Observable<TimestampedAndLine<AisMessage>> extract(Observable<String> rawAisNmea) {
+    public static Observable<TimestampedAndLine<AisMessage>> extract(
+            Observable<String> rawAisNmea) {
         return rawAisNmea
-        // parse nmea
+                // parse nmea
                 .map(LINE_TO_NMEA_MESSAGE)
                 // if error filter out
                 .compose(Streams.<NmeaMessage> valueIfPresent())
@@ -93,9 +95,10 @@ public class Streams {
                 .map(TO_AIS_MESSAGE_AND_LINE);
     }
 
-    public static Observable<Timestamped<AisMessage>> extractMessages(Observable<String> rawAisNmea) {
+    public static Observable<Timestamped<AisMessage>> extractMessages(
+            Observable<String> rawAisNmea) {
         return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
-        //
+                //
                 .compose(Streams.<NmeaMessage> valueIfPresent())
                 //
                 .map(aggregateMultiLineNmea(BUFFER_SIZE))
@@ -174,8 +177,9 @@ public class Streams {
                     // TODO latency
                     Optional<Integer> latency = absent();
 
-                    Fix f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(), a.getLongitude()
-                            .floatValue(), m.time(), latency, src, nav, sog, cog, heading, aisClass);
+                    Fix f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(),
+                            a.getLongitude().floatValue(), m.time(), latency, src, nav, sog, cog,
+                            heading, aisClass);
                     return Observable.just(f);
                 }
             } else
@@ -188,7 +192,7 @@ public class Streams {
 
     public static Observable<String> nmeaFrom(final File file) {
         return Observable.using(
-        //
+                //
                 Checked.f0(() -> new FileInputStream(file)), is -> nmeaFrom(is),
                 //
                 is -> {
@@ -196,8 +200,8 @@ public class Streams {
                         is.close();
                     } catch (IOException e) {
                         // don't care
-            }
-        }, true);
+                    }
+                } , true);
     }
 
     public static Observable<String> nmeaFrom(InputStream is) {
@@ -222,8 +226,8 @@ public class Streams {
             }
         };
 
-        Func1<Reader, Observable<String>> observableFactory = reader -> Strings.split(
-                Strings.from(reader), "\n");
+        Func1<Reader, Observable<String>> observableFactory = reader -> Strings
+                .split(Strings.from(reader), "\n");
 
         Action1<Reader> disposeAction = reader -> {
             try {
@@ -423,8 +427,8 @@ public class Streams {
         String line = nmea.toLine();
         try {
             AisNmeaMessage n = new AisNmeaMessage(nmea);
-            return new TimestampedAndLine<AisMessage>(Optional.of(n.getTimestampedMessage(System
-                    .currentTimeMillis())), line, null);
+            return new TimestampedAndLine<AisMessage>(
+                    Optional.of(n.getTimestampedMessage(System.currentTimeMillis())), line, null);
         } catch (AisParseException e) {
             return new TimestampedAndLine<AisMessage>(Optional.<Timestamped<AisMessage>> absent(),
                     line, e.getMessage());
@@ -601,12 +605,12 @@ public class Streams {
             final Action1<File> logger) {
         return files -> {
             Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
-            // log
+                    // log
                     .doOnNext(logger)
                     // one file at a time
                     .concatMap(file -> Streams.nmeaFromGzip(file.getAbsolutePath())));
-            return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false)
-            // total counts
+            return BinaryFixesWriter.writeFixes(fileMapper, fixes, writeBufferSize, false, false)
+                    // total counts
                     .reduce(0, countFixes())
                     // do async
                     .subscribeOn(scheduler);
@@ -649,9 +653,8 @@ public class Streams {
                 // log the filename
                 .buffer(Math.max(fileList.size() / Runtime.getRuntime().availableProcessors(), 1))
                 // extract fixes
-                .flatMap(
-                        extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
-                                fileMapper, writeBufferSize, logger))
+                .flatMap(extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
+                        fileMapper, writeBufferSize, logger))
                 // count number written fixes
                 .scan(0, (a, b) -> a + b)
                 // log
@@ -663,9 +666,8 @@ public class Streams {
                 // the count of files
                 .doOnCompleted(
                         () -> log.info("completed converting nmea to binary fixes, starting sort"))
-                .concatWith(
-                        BinaryFixes.sortBinaryFixFilesByTime(output, downSampleIntervalMs,
-                                scheduler));
+                .concatWith(BinaryFixes.sortBinaryFixFilesByTime(output, downSampleIntervalMs,
+                        scheduler));
     }
 
     private static void deleteDirectory(File output) {
