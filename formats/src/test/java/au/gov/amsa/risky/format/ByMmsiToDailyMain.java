@@ -11,7 +11,7 @@ public class ByMmsiToDailyMain {
         File output = new File(System.getProperty("output"));
         ByMmsiToDailyConverter
                 .sortFixFile(new File("/media/an/daily-fixes-5-minute/2014/2014-11-19.fix"));
-        ByMmsiToDailyConverter.convert(input, output);
+        // ByMmsiToDailyConverter.convert(input, output);
         ByMmsiToDailyConverter.sort(output);
     }
 }
