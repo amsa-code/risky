@@ -108,7 +108,8 @@ public class StringSplitTest {
 
     @Test
     public void testBackpressureOneByOneWithBufferEmissions() {
-        Observable<String> o = Observable.just("boo:an", "d:you").compose(Transformers.split(":"));
+        Observable<String> o = Observable.just("boo:an", "d:you")
+                .compose(com.github.davidmoten.rx.Transformers.split(":"));
 
         TestSubscriber<String> ts = TestSubscriber.create(0);
         o.subscribe(ts);
@@ -122,12 +123,14 @@ public class StringSplitTest {
 
     private static void checkWithBackpressure(Observable<String> o, List<String> expected) {
         final List<String> list = new ArrayList<String>();
-        o.compose(Transformers.split(":")).subscribe(createBackpressureSubscriber(list));
+        o.compose(com.github.davidmoten.rx.Transformers.split(":"))
+                .subscribe(createBackpressureSubscriber(list));
         assertEquals(expected, list);
     }
 
     private static void check(Observable<String> o, List<String> expected) {
-        List<String> list = o.compose(Transformers.split(":")).toList().toBlocking().single();
+        List<String> list = o.compose(com.github.davidmoten.rx.Transformers.split(":")).toList()
+                .toBlocking().single();
         assertEquals(expected, list);
     }
 

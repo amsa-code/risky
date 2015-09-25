@@ -47,11 +47,11 @@ public final class Strings {
     }
 
     public static Observable<String> lines(Reader reader) {
-        return from(reader, 8192).compose(Transformers.split("\n"));
+        return from(reader, 8192).compose(com.github.davidmoten.rx.Transformers.split("\n"));
     }
 
     public static Observable<String> lines(File file) {
-        return from(file).compose(Transformers.split("\n"));
+        return from(file).compose(com.github.davidmoten.rx.Transformers.split("\n"));
     }
 
     public static Observable<String> from(File file) {
@@ -59,7 +59,7 @@ public final class Strings {
     }
 
     public static Observable<String> split(Observable<String> o, String pattern) {
-        return o.compose(Transformers.split(pattern));
+        return o.compose(com.github.davidmoten.rx.Transformers.split(pattern));
     }
 
     public static Observable<String> from(final File file, final Charset charset) {

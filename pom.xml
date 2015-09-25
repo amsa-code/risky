@@ -9,28 +9,28 @@
     <packaging>pom</packaging>
 
     <properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
         <compiler.source>1.8</compiler.source>
         <compiler.target>1.8</compiler.target>
         <rxjava.version>1.0.14</rxjava.version>
         <rxjava.string.version>0.22.0</rxjava.string.version>
-		<rxjava.math.version>1.0.0</rxjava.math.version>
-        <rxjava.extras.version>0.5.17</rxjava.extras.version>
-		<rxjava.slf4j.version>0.5.4</rxjava.slf4j.version>
+        <rxjava.math.version>1.0.0</rxjava.math.version>
+        <rxjava.extras.version>0.6.5</rxjava.extras.version>
+        <rxjava.slf4j.version>0.5.4</rxjava.slf4j.version>
         <rtree.version>0.6.3</rtree.version>
-		<slf4j.version>1.7.12</slf4j.version>
+        <slf4j.version>1.7.12</slf4j.version>
         <grumpy.version>0.2.3</grumpy.version>
-		<guava.version>18.0</guava.version>
-		<geotools.version>13.1</geotools.version>
-		<joda.time.version>2.7</joda.time.version>
-		<junit.version>4.12</junit.version>
+        <guava.version>18.0</guava.version>
+        <geotools.version>13.1</geotools.version>
+        <joda.time.version>2.7</joda.time.version>
+        <junit.version>4.12</junit.version>
         <exec.version>1.3.2</exec.version>
         <mockito.version>1.10.19</mockito.version>
         <jmh.version>1.10.2</jmh.version>
 
- 		<cobertura.version>2.7</cobertura.version>
+        <cobertura.version>2.7</cobertura.version>
         <checkstyle.version>2.13</checkstyle.version>
         <findbugs.version>3.0.1</findbugs.version>
         <javadoc.version>2.10.2</javadoc.version>
@@ -56,12 +56,12 @@
         <module>ais</module>
         <module>risky-util</module>
         <module>behaviour-detector</module>
-		<module>geo-analyzer</module>
-		<module>craft-analyzer-wms</module>
+        <module>geo-analyzer</module>
+        <module>craft-analyzer-wms</module>
         <module>formats</module>
-		<module>ihs-reader</module>
-		<module>renjin</module>
-		<module>h2spatial</module>
+        <module>ihs-reader</module>
+        <module>renjin</module>
+        <module>h2spatial</module>
         <module>spark</module>
         <module>animator</module>
         <module>geotools-extras</module>
@@ -87,7 +87,7 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.5.1</version>
             </plugin>
-			<plugin>
+            <plugin>
                 <artifactId>maven-site-plugin</artifactId>
                 <version>${m3.site.version}</version>
                 <executions>
@@ -99,31 +99,30 @@
                     </execution>
                 </executions>
             </plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>${javadoc.version}</version>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<goals>
-						    <goal>jar</goal>
-						</goals>
-						<configuration>
-						    <additionalparam>-Xdoclint:none</additionalparam>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
- 
+
     <reporting>
         <excludeDefaults>true</excludeDefaults>
         <outputDirectory>${project.build.directory}/site</outputDirectory>
         <plugins>
-            <!-- this one should go first so that it is available to other plugins 
-                when they run -->
+            <!-- this one should go first so that it is available to other plugins when they run -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
@@ -170,13 +169,8 @@
                 <version>${jdepend.version}</version>
             </plugin>
             <!-- javancss failing on OperatorSubscriptionInterval.java so disabling -->
-            <!--
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>javancss-maven-plugin</artifactId>
-                <version>${javancss.version}</version>
-            </plugin>
-            -->
+            <!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>javancss-maven-plugin</artifactId> 
+                <version>${javancss.version}</version> </plugin> -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
@@ -202,8 +196,8 @@
             </plugin>
             <!-- commented this plugin out because cannot run offline (e.g. at home) -->
             <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-changelog-plugin</artifactId> 
-                <version>${changelog.version}</version> <configuration> <username>${svn.username}</username> 
-                <password>${svn.password}</password> </configuration> </plugin> -->
+                <version>${changelog.version}</version> <configuration> <username>${svn.username}</username> <password>${svn.password}</password> 
+                </configuration> </plugin> -->
         </plugins>
     </reporting>
 
@@ -225,10 +219,10 @@
             <id>${risky.repo}</id>
             <url>${risky.repo.url}</url>
         </repository>
-	    <site>
-		   <id>site</id>
-			<url>${site.url}</url>
-	   </site>
+        <site>
+            <id>site</id>
+            <url>${site.url}</url>
+        </site>
     </distributionManagement>
 
 </project>
