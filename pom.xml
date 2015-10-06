@@ -44,6 +44,22 @@
         <changelog.version>2.2</changelog.version>
         <coverage.reports.dir>${project.build.directory}/target/coverage-reports</coverage.reports.dir>
     </properties>
+    
+    <licenses>
+	    <license>
+		    <name>The Apache License, Version 2.0</name>
+		    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+    </licenses>
+
+    <developers>
+        <developer>
+          <name>Dave Moten</name>
+          <email>david.moten@amsa.gov.au</email>
+          <organization>AMSA</organization>
+          <organizationUrl>http://www.amsa.gov.au</organizationUrl>
+        </developer>
+    </developers>
 
     <scm>
         <connection>${scm.url}</connection>
