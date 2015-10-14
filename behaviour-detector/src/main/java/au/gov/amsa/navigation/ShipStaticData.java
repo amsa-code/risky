@@ -19,7 +19,7 @@ import rx.Observable;
 public final class ShipStaticData {
 
     public static class Info {
-        public final long mmsi;
+        public final int mmsi;
         public final Optional<String> imo;
         public final AisClass cls;
         public final Optional<Integer> shipType;
@@ -30,7 +30,7 @@ public final class ShipStaticData {
         public final Optional<Integer> dimensionDMetres;
         public final Optional<String> name;
 
-        public Info(long mmsi, Optional<String> imo, AisClass cls, Optional<Integer> shipType,
+        public Info(int mmsi, Optional<String> imo, AisClass cls, Optional<Integer> shipType,
                 Optional<Float> maxDraftMetres, Optional<Integer> dimensionAMetres,
                 Optional<Integer> dimensionBMetres, Optional<Integer> dimensionCMetres,
                 Optional<Integer> dimensionDMetres, Optional<String> name) {
@@ -85,12 +85,12 @@ public final class ShipStaticData {
 
     }
 
-    public static Map<Long, Info> getMapFromResource(String resource) {
+    public static Map<Integer, Info> getMapFromResource(String resource) {
         return getMapFromReader(new InputStreamReader(
                 ShipStaticData.class.getResourceAsStream(resource), Charsets.UTF_8));
     }
 
-    public static Map<Long, Info> getMapFromReader(Reader reader) {
+    public static Map<Integer, Info> getMapFromReader(Reader reader) {
         return ShipStaticData
                 // read ship static data from classpath
                 .from(reader)
@@ -123,7 +123,7 @@ public final class ShipStaticData {
                 //
                 .map(items -> {
                     int i = 0;
-                    long mmsi = Long.parseLong(items[i++]);
+                    int mmsi = Integer.parseInt(items[i++]);
                     String imoTemp = items[i++];
                     Optional<String> imo;
                     if (imoTemp.trim().length() == 0 || Integer.parseInt(imoTemp.trim()) == -1)

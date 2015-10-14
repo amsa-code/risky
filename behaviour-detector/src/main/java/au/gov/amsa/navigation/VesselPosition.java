@@ -128,6 +128,10 @@ public class VesselPosition implements HasFix {
         return speedMetresPerSecond;
     }
 
+    public Optional<Double> speedKnots() {
+        return speedMetresPerSecond.transform(x -> x / 0.5144444);
+    }
+
     public VesselClass cls() {
         return cls;
     }

@@ -44,7 +44,7 @@ public class DistanceTravelledMain {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        Map<Long, Info> shipInfo = ShipStaticData
+        Map<Integer, Info> shipInfo = ShipStaticData
                 .getMapFromReader(new InputStreamReader(is, Charsets.UTF_8));
 
         List<Setting> settings = new ArrayList<>();
@@ -87,7 +87,7 @@ public class DistanceTravelledMain {
     }
 
     private static void calculateTrafficDensity(String directory, Options options, boolean gui,
-            Map<Long, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
+            Map<Integer, Info> shipInfo, Func1<Info, Boolean> shipSelector, String name) {
         System.out.println("-----------------------------------------------------");
         System.out.println("------ " + name);
         System.out.println("-----------------------------------------------------");

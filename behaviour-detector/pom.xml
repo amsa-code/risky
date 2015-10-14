@@ -121,6 +121,13 @@
 			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
+        
+        <dependency>
+            <groupId>au.gov.amsa.er</groupId>
+            <artifactId>ais-ship-data-2014</artifactId>
+            <version>2.0</version>
+            <scope>test</scope>
+        </dependency>
 
 	</dependencies>
 

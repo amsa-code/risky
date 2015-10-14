@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.Observable.Transformer;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.observables.GroupedObservable;
-
 import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.geometry.Point;
 import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
+
+import rx.Observable;
+import rx.Observable.Transformer;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.observables.GroupedObservable;
 
 public class CollisionDetector {
 
@@ -67,8 +67,8 @@ public class CollisionDetector {
                     longitudeDelta = longitudeDelta(minLat);
                 else
                     longitudeDelta = longitudeDelta(maxLat);
-                return new Region(maxLat, minLon + x * lonCellSize - longitudeDelta, minLat, minLon
-                        + (x + 1) * lonCellSize + longitudeDelta);
+                return new Region(maxLat, minLon + x * lonCellSize - longitudeDelta, minLat,
+                        minLon + (x + 1) * lonCellSize + longitudeDelta);
             }
         };
     }
@@ -76,24 +76,22 @@ public class CollisionDetector {
     public static Observable<CollisionCandidate> getCandidatesForAStream(
             Observable<VesselPosition> o) {
         // make a window of recent positions indexed spatially
-        return o.scan(new State(), nextState())
+
+        return Observable.defer(() -> o.scan(new State(), nextState())
                 // log
-                .lift(Logging
-                        .<State> logger()
-                        .showCount("positions")
+                .lift(Logging.<State> logger().showCount("positions")
                         .showRateSince("rate (pos/s)", TimeUnit.SECONDS.toMillis(10))
-                        .showRateSinceStart("overall rate")
-                        .every(10000)
-                        .showValue()
+                        .showRateSinceStart("overall rate").every(10000).showValue()
                         .value(state -> "state.map.size=" + state.mapSize() + ", state.rtree.size="
-                                + state.tree().size()).log())
+                                + state.tree().size())
+                        .log())
                 // report collision candidates from each window for the latest
                 // reported position
                 .flatMap(toCollisionCandidatesForPosition())
                 // group by id of first candidate
                 .groupBy(byIdPair())
                 // only show if repeated
-                .flatMap(onlyRepeating());
+                .flatMap(onlyRepeating()));
     }
 
     private static Func2<State, VesselPosition, State> nextState() {
@@ -125,7 +123,7 @@ public class CollisionDetector {
 
         // find nearby vessels within time constraints and cache them
         Observable<VesselPosition> near = state.tree()
-        // search the R-tree
+                // search the R-tree
                 .search(searchRegion)
                 // get just the vessel position
                 .map(toVesselPosition)
@@ -133,7 +131,8 @@ public class CollisionDetector {
                 .filter(aroundInTime(p, MAX_TIME_INTERVAL_MS));
 
         final Observable<TreeSet<VesselPosition>> othersByVessel = near
-        // only those vessels with different id as latest position report
+                // only those vessels with different id as latest position
+                // report
                 .filter(not(isVessel(p.id())))
                 // group by individual vessel
                 .groupBy(byId())
@@ -189,8 +188,8 @@ public class CollisionDetector {
                     Optional<Long> tCollision = plus(times.get().leastPositive(), p.time());
                     if (tCollision.isPresent()
                             && tCollision.get() < p.time() + MAX_TIME_INTERVAL_MS) {
-                        Optional<VesselPosition> otherNext = Optional.fromNullable(set.higher(other
-                                .get()));
+                        Optional<VesselPosition> otherNext = Optional
+                                .fromNullable(set.higher(other.get()));
                         if (otherNext.isPresent() && otherNext.get().time() < tCollision.get())
                             return empty();
                         else if (next.isPresent() && next.get().time() < tCollision.get())
@@ -214,13 +213,12 @@ public class CollisionDetector {
     }
 
     private static Func1<GroupedObservable<Identifier, VesselPosition>, Observable<TreeSet<VesselPosition>>> toSortedSet() {
-        return g -> g.toList().map(
-                singleVesselPositions -> {
-                    TreeSet<VesselPosition> set = new TreeSet<VesselPosition>(
-                            Comparators.timeIdMessageIdComparator);
-                    set.addAll(singleVesselPositions);
-                    return set;
-                });
+        return g -> g.toList().map(singleVesselPositions -> {
+            TreeSet<VesselPosition> set = new TreeSet<VesselPosition>(
+                    Comparators.timeIdMessageIdComparator);
+            set.addAll(singleVesselPositions);
+            return set;
+        });
     }
 
     private static Func1<VesselPosition, Identifier> byId() {
