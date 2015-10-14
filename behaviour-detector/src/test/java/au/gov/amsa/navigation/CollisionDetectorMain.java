@@ -1,26 +1,36 @@
 package au.gov.amsa.navigation;
 
+import java.io.File;
 import java.io.IOException;
 
-import rx.functions.Func1;
-import au.gov.amsa.ais.rx.Streams;
-import au.gov.amsa.navigation.ais.AisVesselPositions;
-
 import com.github.davidmoten.rx.slf4j.Logging;
+
+import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.BinaryFixesFormat;
+import rx.functions.Func1;
 
 public class CollisionDetectorMain {
 
     public static void main(String[] args) throws IOException, InterruptedException {
+        VesselPosition.validate = true;
         CollisionDetector c = new CollisionDetector();
-        String filename = "/media/analysis/nmea/2013/NMEA_ITU_20130108.gz";
+        String filename = "/media/an/nmea/2013/NMEA_ITU_20130108.gz";
         // nmea from file
-        Streams.nmeaFromGzip(filename)
-                // do some logging
-                .lift(Logging.<String> logger().showCount().showMemory().every(100000).log())
-                // extract positions
-                .compose(AisVesselPositions.positions())
+        // Streams.nmeaFromGzip(filename)
+        BinaryFixes
+                .from(new File("/media/an/daily-fixes/2014/2014-02-01.fix"), true,
+                        BinaryFixesFormat.WITH_MMSI)
+                .map(VesselPositions.TO_VESSEL_POSITION)
                 // only class A
                 .filter(onlyClassA)
+                // lat must be valid
+                .filter(p -> p.lat() >= -90 && p.lat() <= 90)
+                // lon must be valid
+                .filter(p -> p.lon() >= -180 && p.lon() <= 180)
+                // speed must b present
+                .filter(p -> p.speedMetresPerSecond().isPresent())
+                // course must be present
+                .filter(p -> p.cogDegrees().isPresent())
                 // detect collisions
                 .compose(CollisionDetector.detectCollisionCandidates())
                 // filter

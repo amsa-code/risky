@@ -5,6 +5,7 @@ import static java.lang.Math.toRadians;
 
 import java.util.concurrent.atomic.AtomicLong;
 
+import com.github.davidmoten.grumpy.core.Position;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
@@ -18,8 +19,7 @@ public class VesselPosition implements HasFix {
 
     public enum NavigationalStatus {
         // order of these should reflect numerical order in nav status int
-        // returned
-        // from ITU standard ais position report A
+        // returned from ITU standard ais position report A
         UNDER_WAY_USING_ENGINE, AT_ANCHOR, NOT_UNDER_COMMAND, RESTRICTED_MANOEUVRABILITY, CONSTRAINED_BY_HER_DRAUGHT, MOORED, AGROUND, ENGAGED_IN_FISHING, UNDER_WAY, RESERVED_1, RESERVED_2, FUTURE_1, FUTURE_2, FUTURE_3, AIS_SART, NOT_DEFINED;
     }
 
@@ -300,8 +300,13 @@ public class VesselPosition implements HasFix {
         else {
             double lat = this.lat - speedMetresPerSecond.get() / metresPerDegreeLatitude()
                     * (t - time) / 1000.0 * Math.cos(Math.toRadians(cogDegrees.get()));
-            double lon = this.lon + speedMetresPerSecond.get() / metresPerDegreeLongitude()
-                    * (t - time) / 1000.0 * Math.sin(Math.toRadians(cogDegrees.get()));
+            if (lat > 90)
+                lat = 90;
+            else if (lat < -90)
+                lat = -90;
+            double lon = Position
+                    .to180(this.lon + speedMetresPerSecond.get() / metresPerDegreeLongitude()
+                            * (t - time) / 1000.0 * Math.sin(Math.toRadians(cogDegrees.get())));
 
             return Optional.of(new VesselPosition(messageId, id, lat, lon, lengthMetres,
                     widthMetres, cogDegrees, headingDegrees, speedMetresPerSecond, cls,
@@ -331,6 +336,9 @@ public class VesselPosition implements HasFix {
         // distance given any cog and max speed
 
         Optional<VesselPosition> p = vp.predict(time);
+        if (!p.isPresent()) {
+            return Optional.absent();
+        }
         Vector deltaV = velocity().get().minus(p.get().velocity().get());
         Vector deltaP = position(this).minus(p.get().position(this));
 
