@@ -123,9 +123,9 @@
 		</dependency>
         
         <dependency>
-            <groupId>au.gov.amsa.er</groupId>
+            <groupId>au.gov.amsa</groupId>
             <artifactId>ais-ship-data-2014</artifactId>
-            <version>2.0</version>
+            <version>2.1</version>
             <scope>test</scope>
         </dependency>
 

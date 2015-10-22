@@ -21,7 +21,7 @@ public class CollisionDetectorMain {
         VesselPosition.validate = true;
         CollisionDetector c = new CollisionDetector();
         // String filename = "/media/an/nmea/2013/NMEA_ITU_20130108.gz";
-        Map<Integer, Info> ships = ShipStaticData.getMapFromResource("/ship-data.txt");
+        Map<Integer, Info> ships = ShipStaticData.getMapFromResource("/ship-data-2014.txt");
 
         // nmea from file
         // Streams.nmeaFromGzip(filename)
