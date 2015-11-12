@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>au.gov.amsa.risky</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.5.3</version>
+		<version>0.5.4-SNAPSHOT</version>
 	</parent>
 	<artifactId>craft-analyzer-wms</artifactId>
 	<name>${project.artifactId}</name>
