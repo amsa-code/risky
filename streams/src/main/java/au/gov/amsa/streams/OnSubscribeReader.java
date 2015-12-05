@@ -3,39 +3,41 @@ package au.gov.amsa.streams;
 import java.io.IOException;
 import java.io.Reader;
 
-import rx.Subscriber;
-import rx.observables.AbstractOnSubscribe;
+import rx.Observable;
+import rx.Observer;
+import rx.observables.SyncOnSubscribe;
 
-public final class OnSubscribeReader extends
-		AbstractOnSubscribe<String, Reader> {
+public final class OnSubscribeReader extends SyncOnSubscribe<Reader, String> {
 
-	private final Reader reader;
-	private final int size;
+    private final Reader reader;
+    private final int size;
 
-	public OnSubscribeReader(Reader reader, int size) {
-		this.reader = reader;
-		this.size = size;
-	}
+    public OnSubscribeReader(Reader reader, int size) {
+        this.reader = reader;
+        this.size = size;
+    }
 
-	@Override
-	protected Reader onSubscribe(Subscriber<? super String> subscriber) {
-		return reader;
-	}
+    @Override
+    protected Reader generateState() {
+        return reader;
+    }
 
-	@Override
-	protected void next(
-			rx.observables.AbstractOnSubscribe.SubscriptionState<String, Reader> state) {
+    @Override
+    protected Reader next(Reader reader, Observer<? super String> observer) {
+        char[] buffer = new char[size];
+        try {
+            int count = reader.read(buffer);
+            if (count == -1)
+                observer.onCompleted();
+            else
+                observer.onNext(String.valueOf(buffer, 0, count));
+        } catch (IOException e) {
+            observer.onError(e);
+        }
+        return reader;
+    }
 
-		Reader reader = state.state();
-		char[] buffer = new char[size];
-		try {
-			int count = reader.read(buffer);
-			if (count == -1)
-				state.onCompleted();
-			else
-				state.onNext(String.valueOf(buffer, 0, count));
-		} catch (IOException e) {
-			state.onError(e);
-		}
-	}
+    public Observable<String> toObservable() {
+        return Observable.create(this);
+    }
 }

@@ -14,13 +14,13 @@ import com.github.davidmoten.util.Optional;
 
 import au.gov.amsa.risky.format.BinaryFixesOnSubscribeWithBackp.State;
 import rx.Observable;
-import rx.Subscriber;
+import rx.Observer;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
-import rx.observables.AbstractOnSubscribe;
+import rx.observables.SyncOnSubscribe;
 
-public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, State> {
+public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State, Fix> {
 
     private final InputStream is;
     private final Optional<Integer> mmsi;
@@ -33,7 +33,7 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
         this.format = format;
     }
 
-    public static class State {
+    public final static class State {
         final InputStream is;
         final Optional<Integer> mmsi;
         final Queue<Fix> queue;
@@ -101,40 +101,40 @@ public class BinaryFixesOnSubscribeWithBackp extends AbstractOnSubscribe<Fix, St
     }
 
     @Override
-    protected State onSubscribe(Subscriber<? super Fix> subscriber) {
+    protected State generateState() {
         return new State(is, mmsi, new LinkedList<Fix>());
     }
 
     @Override
-    protected void next(rx.observables.AbstractOnSubscribe.SubscriptionState<Fix, State> state) {
+    protected State next(State state, Observer<? super Fix> observer) {
         int recordSize = BinaryFixes.recordSize(format);
-        Fix f = state.state().queue.poll();
+        Fix f = state.queue.poll();
         if (f != null)
-            state.onNext(f);
+            observer.onNext(f);
         else {
             byte[] bytes = new byte[4096 * BinaryFixes.recordSize(format)];
             int length;
             try {
-                if ((length = state.state().is.read(bytes)) > 0) {
+                if ((length = state.is.read(bytes)) > 0) {
                     for (int i = 0; i < length; i += recordSize) {
                         ByteBuffer bb = ByteBuffer.wrap(bytes, i, recordSize);
                         final int mmsi;
-                        if (state.state().mmsi.isPresent()) {
-                            mmsi = state.state().mmsi.get();
+                        if (state.mmsi.isPresent()) {
+                            mmsi = state.mmsi.get();
                         } else {
                             mmsi = bb.getInt();
                         }
                         Fix fix = BinaryFixesUtil.toFix(mmsi, bb);
-                        state.state().queue.add(fix);
+                        state.queue.add(fix);
                     }
-                    state.onNext(state.state().queue.remove());
+                    observer.onNext(state.queue.remove());
                 } else
-                    state.onCompleted();
+                    observer.onCompleted();
             } catch (IOException e) {
-                state.onError(e);
+                observer.onError(e);
             }
         }
-
+        return state;
     }
 
 }
