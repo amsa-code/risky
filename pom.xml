@@ -23,7 +23,7 @@
         <rxjava.math.version>1.0.0</rxjava.math.version>
         <rxjava.extras.version>0.6.6</rxjava.extras.version>
         <rxjava.slf4j.version>0.5.4</rxjava.slf4j.version>
-        <rtree.version>0.6.3</rtree.version>
+        <rtree.version>0.7.2</rtree.version>
         <slf4j.version>1.7.12</slf4j.version>
         <grumpy.version>0.2.3</grumpy.version>
         <guava.version>18.0</guava.version>
