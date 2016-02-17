@@ -81,7 +81,7 @@
         <module>craft-analyzer-wms</module>
         <module>formats</module>
         <module>ihs-reader</module>
-        <module>renjin</module>
+        <!-- <module>renjin</module> -->
         <module>h2spatial</module>
         <module>spark</module>
         <module>animator</module>
