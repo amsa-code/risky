@@ -64,20 +64,21 @@ public class LMSAdhocMain {
                         // log
                         .doOnNext(fix -> {
                             Info info = ships.get(fix.mmsi());
-                            String type = "UNKNOWN";
+                            String type = "";
                             if (info != null) {
                                 if (info.shipType.isPresent())
                                     type = ShipTypeDecoder.getShipType(info.shipType.get());
                                 else
-                                    type = "UNKNOWN";
+                                    type = "";
                             }
                             String t = formatter
                                     .format(ZonedDateTime.ofInstant(
                                             Instant.ofEpochMilli(fix.time()), ZoneOffset.UTC))
                                     .replace("[UTC]", "");
                             String imo = info == null ? "" : info.imo.or("");
-                            System.out.format("%s,%s,%s,%s,%s,%s,%s,%s\n", shapeName, fix.mmsi(),
-                                    imo, fix.aisClass().name(), type, fix.lat(), fix.lon(), t);
+                            System.out.format("%s,%s,%s,%s,\"%s\",%s,%s,%s\n", shapeName,
+                                    fix.mmsi(), imo, fix.aisClass().name(), type, fix.lat(),
+                                    fix.lon(), t);
                         }).count().toBlocking().single();
             }
         }
