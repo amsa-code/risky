@@ -11,6 +11,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ public class LMSAdhocMain {
     private static final Logger log = LoggerFactory.getLogger(LMSAdhocMain.class);
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
+        ExecutorService es;
         Map<Integer, Info> ships = ShipStaticData.getMapFromResource("/ship-data-2014.txt");
         Pattern pattern = Pattern.compile(".*\\.track");
         File base = new File("/media/an/binary-fixes-lms");
