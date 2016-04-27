@@ -19,17 +19,19 @@ public final class Connection implements GroupMember {
     private final int readTimeoutMs;
     private final long retryIntervalMs;
     private final boolean enabled;
+    private final Optional<Proxy> proxy;
     private final Observable<String> lines;
 
     private Connection(String id, String host, int port, boolean ssl,
             Optional<Authentication> authentication, int readTimeoutMs, long retryIntervalMs,
-            boolean enabled) {
+            boolean enabled, Optional<Proxy> proxy) {
         Util.verifyId(id);
         Preconditions.checkNotNull(host);
         Preconditions.checkArgument(port > 0 && port <= 65535, "port must be between 0 and 65535");
         Preconditions.checkNotNull(authentication);
         Preconditions.checkArgument(readTimeoutMs >= 0, "readTimeMs must be >=0");
         Preconditions.checkArgument(retryIntervalMs >= 0, "retryIntervalMs must be >=0");
+        Preconditions.checkNotNull(proxy);
         this.id = id;
         this.host = host;
         this.port = port;
@@ -38,6 +40,7 @@ public final class Connection implements GroupMember {
         this.readTimeoutMs = readTimeoutMs;
         this.retryIntervalMs = retryIntervalMs;
         this.enabled = enabled;
+        this.proxy = proxy;
         // multiple parent groups share the same stream
         this.lines = StringSockets.from(host).charset(StandardCharsets.UTF_8).port(port)
                 .quietTimeoutMs(readTimeoutMs).reconnectDelayMs(retryIntervalMs).create()
@@ -90,6 +93,7 @@ public final class Connection implements GroupMember {
         private int readTimeoutMs;
         private long retryIntervalMs;
         private boolean enabled = true;
+        private Optional<Proxy> proxy = Optional.empty();
 
         private Builder() {
         }
@@ -111,6 +115,11 @@ public final class Connection implements GroupMember {
 
         public Builder ssl(boolean ssl) {
             this.ssl = ssl;
+            return this;
+        }
+
+        public Builder proxy(Proxy proxy) {
+            this.proxy = Optional.of(proxy);
             return this;
         }
 
@@ -140,7 +149,7 @@ public final class Connection implements GroupMember {
 
         public Connection build() {
             return new Connection(id, host, port, ssl, authentication, readTimeoutMs,
-                    retryIntervalMs, enabled);
+                    retryIntervalMs, enabled, proxy);
         }
     }
 
@@ -168,6 +177,8 @@ public final class Connection implements GroupMember {
         b.append(retryIntervalMs);
         b.append(", enabled=");
         b.append(enabled);
+        b.append(", proxy=");
+        b.append(proxy);
         b.append("]");
         return b.toString();
     }
