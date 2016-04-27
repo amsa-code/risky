@@ -2,17 +2,30 @@ package au.gov.amsa.ais.router.model;
 
 import java.util.Optional;
 
+import au.gov.amsa.streams.StringServer;
+import rx.Observable;
+
 public final class Port {
     private final int port;
     private final Optional<Group> group;
     private final boolean enabled;
     private final Optional<UserGroup> userGroup;
+    private final Observable<String> lines;
 
     private Port(int port, Optional<Group> group, boolean enabled, Optional<UserGroup> userGroup) {
         this.port = port;
         this.group = group;
         this.enabled = enabled;
         this.userGroup = userGroup;
+        this.lines = createLines();
+    }
+
+    private Observable<String> createLines() {
+        if (group.isPresent()) {
+            return group.get().lines();
+        } else {
+            return Observable.empty();
+        }
     }
 
     public int port() {
@@ -33,6 +46,28 @@ public final class Port {
 
     public static Builder builder() {
         return new Builder();
+    }
+
+    private Optional<StringServer> server = Optional.empty();
+    private final Object serverLock = new Object();
+
+    public void start() {
+        synchronized (serverLock) {
+            if (server.isPresent()) {
+                throw new RuntimeException("server already started");
+            } else if (enabled && group.isPresent()) {
+                server = Optional.of(StringServer.create(lines, port));
+                server.get().start();
+            }
+        }
+    }
+
+    public void stop() {
+        synchronized (serverLock) {
+            if (server.isPresent()) {
+                server.get().stop();
+            }
+        }
     }
 
     public static class Builder {

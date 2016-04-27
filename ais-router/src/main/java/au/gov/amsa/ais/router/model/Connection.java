@@ -19,6 +19,7 @@ public final class Connection implements GroupMember {
     private final int readTimeoutMs;
     private final long retryIntervalMs;
     private final boolean enabled;
+    private final Observable<String> lines;
 
     private Connection(String id, String host, int port, boolean ssl,
             Optional<Authentication> authentication, int readTimeoutMs, long retryIntervalMs,
@@ -37,6 +38,10 @@ public final class Connection implements GroupMember {
         this.readTimeoutMs = readTimeoutMs;
         this.retryIntervalMs = retryIntervalMs;
         this.enabled = enabled;
+        // multiple parent groups share the same stream
+        this.lines = StringSockets.from(host).charset(StandardCharsets.UTF_8).port(port)
+                .quietTimeoutMs(readTimeoutMs).reconnectDelayMs(retryIntervalMs).create()
+                .compose(Transformers.split("\n")).share();
     }
 
     public String id() {
@@ -137,9 +142,7 @@ public final class Connection implements GroupMember {
 
     @Override
     public Observable<String> lines() {
-        return StringSockets.from(host).charset(StandardCharsets.UTF_8).port(port)
-                .quietTimeoutMs(readTimeoutMs).reconnectDelayMs(retryIntervalMs).create()
-                .compose(Transformers.split("\n"));
+        return lines;
     }
 
 }

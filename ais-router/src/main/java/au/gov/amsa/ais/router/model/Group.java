@@ -18,6 +18,7 @@ public final class Group implements GroupMember {
     private final List<Region> filterRegions;
     private final List<MessageType> filterMessageTypes;
     private final List<Pattern> filterPatterns;
+    private final Observable<String> lines;
 
     private Group(String id, List<GroupMember> members, boolean enabled, boolean addTimestamp,
             boolean addArrivalTime, List<Region> filterRegions,
@@ -33,14 +34,24 @@ public final class Group implements GroupMember {
         this.filterRegions = filterRegions;
         this.filterMessageTypes = filterMessageTypes;
         this.filterPatterns = filterPatterns;
+        this.lines = createLines();
     }
 
     @Override
     public Observable<String> lines() {
+        return lines;
+    }
+
+    private Observable<String> createLines() {
         if (enabled) {
-            // TODO filter on regions and message types
             return Observable.from(members)
-                    .flatMap(member -> member.lines().subscribeOn(Schedulers.computation()));
+                    .flatMap(member -> member.lines().subscribeOn(Schedulers.computation()))
+                    // TODO filter on regions and message types
+                    // filter on patterns
+                    .filter(line -> filterPatterns.stream()
+                            .anyMatch(pattern -> pattern.matcher(line).matches()))
+                    // multiple parent groups share the same stream
+                    .share();
         } else {
             return Observable.empty();
         }
