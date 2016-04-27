@@ -34,35 +34,35 @@ public final class Connection implements GroupMember {
         this.enabled = enabled;
     }
 
-    public String getId() {
+    public String id() {
         return id;
     }
 
-    public String getHost() {
+    public String host() {
         return host;
     }
 
-    public int getPort() {
+    public int port() {
         return port;
     }
 
-    public boolean getSsl() {
+    public boolean ssl() {
         return ssl;
     }
 
-    public Optional<Authentication> getAuthentication() {
+    public Optional<Authentication> authentication() {
         return authentication;
     }
 
-    public int getReadTimeoutMs() {
+    public int readTimeoutMs() {
         return readTimeoutMs;
     }
 
-    public long getRetryIntervalMs() {
+    public long retryIntervalMs() {
         return retryIntervalMs;
     }
 
-    public boolean getEnabled() {
+    public boolean enabled() {
         return enabled;
     }
 

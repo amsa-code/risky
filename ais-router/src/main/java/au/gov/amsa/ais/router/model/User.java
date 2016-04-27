@@ -1,11 +1,14 @@
 package au.gov.amsa.ais.router.model;
 
-public class User {
+public final class User {
     private final String username;
     private final String passwordHash;
     private final String passwordSalt;
 
     private User(String username, String passwordHash, String passwordSalt) {
+        Util.verifyNotBlank("username", username);
+        Util.verifyNotBlank("passwordHash", passwordHash);
+        Util.verifyNotBlank("passwordSalt", passwordSalt);
         this.username = username;
         this.passwordHash = passwordHash;
         this.passwordSalt = passwordSalt;

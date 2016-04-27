@@ -26,27 +26,27 @@ public final class Group implements GroupMember {
         this.filterRegions = filterRegions;
     }
 
-    public String getId() {
+    public String id() {
         return id;
     }
 
-    public List<GroupMember> getMembers() {
+    public List<GroupMember> members() {
         return members;
     }
 
-    public boolean getEnabled() {
+    public boolean enabled() {
         return enabled;
     }
 
-    public boolean getAddTimestamp() {
+    public boolean addTimestamp() {
         return addTimestamp;
     }
 
-    public boolean getAddArrivalTime() {
+    public boolean addArrivalTime() {
         return addArrivalTime;
     }
 
-    public List<Region> getFilterRegions() {
+    public List<Region> filterRegions() {
         return filterRegions;
     }
 

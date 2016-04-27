@@ -1,6 +1,6 @@
 package au.gov.amsa.ais.router.model;
 
-public class Rectangle implements Region {
+public final class Rectangle implements Region {
     private final float minLat;
     private final float maxLat;
     private final float minLon;
@@ -13,19 +13,19 @@ public class Rectangle implements Region {
         this.maxLon = maxLon;
     }
 
-    public float getMinLat() {
+    public float minLat() {
         return minLat;
     }
 
-    public float getMaxLat() {
+    public float maxLat() {
         return maxLat;
     }
 
-    public float getMinLon() {
+    public float minLon() {
         return minLon;
     }
 
-    public float getMaxLon() {
+    public float maxLon() {
         return maxLon;
     }
 
@@ -66,6 +66,11 @@ public class Rectangle implements Region {
         public Rectangle build() {
             return new Rectangle(minLat, maxLat, minLon, maxLon);
         }
+    }
+
+    @Override
+    public boolean contains(float lat, float lon) {
+        return minLat <= lat && maxLat >= lat && minLon <= lon && maxLon >= lon;
     }
 
 }

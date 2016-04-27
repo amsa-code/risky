@@ -1,25 +1,27 @@
 package au.gov.amsa.ais.router.model;
 
+import java.util.Optional;
+
 public final class Port {
     private final int port;
-    private final Group group;
+    private final Optional<Group> group;
     private final boolean enabled;
 
-    private Port(int port, Group group, boolean enabled) {
+    private Port(int port, Optional<Group> group, boolean enabled) {
         this.port = port;
         this.group = group;
         this.enabled = enabled;
     }
 
-    public int getPort() {
+    public int port() {
         return port;
     }
 
-    public Group getGroup() {
+    public Optional<Group> group() {
         return group;
     }
 
-    public boolean getEnabled() {
+    public boolean enabled() {
         return enabled;
     }
 
@@ -30,7 +32,7 @@ public final class Port {
     public static class Builder {
 
         private int port;
-        private Group group;
+        private Optional<Group> group = Optional.empty();
         private boolean enabled;
 
         private Builder() {
@@ -42,7 +44,7 @@ public final class Port {
         }
 
         public Builder group(Group group) {
-            this.group = group;
+            this.group = Optional.of(group);
             return this;
         }
 
