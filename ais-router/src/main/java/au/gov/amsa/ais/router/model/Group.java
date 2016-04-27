@@ -51,7 +51,7 @@ public final class Group implements GroupMember {
                     // TODO filter on regions and message types
                     // filter on patterns
                     .filter(line -> filterPatterns.isEmpty() || filterPatterns.stream()
-                            .anyMatch(pattern -> pattern.matcher(line).matches()))
+                            .anyMatch(pattern -> pattern.matcher(line).find()))
                     // multiple parent groups share the same stream
                     .share();
         } else {
@@ -169,6 +169,10 @@ public final class Group implements GroupMember {
             return this;
         }
 
+        public Builder filterPattern(String filterPattern) {
+            return filterPattern(Pattern.compile(filterPattern));
+        }
+
         public Group build() {
             return new Group(id, members, enabled, addTimestamp, addArrivalTime, filterRegions,
                     filterMessageTypes, filterPatterns);
@@ -196,6 +200,13 @@ public final class Group implements GroupMember {
         b.append(filterPatterns);
         b.append("]");
         return b.toString();
+    }
+
+    public static void main(String[] args) {
+        System.out.println(Pattern.compile("Kembla")
+                .matcher(
+                        "\\s:ISEEK Kembla,c:1461727307*65\\!BSVDM,1,1,,A,177hUM000<:lKg7dNBPJA:GN0<1R,0*50")
+                .find());
     }
 
 }
