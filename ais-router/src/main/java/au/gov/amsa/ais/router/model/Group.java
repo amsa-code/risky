@@ -175,4 +175,27 @@ public final class Group implements GroupMember {
         }
     }
 
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("Group [id=");
+        b.append(id);
+        b.append(", members=");
+        b.append(members);
+        b.append(", enabled=");
+        b.append(enabled);
+        b.append(", addTimestamp=");
+        b.append(addTimestamp);
+        b.append(", addArrivalTime=");
+        b.append(addArrivalTime);
+        b.append(", filterRegions=");
+        b.append(filterRegions);
+        b.append(", filterMessageTypes=");
+        b.append(filterMessageTypes);
+        b.append(", filterPatterns=");
+        b.append(filterPatterns);
+        b.append("]");
+        return b.toString();
+    }
+
 }

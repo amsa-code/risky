@@ -5,6 +5,7 @@ import au.gov.amsa.ais.router.model.Group;
 import au.gov.amsa.ais.router.model.Port;
 
 public class RouterMain {
+
     public static void main(String[] args) throws InterruptedException {
 
         Connection terrestrial = Connection.builder().id("terrestrial").host("mariweb.amsa.gov.au")
@@ -13,12 +14,15 @@ public class RouterMain {
         Connection satellite = Connection.builder().id("satellite").host("mariweb.amsa.gov.au")
                 .port(9100).readTimeoutMs(300000).retryIntervalMs(10000).build();
 
-        Group group = Group.builder().id("all").member(terrestrial).member(satellite).build();
+        Group groupAll = Group.builder().id("all").member(terrestrial).member(satellite).build();
 
-        Port port = Port.builder().group(group).port(9000).build();
+        Port portAll = Port.builder().group(groupAll).port(9000).build();
 
-        port.start();
+        Port portTerrestrial = Port.builder().group(terrestrial).port(9001).build();
+
+        Router.start(portAll, portTerrestrial);
 
         Thread.sleep(Long.MAX_VALUE);
+
     }
 }

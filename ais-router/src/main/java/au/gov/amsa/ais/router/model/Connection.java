@@ -149,4 +149,27 @@ public final class Connection implements GroupMember {
         return lines;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("Connection [id=");
+        b.append(id);
+        b.append(", host=");
+        b.append(host);
+        b.append(", port=");
+        b.append(port);
+        b.append(", ssl=");
+        b.append(ssl);
+        b.append(", authentication=");
+        b.append(authentication);
+        b.append(", readTimeoutMs=");
+        b.append(readTimeoutMs);
+        b.append(", retryIntervalMs=");
+        b.append(retryIntervalMs);
+        b.append(", enabled=");
+        b.append(enabled);
+        b.append("]");
+        return b.toString();
+    }
+
 }

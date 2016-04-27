@@ -4,18 +4,24 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import au.gov.amsa.streams.StringServer;
 import rx.Observable;
 
 public final class Port implements Closeable {
 
+    private static final Logger log = LoggerFactory.getLogger(Port.class);
+
     private final int port;
-    private final Optional<Group> group;
+    private final Optional<GroupMember> group;
     private final boolean enabled;
     private final Optional<UserGroup> userGroup;
     private final Observable<String> lines;
 
-    private Port(int port, Optional<Group> group, boolean enabled, Optional<UserGroup> userGroup) {
+    private Port(int port, Optional<GroupMember> group, boolean enabled,
+            Optional<UserGroup> userGroup) {
         this.port = port;
         this.group = group;
         this.enabled = enabled;
@@ -35,7 +41,7 @@ public final class Port implements Closeable {
         return port;
     }
 
-    public Optional<Group> group() {
+    public Optional<GroupMember> group() {
         return group;
     }
 
@@ -55,6 +61,7 @@ public final class Port implements Closeable {
     private final Object serverLock = new Object();
 
     public void start() {
+        log.info("starting " + this);
         synchronized (serverLock) {
             if (server.isPresent()) {
                 throw new RuntimeException("server already started");
@@ -76,7 +83,7 @@ public final class Port implements Closeable {
     public static class Builder {
 
         private int port;
-        private Optional<Group> group = Optional.empty();
+        private Optional<GroupMember> group = Optional.empty();
         private final Optional<UserGroup> userGroup = Optional.empty();
         private boolean enabled = true;
 
@@ -88,7 +95,7 @@ public final class Port implements Closeable {
             return this;
         }
 
-        public Builder group(Group group) {
+        public Builder group(GroupMember group) {
             this.group = Optional.of(group);
             return this;
         }
@@ -107,4 +114,20 @@ public final class Port implements Closeable {
     public void close() throws IOException {
         stop();
     }
+
+    @Override
+    public String toString() {
+        StringBuilder b = new StringBuilder();
+        b.append("Port [port=");
+        b.append(port);
+        b.append(", group=");
+        b.append(group);
+        b.append(", enabled=");
+        b.append(enabled);
+        b.append(", userGroup=");
+        b.append(userGroup);
+        b.append("]");
+        return b.toString();
+    }
+
 }
