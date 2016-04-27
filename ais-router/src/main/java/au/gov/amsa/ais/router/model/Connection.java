@@ -137,9 +137,17 @@ public final class Connection implements GroupMember {
             return this;
         }
 
+        public Builder readTimeoutSeconds(double val) {
+            return readTimeoutMs((int) Math.round(val * 1000));
+        }
+
         public Builder retryIntervalMs(long retryIntervalMs) {
             this.retryIntervalMs = retryIntervalMs;
             return this;
+        }
+
+        public Builder retryIntervalSeconds(double val) {
+            return retryIntervalMs(Math.round(val * 1000));
         }
 
         public Builder enabled(boolean enabled) {
