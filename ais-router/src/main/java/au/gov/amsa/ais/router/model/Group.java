@@ -1,5 +1,6 @@
 package au.gov.amsa.ais.router.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -45,7 +46,8 @@ public final class Group implements GroupMember {
     private Observable<String> createLines() {
         if (enabled) {
             return Observable.from(members)
-                    .flatMap(member -> member.lines().subscribeOn(Schedulers.computation()))
+                    // concurrently merge member observables
+                    .flatMap(member -> member.lines().subscribeOn(Schedulers.io()))
                     // TODO filter on regions and message types
                     // filter on patterns
                     .filter(line -> filterPatterns.stream()
@@ -96,13 +98,13 @@ public final class Group implements GroupMember {
     public static class Builder {
 
         private String id;
-        private List<GroupMember> members;
-        private boolean enabled;
+        private final List<GroupMember> members = new ArrayList<GroupMember>();
+        private boolean enabled = true;
         private boolean addTimestamp;
         private boolean addArrivalTime;
-        private List<Region> filterRegions;
-        private List<MessageType> filterMessageTypes;
-        private List<Pattern> filterPatterns;
+        private final List<Region> filterRegions = new ArrayList<>();
+        private final List<MessageType> filterMessageTypes = new ArrayList<MessageType>();
+        private final List<Pattern> filterPatterns = new ArrayList<Pattern>();
 
         private Builder() {
         }
@@ -113,7 +115,12 @@ public final class Group implements GroupMember {
         }
 
         public Builder members(List<GroupMember> members) {
-            this.members = members;
+            this.members.addAll(members);
+            return this;
+        }
+
+        public Builder member(GroupMember member) {
+            this.members.add(member);
             return this;
         }
 
@@ -133,17 +140,32 @@ public final class Group implements GroupMember {
         }
 
         public Builder filterRegions(List<Region> filterRegions) {
-            this.filterRegions = filterRegions;
+            this.filterRegions.addAll(filterRegions);
+            return this;
+        }
+
+        public Builder filterRegion(Region filterRegion) {
+            this.filterRegions.add(filterRegion);
             return this;
         }
 
         public Builder filterMessageTypes(List<MessageType> filterMessageTypes) {
-            this.filterMessageTypes = filterMessageTypes;
+            this.filterMessageTypes.addAll(filterMessageTypes);
             return this;
         }
 
-        public Builder filterPattern(List<Pattern> filterPatterns) {
-            this.filterPatterns = filterPatterns;
+        public Builder filterMessageTypes(MessageType filterMessageType) {
+            this.filterMessageTypes.add(filterMessageType);
+            return this;
+        }
+
+        public Builder filterPatterns(List<Pattern> filterPatterns) {
+            this.filterPatterns.addAll(filterPatterns);
+            return this;
+        }
+
+        public Builder filterPattern(Pattern filterPattern) {
+            this.filterPatterns.add(filterPattern);
             return this;
         }
 

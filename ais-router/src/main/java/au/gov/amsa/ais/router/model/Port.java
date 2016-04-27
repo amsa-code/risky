@@ -1,11 +1,14 @@
 package au.gov.amsa.ais.router.model;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Optional;
 
 import au.gov.amsa.streams.StringServer;
 import rx.Observable;
 
-public final class Port {
+public final class Port implements Closeable {
+
     private final int port;
     private final Optional<Group> group;
     private final boolean enabled;
@@ -75,7 +78,7 @@ public final class Port {
         private int port;
         private Optional<Group> group = Optional.empty();
         private final Optional<UserGroup> userGroup = Optional.empty();
-        private boolean enabled;
+        private boolean enabled = true;
 
         private Builder() {
         }
@@ -98,5 +101,10 @@ public final class Port {
         public Port build() {
             return new Port(port, group, enabled, userGroup);
         }
+    }
+
+    @Override
+    public void close() throws IOException {
+        stop();
     }
 }

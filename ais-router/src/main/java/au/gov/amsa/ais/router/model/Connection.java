@@ -86,10 +86,10 @@ public final class Connection implements GroupMember {
         private String host;
         private int port;
         private boolean ssl;
-        private Optional<Authentication> authentication;
+        private Optional<Authentication> authentication = Optional.empty();
         private int readTimeoutMs;
         private long retryIntervalMs;
-        private boolean enabled;
+        private boolean enabled = true;
 
         private Builder() {
         }
@@ -117,6 +117,10 @@ public final class Connection implements GroupMember {
         public Builder authentication(Optional<Authentication> authentication) {
             this.authentication = authentication;
             return this;
+        }
+
+        public Builder authentication(Authentication authentication) {
+            return authentication(Optional.of(authentication));
         }
 
         public Builder readTimeoutMs(int readTimeoutMs) {

@@ -72,10 +72,10 @@ public final class StringServer {
 
                         Subscriber<String> subscriber = createSubscriber(socket, socketName, out);
                         source
-                        // subscribe in background so can accept another
-                        // connection
-                        .subscribeOn(Schedulers.io())
-                        // write each line to the socket OutputStream
+                                // subscribe in background so can accept another
+                                // connection
+                                .subscribeOn(Schedulers.io())
+                                // write each line to the socket OutputStream
                                 .subscribe(subscriber);
                     } catch (IOException e) {
                         // could not get output stream (could have closed very
@@ -114,8 +114,8 @@ public final class StringServer {
         }
     }
 
-    private static Subscriber<String> createSubscriber(final Socket socket,
-            final String socketName, final OutputStream out) {
+    private static Subscriber<String> createSubscriber(final Socket socket, final String socketName,
+            final OutputStream out) {
         return new Subscriber<String>() {
 
             @Override
