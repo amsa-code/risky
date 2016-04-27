@@ -18,8 +18,8 @@ public class RouterMain {
         // set up groups
         Group groupAll = Group.builder().id("all").member(terrestrial).member(satellite).build();
 
-        Group kembla = Group.builder().id("Port Kembla").member(terrestrial)
-                .filterPattern(".*Kembla.*").build();
+        Group kembla = Group.builder().id("Port Kembla").member(terrestrial).filterPattern("Kembla")
+                .build();
 
         // set up ports
         Port portAll = Port.builder().group(groupAll).port(9000).build();
@@ -29,7 +29,6 @@ public class RouterMain {
         Port portKembla = Port.builder().group(kembla).port(9002).build();
 
         // start
-
         Router.start(portAll, portTerrestrial, portKembla);
 
         Thread.sleep(Long.MAX_VALUE);
