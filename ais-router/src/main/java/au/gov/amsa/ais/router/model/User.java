@@ -1,6 +1,7 @@
 package au.gov.amsa.ais.router.model;
 
 public final class User {
+
     private final String username;
     private final String passwordHash;
     private final String passwordSalt;
