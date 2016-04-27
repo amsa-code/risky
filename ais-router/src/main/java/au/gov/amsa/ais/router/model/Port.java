@@ -59,7 +59,7 @@ public final class Port implements Closeable {
             if (server.isPresent()) {
                 throw new RuntimeException("server already started");
             } else if (enabled && group.isPresent()) {
-                server = Optional.of(StringServer.create(lines, port));
+                server = Optional.of(StringServer.create(lines.map(line -> line + "\n"), port));
                 server.get().start();
             }
         }

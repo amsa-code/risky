@@ -50,7 +50,7 @@ public final class Group implements GroupMember {
                     .flatMap(member -> member.lines().subscribeOn(Schedulers.io()))
                     // TODO filter on regions and message types
                     // filter on patterns
-                    .filter(line -> filterPatterns.stream()
+                    .filter(line -> filterPatterns.isEmpty() || filterPatterns.stream()
                             .anyMatch(pattern -> pattern.matcher(line).matches()))
                     // multiple parent groups share the same stream
                     .share();

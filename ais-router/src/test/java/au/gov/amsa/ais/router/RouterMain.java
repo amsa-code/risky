@@ -10,11 +10,10 @@ public class RouterMain {
         Connection terrestrial = Connection.builder().id("terrestrial").host("mariweb.amsa.gov.au")
                 .port(9010).readTimeoutMs(10000).retryIntervalMs(1000).build();
 
-        // Connection satellite =
-        // Connection.builder().id("satellite").host("mariweb.amsa.gov.au")
-        // .port(9100).readTimeoutMs(300000).retryIntervalMs(10000).build();
+        Connection satellite = Connection.builder().id("satellite").host("mariweb.amsa.gov.au")
+                .port(9100).readTimeoutMs(300000).retryIntervalMs(10000).build();
 
-        Group group = Group.builder().id("all").member(terrestrial).build();
+        Group group = Group.builder().id("all").member(terrestrial).member(satellite).build();
 
         Port port = Port.builder().group(group).port(9000).build();
 
