@@ -6,11 +6,13 @@ public final class Port {
     private final int port;
     private final Optional<Group> group;
     private final boolean enabled;
+    private final Optional<UserGroup> userGroup;
 
-    private Port(int port, Optional<Group> group, boolean enabled) {
+    private Port(int port, Optional<Group> group, boolean enabled, Optional<UserGroup> userGroup) {
         this.port = port;
         this.group = group;
         this.enabled = enabled;
+        this.userGroup = userGroup;
     }
 
     public int port() {
@@ -19,6 +21,10 @@ public final class Port {
 
     public Optional<Group> group() {
         return group;
+    }
+
+    public Optional<UserGroup> userGroup() {
+        return userGroup;
     }
 
     public boolean enabled() {
@@ -33,6 +39,7 @@ public final class Port {
 
         private int port;
         private Optional<Group> group = Optional.empty();
+        private final Optional<UserGroup> userGroup = Optional.empty();
         private boolean enabled;
 
         private Builder() {
@@ -54,7 +61,7 @@ public final class Port {
         }
 
         public Port build() {
-            return new Port(port, group, enabled);
+            return new Port(port, group, enabled, userGroup);
         }
     }
 }

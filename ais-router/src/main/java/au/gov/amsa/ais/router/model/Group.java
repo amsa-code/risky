@@ -1,8 +1,12 @@
 package au.gov.amsa.ais.router.model;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.github.davidmoten.guavamini.Preconditions;
+
+import rx.Observable;
+import rx.schedulers.Schedulers;
 
 public final class Group implements GroupMember {
 
@@ -12,9 +16,12 @@ public final class Group implements GroupMember {
     private final boolean addTimestamp;
     private final boolean addArrivalTime;
     private final List<Region> filterRegions;
+    private final List<MessageType> filterMessageTypes;
+    private final List<Pattern> filterPatterns;
 
     private Group(String id, List<GroupMember> members, boolean enabled, boolean addTimestamp,
-            boolean addArrivalTime, List<Region> filterRegions) {
+            boolean addArrivalTime, List<Region> filterRegions,
+            List<MessageType> filterMessageTypes, List<Pattern> filterPatterns) {
         Util.verifyId(id);
         Preconditions.checkNotNull(members);
         Preconditions.checkNotNull(filterRegions);
@@ -24,6 +31,19 @@ public final class Group implements GroupMember {
         this.addTimestamp = addTimestamp;
         this.addArrivalTime = addArrivalTime;
         this.filterRegions = filterRegions;
+        this.filterMessageTypes = filterMessageTypes;
+        this.filterPatterns = filterPatterns;
+    }
+
+    @Override
+    public Observable<String> lines() {
+        if (enabled) {
+            // TODO filter on regions and message types
+            return Observable.from(members)
+                    .flatMap(member -> member.lines().subscribeOn(Schedulers.computation()));
+        } else {
+            return Observable.empty();
+        }
     }
 
     public String id() {
@@ -50,6 +70,14 @@ public final class Group implements GroupMember {
         return filterRegions;
     }
 
+    public List<MessageType> filterMessageTypes() {
+        return filterMessageTypes;
+    }
+
+    public List<Pattern> filterPatterns() {
+        return filterPatterns;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -62,6 +90,8 @@ public final class Group implements GroupMember {
         private boolean addTimestamp;
         private boolean addArrivalTime;
         private List<Region> filterRegions;
+        private List<MessageType> filterMessageTypes;
+        private List<Pattern> filterPatterns;
 
         private Builder() {
         }
@@ -96,8 +126,19 @@ public final class Group implements GroupMember {
             return this;
         }
 
+        public Builder filterMessageTypes(List<MessageType> filterMessageTypes) {
+            this.filterMessageTypes = filterMessageTypes;
+            return this;
+        }
+
+        public Builder filterPattern(List<Pattern> filterPatterns) {
+            this.filterPatterns = filterPatterns;
+            return this;
+        }
+
         public Group build() {
-            return new Group(id, members, enabled, addTimestamp, addArrivalTime, filterRegions);
+            return new Group(id, members, enabled, addTimestamp, addArrivalTime, filterRegions,
+                    filterMessageTypes, filterPatterns);
         }
     }
 

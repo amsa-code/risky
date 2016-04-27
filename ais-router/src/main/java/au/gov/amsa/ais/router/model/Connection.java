@@ -1,8 +1,13 @@
 package au.gov.amsa.ais.router.model;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 import com.github.davidmoten.guavamini.Preconditions;
+import com.github.davidmoten.rx.Transformers;
+
+import au.gov.amsa.streams.StringSockets;
+import rx.Observable;
 
 public final class Connection implements GroupMember {
 
@@ -128,6 +133,13 @@ public final class Connection implements GroupMember {
             return new Connection(id, host, port, ssl, authentication, readTimeoutMs,
                     retryIntervalMs, enabled);
         }
+    }
+
+    @Override
+    public Observable<String> lines() {
+        return StringSockets.from(host).charset(StandardCharsets.UTF_8).port(port)
+                .quietTimeoutMs(readTimeoutMs).reconnectDelayMs(retryIntervalMs).create()
+                .compose(Transformers.split("\n"));
     }
 
 }
