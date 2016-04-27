@@ -87,6 +87,7 @@
         <module>animator</module>
         <module>geotools-extras</module>
         <module>mariweb-archive-parser</module>
+        <module>ais-router</module>
     </modules>
 
     <build>
