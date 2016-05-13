@@ -7,6 +7,7 @@ import java.io.Serializable;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,6 +122,22 @@ public final class Shapefile {
     public boolean contains(double lat, double lon) {
         load();
         return GeometryUtil.contains(GEOMETRY_FACTORY, geometries, lat, lon);
+    }
+
+    public Rect mbr() {
+        // TODO assumes that shapefile is using WGS84?
+        load();
+        Rect r = null;
+        for (PreparedGeometry g : geometries) {
+            Coordinate[] v = g.getGeometry().getEnvelope().getCoordinates();
+            System.out.println(Arrays.toString(v));
+            Rect rect = new Rect(v[0].y, v[0].x, v[2].y, v[2].x);
+            if (r == null)
+                r = rect;
+            else
+                r = r.add(rect);
+        }
+        return r;
     }
 
     public void close() {

@@ -14,19 +14,19 @@ import java.util.List;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Test;
 
-import au.gov.amsa.streams.Strings;
-
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
+import au.gov.amsa.streams.Strings;
+
 public class ShapefileTest {
 
     @Test
     public void testLoadShapefileFromFileSystem() {
-        Shapefile shape = Shapefile.from(new File(
-                "src/test/resources/shapefile-srr-polygon/srr.shp"));
+        Shapefile shape = Shapefile
+                .from(new File("src/test/resources/shapefile-srr-polygon/srr.shp"));
         assertTrue(shape.contains(-20, 135));
         assertFalse(shape.contains(0, 0));
         assertEquals(4, shape.geometries().size());
@@ -36,8 +36,8 @@ public class ShapefileTest {
 
     @Test
     public void testLoadShapefileFromZippedInputStream() throws Exception {
-        Shapefile shape = Shapefile.fromZip(Shapefile.class
-                .getResourceAsStream("/shapefile-srr-polygon.zip"));
+        Shapefile shape = Shapefile
+                .fromZip(Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"));
         assertFalse(shape.contains(0, 0));
         assertEquals(4, shape.geometries().size());
         shape.close();
@@ -46,8 +46,8 @@ public class ShapefileTest {
     @Test
     public void testContainsInSrr() {
         // northern border is -12, 113
-        Shapefile shape = Shapefile.fromZip(Shapefile.class
-                .getResourceAsStream("/shapefile-srr-polygon.zip"));
+        Shapefile shape = Shapefile
+                .fromZip(Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"));
 
         assertTrue(shape.contains(-13, 113));
         assertFalse(shape.contains(-10, 113));
@@ -64,8 +64,8 @@ public class ShapefileTest {
     @Test
     public void testContainsInSrrWithBuffer() {
         // northern border is -12, 113
-        Shapefile shape = Shapefile.fromZip(
-                Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"), 3);
+        Shapefile shape = Shapefile
+                .fromZip(Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"), 3);
 
         assertTrue(shape.contains(-13, 113));
         assertTrue(shape.contains(-10, 113));
@@ -92,16 +92,23 @@ public class ShapefileTest {
 
     @Test
     public void testToGeoJson() throws IOException {
-        Shapefile shape = Shapefile.fromZip(
-                Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"), 3);
+        Shapefile shape = Shapefile
+                .fromZip(Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"), 3);
         FileWriter writer = new FileWriter("target/srr.geojson");
         shape.writeGeoJson(writer, "EPSG:4326");
         writer.close();
     }
 
+    @Test
+    public void testMbr() throws IOException {
+        Shapefile shape = Shapefile
+                .fromZip(Shapefile.class.getResourceAsStream("/shapefile-srr-polygon.zip"));
+        System.out.println(shape.mbr());
+    }
+
     public static void main(String[] args) throws IOException {
-        Shapefile shape = Shapefile.from(new File(System.getProperty("user.home")
-                + "/temp/amb06_map_eez_pl.shp"));
+        Shapefile shape = Shapefile
+                .from(new File(System.getProperty("user.home") + "/temp/amb06_map_eez_pl.shp"));
         FileWriter writer = new FileWriter("target/geojson-eez.txt");
         shape.writeGeoJson(writer, "EPSG:3857");
         writer.close();

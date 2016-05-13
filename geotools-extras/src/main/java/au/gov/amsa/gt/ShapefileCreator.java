@@ -28,89 +28,86 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 
 final class ShapefileCreator {
 
-	public static void createPolygon(List<Coordinate> coords, File output) {
-		List<SimpleFeature> features = new ArrayList<>();
+    public static void createPolygon(List<Coordinate> coords, File output) {
+        List<SimpleFeature> features = new ArrayList<>();
 
-		final SimpleFeatureType type = createFeatureType();
-		// final SimpleFeatureType type = BasicFeatureTypes.POLYGON;
-		GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
-		SimpleFeatureBuilder f = new SimpleFeatureBuilder(type);
+        final SimpleFeatureType type = createFeatureType();
+        // final SimpleFeatureType type = BasicFeatureTypes.POLYGON;
+        GeometryFactory gf = JTSFactoryFinder.getGeometryFactory();
+        SimpleFeatureBuilder f = new SimpleFeatureBuilder(type);
 
-		f.add(gf.createPolygon(coords.toArray(new Coordinate[] {})));
-		SimpleFeature feature = f.buildFeature(null);
-		features.add(feature);
-		saveFeaturesToShapefile(features, type, output);
-	}
+        f.add(gf.createPolygon(coords.toArray(new Coordinate[] {})));
+        SimpleFeature feature = f.buildFeature(null);
+        features.add(feature);
+        saveFeaturesToShapefile(features, type, output);
+    }
 
-	private static SimpleFeatureType createFeatureType() {
-		try {
-			final SimpleFeatureType type = DataUtilities.createType("Region",
-					"the_geom:Polygon:srid=4326");
-			return type;
-		} catch (SchemaException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private static SimpleFeatureType createFeatureType() {
+        try {
+            final SimpleFeatureType type = DataUtilities.createType("Region",
+                    "the_geom:Polygon:srid=4326");
+            return type;
+        } catch (SchemaException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	private static void saveFeaturesToShapefile(List<SimpleFeature> features,
-			final SimpleFeatureType type, File output) {
-		try {
-			ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
+    private static void saveFeaturesToShapefile(List<SimpleFeature> features,
+            final SimpleFeatureType type, File output) {
+        try {
+            ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 
-			Map<String, Serializable> params = new HashMap<String, Serializable>();
-			params.put("url", output.toURI().toURL());
-			params.put("create spatial index", Boolean.TRUE);
+            Map<String, Serializable> params = new HashMap<String, Serializable>();
+            params.put("url", output.toURI().toURL());
+            params.put("create spatial index", Boolean.TRUE);
 
-			ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory
-					.createNewDataStore(params);
+            ShapefileDataStore newDataStore = (ShapefileDataStore) dataStoreFactory
+                    .createNewDataStore(params);
 
-			// type is used as a template to describe the file contents
-			newDataStore.createSchema(type);
+            // type is used as a template to describe the file contents
+            newDataStore.createSchema(type);
 
-			// Write the features to the shapefile
-			Transaction transaction = new DefaultTransaction("create");
+            // Write the features to the shapefile
+            Transaction transaction = new DefaultTransaction("create");
 
-			String typeName = newDataStore.getTypeNames()[0];
-			SimpleFeatureSource featureSource = newDataStore
-					.getFeatureSource(typeName);
-			SimpleFeatureType shapeType = featureSource.getSchema();
-			/*
-			 * The Shapefile format has a couple limitations: - "the_geom" is
-			 * always first, and used for the geometry attribute name -
-			 * "the_geom" must be of type Point, MultiPoint, MuiltiLineString,
-			 * MultiPolygon - Attribute names are limited in length - Not all
-			 * data types are supported (example Timestamp represented as Date)
-			 * 
-			 * Each data store has different limitations so check the resulting
-			 * SimpleFeatureType.
-			 */
-			// System.out.println("SHAPE:" + shapeType);
+            String typeName = newDataStore.getTypeNames()[0];
+            SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
+            // SimpleFeatureType shapeType = featureSource.getSchema();
+            /*
+             * The Shapefile format has a couple limitations: - "the_geom" is
+             * always first, and used for the geometry attribute name -
+             * "the_geom" must be of type Point, MultiPoint, MuiltiLineString,
+             * MultiPolygon - Attribute names are limited in length - Not all
+             * data types are supported (example Timestamp represented as Date)
+             * 
+             * Each data store has different limitations so check the resulting
+             * SimpleFeatureType.
+             */
+            // System.out.println("SHAPE:" + shapeType);
 
-			if (featureSource instanceof SimpleFeatureStore) {
-				SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
-				/*
-				 * SimpleFeatureStore has a method to add features from a
-				 * SimpleFeatureCollection object, so we use the
-				 * ListFeatureCollection class to wrap our list of features.
-				 */
-				SimpleFeatureCollection collection = new ListFeatureCollection(
-						type, features);
-				featureStore.setTransaction(transaction);
-				try {
-					featureStore.addFeatures(collection);
-					transaction.commit();
-				} catch (IOException | RuntimeException e) {
-					e.printStackTrace();
-					transaction.rollback();
-				} finally {
-					transaction.close();
-				}
-			} else {
-				throw new RuntimeException(typeName
-						+ " does not support read/write access");
-			}
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+            if (featureSource instanceof SimpleFeatureStore) {
+                SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+                /*
+                 * SimpleFeatureStore has a method to add features from a
+                 * SimpleFeatureCollection object, so we use the
+                 * ListFeatureCollection class to wrap our list of features.
+                 */
+                SimpleFeatureCollection collection = new ListFeatureCollection(type, features);
+                featureStore.setTransaction(transaction);
+                try {
+                    featureStore.addFeatures(collection);
+                    transaction.commit();
+                } catch (IOException | RuntimeException e) {
+                    e.printStackTrace();
+                    transaction.rollback();
+                } finally {
+                    transaction.close();
+                }
+            } else {
+                throw new RuntimeException(typeName + " does not support read/write access");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -44,7 +44,7 @@ public final class Connection implements GroupMember {
         // multiple parent groups share the same stream
         this.lines = StringSockets.from(host).charset(StandardCharsets.UTF_8).port(port)
                 .quietTimeoutMs(readTimeoutMs).reconnectDelayMs(retryIntervalMs).create()
-                .compose(Transformers.split("\n")).share();
+                .compose(Transformers.split("\n")).map(s -> s.trim()).share();
     }
 
     public String id() {
