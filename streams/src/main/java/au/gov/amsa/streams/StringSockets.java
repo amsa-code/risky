@@ -13,14 +13,14 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.davidmoten.rx.Checked;
+import com.google.common.annotations.VisibleForTesting;
+
 import rx.Observable;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-
-import com.github.davidmoten.rx.Checked;
-import com.google.common.annotations.VisibleForTesting;
 
 public final class StringSockets {
 
@@ -46,7 +46,7 @@ public final class StringSockets {
         // stream on every connect we won't be in a mad loop of
         // failing connections
         return triggersWithDelay(reconnectDelayMs)
-        // connect to server and read lines from its input stream
+                // connect to server and read lines from its input stream
                 .concatMap(from(host, port, charset, quietTimeoutMs))
                 // ensure connection has not dropped out by throwing an
                 // exception after a minute of no messages. This is a good idea
@@ -128,11 +128,11 @@ public final class StringSockets {
      */
     private static Observable<Integer> triggersWithDelay(long delayMs) {
         return just(1)
-        // keep counting
+                // keep counting
                 .concatWith(
-                // numbers from 2 on now with delay
+                        // numbers from 2 on now with delay
                         range(2, Integer.MAX_VALUE - 1)
-                        // delay till next number released
+                                // delay till next number released
                                 .delay(delayMs, TimeUnit.MILLISECONDS, Schedulers.immediate()));
     }
 
@@ -142,8 +142,8 @@ public final class StringSockets {
             @Override
             public Observable<String> call(Integer n) {
                 return Observable
-                // create a stream from a socket and dispose of socket
-                // appropriately
+                        // create a stream from a socket and dispose of socket
+                        // appropriately
                         .using(socketCreator(host, port, quietTimeoutMs),
                                 socketObservableFactory(charset), socketDisposer(), true)
                         // cannot ask host to slow down so buffer on
@@ -151,6 +151,18 @@ public final class StringSockets {
                         .onBackpressureBuffer();
             }
         };
+    }
+
+    public static Observable<String> strings(final String host, final int port, int quietTimeoutMs,
+            final Charset charset) {
+        return Observable
+                // create a stream from a socket and dispose of socket
+                // appropriately
+                .using(socketCreator(host, port, quietTimeoutMs), socketObservableFactory(charset),
+                        socketDisposer(), true)
+                // cannot ask host to slow down so buffer on
+                // backpressure
+                .onBackpressureBuffer();
     }
 
     @VisibleForTesting
@@ -165,8 +177,8 @@ public final class StringSockets {
 
     @VisibleForTesting
     static Func1<Socket, Observable<String>> socketObservableFactory(final Charset charset) {
-        return Checked.f1(socket -> Strings.from(new InputStreamReader(socket.getInputStream(),
-                charset)));
+        return Checked.f1(
+                socket -> Strings.from(new InputStreamReader(socket.getInputStream(), charset)));
     }
 
     @VisibleForTesting
@@ -185,7 +197,7 @@ public final class StringSockets {
 
     public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts) {
         return hostPorts
-        //
+                //
                 .map(hp -> StringSockets
                         .from(hp.getHost(), hp.getPort(), hp.getQuietTimeoutMs(),
                                 hp.getReconnectDelayMs(), StandardCharsets.UTF_8)

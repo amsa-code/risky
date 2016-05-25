@@ -14,8 +14,12 @@ public class Router {
 
     public static Subscriber<Port> start(Port... ports) {
         Subscriber<Port> subscriber = createSubscriber();
-        Observable.from(ports).flatMap(
-                port -> Observable.just(port).doOnNext(p -> p.start()).subscribeOn(Schedulers.io()))
+        Observable //
+                .from(ports) //
+                .flatMap(port -> Observable //
+                        .just(port) //
+                        .doOnNext(p -> p.start()) //
+                        .subscribeOn(Schedulers.io()))
                 .subscribe(subscriber);
         return subscriber;
     }
