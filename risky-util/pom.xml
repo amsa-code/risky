@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>au.gov.amsa.risky</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.5.7</version>
+		<version>0.5.8-SNAPSHOT</version>
 	</parent>
 	<artifactId>risky-util</artifactId>
 	<name>${project.artifactId}</name>
@@ -21,8 +21,4 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-  <scm>
-    <tag>0.5.7</tag>
-  </scm>
 </project>
