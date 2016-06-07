@@ -17,6 +17,7 @@ import com.github.davidmoten.rx.Checked;
 import com.google.common.annotations.VisibleForTesting;
 
 import rx.Observable;
+import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
@@ -195,7 +196,8 @@ public final class StringSockets {
         };
     }
 
-    public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts) {
+    public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts,
+            Scheduler scheduler) {
         return hostPorts
                 //
                 .map(hp -> StringSockets
@@ -204,15 +206,20 @@ public final class StringSockets {
                         // split by new line character
                         .compose(o -> Strings.split(o, "\n"))
                         // make asynchronous
-                        .subscribeOn(Schedulers.io()))
+                        .subscribeOn(scheduler))
                 // merge streams of lines
                 .compose(o -> Observable.merge(o));
+    }
+
+    public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts) {
+        return mergeLinesFrom(hostPorts, Schedulers.io());
     }
 
     public static void main(String[] args) {
         Observable<HostPort> hostPorts = Observable.just(
                 HostPort.create("sarapps", 9010, 1000, 1000),
                 HostPort.create("sarapps", 9100, 1000, 1000));
-        StringSockets.mergeLinesFrom(hostPorts).doOnNext(System.out::println).toBlocking().last();
+        StringSockets.mergeLinesFrom(hostPorts, Schedulers.io()).doOnNext(System.out::println)
+                .toBlocking().last();
     }
 }
