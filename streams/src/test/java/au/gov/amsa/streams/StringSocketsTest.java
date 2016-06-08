@@ -15,10 +15,10 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import au.gov.amsa.util.PortFinder;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.util.PortFinder;
 
 public class StringSocketsTest {
     @Test
@@ -40,8 +40,8 @@ public class StringSocketsTest {
         };
         executor.execute(runnable);
         List<String> list = StringSockets
-                .from("localhost", port, 1000, 1000, StandardCharsets.UTF_8).take(5).toList()
-                .toBlocking().single();
+                .from("localhost", port, 1000, 1000, StandardCharsets.UTF_8, Schedulers.io())
+                .take(5).toList().toBlocking().single();
         System.out.println(list);
         server.stop();
         executor.awaitTermination(1000, TimeUnit.MILLISECONDS);

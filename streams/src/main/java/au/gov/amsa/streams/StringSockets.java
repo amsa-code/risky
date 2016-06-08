@@ -1,8 +1,5 @@
 package au.gov.amsa.streams;
 
-import static rx.Observable.just;
-import static rx.Observable.range;
-
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
@@ -14,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.rx.Checked;
+import com.github.davidmoten.rx.RetryWhen;
+import com.github.davidmoten.util.Preconditions;
 import com.google.common.annotations.VisibleForTesting;
 
 import rx.Observable;
@@ -28,37 +27,29 @@ public final class StringSockets {
     private static final Logger log = LoggerFactory.getLogger(StringSockets.class);
 
     /**
-     * Returns an Observable sequence of lines from the given host and port. If
-     * the stream is quiet for <code>quietTimeoutMs</code> then a reconnect will
-     * be attempted. Note that this is a good idea with TCPIP connections as for
-     * instance a firewall can simply drop a quiet connection without the client
-     * being aware of it. If any exception occurs a reconnect will be attempted
-     * after <code>reconnectDelayMs</code>. If the socket is closed by the
-     * server (the end of the input stream is reached) then a reconnect is
-     * attempted after <code>reconnectDelayMs</code>.
+     * Returns an Observable sequence of strings (not lines) from the given host
+     * and port. If the stream is quiet for <code>quietTimeoutMs</code> then a
+     * reconnect will be attempted. Note that this is a good idea with TCPIP
+     * connections as for instance a firewall can simply drop a quiet connection
+     * without the client being aware of it. If any exception occurs a reconnect
+     * will be attempted after <code>reconnectDelayMs</code>. If the socket is
+     * closed by the server (the end of the input stream is reached) then a
+     * reconnect is attempted after <code>reconnectDelayMs</code>.
      * 
      * @param hostPort
-     * @return Observable sequence of lines (including possible new line
-     *         character at end if exists).
+     * @return Observable sequence of strings (not lines).
      */
     public static Observable<String> from(final String host, final int port, long quietTimeoutMs,
-            long reconnectDelayMs, Charset charset) {
+            long reconnectDelayMs, Charset charset, Scheduler scheduler) {
         // delay connect by delayMs so that if server closes
         // stream on every connect we won't be in a mad loop of
         // failing connections
-        return triggersWithDelay(reconnectDelayMs)
-                // connect to server and read lines from its input stream
-                .concatMap(from(host, port, charset, quietTimeoutMs))
-                // ensure connection has not dropped out by throwing an
-                // exception after a minute of no messages. This is a good idea
-                // with TCPIP because for example a firewall might drop a quiet
-                // connection and we won't know about it. The from method call
-                // in concatMap above sets a socket read timeout as well but
-                // just in case we pull the plug on the socket a second later
-                // with this call to timeout()
-                .timeout(quietTimeoutMs + 1000, TimeUnit.MILLISECONDS)
+        return strings(host, port, (int) quietTimeoutMs, charset) //
+                .subscribeOn(scheduler) //
                 // if any exception occurs retry
-                .retry()
+                .retryWhen(RetryWhen //
+                        .delay(reconnectDelayMs, TimeUnit.MILLISECONDS) //
+                        .build()) //
                 // all subscribers use the same stream
                 .share();
     }
@@ -69,6 +60,7 @@ public final class StringSockets {
         private long quietTimeoutMs = 60000;
         private long reconnectDelayMs = 30000;
         private Charset charset = StandardCharsets.UTF_8;
+        private Scheduler scheduler = Schedulers.io();
 
         Builder(String host) {
             this.host = host;
@@ -102,8 +94,13 @@ public final class StringSockets {
             return this;
         }
 
+        public Builder subscribeOn(Scheduler scheduler) {
+            this.scheduler = scheduler;
+            return this;
+        }
+
         public Observable<String> create() {
-            return from(host, port, quietTimeoutMs, reconnectDelayMs, charset);
+            return from(host, port, quietTimeoutMs, reconnectDelayMs, charset, scheduler);
         }
 
     }
@@ -120,50 +117,17 @@ public final class StringSockets {
         return new Builder(host);
     }
 
-    /**
-     * Returns a <i>synchronous</i>s stream of a count of integers with delayMs
-     * between emissions.
-     * 
-     * @param delayMs
-     * @return stream of integers starting at 1 with delayMs between emissions
-     */
-    private static Observable<Integer> triggersWithDelay(long delayMs) {
-        return just(1)
-                // keep counting
-                .concatWith(
-                        // numbers from 2 on now with delay
-                        range(2, Integer.MAX_VALUE - 1)
-                                // delay till next number released
-                                .delay(delayMs, TimeUnit.MILLISECONDS, Schedulers.immediate()));
-    }
-
-    private static Func1<Integer, Observable<String>> from(final String host, final int port,
-            final Charset charset, long quietTimeoutMs) {
-        return new Func1<Integer, Observable<String>>() {
-            @Override
-            public Observable<String> call(Integer n) {
-                return Observable
-                        // create a stream from a socket and dispose of socket
-                        // appropriately
-                        .using(socketCreator(host, port, quietTimeoutMs),
-                                socketObservableFactory(charset), socketDisposer(), true)
-                        // cannot ask host to slow down so buffer on
-                        // backpressure
-                        .onBackpressureBuffer();
-            }
-        };
-    }
-
     public static Observable<String> strings(final String host, final int port, int quietTimeoutMs,
             final Charset charset) {
+        Preconditions.checkNotNull(host);
+        Preconditions.checkArgument(port >= 0 && port <= 65535, "port must be between 0 and 65535");
+        Preconditions.checkArgument(quietTimeoutMs > 0, "quietTimeoutMs must be > 0");
+        Preconditions.checkNotNull(charset);
         return Observable
                 // create a stream from a socket and dispose of socket
                 // appropriately
                 .using(socketCreator(host, port, quietTimeoutMs), socketObservableFactory(charset),
-                        socketDisposer(), true)
-                // cannot ask host to slow down so buffer on
-                // backpressure
-                .onBackpressureBuffer();
+                        socketDisposer(), true);
     }
 
     @VisibleForTesting
@@ -202,11 +166,9 @@ public final class StringSockets {
                 //
                 .map(hp -> StringSockets
                         .from(hp.getHost(), hp.getPort(), hp.getQuietTimeoutMs(),
-                                hp.getReconnectDelayMs(), StandardCharsets.UTF_8)
+                                hp.getReconnectDelayMs(), StandardCharsets.UTF_8, scheduler)
                         // split by new line character
-                        .compose(o -> Strings.split(o, "\n"))
-                        // make asynchronous
-                        .subscribeOn(scheduler))
+                        .compose(o -> Strings.split(o, "\n")))
                 // merge streams of lines
                 .compose(o -> Observable.merge(o));
     }
