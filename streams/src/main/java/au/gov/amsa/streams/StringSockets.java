@@ -45,6 +45,9 @@ public final class StringSockets {
         // stream on every connect we won't be in a mad loop of
         // failing connections
         return strings(host, port, (int) quietTimeoutMs, charset) //
+                // additional timeout appears to be necessary for certain use
+                // cases like when the server side does not close the socket
+                .timeout(quietTimeoutMs + 100, TimeUnit.MILLISECONDS) //
                 .subscribeOn(scheduler) //
                 // if any exception occurs retry
                 .retryWhen(RetryWhen //
