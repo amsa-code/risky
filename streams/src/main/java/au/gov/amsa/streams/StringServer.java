@@ -12,7 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.Subscriber;
+import rx.internal.util.SubscriptionList;
 import rx.schedulers.Schedulers;
+import rx.subscriptions.Subscriptions;
 
 /**
  * Publishes lines from an Observable&lt;String&gt; source to a
@@ -25,6 +27,7 @@ public final class StringServer {
     private final ServerSocket ss;
     private volatile boolean keepGoing = true;
     private final Observable<String> source;
+    private final SubscriptionList subscriptions = new SubscriptionList();
 
     /**
      * Factory method.
@@ -49,6 +52,7 @@ public final class StringServer {
     private StringServer(Observable<String> source, int port) {
         try {
             this.ss = new ServerSocket(port);
+            subscriptions.add(Subscriptions.create(() -> closeServerSocket()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -71,7 +75,10 @@ public final class StringServer {
                         final OutputStream out = socket.getOutputStream();
 
                         Subscriber<String> subscriber = createSubscriber(socket, socketName, out);
+                        subscriptions.add(subscriber);
                         source.subscribeOn(Schedulers.io())
+                                // remove subscriber from subscriptions on unsub
+                                .doOnUnsubscribe(() -> subscriptions.remove(subscriber))
                                 // write each line to the socket OutputStream
                                 .subscribe(subscriber);
 
@@ -99,13 +106,12 @@ public final class StringServer {
      * Stops the server by closing the ServerSocket.
      */
     public void stop() {
-        log.info("stopping string server on port " + ss.getLocalPort());
         keepGoing = false;
-        closeServerSocket();
-        log.info("stopped string server on port " + ss.getLocalPort());
+        subscriptions.unsubscribe();
     }
 
     private void closeServerSocket() {
+        log.info("stopping string server socket on port " + ss.getLocalPort());
         try {
             ss.close();
         } catch (IOException e) {
