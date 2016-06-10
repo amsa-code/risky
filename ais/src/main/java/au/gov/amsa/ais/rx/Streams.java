@@ -89,9 +89,7 @@ public class Streams {
                 // if error filter out
                 .compose(Streams.<NmeaMessage> valueIfPresent())
                 // aggregate multi line nmea
-                .map(aggregateMultiLineNmea(BUFFER_SIZE))
-                // if error filter out
-                .compose(Streams.<NmeaMessage> valueIfPresent())
+                .compose(aggregateMultiLineNmea(BUFFER_SIZE))
                 // parse ais message and include line
                 .map(TO_AIS_MESSAGE_AND_LINE);
     }
@@ -102,9 +100,7 @@ public class Streams {
                 //
                 .compose(Streams.<NmeaMessage> valueIfPresent())
                 //
-                .map(aggregateMultiLineNmea(BUFFER_SIZE))
-                //
-                .compose(Streams.<NmeaMessage> valueIfPresent())
+                .compose(aggregateMultiLineNmea(BUFFER_SIZE))
                 //
                 .map(TO_AIS_MESSAGE)
                 //
@@ -439,61 +435,40 @@ public class Streams {
         }
     };
 
-    // public static final Func1<NmeaMessage, Observable<NmeaMessage>>
-    // aggregateMultiLineNmea(
-    // final int bufferSize) {
-    // return new Func1<NmeaMessage, Observable<NmeaMessage>>() {
-    // private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
-    //
-    // @Override
-    // public Observable<NmeaMessage> call(NmeaMessage nmea) {
-    // try {
-    // Optional<List<NmeaMessage>> list = buffer.add(nmea);
-    // if (!list.isPresent())
-    // return Observable.empty();
-    // else {
-    // Optional<NmeaMessage> concat = AisNmeaBuffer
-    // .concatenateMessages(list.get());
-    // if (concat.isPresent())
-    // return Observable.just(concat.get());
-    // else
-    // return Observable.empty();
-    // }
-    // } catch (RuntimeException e) {
-    // log.warn(e.getMessage(), e);
-    // return Observable.empty();
-    // }
-    // }
-    // };
-    // }
-
-    public static final Func1<NmeaMessage, Optional<NmeaMessage>> aggregateMultiLineNmea(
-            final int bufferSize) {
-        return new Func1<NmeaMessage, Optional<NmeaMessage>>() {
-
-            private final AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+    public static final Transformer<NmeaMessage, NmeaMessage> aggregateMultiLineNmea(
+            int bufferSize) {
+        return new Transformer<NmeaMessage, NmeaMessage>() {
 
             @Override
-            public Optional<NmeaMessage> call(NmeaMessage nmea) {
-
-                try {
-                    Optional<List<NmeaMessage>> list = buffer.add(nmea);
-                    if (!list.isPresent())
-                        return absent();
-                    else {
-                        Optional<NmeaMessage> concat = AisNmeaBuffer
-                                .concatenateMessages(list.get());
-                        if (concat.isPresent())
-                            return of(concat.get());
-                        else
-                            return absent();
-                    }
-                } catch (RuntimeException e) {
-                    log.warn(e.getMessage(), e);
-                    return absent();
-                }
+            public Observable<NmeaMessage> call(Observable<NmeaMessage> o) {
+                return Observable.defer(() -> {
+                    AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+                    return o.flatMap(nmea -> {
+                        return addToBuffer(buffer, nmea);
+                    });
+                });
             }
+
         };
+    }
+
+    private static Observable<? extends NmeaMessage> addToBuffer(AisNmeaBuffer buffer,
+            NmeaMessage nmea) {
+        try {
+            Optional<List<NmeaMessage>> list = buffer.add(nmea);
+            if (!list.isPresent())
+                return Observable.empty();
+            else {
+                Optional<NmeaMessage> concat = AisNmeaBuffer.concatenateMessages(list.get());
+                if (concat.isPresent())
+                    return Observable.just(concat.get());
+                else
+                    return Observable.empty();
+            }
+        } catch (RuntimeException e) {
+            log.warn(e.getMessage(), e);
+            return Observable.empty();
+        }
     }
 
     // private static Charset US_ASCII = Charset.forName("US-ASCII");

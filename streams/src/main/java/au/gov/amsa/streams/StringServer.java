@@ -71,6 +71,7 @@ public final class StringServer {
                     final Socket socket = ss.accept();
                     final String socketName = socket.getInetAddress().getHostAddress() + ":"
                             + socket.getPort();
+                    log.info("accepted socket connection from " + socketName);
                     try {
                         final OutputStream out = socket.getOutputStream();
 
@@ -86,9 +87,11 @@ public final class StringServer {
                         // could not get output stream (could have closed very
                         // quickly after connecting)
                         // dont' care
+                        log.warn(e.getClass().getSimpleName() + ": " + e.getMessage());
                     }
                 } catch (SocketTimeoutException e) {
                     // don't care
+                    log.warn(e.getClass().getSimpleName() + ": " + e.getMessage());
                 }
             }
         } catch (IOException e) {

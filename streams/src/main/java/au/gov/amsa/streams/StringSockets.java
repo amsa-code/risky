@@ -136,7 +136,6 @@ public final class StringSockets {
     @VisibleForTesting
     static Func0<Socket> socketCreator(final String host, final int port, long quietTimeoutMs) {
         return Checked.f0(() -> {
-            log.info("creating socket to " + host + ":" + port);
             Socket socket = new Socket(host, port);
             socket.setSoTimeout((int) quietTimeoutMs);
             return socket;
