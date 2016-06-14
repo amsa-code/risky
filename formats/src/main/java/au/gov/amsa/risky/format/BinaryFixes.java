@@ -166,8 +166,6 @@ public final class BinaryFixes {
         final AtomicLong totalSizeBytes = new AtomicLong();
         final Action1<File> preSortAction = createLogAction(numFiles, totalSizeBytes);
         return Observable.just(output)
-                // just does not support backpressure so add it
-                .onBackpressureBuffer()
                 // log
                 .lift(Logging.<File> logger().prefix("sorting files in folder ").log())
                 // find the track files
