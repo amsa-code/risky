@@ -122,7 +122,7 @@ public class Streams {
     }
 
     public static Observable<Fix> extractFixes(Observable<String> rawAisNmea) {
-        return extractMessages(rawAisNmea).flatMap(TO_FIX);
+        return extractMessages(rawAisNmea).flatMap(TO_FIX, 1);
     }
 
     private static final Func1<Timestamped<AisMessage>, Observable<Fix>> TO_FIX = m -> {
@@ -443,9 +443,10 @@ public class Streams {
             public Observable<NmeaMessage> call(Observable<NmeaMessage> o) {
                 return Observable.defer(() -> {
                     AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+                    // use maxConcurrent so doesn't request unbounded
                     return o.flatMap(nmea -> {
                         return addToBuffer(buffer, nmea);
-                    });
+                    } , 1);
                 });
             }
 
@@ -632,7 +633,7 @@ public class Streams {
                 .buffer(Math.max(fileList.size() / Runtime.getRuntime().availableProcessors(), 1))
                 // extract fixes
                 .flatMap(extractFixesFromNmeaGzAndAppendToFile(linesPerProcessor, scheduler,
-                        fileMapper, writeBufferSize, logger))
+                        fileMapper, writeBufferSize, logger), 1)
                 // count number written fixes
                 .scan(0, (a, b) -> a + b)
                 // log
