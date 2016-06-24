@@ -207,5 +207,34 @@
 				</plugins>
 			</build>
 		</profile>
+        <profile>
+            <id>ssl</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>${exec.version}</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <classpathScope>test</classpathScope>
+                            <mainClass>au.gov.amsa.ais.MariwebSslConnectMain</mainClass>
+                            <systemProperties>
+                                <systemProperty>
+                                    <key>password</key>
+                                    <value>${password}</value>
+                                </systemProperty>
+                            </systemProperties>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
 	</profiles>
 </project>
