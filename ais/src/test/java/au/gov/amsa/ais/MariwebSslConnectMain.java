@@ -49,7 +49,7 @@ public final class MariwebSslConnectMain {
         if (password == null)
             throw new IllegalArgumentException("you must set the 'password' system property");
 
-        String command = "$PMWLSS," + System.currentTimeMillis() / 1000 + ",4,CSIRO," + password
+        String command = "$PMWLSS," + System.currentTimeMillis() / 1000 + ",4,amsa," + password
                 + ",1*";
         String checksum = NmeaUtil.getChecksum(command);
         command = command + checksum + "\r\n";
