@@ -126,11 +126,16 @@ public final class StringSockets {
         Preconditions.checkArgument(port >= 0 && port <= 65535, "port must be between 0 and 65535");
         Preconditions.checkArgument(quietTimeoutMs > 0, "quietTimeoutMs must be > 0");
         Preconditions.checkNotNull(charset);
+        return strings(socketCreator(host, port, quietTimeoutMs), charset);
+    }
+
+    public static Observable<String> strings(Func0<Socket> socketCreator, final Charset charset) {
+        Preconditions.checkNotNull(socketCreator);
+        Preconditions.checkNotNull(charset);
         return Observable
                 // create a stream from a socket and dispose of socket
                 // appropriately
-                .using(socketCreator(host, port, quietTimeoutMs), socketObservableFactory(charset),
-                        socketDisposer(), true);
+                .using(socketCreator, socketObservableFactory(charset), socketDisposer(), true);
     }
 
     @VisibleForTesting
