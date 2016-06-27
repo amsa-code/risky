@@ -44,7 +44,13 @@ public final class StringSockets {
         // delay connect by delayMs so that if server closes
         // stream on every connect we won't be in a mad loop of
         // failing connections
-        return strings(host, port, (int) quietTimeoutMs, charset) //
+        return from(socketCreator(host, port, (int) quietTimeoutMs), quietTimeoutMs,
+                reconnectDelayMs, charset, scheduler); //
+    }
+
+    public static Observable<String> from(Func0<Socket> socketCreator, long quietTimeoutMs,
+            long reconnectDelayMs, Charset charset, Scheduler scheduler) {
+        return strings(socketCreator, charset) //
                 // additional timeout appears to be necessary for certain use
                 // cases like when the server side does not close the socket
                 .timeout(quietTimeoutMs + 100, TimeUnit.MILLISECONDS) //
