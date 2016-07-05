@@ -1,16 +1,10 @@
 package au.gov.amsa.streams;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.Charset;
 
 import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func0;
 import rx.functions.Func1;
 
 /**
@@ -63,33 +57,7 @@ public final class Strings {
     }
 
     public static Observable<String> from(final File file, final Charset charset) {
-        Func0<Reader> resourceFactory = new Func0<Reader>() {
-            @Override
-            public Reader call() {
-                try {
-                    return new InputStreamReader(new FileInputStream(file), charset);
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        };
-        Func1<Reader, Observable<String>> observableFactory = new Func1<Reader, Observable<String>>() {
-            @Override
-            public Observable<String> call(Reader is) {
-                return from(is);
-            }
-        };
-        Action1<Reader> disposeAction = new Action1<Reader>() {
-            @Override
-            public void call(Reader is) {
-                try {
-                    is.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        return Observable.using(resourceFactory, observableFactory, disposeAction, true);
+        return com.github.davidmoten.rx.Strings.from(file, charset);
     }
 
 }
