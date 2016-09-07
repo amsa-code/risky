@@ -76,6 +76,18 @@ public final class Shapefile {
         return fromZip(is, 0);
     }
 
+    public static DataStore fromZipAsDataStore(InputStream is) {
+        try {
+            File directory = Files.createTempDirectory("shape-").toFile();
+            ZipUtil.unzip(is, directory);
+            Map<String, Serializable> map = new HashMap<>();
+            map.put("url", directory.toURI().toURL());
+            return DataStoreFinder.getDataStore(map);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static Shapefile fromZip(InputStream is, double bufferDistance) {
         try {
             File directory = Files.createTempDirectory("shape-").toFile();

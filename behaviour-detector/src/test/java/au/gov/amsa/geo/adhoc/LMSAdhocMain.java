@@ -11,11 +11,12 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.github.davidmoten.rx.Functions;
 
 import au.gov.amsa.ais.ShipTypeDecoder;
 import au.gov.amsa.gt.Shapefile;
@@ -32,12 +33,10 @@ public class LMSAdhocMain {
     private static final Logger log = LoggerFactory.getLogger(LMSAdhocMain.class);
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
-        ExecutorService es;
         Map<Integer, Info> ships = ShipStaticData.getMapFromResource("/ship-data-2014.txt");
         Pattern pattern = Pattern.compile(".*\\.track");
-        File base = new File("/media/an/binary-fixes-lms");
-        List<File> files = Files.find(new File(base, "2015"), pattern);
-        files.addAll(Files.find(new File(base, "2016"), pattern));
+        File base = new File("/media/an/binary-fixes-lms2");
+        List<File> files = Files.find(new File(base, "2016"), pattern);
         log.info("files=" + files.size());
 
         Func2<Fix, Fix, Integer> ascendingTime = (a, b) -> ((Long) a.time()).compareTo(b.time());
@@ -62,7 +61,8 @@ public class LMSAdhocMain {
                         // .doOnNext(System.out::println)
                         .concatMap(file -> detectCrossings(file, region))
                         // count out to in crossings
-                        .toSortedList(ascendingTime).flatMap(o -> Observable.from(o))
+                        .toSortedList(ascendingTime) //
+                        .flatMapIterable(Functions.identity()) //
                         // log
                         .doOnNext(fix -> {
                             Info info = ships.get(fix.mmsi());
