@@ -34,7 +34,7 @@ In terms of variance in the formulae above, we have the 95% position error margi
 
 &nbsp;&nbsp;&nbsp;&nbsp;sd = e / 3.92
 
-and because sd = &sqrt;variance we have 
+and because sd = &radic;variance we have 
 
 &nbsp;&nbsp;&nbsp;&nbsp;variance = (e/3.92)<sup>2</sup>
 
