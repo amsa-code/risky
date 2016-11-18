@@ -38,6 +38,8 @@ We want to find a regression function **f** that is smooth (say with continous 2
 
 Note that the distance function above maps time difference into distance by multiplying time by the mean drift speed. This is a somewhat arbitrary mapping but seems reasonable at the moment!
 
+A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
+
 
 
 #Implementation
