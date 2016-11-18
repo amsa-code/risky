@@ -26,9 +26,9 @@ So we have a set of tuples (the beacon detections for a target drifting at the o
 
 In terms of the variance in spatial distance, we have the 95% position error margin **&delta;**. Assuming a normal distribution this suggests
 
-&nbsp;&nbsp;&nbsp;&nbsp;sd = &delta; / 3.92
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;standard\&space;deviation\&space;\sigma&space;=&space;\frac{\delta}{3.92}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;standard\&space;deviation\&space;\sigma&space;=&space;\frac{\delta}{3.92}" title="standard\ deviation\ \sigma = \frac{\delta}{3.92}" /></a>
 
-and because sd = &radic;variance we have 
+and because &sigma; = &radic;variance we have 
 
 &nbsp;&nbsp;&nbsp;&nbsp;variance = (e/3.92)<sup>2</sup>
 
