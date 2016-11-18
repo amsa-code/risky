@@ -22,7 +22,7 @@ The domain of values is assumed small enough that cartesian spatial distance cal
 
 So we have a set of tuples (the beacon detections for a target drifting at the ocean surface):
 
-&nbsp;&nbsp;**{ (x<sub>i</sub>, y<sub>i</sub>, z<sub>i</sub>, e<sub>i</sub>) : 1 <= i <= n s.t t<sub>i+1</sub> >= t<sub>i</sub> }**
+&nbsp;&nbsp;&nbsp;&nbsp;{ (x<sub>i</sub>, y<sub>i</sub>, z<sub>i</sub>, e<sub>i</sub>) : 1 <= i <= n s.t t<sub>i+1</sub> >= t<sub>i</sub> }
 
 #Implementation
 Algorithm-wise looks like the *Levenberg-Marquardt* method is used to solve the problem and *apache commons-math* is one java implementation of 
