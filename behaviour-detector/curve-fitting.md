@@ -24,6 +24,10 @@ So we have a set of tuples (the beacon detections for a target drifting at the o
 
 &nbsp;&nbsp;&nbsp;&nbsp;{ (x<sub>i</sub>, y<sub>i</sub>, z<sub>i</sub>, e<sub>i</sub>) : 1 <= i <= n s.t t<sub>i+1</sub> >= t<sub>i</sub> }
 
+We want to find a regression function **f** that is smooth (say with continous 2nd-derivative) that takes a time as input and provides a position. This regression function will minimize (locally only perhaps) a cost function:
+
+&nbsp;&nbsp;&nbsp;&nbsp;M = 
+
 #Implementation
 Algorithm-wise looks like the *Levenberg-Marquardt* method is used to solve the problem and *apache commons-math* is one java implementation of 
 that algorithm.
