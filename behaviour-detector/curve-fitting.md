@@ -22,7 +22,7 @@ The domain of values is assumed small enough that cartesian spatial distance cal
 
 So we have a set of tuples (the beacon detections for a target drifting at the ocean surface):
 
-&nbsp;&nbsp;&nbsp;&nbsp;{ (x<sub>i</sub>, y<sub>i</sub>, z<sub>i</sub>, e<sub>i</sub>) : 1 <= i <= n s.t t<sub>i+1</sub> >= t<sub>i</sub> }
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;(x_i,y_i,t_i,\delta_i)\&space;for\&space;i=1..n" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;(x_i,y_i,t_i,\delta_i)\&space;for\&space;i=1..n" title="(x_i,y_i,t_i,\delta_i)\ for\ i=1..n" /></a>
 
 In terms of the variance in spatial distance, we have the 95% position error margin **e**. Assuming a normal distribution this suggests
 
