@@ -32,11 +32,11 @@ Note that the distance function above maps time difference into distance by mult
 
 In terms of variance in the formulae above, we have the 95% error margin for a detection **e**. Assuming a normal distribution this suggests
 
-&nbsp;nbsp;&nbsp;nbsp;sd = e / 3.92
+&nbsp;&nbsp;&nbsp;&nbsp;sd = e / 3.92
 
 thus 
 
-&nbsp;nbsp;&nbsp;nbsp;variance = (e/3.92)<sup>2</sup>
+&nbsp;&nbsp;&nbsp;&nbsp;variance = (e/3.92)<sup>2</sup>
 
 #Implementation
 Algorithm-wise looks like the *Levenberg-Marquardt* method is used to solve the problem and *apache commons-math* is one java implementation of 
