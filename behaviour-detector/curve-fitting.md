@@ -16,7 +16,7 @@ The problem does need precise definition though particularly as any optimization
 Each detection can be described by the tuple **(x, y, t, e)** where 
 * **x** and **y** are the position coordinates 
 * **t** is the time of the detection (assumed 100% accurate)
-* **e** is the 95% error margin on the position 
+* **&delta;** is the 95% error margin on the position 
 
 The domain of values is assumed small enough that cartesian spatial distance calculation can be used instead of great-circle formulae.
 
@@ -24,9 +24,9 @@ So we have a set of tuples (the beacon detections for a target drifting at the o
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;(x_i,y_i,t_i,\delta_i)\&space;for\&space;i=1..n" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;(x_i,y_i,t_i,\delta_i)\&space;for\&space;i=1..n" title="(x_i,y_i,t_i,\delta_i)\ for\ i=1..n" /></a>
 
-In terms of the variance in spatial distance, we have the 95% position error margin **e**. Assuming a normal distribution this suggests
+In terms of the variance in spatial distance, we have the 95% position error margin **&delta;**. Assuming a normal distribution this suggests
 
-&nbsp;&nbsp;&nbsp;&nbsp;sd = e / 3.92
+&nbsp;&nbsp;&nbsp;&nbsp;sd = &delta; / 3.92
 
 and because sd = &radic;variance we have 
 
@@ -34,7 +34,11 @@ and because sd = &radic;variance we have
 
 We want to find a regression function **f** that is smooth (say with continous derivative) that takes a time as input and provides a position. This regression function will minimize (locally only perhaps) a cost function:
 
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;M(f)&space;=&space;\sum_{i=1}^{n}&space;w_i&space;.&space;(f(T_i)_x&space;-&space;x_i)^2&space;&plus;&space;(f(T_i)_y&space;-&space;y_i)^2\newline&space;where\newline\newline&space;\indent&space;weight\&space;w_i&space;=&space;\frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline&space;\indent&space;variance\&space;\sigma_i^2&space;=&space;\frac{e_i^2}{{3.92}^2}\newline\newline&space;\indent&space;\alpha\&space;is\&space;a\&space;constant\&space;yet\&space;to\&space;be\&space;determined!" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;M(f)&space;=&space;\sum_{i=1}^{n}&space;w_i&space;.&space;(f(T_i)_x&space;-&space;x_i)^2&space;&plus;&space;(f(T_i)_y&space;-&space;y_i)^2\newline&space;where\newline\newline&space;\indent&space;weight\&space;w_i&space;=&space;\frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline&space;\indent&space;variance\&space;\sigma_i^2&space;=&space;\frac{e_i^2}{{3.92}^2}\newline\newline&space;\indent&space;\alpha\&space;is\&space;a\&space;constant\&space;yet\&space;to\&space;be\&space;determined!" title="M(f) = \sum_{i=1}^{n} w_i . (f(T_i)_x - x_i)^2 + (f(T_i)_y - y_i)^2\newline where\newline\newline \indent weight\ w_i = \frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline \indent variance\ \sigma_i^2 = \frac{e_i^2}{{3.92}^2}\newline\newline \indent \alpha\ is\ a\ constant\ yet\ to\ be\ determined!" /></a>
+&nbsp;&nbsp;&nbsp;&nbsp;M(f) = \sum_{i=1}^{n} w_i . (f(T_i)_x - x_i)^2 + (f(T_i)_y - y_i)^2\newline 
+where\newline\newline 
+\indent weight\ w_i = \frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline 
+\indent variance\ \sigma_i^2 = \frac{\delta_i^2}{{3.92}^2}\newline\newline
+\indent \alpha\ is\ a\ constant\ yet\ to\ be\ determined!
 
 Note that the distance function above maps time difference into distance by multiplying time by the mean drift speed. This is a somewhat arbitrary mapping but seems reasonable at the moment!
 
