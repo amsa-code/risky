@@ -28,9 +28,9 @@ In terms of the variance in spatial distance, we have the 95% position error mar
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;standard\&space;deviation\&space;\sigma&space;=&space;\frac{\delta}{3.92}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;standard\&space;deviation\&space;\sigma&space;=&space;\frac{\delta}{3.92}" title="standard\ deviation\ \sigma = \frac{\delta}{3.92}" /></a>
 
-and because &sigma; = &radic;variance we have 
+therefore 
 
-&nbsp;&nbsp;&nbsp;&nbsp;variance = (e/3.92)<sup>2</sup>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;variance\&space;\sigma^2&space;=&space;\frac{\delta^2}{3.92^2}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;variance\&space;\sigma^2&space;=&space;\frac{\delta^2}{3.92^2}" title="variance\ \sigma^2 = \frac{\delta^2}{3.92^2}" /></a>
 
 We want to find a regression function **f** that is smooth (say with continous derivative) that takes a time as input and provides a position. This regression function will minimize (locally only perhaps) a cost function:
 
