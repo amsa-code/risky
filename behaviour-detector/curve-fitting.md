@@ -34,11 +34,7 @@ and because &sigma; = &radic;variance we have
 
 We want to find a regression function **f** that is smooth (say with continous derivative) that takes a time as input and provides a position. This regression function will minimize (locally only perhaps) a cost function:
 
-&nbsp;&nbsp;&nbsp;&nbsp;M(f) = \sum_{i=1}^{n} w_i . (f(T_i)_x - x_i)^2 + (f(T_i)_y - y_i)^2\newline 
-where\newline\newline 
-\indent weight\ w_i = \frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline 
-\indent variance\ \sigma_i^2 = \frac{\delta_i^2}{{3.92}^2}\newline\newline
-\indent \alpha\ is\ a\ constant\ yet\ to\ be\ determined!
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;M(f)&space;=&space;\sum_{i=1}^{n}&space;w_i&space;.&space;(f(T_i)_x&space;-&space;x_i)^2&space;&plus;&space;(f(T_i)_y&space;-&space;y_i)^2\newline&space;where\newline\newline&space;\indent&space;weight\&space;w_i&space;=&space;\frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline&space;\indent&space;variance\&space;\sigma_i^2&space;=&space;\frac{\delta_i^2}{{3.92}^2}\newline\newline&space;\indent&space;\alpha\&space;is\&space;a\&space;constant\&space;yet\&space;to\&space;be\&space;determined!" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;M(f)&space;=&space;\sum_{i=1}^{n}&space;w_i&space;.&space;(f(T_i)_x&space;-&space;x_i)^2&space;&plus;&space;(f(T_i)_y&space;-&space;y_i)^2\newline&space;where\newline\newline&space;\indent&space;weight\&space;w_i&space;=&space;\frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline&space;\indent&space;variance\&space;\sigma_i^2&space;=&space;\frac{\delta_i^2}{{3.92}^2}\newline\newline&space;\indent&space;\alpha\&space;is\&space;a\&space;constant\&space;yet\&space;to\&space;be\&space;determined!" title="M(f) = \sum_{i=1}^{n} w_i . (f(T_i)_x - x_i)^2 + (f(T_i)_y - y_i)^2\newline where\newline\newline \indent weight\ w_i = \frac{1}{\sigma_i^2e^{\alpha|T_i-t_i|}}\newline \indent variance\ \sigma_i^2 = \frac{\delta_i^2}{{3.92}^2}\newline\newline \indent \alpha\ is\ a\ constant\ yet\ to\ be\ determined!" /></a>
 
 Note that the distance function above maps time difference into distance by multiplying time by the mean drift speed. This is a somewhat arbitrary mapping but seems reasonable at the moment!
 
