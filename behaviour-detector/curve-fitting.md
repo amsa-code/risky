@@ -30,11 +30,11 @@ We want to find a regression function **f** that is smooth (say with continous 2
 
 Note that the distance function above maps time difference into distance by multiplying time by the mean drift speed. This is a somewhat arbitrary mapping but seems reasonable at the moment!
 
-In terms of variance in the formulae above, we have the 95% error margin for a detection **e**. Assuming a normal distribution this suggests
+In terms of variance in the formulae above, we have the 95% position error margin **e**. Assuming a normal distribution this suggests
 
 &nbsp;&nbsp;&nbsp;&nbsp;sd = e / 3.92
 
-thus 
+and because sd = &sqrt;variance we have 
 
 &nbsp;&nbsp;&nbsp;&nbsp;variance = (e/3.92)<sup>2</sup>
 
