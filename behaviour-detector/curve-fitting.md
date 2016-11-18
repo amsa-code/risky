@@ -14,7 +14,7 @@ The problem does need precise definition though particularly as any optimization
 
 ##Definition
 Each detection can be described by the tuple **(x, y, t, e)** where 
-* **x** and **y** are the position coordinates in a projection where cartesian distance is a close enough approximation to actual great circle distance.
+* **x** and **y** are the position coordinates 
 * **t** is the time of the detection (assumed 100% accurate)
 * **e** is the 95% error margin on the position 
 
