@@ -42,6 +42,8 @@ For example, a weight function like this might be chosen instead:
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;weight\&space;w_i(t)&space;=&space;\frac{1}{\sigma_i^2(\varepsilon&space;&plus;&space;(t-t_i)^2)}\newline\newline&space;\indent&space;where\&space;\varepsilon\&space;is\&space;some\&space;small\&space;constant\newline\newline" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;weight\&space;w_i(t)&space;=&space;\frac{1}{\sigma_i^2(\varepsilon&space;&plus;&space;(t-t_i)^2)}\newline\newline&space;\indent&space;where\&space;\varepsilon\&space;is\&space;some\&space;small\&space;constant\newline\newline" title="weight\ w_i(t) = \frac{1}{\sigma_i^2(\varepsilon + (t-t_i)^2)}\newline\newline \indent where\ \varepsilon\ is\ some\ small\ constant\newline\newline" /></a>
 
+Note that the choice of constants &alpha; and &epsilon; in the weight function alternatives above will most likely be related to the expected speed of the target. We will want the choice of constant to reflect that points far enough dispersed in space and time that the effective speed to travel between them is beyond reasonable expectations should not affect the calculated path.
+
 A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
 
 #Implementation
