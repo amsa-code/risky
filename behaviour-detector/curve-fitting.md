@@ -10,7 +10,7 @@ path for the target taking into account all the detections and with so many dete
 
 Dave Moten's investigations so far indicate that one viable approach to calculating a best path (and its associated error bounds) is by applying a technique called *non-linear weighted least-squares regression*.
 
-The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time (so time difference probably needs to be mapped sensibly into a spatial distance measure).
+The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time. 
 
 ##Definition
 Each detection can be described by the tuple **(x, y, t, &delta;)** where 
