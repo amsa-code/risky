@@ -38,6 +38,10 @@ We want to find a regression function **f** that is smooth (say with continous d
 
 The weight function was constructed by multiplying a weight due to variance (this is a standard approach) with a weight due to the difference in time (we value positions more that are closer in time to the time of interest). The exponential of the magnitude of the difference in times has been used because it has appropriate behaviour at the extremes (times close, times not close) but beyond that the use of exponential is arbitrary and further consideration will be needed to justify its use over some other function.
 
+For example, a weight function like this might be chosen instead:
+
+
+
 A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
 
 
