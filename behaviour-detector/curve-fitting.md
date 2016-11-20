@@ -4,7 +4,7 @@ The arrival of MEOSAR satellites on the beacon detection scene has brought about
 Rescue operational staff. 
 
 Without getting into a lot of detail (I don't know it!) the issue is that beacon detections arrive for a single beacon much more frequently (say every 30 seconds
-) and each report comes with a 95% error margin value (called *accuracy* in the domain). The 95% error marging of a report may range from 120m for a good quality 
+) and each report comes with a 95% error margin value (called *accuracy* in the domain). The 95% error margin of a report may range from 120m for a good quality 
 GPS measurement to 15nm for when Doppler measurements are part of the calculation. Search and Rescue staff want to know the best guessed
 path for the target taking into account all the detections and with so many detections of varying quality it's quite difficult to sort out.
 
