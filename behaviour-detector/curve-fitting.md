@@ -8,7 +8,7 @@ Without getting into a lot of detail (I don't know it!) the issue is that beacon
 GPS measurement to 15nm for when Doppler measurements are part of the calculation. Search and Rescue staff want to know the best guessed historical
 path for the target taking into account all the detections and with so many detections of varying quality it's quite difficult to sort out.
 
-Dave Moten's investigations so far indicate that one viable approach to calculating a best path (and its associated error bounds) is by applying a technique called *non-linear weighted least-squares regression*.
+Dave Moten's investigations so far indicate that one viable approach to calculating a best path (and its associated error bounds) is by applying a technique called *non-linear weighted least-squares regression*. 
 
 The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time. 
 
