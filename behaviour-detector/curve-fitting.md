@@ -13,7 +13,7 @@ Dave Moten's investigations so far indicate that one viable approach to calculat
 The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time. 
 
 ##Definition
-Each detection can be described by the tuple **(x, y, t, &delta;)** where 
+Each detection can be described by the tuple <p style="font-family:verdana;font-weight:bold">(x, y, t, &delta;)</p> where 
 * **x** and **y** are the position coordinates 
 * **t** is the time of the detection (assumed 100% accurate)
 * **&delta;** is the 95% error margin on the position 
