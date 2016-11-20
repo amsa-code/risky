@@ -13,10 +13,10 @@ Dave Moten's investigations so far indicate that one viable approach to calculat
 The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time. 
 
 ##Definition
-Each detection can be described by the tuple (x, y, t, &delta;) where 
-* x and y are the position coordinates 
-* t is the time of the detection (assumed 100% accurate)
-* &delta; is the 95% error margin on the position 
+Each detection can be described by the tuple *(x, y, t, &delta;)* where 
+* *x* and *y* are the position coordinates 
+* *t* is the time of the detection (assumed 100% accurate)
+* *&delta;* is the 95% error margin on the position 
 
 The domain of values is assumed small enough that cartesian spatial distance calculation can be used instead of great-circle formulae.
 
@@ -24,7 +24,7 @@ So we have a set of tuples (the beacon detections for a target drifting at the o
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;(x_i,y_i,t_i,\delta_i)\&space;for\&space;i=1..n" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;(x_i,y_i,t_i,\delta_i)\&space;for\&space;i=1..n" title="(x_i,y_i,t_i,\delta_i)\ for\ i=1..n" /></a>
 
-In terms of the variance in spatial distance, we have the 95% position error margin &delta;. Assuming a normal distribution this suggests
+In terms of the variance in spatial distance, we have the 95% position error margin *&delta;*. Assuming a normal distribution this suggests
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;standard\&space;deviation\&space;\sigma&space;=&space;\frac{\delta}{3.92}" target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;standard\&space;deviation\&space;\sigma&space;=&space;\frac{\delta}{3.92}" title="standard\ deviation\ \sigma = \frac{\delta}{3.92}" /></a>
 
