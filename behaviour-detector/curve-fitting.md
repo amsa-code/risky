@@ -42,8 +42,6 @@ For example, a weight function like this might be chosen instead:
 
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;weight\&space;w_i(t)&space;=&space;\left\{\begin{matrix}&space;0&space;&&space;if\&space;d(i)=0\&space;and\&space;t&space;=&space;t_i\&space;,&space;\\\frac{1}{\sigma_i^2&space;.&space;(\frac{d_i(t)}{\mu_{speed}&space;&plus;&space;2\sigma_{speed}}&space;&plus;&space;|t-t_i|)^2}&space;&&space;otherwise&space;\end{matrix}\right." target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;weight\&space;w_i(t)&space;=&space;\left\{\begin{matrix}&space;0&space;&&space;if\&space;d(i)=0\&space;and\&space;t&space;=&space;t_i\&space;,&space;\\\frac{1}{\sigma_i^2&space;.&space;(\frac{d_i(t)}{\mu_{speed}&space;&plus;&space;2\sigma_{speed}}&space;&plus;&space;|t-t_i|)^2}&space;&&space;otherwise&space;\end{matrix}\right." title="weight\ w_i(t) = \left\{\begin{matrix} 0 & if\ d(i)=0\ and\ t = t_i\ , \\\frac{1}{\sigma_i^2 . (\frac{d_i(t)}{s} + |t-t_i|)^2} & otherwise \end{matrix}\right." /></a>
 
-Note that the choice of constant &epsilon; in the weight function above will most likely be related to the distrubution of target speeds or perhaps the recent speed of the target. We will want the choice of constant to reflect that points far enough dispersed in space and time that the effective speed to travel between them is beyond reasonable expectations should not affect the calculated path.
-
 A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
 
 #Implementation
