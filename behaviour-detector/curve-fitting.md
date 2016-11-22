@@ -38,10 +38,6 @@ We want to find a regression function **f** that is smooth (say with continous d
 
 The weight function was constructed by multiplying a weight due to variance (this is a [standard approach](https://onlinecourses.science.psu.edu/stat501/node/352)) with a weight due to the difference in time (for which I am not aware of a standard approach yet). The weight due to difference in time should be high for timestamped positions that imply a reasonable effective speed, and low for timestamped positions that imply an unreasonable effective speed. 
 
-For example, a weight function like this might be chosen instead:
-
-&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.codecogs.com/eqnedit.php?latex=\fn_jvn&space;weight\&space;w_i(t)&space;=&space;\left\{\begin{matrix}&space;\infty&space;&&space;if\&space;d(i)=0\&space;and\&space;t&space;=&space;t_i\&space;,&space;\\\frac{1}{\sigma_i^2&space;.&space;(d_i(t)&space;&plus;&space;s|t-t_i|)^2}&space;&&space;otherwise&space;\end{matrix}\right." target="_blank"><img src="https://latex.codecogs.com/gif.latex?\fn_jvn&space;weight\&space;w_i(t)&space;=&space;\left\{\begin{matrix}&space;\infty&space;&&space;if\&space;d(i)=0\&space;and\&space;t&space;=&space;t_i\&space;,&space;\\\frac{1}{\sigma_i^2&space;.&space;(d_i(t)&space;&plus;&space;s|t-t_i|)^2}&space;&&space;otherwise&space;\end{matrix}\right." title="weight\ w_i(t) = \left\{\begin{matrix} \infty & if\ d(i)=0\ and\ t = t_i\ , \\\frac{1}{\sigma_i^2 . (d_i(t) + s|t-t_i|)^2} & otherwise \end{matrix}\right." /></a>
-
 A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
 
 #Implementation
