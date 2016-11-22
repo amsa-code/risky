@@ -41,5 +41,6 @@ The weight function was constructed by multiplying a weight due to variance (thi
 A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
 
 #Implementation
-Algorithm-wise looks like the *Levenberg-Marquardt* method is used to solve the problem and *apache commons-math* is one java implementation of 
-that algorithm.
+Algorithm-wise looks like the *Levenberg-Marquardt* method could be used to solve the problem and *apache commons-math* is one java implementation of that algorithm. Another implemenation [ddogleg](https://github.com/lessthanoptimal/ddogleg) has an implementation that according to the project author would support the weight customisation proposed above. 
+
+Given the weight due to difference in time may adversely affect the robustness of methods like *Levenberg-Marquardt* it might be advisable to code up a brute force algorithm that doesn't rely on the differentiability of M (the absolute value term could cause problems).
