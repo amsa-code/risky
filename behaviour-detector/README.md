@@ -1,6 +1,8 @@
 behaviour-detector
 ====================
 
+[Curve fitting for a drifting object](curve-fitting.md)
+
 Drift detection
 ------------------
 Using course, heading and speed we have simple criteria for detecting if a position report is a drift candidate:
