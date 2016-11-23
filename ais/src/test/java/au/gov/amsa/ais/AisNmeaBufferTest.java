@@ -34,8 +34,8 @@ public class AisNmeaBufferTest {
         String line1 = "\\g:1-2-1130,c:1334278696*29\\!BSVDM,2,1,0,A,55DSBL02<Dm7<I`OP005<T4r0hTiT00000000016=hJ<855f?>kV`54Qh000,0*0B";
         String line2 = "\\g:2-2-1130*5E\\!BSVDM,2,2,0,A,00000000002,0*3D";
         assertFalse(buffer.add(NmeaUtil.parseNmea(line1)).isPresent());
-        NmeaMessage m = AisNmeaBuffer.concatenateMessages(
-                buffer.add(NmeaUtil.parseNmea(line2)).get()).get();
+        NmeaMessage m = AisNmeaBuffer
+                .concatenateMessages(buffer.add(NmeaUtil.parseNmea(line2)).get()).get();
         // check that column 5 in line2 is appended to column 5 in line 1 and
         // line count and line number are 1 and tag block is as for line1.
         // System.out.println(m.toLine());
@@ -48,7 +48,8 @@ public class AisNmeaBufferTest {
         // 0));
     }
 
-    private void checkTwoLinesAreBufferedAndAggregateIsReturnedWhenOutOfOrder(AisNmeaBuffer buffer) {
+    private void checkTwoLinesAreBufferedAndAggregateIsReturnedWhenOutOfOrder(
+            AisNmeaBuffer buffer) {
         String line1 = "\\g:2-2-3987*58\\!BSVDM,2,2,0,A,lQ@@0000002,0*00";
         String line2 = "\\g:1-2-3987,c:1333239510*20\\!BSVDM,2,1,0,A,54`98002>?A1`<AGD00lEBr0PD5@PE:1<4hiT01CKh`IC4w8NKjCPj1Ck`2k,0*7C";
         assertFalse(buffer.add(NmeaUtil.parseNmea(line1)).isPresent());
@@ -116,6 +117,60 @@ public class AisNmeaBufferTest {
         assertEquals(m, concatenateMessages(buffer.add(m).get()).get());
         AisNmeaMessage a = new AisNmeaMessage(m.toLine());
         assertEquals(1334073836000L, (long) a.getTime());
+    }
+
+    @Test
+    public void testNmea4_1SentenceTagsCanGetSourceAndTimestamp() {
+        AisNmeaBuffer buffer = new AisNmeaBuffer(5);
+        String line1 = "\\1G2:20856,s:Vlamingh Head,c:1479865268*6D\\";
+        String line2 = "\\2G2:20856*44\\!ABVDM,1,1,5,A,13ohwb30068B1uEldHQ05UNB0L0S,0*24";
+        assertFalse(buffer.add(NmeaUtil.parseNmea(line1)).isPresent());
+        NmeaMessage m = AisNmeaBuffer
+                .concatenateMessages(buffer.add(NmeaUtil.parseNmea(line2)).get()).get();
+        System.out.println(m.getTags());
+        assertEquals("Vlamingh Head", m.getSource());
+        assertEquals(1479865268000L, (long) m.getUnixTimeMillis());
+    }
+
+    @Test
+    public void testNmea4_1SentenceTagsWithVsiMessage() {
+        AisNmeaBuffer buffer = new AisNmeaBuffer(5);
+        String line1 = "\\1G3:12305,s:Mt Yarrabah B,c:1479869400*1B\\";
+        String line2 = "\\2G3:12305*49\\!ABVDM,1,1,2,B,H7OjN44t3?=1B00F=Aqhlm2@?340,0*66";
+        String line3 = "\\3G3:12305*48\\$ABVSI,Mt Yarrabah B,2,025000,63,-100,22*2A";
+        assertFalse(buffer.add(NmeaUtil.parseNmea(line1)).isPresent());
+        assertFalse(buffer.add(NmeaUtil.parseNmea(line2)).isPresent());
+        NmeaMessage m = AisNmeaBuffer
+                .concatenateMessages(buffer.add(NmeaUtil.parseNmea(line3)).get()).get();
+        assertEquals("Mt Yarrabah B", m.getSource());
+        assertEquals(1479869400000L, (long) m.getUnixTimeMillis());
+        assertEquals(
+                "\\1G3:12305,s:Mt Yarrabah B,c:1479869400,g:1-1-12305*5F\\!ABVDM,1,1,2,B,H7OjN44t3?=1B00F=Aqhlm2@?340,0*66",
+                m.toLine());
+    }
+
+    @Test
+    public void testNmea4_1SentenceTagsWithVsiMessageAndBlankLineWithTagBlockAtEnd() {
+        AisNmeaBuffer buffer = new AisNmeaBuffer(5);
+        String line1 = "\\1G3:12305,s:Mt Yarrabah B,c:1479869400*1B\\";
+        String line2 = "\\2G3:12305*49\\!ABVDM,1,1,2,B,H7OjN44t3?=1B00F=Aqhlm2@?340,0*66";
+        String line3 = "\\3G3:12305*48\\";
+        assertFalse(buffer.add(NmeaUtil.parseNmea(line1)).isPresent());
+        assertFalse(buffer.add(NmeaUtil.parseNmea(line2)).isPresent());
+        NmeaMessage m = AisNmeaBuffer
+                .concatenateMessages(buffer.add(NmeaUtil.parseNmea(line3)).get()).get();
+        assertEquals("Mt Yarrabah B", m.getSource());
+        assertEquals(1479869400000L, (long) m.getUnixTimeMillis());
+        assertEquals(
+                "\\1G3:12305,s:Mt Yarrabah B,c:1479869400,g:1-1-12305*5F\\!ABVDM,1,1,2,B,H7OjN44t3?=1B00F=Aqhlm2@?340,0*66",
+                m.toLine());
+    }
+
+    @Test
+    public void testSentenceCount() {
+        String line = "\\1G2:20856,s:Vlamingh Head,c:1479865268*6D\\";
+        NmeaMessage m = NmeaUtil.parseNmea(line);
+        assertEquals(2, (int) m.getSentenceCount());
     }
 
 }

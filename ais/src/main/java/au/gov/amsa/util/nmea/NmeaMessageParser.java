@@ -30,8 +30,8 @@ public class NmeaMessageParser {
         if (line.startsWith("\\")) {
             int tagFinish = line.lastIndexOf('\\', line.length() - 1);
             if (tagFinish == -1)
-                throw new NmeaMessageParseException("no matching \\ symbol to finish tag block: "
-                        + line);
+                throw new NmeaMessageParseException(
+                        "no matching \\ symbol to finish tag block: " + line);
             if (tagFinish == 0)
                 throw new NmeaMessageParseException("tag block is empty or not terminated");
             tags = extractTags(line.substring(1, tagFinish));
@@ -39,13 +39,20 @@ public class NmeaMessageParser {
         } else
             remaining = line;
 
-        if (!remaining.contains("*"))
-            throw new NmeaMessageParseException("checksum delimiter * not found");
+        String[] items;
+        String checksum;
+        if (remaining.length() > 0) {
+            if (!remaining.contains("*"))
+                throw new NmeaMessageParseException("checksum delimiter * not found");
+            items = getNmeaItems(remaining);
+            // TODO validate message using checksum
+            checksum = line.substring(line.indexOf('*') + 1);
+        } else {
+            items = new String[] {};
+            // TODO decide what value to put here
+            checksum = "";
+        }
 
-        String[] items = getNmeaItems(remaining);
-
-        // TODO validate message using checksum
-        String checksum = line.substring(line.indexOf('*') + 1);
         return new NmeaMessage(tags, Arrays.asList(items), checksum);
     }
 
@@ -81,8 +88,8 @@ public class NmeaMessageParser {
         for (String item : items) {
             int i = item.indexOf(CODE_DELIMITER);
             if (i == -1)
-                throw new NmeaMessageParseException("TAG BLOCK parameter is not is format 'a:b' :"
-                        + s);
+                throw new NmeaMessageParseException(
+                        "TAG BLOCK parameter is not is format 'a:b' :" + s);
             map.put(item.substring(0, i), item.substring(i + 1));
         }
         return map;

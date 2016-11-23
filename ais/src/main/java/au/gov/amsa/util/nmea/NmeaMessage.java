@@ -2,6 +2,9 @@ package au.gov.amsa.util.nmea;
 
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Bean to carry NMEA fields.
@@ -15,7 +18,7 @@ public class NmeaMessage {
     private final List<String> items;
     private final Talker talker;
     private final SentenceInfo sentenceInfo;
-    private String checksum;
+    private final String checksum;
 
     /**
      * Constructor.
@@ -30,7 +33,7 @@ public class NmeaMessage {
     public NmeaMessage(LinkedHashMap<String, String> tags, List<String> items, String checksum) {
         this.tags = tags;
         this.items = items;
-        if (items.get(0).length() >= 3)
+        if (!items.isEmpty() && items.get(0).length() >= 3)
             this.talker = NmeaUtil.getTalker((items.get(0).substring(1, 3)));
         else
             talker = Talker.UNKNOWN;
@@ -174,19 +177,15 @@ public class NmeaMessage {
         return checksum;
     }
 
+    private static final Pattern sentenceTagPattern = Pattern
+            .compile("([1-9][0-9]*)G([1-9][0-9]*)");
+
     private static SentenceInfo getSentenceInfo(LinkedHashMap<String, String> tags,
             List<String> items) {
         try {
             String g = tags.get("g");
-            if (g == null) {
-                if (items.size() > 2 && isEncapsulationSentence(items)) {
-                    int number = Integer.parseInt(items.get(2));
-                    int count = Integer.parseInt(items.get(1));
-                    String id = items.get(3);
-                    return new SentenceInfo(number, count, id);
-                } else
-                    return null;
-            } else {
+            if (g != null) {
+                // old style NMEA 4.0.0 sentence grouping tag
                 String[] parts = g.split("-");
                 if (parts.length < 3)
                     throw new NmeaMessageParseException("not enough parts available in g tag");
@@ -194,6 +193,28 @@ public class NmeaMessage {
                 int count = Integer.parseInt(parts[1]);
                 String id = parts[2];
                 return new SentenceInfo(number, count, id);
+
+            } else {
+                // look for new style NMEA 4.1.0 sentence grouping tag (e.g.
+                // 1G2)
+                for (Entry<String, String> entry : tags.entrySet()) {
+                    Matcher matcher = sentenceTagPattern.matcher(entry.getKey());
+                    if (matcher.matches()) {
+                        int number = Integer.parseInt(matcher.group(1));
+                        int count = Integer.parseInt(matcher.group(2));
+                        String id = entry.getValue();
+                        // found it so return the sentence info
+                        return new SentenceInfo(number, count, id);
+                    }
+                }
+                // didn't find the grouping tag
+                if (items.size() > 2 && isEncapsulationSentence(items)) {
+                    int number = Integer.parseInt(items.get(2));
+                    int count = Integer.parseInt(items.get(1));
+                    String id = items.get(3);
+                    return new SentenceInfo(number, count, id);
+                } else
+                    return null;
             }
         } catch (NumberFormatException e) {
             throw new NmeaMessageParseException(e.getMessage(), e);
@@ -201,7 +222,7 @@ public class NmeaMessage {
     }
 
     private static boolean isEncapsulationSentence(List<String> items) {
-        return items.get(0).startsWith("!");
+        return items.size() > 0 && items.get(0).startsWith("!");
     }
 
     private static class SentenceInfo {
