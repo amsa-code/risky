@@ -176,4 +176,13 @@ public class NmeaMessageParserTest {
         assertNull(n.getUnixTimeMillis());
     }
 
+    @Test
+    public void testNmeaWithTagBlockOnly() {
+        String msg = "\\1G4:53958,s:Gantheaume Pt,c:1481700261*7D\\";
+        NmeaMessage m = NmeaUtil.parseNmea(msg);
+        assertNotNull(m);
+        String s = NmeaUtil.supplementWithTime(msg, 1000);
+        assertEquals(msg, s);
+    }
+
 }
