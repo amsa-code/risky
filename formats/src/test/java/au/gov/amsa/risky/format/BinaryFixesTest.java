@@ -112,7 +112,7 @@ public final class BinaryFixesTest {
                 .from(Files.find(new File("target"), Pattern.compile("\\d+\\.track")));
         int count = files
                 // group the files against each processor
-                .buffer(Runtime.getRuntime().availableProcessors() - 1)
+                .buffer(Math.max(1, Runtime.getRuntime().availableProcessors() - 1))
                 // do the work per buffer on a separate scheduler
                 .flatMap(list -> {
                     return Observable.from(list)
