@@ -166,7 +166,7 @@ public class NmeaUtilTest {
     @Test
     public void testSupplementWithTimeDoesNothingToMultilineMessagesAfterFirst() {
         String line = "\\g:2-2-3987*58\\!BSVDM,2,2,0,A,lQ@@0000002,0*00";
-        assertEquals(line, NmeaUtil.supplementWithTime(line, 0));
+        assertEquals("\\g:2-2-3987,c:0,a:0*5A\\!BSVDM,2,2,0,A,lQ@@0000002,0*00", NmeaUtil.supplementWithTime(line, 0));
     }
 
     @Test
@@ -199,5 +199,11 @@ public class NmeaUtilTest {
                 NmeaUtil.supplementWithTime(line, 1234567890));
         assertEquals("69", NmeaUtil.getChecksum("s:rEV02,d:1334337321,c:1234567,a:1234567890"));
     }
+    
+    @Test
+    public void testSupplementWithTime() {
+        NmeaUtil.supplementWithTime("\\1G3:33799,s:Point Lookout,c:1486441015*73\\",123);
+    }
+  
 
 }
