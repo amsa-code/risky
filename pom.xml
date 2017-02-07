@@ -9,7 +9,7 @@
 -->
     <groupId>au.gov.amsa.risky</groupId>
     <artifactId>parent</artifactId>
-    <version>0.5.10.1-SNAPSHOT</version>
+    <version>0.5.11</version>
     <name>${project.artifactId}</name>
     <description>Parent pom for risky project modules</description>
     <packaging>pom</packaging>
