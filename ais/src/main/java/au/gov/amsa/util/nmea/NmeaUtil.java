@@ -149,38 +149,21 @@ public final class NmeaUtil {
                 amendedLine = s.toString();
             }
         } else if (a == null) {
-            // if has tag block
-            if (line.startsWith("\\")) {
-                // insert time into tag block, and adjust the
-                // hash for the tag block
-                int i = line.indexOf(BACKSLASH, 1);
-                if (i == -1)
-                    throw new RuntimeException(
-                            "line starts with \\ but does not have closing tag block delimiter \\");
-                if (i < 4)
-                    throw new RuntimeException("tag block not long enough to have a checksum");
-                String content = line.substring(1, i - 3);
-                StringBuilder s = new StringBuilder(content);
-                s.append(",a:");
-                s.append(arrivalTime);
-                String checksum = NmeaUtil.getChecksum(s.toString(), false);
-                s.append('*');
-                s.append(checksum);
-                s.append(line.substring(i));
-                s.insert(0, BACKSLASH);
-                amendedLine = s.toString();
-            } else {
-                StringBuilder s = new StringBuilder();
-                s.append("a:");
-                s.append(arrivalTime);
-                String checksum = NmeaUtil.getChecksum(s.toString(), false);
-                s.append("*");
-                s.append(checksum);
-                s.append(BACKSLASH);
-                s.append(line);
-                s.insert(0, BACKSLASH);
-                amendedLine = s.toString();
-            }
+            // must have a proper tag block because t != null
+
+            // insert time into tag block, and adjust the
+            // hash for the tag block
+            int i = line.indexOf(BACKSLASH, 1);
+            String content = line.substring(1, i - 3);
+            StringBuilder s = new StringBuilder(content);
+            s.append(",a:");
+            s.append(arrivalTime);
+            String checksum = NmeaUtil.getChecksum(s.toString(), false);
+            s.append('*');
+            s.append(checksum);
+            s.append(line.substring(i));
+            s.insert(0, BACKSLASH);
+            amendedLine = s.toString();
         } else {
             amendedLine = line;
         }
