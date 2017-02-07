@@ -77,7 +77,7 @@ public class NmeaSaverTest {
     @Test
     public void testNewGroupingSecondaryLineWithoutTimeIsGivenTime() throws InterruptedException, IOException {
         String line = "\\2G2:53958,s:Gantheaume Pt*7D\\";
-        String amendedLine = "\\2G2:53958,s:Gantheaume Pt,c:1234567,a:1234567890*33\\";
+        String amendedLine = "\\2G2:53958,s:Gantheaume Pt,c:1234567,a:1234567890*30\\";
         Clock clock = new Clock() {
             @Override
             public long getTimeMs() {
