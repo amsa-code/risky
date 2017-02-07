@@ -28,7 +28,7 @@ public class NmeaSaver {
 
 	private final Observable<String> source;
 
-	private Clock clock;
+	private final Clock clock;
 
 	@VisibleForTesting
 	NmeaSaver(Observable<String> nmea, FileFactory factory, Clock clock) {
