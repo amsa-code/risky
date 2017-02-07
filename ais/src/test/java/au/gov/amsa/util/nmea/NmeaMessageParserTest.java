@@ -182,7 +182,7 @@ public class NmeaMessageParserTest {
         NmeaMessage m = NmeaUtil.parseNmea(msg);
         assertNotNull(m);
         String s = NmeaUtil.supplementWithTime(msg, 1000);
-        assertEquals(msg, s);
+        assertEquals("\\1G4:53958,s:Gantheaume Pt,c:1481700261,a:1000*0B\\", s);
     }
 
 }

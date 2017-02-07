@@ -112,6 +112,7 @@ public final class NmeaUtil {
         final String amendedLine;
         NmeaMessage m = parseNmea(line);
         Long t = m.getUnixTimeMillis();
+        Long a = m.getArrivalTimeMillis();
         if (t == null) {
             // use arrival time if not present
             t = arrivalTime;
@@ -136,61 +137,97 @@ public final class NmeaUtil {
                 s.append(line.substring(i));
                 s.insert(0, BACKSLASH);
                 amendedLine = s.toString();
+            } else {
+                StringBuilder s = new StringBuilder();
+                appendTimes(t, arrivalTime, s);
+                String checksum = NmeaUtil.getChecksum(s.toString(), false);
+                s.append("*");
+                s.append(checksum);
+                s.append(BACKSLASH);
+                s.append(line);
+                s.insert(0, BACKSLASH);
+                amendedLine = s.toString();
+            }
+        } else if (a == null) {
+            // if has tag block
+            if (line.startsWith("\\")) {
+                // insert time into tag block, and adjust the
+                // hash for the tag block
+                int i = line.indexOf(BACKSLASH, 1);
+                if (i == -1)
+                    throw new RuntimeException(
+                            "line starts with \\ but does not have closing tag block delimiter \\");
+                if (i < 4)
+                    throw new RuntimeException("tag block not long enough to have a checksum");
+                String content = line.substring(1, i - 3);
+                StringBuilder s = new StringBuilder(content);
+                s.append(",a:");
+                s.append(arrivalTime);
+                String checksum = NmeaUtil.getChecksum(s.toString(), false);
+                s.append('*');
+                s.append(checksum);
+                s.append(line.substring(i));
+                s.insert(0, BACKSLASH);
+                amendedLine = s.toString();
+            } else {
+                StringBuilder s = new StringBuilder();
+                s.append("a:");
+                s.append(arrivalTime);
+                String checksum = NmeaUtil.getChecksum(s.toString(), false);
+                s.append("*");
+                s.append(checksum);
+                s.append(BACKSLASH);
+                s.append(line);
+                s.insert(0, BACKSLASH);
+                amendedLine = s.toString();
+            }
         } else {
-            StringBuilder s = new StringBuilder();
-            appendTimes(t, arrivalTime, s);
-            String checksum = NmeaUtil.getChecksum(s.toString(), false);
-            s.append("*");
-            s.append(checksum);
-            s.append(BACKSLASH);
-            s.append(line);
-            s.insert(0, BACKSLASH);
-            amendedLine = s.toString();
+            amendedLine = line;
         }
-    }else amendedLine=line;return amendedLine;
+        return amendedLine;
 
     }
 
     private static void appendTimes(long arrivalTime, Long t, StringBuilder s) {
-		s.append("c:");
-		s.append(t / 1000);
-		s.append(",a:");
-		s.append(arrivalTime);
-	}
+        s.append("c:");
+        s.append(t / 1000);
+        s.append(",a:");
+        s.append(arrivalTime);
+    }
 
     public static Talker getTalker(String s) {
-		if (s == null)
-			return null;
-		else {
-			try {
-				return Talker.valueOf(s);
-			} catch (RuntimeException e) {
-				return Talker.UNKNOWN;
-			}
-		}
-	}
+        if (s == null)
+            return null;
+        else {
+            try {
+                return Talker.valueOf(s);
+            } catch (RuntimeException e) {
+                return Talker.UNKNOWN;
+            }
+        }
+    }
 
     public static String createTagBlock(LinkedHashMap<String, String> tags) {
-		if (tags == null || tags.size() == 0)
-			return "";
-		StringBuilder s = new StringBuilder(128);
-		s.append("\\");
-		int startChecksum = s.length();
-		boolean first = true;
-		for (Entry<String, String> entry : tags.entrySet()) {
-			if (!first)
-				s.append(",");
-			s.append(entry.getKey());
-			s.append(":");
-			s.append(entry.getValue());
-			first = false;
-		}
-		String checksum = NmeaUtil.getChecksum(s.substring(startChecksum));
-		s.append("*");
-		s.append(checksum);
-		s.append("\\");
-		return s.toString();
-	}
+        if (tags == null || tags.size() == 0)
+            return "";
+        StringBuilder s = new StringBuilder(128);
+        s.append("\\");
+        int startChecksum = s.length();
+        boolean first = true;
+        for (Entry<String, String> entry : tags.entrySet()) {
+            if (!first)
+                s.append(",");
+            s.append(entry.getKey());
+            s.append(":");
+            s.append(entry.getValue());
+            first = false;
+        }
+        String checksum = NmeaUtil.getChecksum(s.substring(startChecksum));
+        s.append("*");
+        s.append(checksum);
+        s.append("\\");
+        return s.toString();
+    }
 
     public static String createNmeaLine(LinkedHashMap<String, String> tags, List<String> items) {
         StringBuilder s = new StringBuilder(40);

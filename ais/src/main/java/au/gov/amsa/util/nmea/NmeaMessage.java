@@ -242,4 +242,16 @@ public class NmeaMessage {
         return getSentenceCount() == null || getSentenceCount() == 1;
     }
 
+    public Long getArrivalTimeMillis() {
+        String time = tags.get("a");
+        if (time == null)
+            return null;
+        else
+            try {
+                return Long.parseLong(time);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+    }
+
 }

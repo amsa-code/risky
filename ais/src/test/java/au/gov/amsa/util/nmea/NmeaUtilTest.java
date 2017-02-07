@@ -170,9 +170,9 @@ public class NmeaUtilTest {
     }
 
     @Test
-    public void testSupplementWithTimeDoesNothingToMessageWithTime() {
+    public void testSupplementWithTimeAddsArrivalTimeIfMissing() {
         String line = "\\s:rEV02,c:1334337322*5E\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58";
-        assertEquals(line, NmeaUtil.supplementWithTime(line, 0));
+        assertEquals("\\s:rEV02,c:1334337322,a:0*19\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58", NmeaUtil.supplementWithTime(line, 0));
     }
 
     @Test

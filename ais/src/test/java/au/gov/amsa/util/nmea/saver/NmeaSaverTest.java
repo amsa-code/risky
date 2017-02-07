@@ -36,7 +36,7 @@ public class NmeaSaverTest {
 
     @Test
     public void testNewGroupingHasTime() throws InterruptedException, IOException {
-        String line = "\\1G4:53958,s:Gantheaume Pt,c:1481700261*7D\\";
+        String line = "\\1G4:53958,s:Gantheaume Pt,c:1481700261,a:10*7D\\";
         String amendedLine = line;
         Clock clock = new Clock() {
             @Override
@@ -56,7 +56,7 @@ public class NmeaSaverTest {
     
     @Test
     public void testNewGroupingHasTimeEndsInCarriageReturn() throws InterruptedException, IOException {
-        String line = "\\1G4:53958,s:Gantheaume Pt,c:1481700261*7D\\\r";
+        String line = "\\1G4:53958,s:Gantheaume Pt,c:1481700261,a:13*7D\\\r";
         String amendedLine = line.trim();
         Clock clock = new Clock() {
             @Override
