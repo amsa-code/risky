@@ -1,4 +1,4 @@
-#Curve fitting for a drifting object
+# Curve fitting for a drifting object
 
 The arrival of MEOSAR satellites on the beacon detection scene has brought about new and unexpected difficulties for Search and
 Rescue operational staff. 
@@ -12,7 +12,7 @@ Dave Moten's investigations so far indicate that one viable approach to calculat
 
 The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time. 
 
-##Definition
+## Definition
 Each detection can be described by the tuple *(x, y, t, &delta;)* where 
 * *x* and *y* are the position coordinates 
 * *t* is the time of the detection (assumed 100% accurate)
@@ -40,7 +40,7 @@ The weight function was constructed by multiplying a weight due to variance (thi
 
 A minimal solution to this problem would provide the values of f at times T<sub>1</sub>,..,T<sub>n</sub> (the times of detections). A more sophisticated solution would provide a function that could be applied to any t between T<sub>1</sub> and T<sub>n</sub>.
 
-#Implementation
+# Implementation
 Algorithm-wise looks like the *Levenberg-Marquardt* method could be used to solve the problem and *apache commons-math* is one java implementation of that algorithm. Another implemenation [ddogleg](https://github.com/lessthanoptimal/ddogleg) has an implementation that according to the project author would support the weight customisation proposed above. 
 
 Given the weight due to difference in time may adversely affect the robustness of methods like *Levenberg-Marquardt* it might be advisable to code up a brute force algorithm that doesn't rely on the differentiability of M (the absolute value term could cause problems).
