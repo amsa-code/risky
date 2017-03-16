@@ -12,13 +12,13 @@ A vessel is considered to be drifting if
 * its course-over-ground differs from its heading by &ge;45 degrees
 * its AIS set is not indicating that it is at anchor or moored
 
-###When did drift start?
+### When did drift start?
 
 Things get trickier when we want to answer this question:
 
 * When did the vessel **start** drifting?
 
-####What's trickier about detecting the start of drift?
+#### What's trickier about detecting the start of drift?
 
 * a drift of several hours will probably encounter environmental changes (tide changes, wind changes, current changes both temporally and positionally). This means that our simple drift criteria above may from time to time indicate that a vessel has stopped drifting when it has not.
 * if vessel position reports have big time gaps it may be undesirable to indicate that the vessel was drifting for the whole period.
@@ -27,7 +27,7 @@ Things get trickier when we want to answer this question:
 * need to account for different reporting frequencies (small intervals near terrestrial AIS stations and larger satellite reporting intervals away from them).
 * need to buffer position reports in memory or database for every vessel (most likely in-memory because of high data rates)
 
-####Algorithm
+#### Algorithm
 The following algorithm is proposed (implemented in [DriftDetectorOperator.java](src/main/java/au/gov/amsa/navigation/DriftDetectorOperator.java):
 
 <img src="src/docs/drift-detection-flow.png?raw=true" />
@@ -74,7 +74,7 @@ We define the following transformation rules (which are applied repeatedly till 
 
 In terms of memory utilization it should be noted that one of these buffers is required per vessel and is retained for the life of the application. Given that 30 to 40 thousand distinct vessels traverse the Australian SRR per year this may be important to optimize.
 
-###Visualizations
+### Visualizations
 
 For the area around Australia (to about 10 degrees above the equator) there are 3m drift detections per year. When visualizing the drift paths we naturally seek to filter the data somewhat. These are some filtering techniques being used in AMSA visualizations:
 
