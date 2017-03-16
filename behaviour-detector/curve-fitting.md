@@ -14,7 +14,7 @@ Dave Moten's investigations so far indicate that one viable approach to calculat
 
 The problem does need precise definition though particularly as any optimization based on a distance function needs to make sense of distance across space *and* time and needs to consider the expected movement distribution (speed and direction changes) of the target in the domain. 
 
-Below is a start on the problem only and work on the issue due to other priorities.
+Below is a start on the problem only. Work on this issue has stopped due to other priorities.
 
 ## Definition
 Each detection can be described by the tuple *(x, y, t, &delta;)* where 
