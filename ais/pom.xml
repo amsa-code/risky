@@ -223,9 +223,20 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <classpathScope>test</classpathScope>
                             <mainClass>au.gov.amsa.ais.MariwebSslConnectMain</mainClass>
                             <systemProperties>
+                                <systemProperty>
+                                    <key>host</key>
+                                    <value>${host}</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>port</key>
+                                    <value>${port}</value>
+                                </systemProperty>
+                                <systemProperty>
+                                    <key>username</key>
+                                    <value>${username}</value>
+                                </systemProperty>
                                 <systemProperty>
                                     <key>password</key>
                                     <value>${password}</value>
