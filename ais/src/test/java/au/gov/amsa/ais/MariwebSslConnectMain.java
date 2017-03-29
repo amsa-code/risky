@@ -1,7 +1,5 @@
 package au.gov.amsa.ais;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -56,7 +54,7 @@ public final class MariwebSslConnectMain {
         OutputStream out = socket.getOutputStream();
         System.out.println("sending command");
 
-        String command = "$PMWLSS," + System.currentTimeMillis() / 1000 + ",4,"+ username + "," + password + ",1*";
+        String command = "$PMWLSS," + System.currentTimeMillis() / 1000 + ",4," + username + "," + password + ",1*";
         String checksum = NmeaUtil.getChecksum(command);
         command = command + checksum + "\r\n";
 
@@ -133,6 +131,14 @@ public final class MariwebSslConnectMain {
                 throws CertificateException {
             // don't throw exception
 
+        }
+    }
+
+    private static <T> T checkNotNull(T t, String msg) {
+        if (t == null) {
+            throw new NullPointerException(msg);
+        } else {
+            return t;
         }
     }
 
