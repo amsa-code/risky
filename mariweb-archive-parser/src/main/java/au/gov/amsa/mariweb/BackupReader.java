@@ -92,7 +92,8 @@ public class BackupReader {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 sdf.setTimeZone(UTC);
                 try {
-                    long unixSeconds = sdf.parse(arrivalTime).getTime() / 1000;
+                    long unixMs = sdf.parse(arrivalTime).getTime();
+                    long unixSeconds = unixMs / 1000;
                     StringBuilder s = new StringBuilder();
                     String source = tags.get("s");
                     if (source != null) {
@@ -107,8 +108,8 @@ public class BackupReader {
                     s.append(positionTimeUnixSeconds);
                     if (s.length() > 0)
                         s.append(',');
-                    s.append("at:");// custom tag for arrival time
-                    s.append(unixSeconds);
+                    s.append("a:");// custom tag for arrival time
+                    s.append(unixMs);
                     String checksum = NmeaUtil.getChecksum(s.toString());
                     s.append('*');
                     s.append(checksum);
