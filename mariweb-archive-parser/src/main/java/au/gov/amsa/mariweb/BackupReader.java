@@ -93,7 +93,6 @@ public class BackupReader {
                 sdf.setTimeZone(UTC);
                 try {
                     long unixMs = sdf.parse(arrivalTime).getTime();
-                    long unixSeconds = unixMs / 1000;
                     StringBuilder s = new StringBuilder();
                     String source = tags.get("s");
                     if (source != null) {
