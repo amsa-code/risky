@@ -83,7 +83,11 @@ public class NmeaMessageParser {
      */
     public static LinkedHashMap<String, String> extractTags(String s) {
         LinkedHashMap<String, String> map = Maps.newLinkedHashMap();
-        s = s.substring(0, s.lastIndexOf(CHECKSUM_DELIMITER));
+        int c = s.lastIndexOf(CHECKSUM_DELIMITER);
+        if (c == -1) {
+            return map;
+        }
+        s = s.substring(0, c);
         String[] items = s.split(PARAMETER_DELIMITER);
         for (String item : items) {
             int i = item.indexOf(CODE_DELIMITER);

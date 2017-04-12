@@ -3,6 +3,7 @@ package au.gov.amsa.util.nmea;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.LinkedHashMap;
 
@@ -185,4 +186,9 @@ public class NmeaMessageParserTest {
         assertEquals("\\1G4:53958,s:Gantheaume Pt,c:1481700261,a:1000*0B\\", s);
     }
 
+    @Test
+    public void testExtractTagsReturnsEmptyMapWhenDoesNotHaveChecksumDelimiter() {
+        assertTrue(NmeaMessageParser.extractTags("c:12334,a:3456").isEmpty());
+    }
+    
 }
