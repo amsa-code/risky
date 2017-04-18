@@ -47,6 +47,14 @@ public class NmeaUtilTest {
     }
 
     @Test
+    public void testCreateProprietaryHeartbeatLine() {
+        String s = "$PAMSA," + System.currentTimeMillis() / 1000;
+        String c = NmeaUtil.getChecksum(s);
+        String sentence = s + "*" + c;
+        assertTrue(NmeaUtil.isValid(sentence));
+    }
+
+    @Test
     public void testInstantiation() {
         NmeaUtil.forTestCoverageOnly();
     }
@@ -58,8 +66,7 @@ public class NmeaUtilTest {
 
     @Test
     public void testTalker() {
-        assertEquals(Talker.GP,
-                NmeaUtil.parseNmea(DOLLAR + MESSAGE + CHECKSUM_DELIMITER + CHECKSUM).getTalker());
+        assertEquals(Talker.GP, NmeaUtil.parseNmea(DOLLAR + MESSAGE + CHECKSUM_DELIMITER + CHECKSUM).getTalker());
     }
 
     @Test
@@ -172,14 +179,14 @@ public class NmeaUtilTest {
     @Test
     public void testSupplementWithTimeAddsArrivalTimeIfMissing() {
         String line = "\\s:rEV02,c:1334337322*5E\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58";
-        assertEquals("\\s:rEV02,c:1334337322,a:0*19\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58", NmeaUtil.supplementWithTime(line, 0));
+        assertEquals("\\s:rEV02,c:1334337322,a:0*19\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58",
+                NmeaUtil.supplementWithTime(line, 0));
     }
 
     @Test
     public void testSupplementWithTimeAddsTagBlockIfDoesntHaveOne() {
         String line = "$PGHP,1,2012,1,31,5,55,12,0,316,3,316999999,1AIS_S,18*7A";
-        assertEquals("\\c:1234567,a:1234567890*1F\\" + line,
-                NmeaUtil.supplementWithTime(line, 1234567890));
+        assertEquals("\\c:1234567,a:1234567890*1F\\" + line, NmeaUtil.supplementWithTime(line, 1234567890));
         assertEquals("1F", NmeaUtil.getChecksum("c:1234567,a:1234567890"));
     }
 
@@ -199,11 +206,10 @@ public class NmeaUtilTest {
                 NmeaUtil.supplementWithTime(line, 1234567890));
         assertEquals("69", NmeaUtil.getChecksum("s:rEV02,d:1334337321,c:1234567,a:1234567890"));
     }
-    
+
     @Test
     public void testSupplementWithTime() {
-        NmeaUtil.supplementWithTime("\\1G3:33799,s:Point Lookout,c:1486441015*73\\",123);
+        NmeaUtil.supplementWithTime("\\1G3:33799,s:Point Lookout,c:1486441015*73\\", 123);
     }
-  
 
 }
