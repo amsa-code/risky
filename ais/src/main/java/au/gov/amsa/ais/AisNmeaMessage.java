@@ -40,6 +40,10 @@ public class AisNmeaMessage {
 	public AisNmeaMessage(String line) {
 		this(NmeaUtil.parseNmea(validateLine(line)));
 	}
+	
+	public static AisNmeaMessage from(String line) {
+	    return new AisNmeaMessage(line);
+	}
 
 	private static String validateLine(String line) {
 		try {

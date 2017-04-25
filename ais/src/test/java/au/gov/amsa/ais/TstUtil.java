@@ -32,7 +32,7 @@ public class TstUtil {
                 out.println(message);
                 out.println("talker=" + nmea.getTalker().getDescription());
                 if (message.message().getMessageId() <= 3 && message.message().getMessageId() > 0) {
-                    Communications comms = ((HasCommunications) message).getCommunications();
+                    Communications comms = ((HasCommunications) message.message()).getCommunications();
                     if (comms.getMinutesUtc() != null) {
                         String commsTime = df.format(comms.getHourUtc()) + ":"
                                 + df.format(comms.getMinuteUtc());

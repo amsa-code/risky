@@ -12,8 +12,8 @@ public class LiveStreamer {
 	public static void main(String[] args) throws IOException {
 
 		System.out.println("Testing live stream");
-		int port = Integer.parseInt(System.getProperty("ais.port", "1236"));
-		String host = System.getProperty("ais.host", "cbrais01.amsa.gov.au");
+		int port = Integer.parseInt(System.getProperty("ais.port", "9100"));
+		String host = System.getProperty("ais.host", "sarappsdev.amsa.gov.au");
 		System.out.println("connecting to port " + port);
 
 		FileOutputStream raw = new FileOutputStream("target/raw-2.txt");

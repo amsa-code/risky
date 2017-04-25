@@ -3,6 +3,7 @@ package au.gov.amsa.ais;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Date;
 import java.util.List;
 
 import org.junit.Test;
@@ -79,5 +80,18 @@ public class AisNmeaMessageTest {
 		assertEquals("2", items.get(1));
 		assertEquals("1", items.get(2));
 	}
-
+	
+	@Test
+	public void testOrbcom() {
+	    String line = "\\s:Orbcom,q:v,c:1492562037,i:|X=1|D=1|T=42844.0236241782|P=127.0.0.1:12086|R=IN|,a:1492562041258*64\\!AIVDM,1,1,,A,13@e?B01BVVCD`L3Flm3IRoj0<0A,0*30";
+	    AisNmeaMessage m = AisNmeaMessage.from(line);
+        assertEquals(1492562037000L, (long) m.getTime());
+        assertEquals(1492562037000L, m.getTimestampedMessage().time());
+        System.out.println(m.getTimestampedMessage());
+        System.out.println(new Date(m.getTimestampedMessage().time()));
+    }
+	
+	public static void main(String[] args) {
+        System.out.println(AisNmeaMessage.from("\\s:Orbcom,q:v,c:1492561005*1A\\!AIVDM,1,1,,A,18JN>2000r`FN@SlS4iTc3mJ0@J2,0*57").getTimestampedMessage());;
+    }
 }
