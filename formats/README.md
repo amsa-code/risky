@@ -134,34 +134,24 @@ up to the number of available processors minus one (just to leave a bit
 of processing power for downstream). 
 
 ```java
-        // using concurrency, count all the fixes across all files in the '2014'
-		// directory
-		Observable<File> files = Observable.from(Files.find(new File("2014"),
+// using concurrency, count all the fixes across all files in the '2014'
+// directory
+Observable<File> files = Observable.from(Files.find(new File("2014"),
 				Pattern.compile("\\d+\\.track")));
-		int count = files
-		        // group the files against each processor
-				.buffer(Runtime.getRuntime().availableProcessors() - 1)
-				// do the work per buffer on a separate scheduler
-				.flatMap(new Func1<List<File>, Observable<Integer>>() {
-					@Override
-					public Observable<Integer> call(List<File> list) {
-						return Observable.from(list)
-				        		// count the fixes in each file
-								.flatMap(countFixes())
-								// perform concurrently
-								.subscribeOn(Schedulers.computation());
-					}
-				})
-				// total all the counts
-				.reduce(0, new Func2<Integer, Integer, Integer>() {
-					@Override
-					public Integer call(Integer a, Integer b) {
-						return a + b;
-					}
-				})
-				// block and get the result
-				.toBlocking().single();
-		System.out.println("total fixes = " + count);
+int count = files
+    // group the files against each processor
+    .buffer(Runtime.getRuntime().availableProcessors() - 1)
+    // do the work per buffer on a separate scheduler
+   .flatMap(list -> Observable.from(list)
+		// count the fixes in each file
+		.flatMap(countFixes())
+		// perform concurrently
+		.subscribeOn(Schedulers.computation()))
+    // total all the counts
+    .reduce(0, (a,b) -> a + b)
+    // block and get the result
+    .toBlocking().single();
+System.out.println("total fixes = " + count);
 ```
 
 Performance
