@@ -39,33 +39,25 @@ public final class ShipStaticDataCreator {
                 // buffer into chunks for each processor
                 .buffer(Math.max(1,
                         files.size()
-                                / Runtime.getRuntime()
-                                        .availableProcessors())
+                                / Runtime.getRuntime().availableProcessors())
                         - 1)
-                .flatMap(list -> Observable.from(list)
-                        // log
-                        .lift(Logging.<File> logger().showValue().showMemory().log())
-                        //
-                        .concatMap(file -> Streams.extract(Streams.nmeaFromGzip(file))
-                                //
-                                .flatMap(aisShipStaticOnly)
-                                //
-                                .map(m -> m.getMessage().get().message())
-                                //
-                                .filter(m -> m instanceof AisShipStatic)
-                                //
-                                .cast(AisShipStatic.class)
-                                //
-                                .distinct(m -> m.getMmsi()))
-                        //
-                        .distinct(m -> m.getMmsi())
-                        //
-                        .subscribeOn(scheduler))
-                //
-                .distinct(m -> m.getMmsi())
-                //
-                .compose(Transformers.mapWithIndex())
-                //
+                .flatMap(
+                        list -> Observable.from(list) //
+                                .lift(Logging.<File> logger().showValue().showMemory().log()) //
+                                .concatMap(
+                                        file -> Streams.extract(Streams.nmeaFromGzip(file)) //
+                                                .flatMap(aisShipStaticOnly) //
+                                                .map(m -> m.getMessage().get().message()) //
+                                                .filter(m -> m instanceof AisShipStatic) //
+                                                .cast(AisShipStatic.class) //
+                                                .distinct(m -> m.getMmsi()) //
+                                                .doOnError(e -> System.err.println("could not read "
+                                                        + file + ": " + e.getMessage())) //
+                                .onErrorResumeNext(Observable.<AisShipStatic> empty())) //
+                        .distinct(m -> m.getMmsi()) //
+                        .subscribeOn(scheduler)) //
+                .distinct(m -> m.getMmsi()) //
+                .compose(Transformers.mapWithIndex()) //
                 .doOnNext(indexed -> {
                     if (indexed.index() == 0) {
                         out.println(

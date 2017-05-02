@@ -581,11 +581,16 @@ public class Streams {
             final Func1<Fix, String> fileMapper, final int writeBufferSize,
             final Action1<File> logger) {
         return files -> {
-            Observable<Fix> fixes = Streams.extractFixes(Observable.from(files)
-                    // log
-                    .doOnNext(logger)
-                    // one file at a time
-                    .concatMap(file -> Streams.nmeaFromGzip(file.getAbsolutePath())));
+            Observable<Fix> fixes = Streams
+                    .extractFixes(
+                            Observable.from(files)
+                                    // log
+                                    .doOnNext(logger)
+                                    // one file at a time
+                                    .concatMap(file -> Streams.nmeaFromGzip(file.getAbsolutePath()) //
+                                            .doOnError(e -> log.warn("problem reading file " + file
+                                                    + ": " + e.getMessage())) //
+                            .onErrorResumeNext(Observable.empty())));
             return BinaryFixesWriter
                     .writeFixes(fileMapper, fixes, writeBufferSize, false,
                             BinaryFixesFormat.WITHOUT_MMSI)
