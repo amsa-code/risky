@@ -626,7 +626,7 @@ public class Streams {
                 int num = count.incrementAndGet();
                 double filesPerSecond = (System.currentTimeMillis() - start) / (double) num
                         / 1000.0;
-                log.info("file " + num + " of " + fileList.size() + ", rateFilesPerSecond="
+                log.info("file " + num + " of " + fileList.size() + ", " + file.getName() + ", rateFilesPerSecond="
                         + filesPerSecond);
             }
         };
