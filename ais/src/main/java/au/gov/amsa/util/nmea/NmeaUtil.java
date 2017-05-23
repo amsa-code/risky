@@ -106,6 +106,37 @@ public final class NmeaUtil {
     public static NmeaMessage parseNmea(String line) {
         return nmeaParser.parse(line);
     }
+    
+    public static String insertKeyValueInTagBlock(String line, String name, String value) {
+        line = line.trim();
+        if (line.startsWith("\\")) {
+            // insert time into tag block, and adjust the
+            // hash for the tag block
+            int i = line.indexOf(BACKSLASH, 1);
+            if (i == -1) {
+                //return line unchanged
+                return line;
+            }
+            if (i < 4) {
+                // tag block not long enough to have a checksum");
+                return line;
+            }
+            String content = line.substring(1, i - 3);
+            StringBuilder s = new StringBuilder(content);
+            s.append(",");
+            s.append(name);
+            s.append(":");
+            s.append(value);
+            String checksum = NmeaUtil.getChecksum(s.toString(), false);
+            s.append('*');
+            s.append(checksum);
+            s.append(line.substring(i));
+            s.insert(0, BACKSLASH);
+            return s.toString();
+        } else {
+            return line;
+        }
+    }
 
     public static String supplementWithTime(String line, long arrivalTime) {
         line = line.trim();

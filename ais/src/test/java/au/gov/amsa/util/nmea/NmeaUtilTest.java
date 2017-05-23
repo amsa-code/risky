@@ -66,7 +66,8 @@ public class NmeaUtilTest {
 
     @Test
     public void testTalker() {
-        assertEquals(Talker.GP, NmeaUtil.parseNmea(DOLLAR + MESSAGE + CHECKSUM_DELIMITER + CHECKSUM).getTalker());
+        assertEquals(Talker.GP,
+                NmeaUtil.parseNmea(DOLLAR + MESSAGE + CHECKSUM_DELIMITER + CHECKSUM).getTalker());
     }
 
     @Test
@@ -173,20 +174,23 @@ public class NmeaUtilTest {
     @Test
     public void testSupplementWithTimeDoesNothingToMultilineMessagesAfterFirst() {
         String line = "\\g:2-2-3987*58\\!BSVDM,2,2,0,A,lQ@@0000002,0*00";
-        assertEquals("\\g:2-2-3987,c:0,a:0*5A\\!BSVDM,2,2,0,A,lQ@@0000002,0*00", NmeaUtil.supplementWithTime(line, 0));
+        assertEquals("\\g:2-2-3987,c:0,a:0*5A\\!BSVDM,2,2,0,A,lQ@@0000002,0*00",
+                NmeaUtil.supplementWithTime(line, 0));
     }
 
     @Test
     public void testSupplementWithTimeAddsArrivalTimeIfMissing() {
         String line = "\\s:rEV02,c:1334337322*5E\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58";
-        assertEquals("\\s:rEV02,c:1334337322,a:0*19\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58",
+        assertEquals(
+                "\\s:rEV02,c:1334337322,a:0*19\\!AIVDM,1,1,,B,14`980002?6UgpR1w0c8cG0L0Gww,0*58",
                 NmeaUtil.supplementWithTime(line, 0));
     }
 
     @Test
     public void testSupplementWithTimeAddsTagBlockIfDoesntHaveOne() {
         String line = "$PGHP,1,2012,1,31,5,55,12,0,316,3,316999999,1AIS_S,18*7A";
-        assertEquals("\\c:1234567,a:1234567890*1F\\" + line, NmeaUtil.supplementWithTime(line, 1234567890));
+        assertEquals("\\c:1234567,a:1234567890*1F\\" + line,
+                NmeaUtil.supplementWithTime(line, 1234567890));
         assertEquals("1F", NmeaUtil.getChecksum("c:1234567,a:1234567890"));
     }
 
@@ -210,6 +214,12 @@ public class NmeaUtilTest {
     @Test
     public void testSupplementWithTime() {
         NmeaUtil.supplementWithTime("\\1G3:33799,s:Point Lookout,c:1486441015*73\\", 123);
+    }
+
+    @Test
+    public void testInsertNewTag() {
+        assertEquals("\\1G3:33799,s:Point Lookout,c:1486441015,seq:12345*33\\abc", NmeaUtil.insertKeyValueInTagBlock(
+                "\\1G3:33799,s:Point Lookout,c:1486441015*73\\abc", "seq", "12345"));
     }
 
 }
