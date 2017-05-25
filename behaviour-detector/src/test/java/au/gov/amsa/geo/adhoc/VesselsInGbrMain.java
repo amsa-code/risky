@@ -2,7 +2,6 @@ package au.gov.amsa.geo.adhoc;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -22,6 +21,7 @@ import rx.schedulers.Schedulers;
 public class VesselsInGbrMain {
 
     public static void main(String[] args) throws IOException {
+        long t = System.currentTimeMillis();
         File out = new File("target/mmsi.txt");
         out.delete();
         try (BufferedWriter b = new BufferedWriter(
@@ -41,6 +41,7 @@ public class VesselsInGbrMain {
                     .toBlocking() //
                     .subscribe();
         }
+        System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
     private static void write(BufferedWriter b, Integer m) {
