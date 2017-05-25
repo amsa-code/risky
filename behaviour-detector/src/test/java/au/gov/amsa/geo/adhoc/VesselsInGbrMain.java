@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
+import au.gov.amsa.util.identity.MmsiValidator2;
 import rx.Observable;
 import rx.Scheduler;
 import rx.observables.GroupedObservable;
@@ -37,6 +38,7 @@ public class VesselsInGbrMain {
                             % Runtime.getRuntime().availableProcessors()) //
                     .flatMap(files -> vesselsInGbr(files, Schedulers.computation())).distinct() //
                     .sorted() //
+                    .filter(m -> MmsiValidator2.INSTANCE.isValid((long) m)) //
                     .doOnNext(m -> write(b, m)) //
                     .toBlocking() //
                     .subscribe();
