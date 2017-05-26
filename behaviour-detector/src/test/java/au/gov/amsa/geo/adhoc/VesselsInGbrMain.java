@@ -33,6 +33,7 @@ public class VesselsInGbrMain {
             list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2015"), pattern));
             list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2016"), pattern));
             AtomicInteger count = new AtomicInteger();
+            AtomicInteger fixesCount = new AtomicInteger();
             Observable.from(list) //
                     .groupBy(f -> count.getAndIncrement()
                             % Runtime.getRuntime().availableProcessors()) //

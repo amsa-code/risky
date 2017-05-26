@@ -2,8 +2,11 @@ package au.gov.amsa.navigation;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
 
+import com.github.davidmoten.guavamini.Preconditions;
 import com.github.davidmoten.rx.Checked;
 import com.github.davidmoten.rx.Transformers;
 import com.github.davidmoten.rx.slf4j.Logging;
@@ -21,6 +24,7 @@ import rx.Scheduler;
 import rx.functions.Action1;
 import rx.functions.Func0;
 import rx.functions.Func1;
+import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
 
 public final class ShipStaticDataCreator {
@@ -37,10 +41,7 @@ public final class ShipStaticDataCreator {
         Func1<PrintStream, Observable<AisShipStatic>> observableFactory = out -> Observable
                 .from(files)
                 // buffer into chunks for each processor
-                .buffer(Math.max(1,
-                        files.size()
-                                / Runtime.getRuntime().availableProcessors())
-                        - 1)
+                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
                 .flatMap(
                         list -> Observable.from(list) //
                                 .lift(Logging.<File> logger().showValue().showMemory().log()) //
@@ -48,8 +49,6 @@ public final class ShipStaticDataCreator {
                                         file -> Streams.extract(Streams.nmeaFromGzip(file)) //
                                                 .flatMap(aisShipStaticOnly) //
                                                 .map(m -> m.getMessage().get().message()) //
-                                                .filter(m -> m instanceof AisShipStatic) //
-                                                .cast(AisShipStatic.class) //
                                                 .distinct(m -> m.getMmsi()) //
                                                 .doOnError(e -> System.err.println("could not read "
                                                         + file + ": " + e.getMessage())) //
@@ -82,6 +81,128 @@ public final class ShipStaticDataCreator {
 
         Action1<PrintStream> disposeAction = out -> out.close();
         return Observable.using(resourceFactory, observableFactory, disposeAction);
+    }
+
+    public static Observable<Timestamped<AisShipStatic>> writeStaticDataToFileWithTimestamps(
+            List<File> files, File outputFile, Scheduler scheduler) {
+        Func0<PrintStream> resourceFactory = Checked.f0(() -> new PrintStream(outputFile));
+        Func1<PrintStream, Observable<Timestamped<AisShipStatic>>> observableFactory = out -> Observable
+                .from(files)
+                // buffer into chunks for each processor
+                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()) - 1)
+                .flatMap(list -> Observable.from(list) //
+                        .lift(Logging.<File> logger().showValue().showMemory().log()) //
+                        .concatMap(file -> timestampedShipStatics(file)) //
+                        .subscribeOn(scheduler)) //
+                .groupBy(m -> m.message().getMmsi()) //
+                .flatMap(g -> collect(g)) //
+                .compose(Transformers.doOnFirst(x -> {
+                    out.println(
+                            "# MMSI, Time, IMO, AisClass, AisShipType, MaxPresentStaticDraughtMetres, DimAMetres, DimBMetres, DimCMetres, DimDMetres, LengthMetres, WidthMetres, Name");
+                    out.println("# columns are tab delimited");
+                    out.println("# -1 = not present");
+                })) //
+                .flatMapIterable(set -> set) //
+                .doOnNext(k -> {
+                    AisShipStatic m = k.message();
+                    out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
+                            k.time(), getImo(m).or(-1), m instanceof AisShipStaticA ? "A" : "B",
+                            m.getShipType(), getMaximumPresentStaticDraughtMetres(m).or(-1F),
+                            m.getDimensionA().or(-1), m.getDimensionB().or(-1),
+                            m.getDimensionC().or(-1), m.getDimensionD().or(-1),
+                            AisShipStaticUtil.lengthMetres(m).or(-1),
+                            AisShipStaticUtil.widthMetres(m).or(-1), prepareName(m.getName()));
+                    out.flush();
+                });
+        Action1<PrintStream> disposeAction = out -> out.close();
+        return Observable.using(resourceFactory, observableFactory, disposeAction);
+    }
+
+    private static Observable<Timestamped<AisShipStatic>> timestampedShipStatics(File file) {
+        return Streams.extract(Streams.nmeaFromGzip(file)) //
+                .flatMap(aisShipStaticOnly) //
+                .doOnError(
+                        e -> System.err.println("could not read " + file + ": " + e.getMessage()))
+                .onErrorResumeNext(Observable.<TimestampedAndLine<AisShipStatic>> empty())
+                .filter(x -> x.getMessage().isPresent()) //
+                .map(x -> x.getMessage().get());
+    }
+
+    private static Observable<TreeSet<Timestamped<AisShipStatic>>> collect(
+            GroupedObservable<Integer, Timestamped<AisShipStatic>> g) {
+        return g.collect(() -> new TreeSet<Timestamped<AisShipStatic>>(
+                (a, b) -> Long.compare(a.time(), b.time())), (set, x) -> {
+                    Timestamped<AisShipStatic> a = set.floor(x);
+                    Timestamped<AisShipStatic> b = set.ceiling(x);
+                    if (a != null && a.time() == x.time()) {
+                        return;
+                    }
+                    if (b != null && b.time() == x.time()) {
+                        return;
+                    }
+
+                    // There is a hole in this code for when a == b and a != x
+                    // this seems unlikely and is presumably a correction
+                    // of a bad record so happy to miss this case.
+                    if (a == null) {
+                        // nothing before
+                        if (b == null) {
+                            // nothing after
+                            set.add(x);
+                        } else if (isDifferent(b.message(), x.message())) {
+                            set.add(x);
+                        }
+                        // otherwise ignore
+                    } else {
+                        boolean axDifferent = isDifferent(a.message(), x.message());
+                        if (b == null) {
+                            // nothing after
+                            if (axDifferent) {
+                                set.add(x);
+                            }
+                        } else {
+                            boolean bxDifferent = isDifferent(x.message(), b.message());
+                            if (axDifferent) {
+                                set.add(x);
+                                if (!bxDifferent) {
+                                    remove(set, b);
+                                }
+                            }
+                        }
+                    }
+                });
+    }
+
+    private static void remove(TreeSet<Timestamped<AisShipStatic>> set,
+            Timestamped<AisShipStatic> a) {
+        // slow O(n) remove
+        Iterator<Timestamped<AisShipStatic>> it = set.iterator();
+        while (it.hasNext()) {
+            if (it.next() == a) {
+                it.remove();
+            }
+        }
+    }
+
+    private static boolean isDifferent(AisShipStatic a, AisShipStatic b) {
+        Preconditions.checkArgument(a.getMmsi() == b.getMmsi());
+        boolean different = !a.getDimensionA().equals(b.getDimensionA())
+                || !a.getDimensionB().equals(b.getDimensionB())
+                || !a.getDimensionC().equals(b.getDimensionC())
+                || !a.getDimensionD().equals(b.getDimensionD())
+                || !a.getLengthMetres().equals(b.getLengthMetres())
+                || !a.getWidthMetres().equals(b.getWidthMetres())
+                || !a.getName().equals(b.getName()) //
+                || a.getShipType() != b.getShipType();
+        if (different) {
+            return true;
+        } else if (a instanceof AisShipStaticA && b instanceof AisShipStaticA) {
+            AisShipStaticA a2 = (AisShipStaticA) a;
+            AisShipStaticA b2 = (AisShipStaticA) b;
+            return !a2.getImo().equals(b2.getImo());
+        } else {
+            return false;
+        }
     }
 
     private static String prepareName(String name) {
