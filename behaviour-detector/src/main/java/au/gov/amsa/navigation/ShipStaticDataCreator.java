@@ -2,8 +2,11 @@ package au.gov.amsa.navigation;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.TreeSet;
 
 import com.github.davidmoten.guavamini.Preconditions;
@@ -85,17 +88,19 @@ public final class ShipStaticDataCreator {
 
     public static Observable<Timestamped<AisShipStatic>> writeStaticDataToFileWithTimestamps(
             List<File> files, File outputFile, Scheduler scheduler) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         Func0<PrintStream> resourceFactory = Checked.f0(() -> new PrintStream(outputFile));
         Func1<PrintStream, Observable<Timestamped<AisShipStatic>>> observableFactory = out -> Observable
                 .from(files)
                 // buffer into chunks for each processor
-                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors()) - 1)
+                .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
                 .flatMap(list -> Observable.from(list) //
                         .lift(Logging.<File> logger().showValue().showMemory().log()) //
                         .concatMap(file -> timestampedShipStatics(file)) //
-                        .subscribeOn(scheduler)) //
+        ) //
                 .groupBy(m -> m.message().getMmsi()) //
-                .flatMap(g -> collect(g)) //
+                .flatMap(g -> collect(g).subscribeOn(scheduler)) //
                 .compose(Transformers.doOnFirst(x -> {
                     out.println(
                             "# MMSI, Time, IMO, AisClass, AisShipType, MaxPresentStaticDraughtMetres, DimAMetres, DimBMetres, DimCMetres, DimDMetres, LengthMetres, WidthMetres, Name");
@@ -106,7 +111,7 @@ public final class ShipStaticDataCreator {
                 .doOnNext(k -> {
                     AisShipStatic m = k.message();
                     out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
-                            k.time(), getImo(m).or(-1), m instanceof AisShipStaticA ? "A" : "B",
+                            sdf.format(new Date(k.time())), getImo(m).or(-1), m instanceof AisShipStaticA ? "A" : "B",
                             m.getShipType(), getMaximumPresentStaticDraughtMetres(m).or(-1F),
                             m.getDimensionA().or(-1), m.getDimensionB().or(-1),
                             m.getDimensionC().or(-1), m.getDimensionD().or(-1),
