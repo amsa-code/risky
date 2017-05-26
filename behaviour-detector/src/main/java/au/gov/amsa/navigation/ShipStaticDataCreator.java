@@ -111,8 +111,9 @@ public final class ShipStaticDataCreator {
                 .doOnNext(k -> {
                     AisShipStatic m = k.message();
                     out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
-                            sdf.format(new Date(k.time())), getImo(m).or(-1), m instanceof AisShipStaticA ? "A" : "B",
-                            m.getShipType(), getMaximumPresentStaticDraughtMetres(m).or(-1F),
+                            sdf.format(new Date(k.time())), getImo(m).or(-1),
+                            m instanceof AisShipStaticA ? "A" : "B", m.getShipType(),
+                            getMaximumPresentStaticDraughtMetres(m).or(-1F),
                             m.getDimensionA().or(-1), m.getDimensionB().or(-1),
                             m.getDimensionC().or(-1), m.getDimensionD().or(-1),
                             AisShipStaticUtil.lengthMetres(m).or(-1),
@@ -189,16 +190,20 @@ public final class ShipStaticDataCreator {
         }
     }
 
+    private static final boolean justImo = true;
+
     private static boolean isDifferent(AisShipStatic a, AisShipStatic b) {
         Preconditions.checkArgument(a.getMmsi() == b.getMmsi());
-        boolean different = !a.getDimensionA().equals(b.getDimensionA())
-                || !a.getDimensionB().equals(b.getDimensionB())
-                || !a.getDimensionC().equals(b.getDimensionC())
-                || !a.getDimensionD().equals(b.getDimensionD())
-                || !a.getLengthMetres().equals(b.getLengthMetres())
-                || !a.getWidthMetres().equals(b.getWidthMetres())
-                || !a.getName().equals(b.getName()) //
-                || a.getShipType() != b.getShipType();
+
+        boolean different = !justImo //
+                && (!a.getDimensionA().equals(b.getDimensionA())
+                        || !a.getDimensionB().equals(b.getDimensionB())
+                        || !a.getDimensionC().equals(b.getDimensionC())
+                        || !a.getDimensionD().equals(b.getDimensionD())
+                        || !a.getLengthMetres().equals(b.getLengthMetres())
+                        || !a.getWidthMetres().equals(b.getWidthMetres())
+                        || !a.getName().equals(b.getName()) //
+                        || a.getShipType() != b.getShipType());
         if (different) {
             return true;
         } else if (a instanceof AisShipStaticA && b instanceof AisShipStaticA) {
