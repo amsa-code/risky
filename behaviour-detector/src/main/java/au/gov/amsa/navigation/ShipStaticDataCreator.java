@@ -88,7 +88,7 @@ public final class ShipStaticDataCreator {
 
     public static Observable<Timestamped<AisShipStatic>> writeStaticDataToFileWithTimestamps(
             List<File> files, File outputFile, Scheduler scheduler) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         Func0<PrintStream> resourceFactory = Checked.f0(() -> new PrintStream(outputFile));
         Func1<PrintStream, Observable<Timestamped<AisShipStatic>>> observableFactory = out -> Observable
