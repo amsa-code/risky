@@ -97,8 +97,7 @@ public final class ShipStaticDataCreator {
                 .buffer(Math.max(1, files.size() / Runtime.getRuntime().availableProcessors() - 1))
                 .flatMap(list -> Observable.from(list) //
                         .lift(Logging.<File> logger().showValue().showMemory().log()) //
-                        .concatMap(file -> timestampedShipStatics(file)) //
-        ) //
+                        .concatMap(file -> timestampedShipStatics(file))) //
                 .groupBy(m -> m.message().getMmsi()) //
                 .flatMap(g -> collect(g).subscribeOn(scheduler)) //
                 .compose(Transformers.doOnFirst(x -> {
@@ -107,6 +106,7 @@ public final class ShipStaticDataCreator {
                     out.println("# columns are tab delimited");
                     out.println("# -1 = not present");
                 })) //
+                .filter(set -> set.size() <= 10) //
                 .flatMapIterable(set -> set) //
                 .doOnNext(k -> {
                     AisShipStatic m = k.message();
