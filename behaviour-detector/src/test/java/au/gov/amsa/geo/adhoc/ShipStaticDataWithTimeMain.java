@@ -17,7 +17,7 @@ public class ShipStaticDataWithTimeMain {
         long t = System.currentTimeMillis();
         File outputFile = new File("target/out.txt");
         List<File> files;
-        if (true) {
+        if (false) {
             String filename = "/media/an/nmea/2014/NMEA_ITU_20140815.gz";
             files = Collections.singletonList(new File(filename));
         } else {
