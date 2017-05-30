@@ -25,7 +25,7 @@ public class VesselsInGbrMain {
         long t = System.currentTimeMillis();
         File out = new File("target/mmsi.txt");
         out.delete();
-        try (BufferedWriter b = new BufferedWriter(
+        try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(out)))) {
             Pattern pattern = Pattern.compile(".*\\.track");
             List<File> list = new ArrayList<File>();
@@ -33,36 +33,39 @@ public class VesselsInGbrMain {
             list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2015"), pattern));
             list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2016"), pattern));
             AtomicInteger count = new AtomicInteger();
-            AtomicInteger fixesCount = new AtomicInteger();
+
             Observable.from(list) //
                     .groupBy(f -> count.getAndIncrement()
                             % Runtime.getRuntime().availableProcessors()) //
-                    .flatMap(files -> vesselsInGbr(files, Schedulers.computation())).distinct() //
-                    .sorted() //
-                    .filter(m -> MmsiValidator2.INSTANCE.isValid((long) m)) //
-                    .doOnNext(m -> write(b, m)) //
+                    .flatMap(files -> vesselsInGbr(files, Schedulers.computation())) //
+                    .distinct(fix -> fix.mmsi() + fix.aisClass().name()) //
+                    .sorted((a, b) -> Integer.compare(a.mmsi(), b.mmsi())) //
+                    .filter(fix -> MmsiValidator2.INSTANCE.isValid((long) fix.mmsi())) //
+                    .doOnNext(fix -> write(writer, fix)) //
                     .toBlocking() //
                     .subscribe();
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
-    private static void write(BufferedWriter b, Integer m) {
+    private static void write(BufferedWriter b, Fix fix) {
         try {
-            b.write(String.valueOf(m));
+            b.write(String.valueOf(fix.mmsi()));
+            b.write('\t');
+            b.write(fix.aisClass().name());
             b.write('\n');
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static Observable<Integer> vesselsInGbr(GroupedObservable<Integer, File> files,
+    private static Observable<Fix> vesselsInGbr(GroupedObservable<Integer, File> files,
             Scheduler scheduler) {
         return files //
                 .flatMap(f -> BinaryFixes.from(f) //
                         .filter(fix -> inGbr(fix)) //
-                        .map(fix -> fix.mmsi()) //
-                        .distinct().subscribeOn(scheduler));
+                        .distinct(fix -> fix.mmsi() + fix.aisClass().name()) //
+                        .subscribeOn(scheduler));
     }
 
     private static boolean inGbr(Fix fix) {
