@@ -181,13 +181,7 @@ public class DistanceTravelledMain {
     public static void main(String[] args) throws InterruptedException {
 
         log.info("starting");
-        String directory;
-        if (args.length > 0)
-            directory = args[0];
-        else
-            directory = "/media/an/binary-fixes-5-minute/2013";
-        // directory = System.getProperty("user.home")
-        // + "/Downloads/positions-183-days";
+
         final double cellSizeDegrees;
         if (args.length > 1)
             cellSizeDegrees = Double.parseDouble(args[1]);
@@ -198,8 +192,8 @@ public class DistanceTravelledMain {
         for (int i = 0; i <= 10; i++)
             System.out.println(options.getGrid().centreLon(i));
 
-        for (int i = 2012; i <= 2013; i++) {
-            directory = "/media/an/binary-fixes-5-minute/" + i;
+        for (int i = 2014; i <= 2016; i++) {
+            String directory = "/media/an/binary-fixes-5-minute/" + i;
             run(directory, options, false, i + "");
         }
     }

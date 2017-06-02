@@ -18,7 +18,7 @@ import au.gov.amsa.navigation.DriftCandidates;
 import au.gov.amsa.navigation.ShipStaticData;
 import au.gov.amsa.navigation.ShipStaticData.Info;
 
-public class SabineDriftCandidatesMain {
+public class DriftCandidatesMain {
 
     public static void main(String[] args) throws FileNotFoundException {
         PrintStream out = new PrintStream("target/output.txt");

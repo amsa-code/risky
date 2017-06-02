@@ -10,7 +10,7 @@ import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.util.Files;
 import au.gov.amsa.util.Pair;
 
-public class GeoffHosackAdhocMain {
+public class GeoffHAdhocMain {
 
     public static void main(String[] args) {
         int option = 1;
