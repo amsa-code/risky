@@ -458,8 +458,10 @@ public class DistanceTravelledCalculator {
 
         int maxLonIndex = list.stream()
                 .map(cell -> options.getGrid().cellAt(cell.getCentreLat(), cell.getCentreLon()))
-                .filter(x -> x.isPresent()).map(x -> x.get().getLonIndex())
-                .max(Comparator.<Long> naturalOrder()).get().intValue();
+                .filter(x -> x.isPresent()) //
+                .map(x -> x.get().getLonIndex())
+                .max(Comparator.<Long> naturalOrder()) //
+                .get().intValue();
         int maxLatIndex = list.stream()
                 .map(cell -> options.getGrid().cellAt(cell.getCentreLat(), cell.getCentreLon()))
                 .filter(x -> x.isPresent()).map(x -> x.get().getLatIndex())
