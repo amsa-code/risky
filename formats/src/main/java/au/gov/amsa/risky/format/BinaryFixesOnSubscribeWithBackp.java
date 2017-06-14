@@ -113,8 +113,8 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
             observer.onNext(f);
         else {
             byte[] bytes = new byte[4096 * BinaryFixes.recordSize(format)];
-            int length;
             try {
+                int length;
                 if ((length = state.is.read(bytes)) > 0) {
                     for (int i = 0; i < length; i += recordSize) {
                         ByteBuffer bb = ByteBuffer.wrap(bytes, i, recordSize);
@@ -136,5 +136,5 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
         }
         return state;
     }
-
+    
 }

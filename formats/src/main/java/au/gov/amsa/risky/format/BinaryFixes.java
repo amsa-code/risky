@@ -1,17 +1,22 @@
 package au.gov.amsa.risky.format;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 import org.joda.time.DateTime;
@@ -275,4 +280,63 @@ public final class BinaryFixes {
     public static Observable<Fix> from(List<File> files) {
         return Observable.from(files).concatMap(file -> BinaryFixes.from(file));
     }
+    
+    public static Iterable<Fix> iterable(File file) {
+        return iterable(file, (mmsi, bb) -> BinaryFixesUtil.toFix(mmsi, bb));
+    }
+
+    public static <T> Iterable<T> iterable(File file, BiFunction<Integer,ByteBuffer,T> function) {
+        
+        int mmsi = BinaryFixesUtil.getMmsi(file);
+        return new Iterable<T>() {
+
+            @Override
+            public Iterator<T> iterator() {
+                try {
+                    return new Iterator<T>() {
+                        final int NUM_RECORDS_IN_BUFFER = 4096;
+                        final int recordSize = BinaryFixes.recordSize(BinaryFixesFormat.WITHOUT_MMSI);
+                        byte[] bytes = new byte[NUM_RECORDS_IN_BUFFER * recordSize];
+                        int numBytes;
+                        int index;
+                        final InputStream is = new FileInputStream(file);
+
+                        @Override
+                        public boolean hasNext() {
+                            if (index == numBytes) {
+                                try {
+                                    numBytes = is.read(bytes);
+                                    if (numBytes == -1) {
+                                        is.close();
+                                        return false;
+                                    } else {
+                                        index = 0;
+                                        return true;
+                                    }
+                                } catch (IOException e) {
+                                    try {
+                                        is.close();
+                                    } catch (IOException e1) {
+                                        //ignore
+                                    }
+                                    throw new RuntimeException(e);
+                                }
+                            } else
+                                return true;
+                        }
+
+                        @Override
+                        public T next() {
+                            ByteBuffer bb = ByteBuffer.wrap(bytes, index, recordSize);
+                            index += recordSize;
+                            return function.apply(mmsi, bb);
+                        }
+                    };
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+    }
+    
 }

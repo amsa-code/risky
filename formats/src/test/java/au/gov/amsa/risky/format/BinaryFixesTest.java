@@ -127,6 +127,15 @@ public final class BinaryFixesTest {
                 .toBlocking().single();
         System.out.println("total fixes = " + count);
     }
+    
+    @Test
+    public void testIterable() {
+        File file = new File("target/123456790.track");
+        TestingUtil.writeTwoBinaryFixes(file.getName(), BinaryFixesFormat.WITHOUT_MMSI);
+        for (Fix fix:BinaryFixes.iterable(file)) {
+            System.out.println(fix);
+        }
+    }
 
     private Func1<File, Observable<Integer>> countFixes() {
         return file -> BinaryFixes.from(file).count();

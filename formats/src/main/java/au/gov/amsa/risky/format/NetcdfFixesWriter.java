@@ -21,6 +21,9 @@ import ucar.nc2.Variable;
 public class NetcdfFixesWriter {
 
     public static void writeFixes(List<HasFix> fixes, File file) {
+        if (fixes.size() == 0) {
+            return;
+        }
 
         try {
             // TODO evaluate use of NetCdf structures
@@ -38,13 +41,13 @@ public class NetcdfFixesWriter {
             Dimension dimNavStatus = f.addDimension(null, "navigational_status", fixes.size());
             Dimension dimRateOfTurn = f.addDimension(null, "rate_of_turn", fixes.size());
             Dimension dimSpeedOverGround = f.addDimension(null, "speed_over_ground", fixes.size());
-            Dimension dimCourseOverGround = f
-                    .addDimension(null, "course_over_ground", fixes.size());
+            Dimension dimCourseOverGround = f.addDimension(null, "course_over_ground",
+                    fixes.size());
             Dimension dimHeading = f.addDimension(null, "heading", fixes.size());
             Dimension dimAisClass = f.addDimension(null, "ais_class", fixes.size());
 
-            Variable varLat = f
-                    .addVariable(null, "latitude", DataType.FLOAT, Arrays.asList(dimLat));
+            Variable varLat = f.addVariable(null, "latitude", DataType.FLOAT,
+                    Arrays.asList(dimLat));
             varLat.addAttribute(new Attribute("units", "degrees_east"));
             varLat.addAttribute(new Attribute("standard_name", "latitude"));
             varLat.addAttribute(new Attribute("long_name", "latitude of craft position"));
@@ -60,8 +63,8 @@ public class NetcdfFixesWriter {
 
             Variable varSource = f.addVariable(null, "source", DataType.SHORT,
                     Arrays.asList(dimSource));
-            varSource
-                    .addAttribute(new Attribute("encoding", "0=not present, 1=present, others TBA"));
+            varSource.addAttribute(
+                    new Attribute("encoding", "0=not present, 1=present, others TBA"));
 
             Variable varLatency = f.addVariable(null, "latency", DataType.INT,
                     Arrays.asList(dimLatency));
@@ -81,8 +84,8 @@ public class NetcdfFixesWriter {
             varSpeedOverGround.addAttribute(new Attribute("units", "1/10 knot"));
             varSpeedOverGround.addAttribute(new Attribute("encoding", "1023=not present"));
 
-            Variable varCourseOverGround = f.addVariable(null, "course_over_ground",
-                    DataType.SHORT, Arrays.asList(dimCourseOverGround));
+            Variable varCourseOverGround = f.addVariable(null, "course_over_ground", DataType.SHORT,
+                    Arrays.asList(dimCourseOverGround));
             varCourseOverGround.addAttribute(new Attribute("units", "1/10 degree"));
             varCourseOverGround.addAttribute(new Attribute("encoding", "3600=not present"));
 
@@ -194,13 +197,13 @@ public class NetcdfFixesWriter {
         }
     }
 
-    private static final Action2<List<HasFix>, File> FIXES_WRITER = (list, file) -> {
+    private static final Action2<List<HasFix>, File> FIXES_TO_NETCDF_WRITER = (list, file) -> {
         NetcdfFixesWriter.writeFixes(list, file);
     };
 
     public static Observable<Integer> convertToNetcdf(File input, File output, Pattern pattern) {
         return Formats.transform(input, output, pattern, Transformers.<HasFix> identity(),
-                FIXES_WRITER, name -> name.replaceFirst("\\.track(\\.gz)?", ".nc"));
+                FIXES_TO_NETCDF_WRITER, name -> name.replaceFirst("\\.track(\\.gz)?", ".nc"));
 
     }
 }
