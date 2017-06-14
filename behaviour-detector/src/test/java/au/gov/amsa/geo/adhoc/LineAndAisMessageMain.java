@@ -52,8 +52,8 @@ public class LineAndAisMessageMain {
                 .map(x -> x.getLine().trim()) //
                 .filter(x -> !x.startsWith("\\1G2:") && !x.startsWith("\\1G3")
                         && !x.startsWith("\\2G3"))
-                .filter(x -> !set.contains(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
                 .doOnNext(x -> set2.add(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
+                .filter(x -> !set.contains(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
                 // .doOnNext(System.out::println) //
                 .count() //
                 .doOnNext(System.out::println) //
