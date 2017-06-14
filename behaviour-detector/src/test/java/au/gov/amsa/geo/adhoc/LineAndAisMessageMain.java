@@ -54,22 +54,23 @@ public class LineAndAisMessageMain {
                         && !x.startsWith("\\2G3"))
                 .filter(x -> !set.contains(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
                 .doOnNext(x -> set2.add(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
-//                .doOnNext(System.out::println) //
+                // .doOnNext(System.out::println) //
                 .count() //
                 .doOnNext(System.out::println) //
                 .toBlocking() //
                 .subscribe();
-        System.out.println((System.currentTimeMillis()-t)+ "ms");
-        
+        System.out.println((System.currentTimeMillis() - t) + "ms");
+
         int count = 0;
-        for (String s:set) {
+        for (String s : set) {
             if (!set2.contains(s)) {
-                if (count++<1000) {
-                System.out.println(s);
+                if (count++ < 1000) {
+                    System.out.println(s);
                 }
             }
         }
-        System.out.println((System.currentTimeMillis()-t)+ "ms");
+        System.out.println("not found="+ count);
+        System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
     private static boolean is123(int n) {
