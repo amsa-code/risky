@@ -61,9 +61,12 @@ public class LineAndAisMessageMain {
                 .subscribe();
         System.out.println((System.currentTimeMillis()-t)+ "ms");
         
+        int count = 0;
         for (String s:set) {
             if (!set2.contains(s)) {
+                if (count++<1000) {
                 System.out.println(s);
+                }
             }
         }
         System.out.println((System.currentTimeMillis()-t)+ "ms");
