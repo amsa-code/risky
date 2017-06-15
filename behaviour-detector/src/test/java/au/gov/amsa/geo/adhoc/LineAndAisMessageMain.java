@@ -24,7 +24,7 @@ public class LineAndAisMessageMain {
 
     public static void main(String[] args) throws IOException {
         long t = System.currentTimeMillis();
-        if (true) {
+        if (false) {
             try (PrintStream out = new PrintStream("target/subset.txt")) {
                 Pattern p = Pattern.compile("\\\\.*,c:(14\\d{8}),.*\\\\.*");
                 Streams.nmeaFromGzip(
@@ -36,8 +36,8 @@ public class LineAndAisMessageMain {
                             if (m.matches()) {
                                 String s = m.group(1);
                                 long epochSeconds = Long.parseLong(s);
-                                return epochSeconds >= START_TIME && epochSeconds <= START_TIME
-                                        + TimeUnit.DAYS.toSeconds(1);
+                                return epochSeconds >= START_TIME
+                                        && epochSeconds <= START_TIME + TimeUnit.DAYS.toSeconds(1);
                             } else {
                                 return false;
                             }
@@ -45,10 +45,14 @@ public class LineAndAisMessageMain {
                         .subscribe();
             }
             System.out.println(System.currentTimeMillis() - t + "ms");
+            System.exit(0);
         }
-        System.exit(0);
-        String a = "\\s:Sugarloaf Point,c:1495756800,T:2017-05-26 00.00.00*64\\!BSVDM,1,1,,B,15DQAR00imbrvf?eEIjp<Faj00S1,0*65";
-        System.out.println(a.replaceFirst("\\\\.*\\*..\\\\", ""));
+        if (false) {
+            String a = "\\s:Sugarloaf Point,c:1495756800,T:2017-05-26 00.00.00*64\\!BSVDM,1,1,,B,15DQAR00imbrvf?eEIjp<Faj00S1,0*65";
+            System.out.println(a.replaceFirst("\\\\.*\\*..\\\\", ""));
+            System.out.println(significant(a));
+            System.exit(0);
+        }
         BufferedWriter b = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream("target/out.txt")));
         // System.exit(0);
@@ -64,7 +68,7 @@ public class LineAndAisMessageMain {
                 while ((line = br.readLine()) != null) {
                     b.write(line.trim());
                     b.write("\n");
-                    String s = line.trim().replaceFirst(TAG_BLOCK_REGEX, "");
+                    String s = significant(line.trim());
                     set.add(s);
                 }
             }
@@ -72,7 +76,7 @@ public class LineAndAisMessageMain {
         b.close();
         Set<String> set2 = new HashSet<String>();
         System.out.println("written");
-        Streams.nmeaFromGzip(new File("/media/an/amsa_26_05_2017_5_IEC/iec/2017-05-26.txt.gz")) //
+        Streams.nmeaFromGzip(new File("/media/an/amsa_26_05_2017_5_IEC/iec/subset.txt.gz")) //
                 .compose(o -> Streams.extractWithLines(o)) //
                 .doOnNext(m -> {
                     if (m.getError() != null) {
@@ -81,19 +85,20 @@ public class LineAndAisMessageMain {
                 }) //
                 .filter(m -> m.getMessage().isPresent()
                         && is123(m.getMessage().get().message().getMessageId())) //
-                .filter(x -> x.getMessage().get().time() >= 1495756800000L + 100000) //
+                .filter(x -> x.getMessage().get().time() >= START_TIME) //
                 .map(x -> x.getLines().get(x.getLines().size() - 1)) //
                 // .filter(x -> !x.startsWith("\\1G2:") &&
                 // !x.startsWith("\\1G3")
                 // && !x.startsWith("\\2G3"))
-                .doOnNext(x -> set2.add(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
-                .filter(x -> !set.contains(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
-                // .doOnNext(System.out::println) //
+                .doOnNext(x -> set2.add(significant(x))) //
+                .filter(x -> !set.contains(significant(x))) //
+                .doOnNext(System.out::println) //
                 .count() //
                 .doOnNext(System.out::println) //
                 .toBlocking() //
                 .subscribe();
         System.out.println((System.currentTimeMillis() - t) + "ms");
+        System.exit(0);
 
         int count = 0;
         for (String s : set) {
@@ -109,6 +114,18 @@ public class LineAndAisMessageMain {
 
     private static boolean is123(int n) {
         return n == 1 || n == 2 || n == 3;
+    }
+
+    private static final Pattern extractPattern = Pattern.compile(",([^,]*),[^,]\\*..$");
+
+    private static String significant(String nmea) {
+        Matcher m = extractPattern.matcher(nmea);
+        if (m.find()) {
+            return m.group(1);
+        } else {
+            throw new RuntimeException("not found in \n" + nmea);
+        }
+        // return nmea.replaceFirst(TAG_BLOCK_REGEX, "");
     }
 
 }
