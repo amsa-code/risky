@@ -12,6 +12,7 @@ import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -76,6 +77,8 @@ public class LineAndAisMessageMain {
         b.close();
         Set<String> set2 = new HashSet<String>();
         System.out.println("written");
+        AtomicInteger count123 = new AtomicInteger(0);
+        AtomicInteger samples = new AtomicInteger(0);
         Streams.nmeaFromGzip(new File("/media/an/amsa_26_05_2017_5_IEC/iec/subset.txt.gz")) //
                 .compose(o -> Streams.extractWithLines(o)) //
                 .doOnNext(m -> {
@@ -87,18 +90,23 @@ public class LineAndAisMessageMain {
                         && is123(m.getMessage().get().message().getMessageId())) //
                 .filter(x -> x.getMessage().get().time() >= START_TIME) //
                 .map(x -> x.getLines().get(x.getLines().size() - 1)) //
+                .doOnNext(x -> count123.incrementAndGet()) //
                 // .filter(x -> !x.startsWith("\\1G2:") &&
                 // !x.startsWith("\\1G3")
                 // && !x.startsWith("\\2G3"))
                 .doOnNext(x -> set2.add(significant(x))) //
                 .filter(x -> !set.contains(significant(x))) //
-                .doOnNext(System.out::println) //
+                .doOnNext(x -> {
+                    if (samples.incrementAndGet() <= 100) {
+                        System.out.println(x);
+                    }
+                }) //
                 .count() //
                 .doOnNext(System.out::println) //
                 .toBlocking() //
                 .subscribe();
+        System.out.println("count123=" + count123.get());
         System.out.println((System.currentTimeMillis() - t) + "ms");
-        System.exit(0);
 
         int count = 0;
         for (String s : set) {
@@ -123,7 +131,8 @@ public class LineAndAisMessageMain {
         if (m.find()) {
             return m.group(1);
         } else {
-            throw new RuntimeException("not found in \n" + nmea);
+            System.err.println(nmea);
+            return "unknown";
         }
         // return nmea.replaceFirst(TAG_BLOCK_REGEX, "");
     }
