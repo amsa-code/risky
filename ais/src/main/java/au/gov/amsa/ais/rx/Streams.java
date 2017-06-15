@@ -14,11 +14,14 @@ import java.io.Reader;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.FileUtils;
@@ -94,6 +97,19 @@ public class Streams {
                 .map(TO_AIS_MESSAGE_AND_LINE);
     }
 
+    public static Observable<TimestampedAndLines<AisMessage>> extractWithLines(
+            Observable<String> rawAisNmea) {
+        return rawAisNmea
+                // parse nmea
+                .map(LINE_TO_NMEA_MESSAGE)
+                // if error filter out
+                .compose(Streams.<NmeaMessage> valueIfPresent())
+                // aggregate multi line nmea
+                .compose(addToBuffer(BUFFER_SIZE))
+                // parse ais message and include line
+                .map(TO_AIS_MESSAGE_AND_LINES);
+    }
+
     public static Observable<Timestamped<AisMessage>> extractMessages(
             Observable<String> rawAisNmea) {
         return rawAisNmea.map(LINE_TO_NMEA_MESSAGE)
@@ -105,7 +121,6 @@ public class Streams {
                 .map(TO_AIS_MESSAGE)
                 //
                 .compose(Streams.<Timestamped<AisMessage>> valueIfPresent());
-
     }
 
     public static <T> Func1<Optional<T>, Boolean> isPresent() {
@@ -318,6 +333,44 @@ public class Streams {
         };
     }
 
+    public static class TimestampedAndLines<T extends AisMessage> {
+        private final Optional<Timestamped<T>> message;
+        private final List<String> lines;
+        private final String error;
+
+        public TimestampedAndLines(Optional<Timestamped<T>> message, List<String> lines,
+                String error) {
+            this.message = message;
+            this.lines = lines;
+            this.error = error;
+        }
+
+        public Optional<Timestamped<T>> getMessage() {
+            return message;
+        }
+
+        public List<String> getLines() {
+            return lines;
+        }
+
+        public String getError() {
+            return error;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            if (message.isPresent())
+                builder.append("message=" + message);
+            else
+                builder.append("error=" + error);
+            builder.append(", lines=");
+            builder.append(lines);
+            return builder.toString();
+        }
+
+    }
+
     public static class TimestampedAndLine<T extends AisMessage> {
         private final Optional<Timestamped<T>> message;
         private final String line;
@@ -435,7 +488,72 @@ public class Streams {
         }
     };
 
+    public static final Func1<Optional<List<NmeaMessage>>, TimestampedAndLines<AisMessage>> TO_AIS_MESSAGE_AND_LINES = nmeas -> {
+        if (nmeas.isPresent()) {
+            List<String> lines = nmeas.get() //
+                    .stream() //
+                    .map(new Function<NmeaMessage, String>() {
+                @Override
+                public String apply(NmeaMessage t) {
+                    return t.toLine();
+                }
+            }).collect(Collectors.toList());
+            Optional<NmeaMessage> concat = AisNmeaBuffer.concatenateMessages(nmeas.get());
+            if (concat.isPresent()) {
+                try {
+                    AisNmeaMessage n = new AisNmeaMessage(concat.get());
+                    return new TimestampedAndLines<AisMessage>(
+                            Optional.of(n.getTimestampedMessage(System.currentTimeMillis())), lines,
+                            null);
+                } catch (AisParseException e) {
+                    return new TimestampedAndLines<AisMessage>(
+                            Optional.<Timestamped<AisMessage>> absent(), lines, e.getMessage());
+                }
+            } else {
+                return new TimestampedAndLines<AisMessage>(
+                        Optional.<Timestamped<AisMessage>> absent(), lines, "could not concat");
+            }
+        } else {
+            return new TimestampedAndLines<AisMessage>(Optional.absent(), Collections.emptyList(),
+                    null);
+        }
+    };
+
+    public static final Transformer<NmeaMessage, Optional<List<NmeaMessage>>> addToBuffer(
+            int bufferSize) {
+        return new Transformer<NmeaMessage, Optional<List<NmeaMessage>>>() {
+
+            @Override
+            public Observable<Optional<List<NmeaMessage>>> call(Observable<NmeaMessage> o) {
+                return Observable.defer(() -> {
+                    AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+                    // use maxConcurrent so doesn't request unbounded
+                    return o.map(nmea -> buffer.add(nmea));
+                });
+            }
+
+        };
+    }
+
     public static final Transformer<NmeaMessage, NmeaMessage> aggregateMultiLineNmea(
+            int bufferSize) {
+        return new Transformer<NmeaMessage, NmeaMessage>() {
+
+            @Override
+            public Observable<NmeaMessage> call(Observable<NmeaMessage> o) {
+                return Observable.defer(() -> {
+                    AisNmeaBuffer buffer = new AisNmeaBuffer(bufferSize);
+                    // use maxConcurrent so doesn't request unbounded
+                    return o.flatMap(nmea -> {
+                        return addToBuffer(buffer, nmea);
+                    } , 1);
+                });
+            }
+
+        };
+    }
+
+    public static final Transformer<NmeaMessage, NmeaMessage> aggregateMultiLineNmeaWithLines(
             int bufferSize) {
         return new Transformer<NmeaMessage, NmeaMessage>() {
 
@@ -626,8 +744,8 @@ public class Streams {
                 int num = count.incrementAndGet();
                 double filesPerSecond = (System.currentTimeMillis() - start) / (double) num
                         / 1000.0;
-                log.info("file " + num + " of " + fileList.size() + ", " + file.getName() + ", rateFilesPerSecond="
-                        + filesPerSecond);
+                log.info("file " + num + " of " + fileList.size() + ", " + file.getName()
+                        + ", rateFilesPerSecond=" + filesPerSecond);
             }
         };
 

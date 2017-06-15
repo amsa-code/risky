@@ -8,17 +8,45 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import au.gov.amsa.ais.rx.Streams;
 
 public class LineAndAisMessageMain {
 
+    private static final long START_TIME = 1495756800L;
     private static final String TAG_BLOCK_REGEX = "\\\\.*\\*..?\\\\";
 
     public static void main(String[] args) throws IOException {
         long t = System.currentTimeMillis();
+        if (true) {
+            try (PrintStream out = new PrintStream("target/subset.txt")) {
+                Pattern p = Pattern.compile("\\\\.*,c:(14\\d{8}),.*\\\\.*");
+                Streams.nmeaFromGzip(
+                        new File("/media/an/amsa_26_05_2017_5_IEC/iec/2017-05-26.txt.gz"))
+                        .concatWith(Streams.nmeaFromGzip(
+                                new File("/media/an/amsa_26_05_2017_5_IEC/iec/2017-05-27.txt.gz")))
+                        .filter(x -> {
+                            Matcher m = p.matcher(x);
+                            if (m.matches()) {
+                                String s = m.group(1);
+                                long epochSeconds = Long.parseLong(s);
+                                return epochSeconds >= START_TIME && epochSeconds <= START_TIME
+                                        + TimeUnit.DAYS.toSeconds(1);
+                            } else {
+                                return false;
+                            }
+                        }).doOnNext(out::println) //
+                        .subscribe();
+            }
+            System.out.println(System.currentTimeMillis() - t + "ms");
+        }
+        System.exit(0);
         String a = "\\s:Sugarloaf Point,c:1495756800,T:2017-05-26 00.00.00*64\\!BSVDM,1,1,,B,15DQAR00imbrvf?eEIjp<Faj00S1,0*65";
         System.out.println(a.replaceFirst("\\\\.*\\*..\\\\", ""));
         BufferedWriter b = new BufferedWriter(
@@ -45,13 +73,19 @@ public class LineAndAisMessageMain {
         Set<String> set2 = new HashSet<String>();
         System.out.println("written");
         Streams.nmeaFromGzip(new File("/media/an/amsa_26_05_2017_5_IEC/iec/2017-05-26.txt.gz")) //
-                .compose(o -> Streams.extract(o)) //
+                .compose(o -> Streams.extractWithLines(o)) //
+                .doOnNext(m -> {
+                    if (m.getError() != null) {
+                        System.out.println();
+                    }
+                }) //
                 .filter(m -> m.getMessage().isPresent()
                         && is123(m.getMessage().get().message().getMessageId())) //
                 .filter(x -> x.getMessage().get().time() >= 1495756800000L + 100000) //
-                .map(x -> x.getLine().trim()) //
-                .filter(x -> !x.startsWith("\\1G2:") && !x.startsWith("\\1G3")
-                        && !x.startsWith("\\2G3"))
+                .map(x -> x.getLines().get(x.getLines().size() - 1)) //
+                // .filter(x -> !x.startsWith("\\1G2:") &&
+                // !x.startsWith("\\1G3")
+                // && !x.startsWith("\\2G3"))
                 .doOnNext(x -> set2.add(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
                 .filter(x -> !set.contains(x.replaceFirst(TAG_BLOCK_REGEX, ""))) //
                 // .doOnNext(System.out::println) //
@@ -69,7 +103,7 @@ public class LineAndAisMessageMain {
                 }
             }
         }
-        System.out.println("not found="+ count);
+        System.out.println("not found=" + count);
         System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
