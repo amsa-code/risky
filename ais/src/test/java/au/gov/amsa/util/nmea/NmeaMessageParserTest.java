@@ -190,5 +190,13 @@ public class NmeaMessageParserTest {
     public void testExtractTagsReturnsEmptyMapWhenDoesNotHaveChecksumDelimiter() {
         assertTrue(NmeaMessageParser.extractTags("c:12334,a:3456").isEmpty());
     }
-    
+
+    @Test
+    public void testExtractMissingAisMessage() {
+        String msg = "\\s:AISSat_2,c:1495765889,T:2017-05-26 02.31.29*24\\!AIVDM,1,1,,A,15Qp0b0029:obOH0wMO6k5Dp00S7,0*17";
+        NmeaMessage m = NmeaUtil.parseNmea(msg);
+        
+
+    }
+
 }

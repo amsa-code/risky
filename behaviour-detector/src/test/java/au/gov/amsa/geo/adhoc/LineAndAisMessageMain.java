@@ -79,6 +79,8 @@ public class LineAndAisMessageMain {
         System.out.println("written");
         AtomicInteger count123 = new AtomicInteger(0);
         AtomicInteger samples = new AtomicInteger(0);
+        
+        //subset is two days worth of our nmea lines
         Streams.nmeaFromGzip(new File("/media/an/amsa_26_05_2017_5_IEC/iec/subset.txt.gz")) //
                 .compose(o -> Streams.extractWithLines(o)) //
                 .doOnNext(m -> {
@@ -124,6 +126,7 @@ public class LineAndAisMessageMain {
         return n == 1 || n == 2 || n == 3;
     }
 
+    //only the AIS message part of an NMEA line
     private static final Pattern extractPattern = Pattern.compile(",([^,]*),[^,]\\*..$");
 
     private static String significant(String nmea) {
