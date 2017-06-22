@@ -93,13 +93,15 @@ public class VoyageDatasetProducer {
 
     private static final long FIX_AGE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(5);
 
-    private static Observable<Waypoint> toWaypoints(Set<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
+    private static Observable<Waypoint> toWaypoints(Set<Port> ports, Set<EezWaypoint> eezWaypoints,
+            Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
             State[] state = new State[1];
             state[0] = new State(EezStatus.UNKNOWN, null);
             return fixes //
-                    .map(fix -> {
+                    .flatMap(fix -> {
+                        List<Waypoint> results = new ArrayList<>();
                         boolean inEez = inEez(fix);
                         State previous = state[0];
                         long intervalMs = fix.time() - previous.time();
@@ -120,13 +122,26 @@ public class VoyageDatasetProducer {
                                 }
                             }
                             Preconditions.checkNotNull(closest, "no eez waypoint found!");
+                            results.add(closest);
                         }
-                        return null;
-                    }) //
-                    .ignoreElements() //
-                    .cast(Waypoint.class);
+                        // Note that may have detected eez crossing but also
+                        // have arrived in port so may need to return both
+                        // waypoints
+                        if (inEez) {
+                            Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
+                            if (port.isPresent()) {
+                                results.add(port.get());
+                            }
+                        }
+                        return Observable.from(results);
+                    });
         });
 
+    }
+
+    private static Optional<Port> findPort(Set<Port> ports, float lat, float lon) {
+        // TODO
+        return null;
     }
 
     private static double distanceKm(double lat, double lon, double lat2, double lon2) {
