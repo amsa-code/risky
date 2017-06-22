@@ -133,6 +133,7 @@ public class VoyageDatasetProducer {
                                 results.add(port.get());
                             }
                         }
+                        state[0] = new State(inEez?EezStatus.IN:EezStatus.OUT, fix);
                         return Observable.from(results);
                     });
         });
