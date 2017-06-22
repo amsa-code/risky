@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +43,8 @@ public class VoyageDatasetProducer {
             System.out.println(numFiles + " files");
 
             AtomicInteger fileNumber = new AtomicInteger(0);
+            Set<Port> ports = Collections.emptySet();
+            Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //
                     // .groupBy(f -> count.getAndIncrement() %
                     // Runtime.getRuntime().availableProcessors()) //
@@ -49,7 +52,7 @@ public class VoyageDatasetProducer {
                     .flatMap(files -> files // s
                             .compose(o -> logPercentCompleted(numFiles, o, fileNumber)) //
                             .concatMap(BinaryFixes::from) //
-                            .compose(o -> toWaypoints(o)) //
+                            .compose(o -> toWaypoints(ports, eezWaypoints, o)) //
                     // .filter(x -> inGbr(x)) //
                     // .onBackpressureBuffer() //
                     // .subscribeOn(Schedulers.computation()) //
@@ -133,7 +136,7 @@ public class VoyageDatasetProducer {
                                 results.add(port.get());
                             }
                         }
-                        state[0] = new State(inEez?EezStatus.IN:EezStatus.OUT, fix);
+                        state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix);
                         return Observable.from(results);
                     });
         });
