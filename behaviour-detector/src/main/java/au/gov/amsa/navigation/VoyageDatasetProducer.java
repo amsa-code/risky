@@ -7,10 +7,16 @@ import java.io.OutputStreamWriter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
+import com.github.davidmoten.grumpy.core.Position;
+import com.google.common.base.Preconditions;
+
+import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.Files;
@@ -64,40 +70,56 @@ public class VoyageDatasetProducer {
         });
     }
 
-    private static final class Waypoint {
-
-    }
-
     private enum EezStatus {
         IN, OUT, UNKNOWN;
     }
 
     private static final class State {
         final EezStatus eez;
-        final long time;
+        final Fix fix;
 
-        public State(EezStatus eez, long time) {
+        long time() {
+            if (fix != null) {
+                return fix.time();
+            } else
+                return 0;
+        }
+
+        State(EezStatus eez, Fix fix) {
             this.eez = eez;
-            this.time = time;
+            this.fix = fix;
         }
     }
 
     private static final long FIX_AGE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(5);
 
-    private static Observable<Waypoint> toWaypoints(Observable<Fix> fixes) {
+    private static Observable<Waypoint> toWaypoints(Set<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
             State[] state = new State[1];
-            state[0] = new State(EezStatus.UNKNOWN, 0);
+            state[0] = new State(EezStatus.UNKNOWN, null);
             return fixes //
                     .map(fix -> {
                         boolean inEez = inEez(fix);
                         State previous = state[0];
-                        boolean previousRecent = fix.time() - previous.time <= FIX_AGE_THRESHOLD_MS;
+                        long intervalMs = fix.time() - previous.time();
+                        Preconditions.checkArgument(intervalMs >= 0, "fixes out of time order!");
+                        boolean previousIsRecent = intervalMs <= FIX_AGE_THRESHOLD_MS;
                         boolean crossed = (inEez && previous.eez == EezStatus.OUT)
                                 || (!inEez && previous.eez == EezStatus.IN);
-                        if (previousRecent && crossed) {
-                            
+                        if (previousIsRecent && crossed) {
+                            TimestampedPosition crossingPoint = findEezCrossingPoint(previous, fix);
+                            EezWaypoint closest = null;
+                            double closestDistanceKm = 0;
+                            for (EezWaypoint w : eezWaypoints) {
+                                double d = distanceKm(crossingPoint.lat, crossingPoint.lon, w.lat, w.lon);
+                                if (closest == null
+                                        || (d < closestDistanceKm && d <= w.thresholdKm.orElse(Double.MAX_VALUE))) {
+                                    closest = w;
+                                    closestDistanceKm = d;
+                                }
+                            }
+                            Preconditions.checkNotNull(closest, "no eez waypoint found!");
                         }
                         return null;
                     }) //
@@ -107,7 +129,68 @@ public class VoyageDatasetProducer {
 
     }
 
+    private static double distanceKm(double lat, double lon, double lat2, double lon2) {
+        return Position.create(lat, lon).getDistanceToKm(Position.create(lat2, lon2));
+    }
+
+    private static interface Waypoint {
+        String name();
+    }
+
+    private static final class EezWaypoint implements Waypoint {
+        final String name;
+        final double lat;
+        final double lon;
+        final Optional<Double> thresholdKm;
+
+        EezWaypoint(String name, double lat, double lon, Optional<Double> thresholdKm) {
+            this.name = name;
+            this.lat = lat;
+            this.lon = lon;
+            this.thresholdKm = thresholdKm;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+    }
+
+    private static final class Port implements Waypoint {
+        final String name;
+        final Shapefile visitRegion;
+
+        Port(String name, Shapefile visitRegion) {
+            this.name = name;
+            this.visitRegion = visitRegion;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+    }
+
+    private static TimestampedPosition findEezCrossingPoint(State previous, Fix fix) {
+        // TODO
+        return null;
+    }
+
+    private static final class TimestampedPosition {
+        final double lat;
+        final double lon;
+        final long time;
+
+        TimestampedPosition(double lat, double lon, long time) {
+            this.lat = lat;
+            this.lon = lon;
+            this.time = time;
+        }
+    }
+
     private static boolean inEez(Fix fix) {
+        // TODO
         return true;
     }
 
