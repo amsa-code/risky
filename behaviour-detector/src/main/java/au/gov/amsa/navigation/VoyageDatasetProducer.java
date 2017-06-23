@@ -9,15 +9,14 @@ import java.io.Reader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 import com.github.davidmoten.grumpy.core.Position;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -47,7 +46,7 @@ public final class VoyageDatasetProducer {
             // list.addAll(Files.find(new
             // File("/media/an/binary-fixes-5-minute/2015"), pattern));
             list.addAll(Files.find(new File("/home/dave/Downloads/2016"), pattern));
-            AtomicInteger count = new AtomicInteger();
+            // AtomicInteger count = new AtomicInteger();
 
             int numFiles = list.size();
             System.out.println(numFiles + " files");
@@ -83,10 +82,10 @@ public final class VoyageDatasetProducer {
                         .toList() //
                         .toBlocking().single();
             }
-            Shapefile eez = Shapefile
-                    .fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
+            Shapefile eezLine = loadEezLine();
+            Shapefile eezPolygon = loadEezPolygon();
             System.out.println("read eez shapefile");
-            System.out.println(eez.contains(-35, 149));
+            System.out.println(eezLine.contains(-35, 149));
 
             Observable.from(list) //
                     // .groupBy(f -> count.getAndIncrement() %
@@ -95,7 +94,7 @@ public final class VoyageDatasetProducer {
                     .flatMap(files -> files // s
                             .compose(o -> logPercentCompleted(numFiles, o, fileNumber)) //
                             .concatMap(BinaryFixes::from) //
-                            .compose(o -> toWaypoints(eez, ports, eezWaypoints, o)) //
+                            .compose(o -> toWaypoints(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                     // .filter(x -> inGbr(x)) //
                     // .onBackpressureBuffer() //
                     // .subscribeOn(Schedulers.computation()) //
@@ -105,6 +104,16 @@ public final class VoyageDatasetProducer {
                     .subscribe();
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    static Shapefile loadEezLine() {
+        // good for crossing checks
+        return Shapefile.fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_line.zip"));
+    }
+
+    static Shapefile loadEezPolygon() {
+        // good for contains checks
+        return Shapefile.fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
     }
 
     private static Observable<File> logPercentCompleted(int numFiles, Observable<File> o, AtomicInteger fileNumber) {
@@ -122,6 +131,7 @@ public final class VoyageDatasetProducer {
     private static final class State {
         final EezStatus eez;
         final Fix fix;
+        final Optional<Port> port;
 
         long time() {
             if (fix != null) {
@@ -130,24 +140,26 @@ public final class VoyageDatasetProducer {
                 return 0;
         }
 
-        State(EezStatus eez, Fix fix) {
+        State(EezStatus eez, Fix fix, Optional<Port> port) {
             this.eez = eez;
             this.fix = fix;
+            this.port = port;
         }
     }
 
     private static final long FIX_AGE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(5);
 
-    private static Observable<Waypoint> toWaypoints(Shapefile eez, Collection<Port> ports,
+    @VisibleForTesting
+    static Observable<TimedWaypoint> toWaypoints(Shapefile eezLine, Shapefile eezPolygon, Collection<Port> ports,
             Collection<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
             State[] state = new State[1];
-            state[0] = new State(EezStatus.UNKNOWN, null);
+            state[0] = new State(EezStatus.UNKNOWN, null, Optional.empty());
             return fixes //
                     .flatMap(fix -> {
-                        List<Waypoint> results = new ArrayList<>();
-                        boolean inEez = eez.contains(fix.lat(), fix.lon());
+                        List<TimedWaypoint> results = new ArrayList<>();
+                        boolean inEez = eezPolygon.contains(fix.lat(), fix.lon());
                         State previous = state[0];
                         long intervalMs = fix.time() - previous.time();
                         Preconditions.checkArgument(intervalMs >= 0, "fixes out of time order!");
@@ -155,7 +167,7 @@ public final class VoyageDatasetProducer {
                         boolean crossed = (inEez && previous.eez == EezStatus.OUT)
                                 || (!inEez && previous.eez == EezStatus.IN);
                         if (previousIsRecent && crossed) {
-                            TimestampedPosition crossingPoint = findRegionCrossingPoint(eez, previous.fix, fix);
+                            TimedPosition crossingPoint = findRegionCrossingPoint(eezLine, previous.fix, fix);
                             EezWaypoint closest = null;
                             double closestDistanceKm = 0;
                             for (EezWaypoint w : eezWaypoints) {
@@ -167,7 +179,7 @@ public final class VoyageDatasetProducer {
                                 }
                             }
                             Preconditions.checkNotNull(closest, "no eez waypoint found!");
-                            results.add(closest);
+                            results.add(new TimedWaypoint(closest, crossingPoint.time));
                         }
                         // Note that may have detected eez crossing but also
                         // have arrived in port so may need to return both
@@ -175,10 +187,16 @@ public final class VoyageDatasetProducer {
                         if (inEez) {
                             Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
                             if (port.isPresent()) {
-                                results.add(port.get());
+                                if (port.get() != previous.port.orElse(null)) {
+                                    results.add(new TimedWaypoint(port.get(), fix.time()));
+                                }
+                                state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, port);
+                            } else {
+                                state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, Optional.empty());
                             }
+                        } else {
+                            state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, Optional.empty());
                         }
-                        state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix);
                         return Observable.from(results);
                     });
         });
@@ -202,7 +220,8 @@ public final class VoyageDatasetProducer {
         String name();
     }
 
-    private static final class EezWaypoint implements Waypoint {
+    @VisibleForTesting
+    static final class EezWaypoint implements Waypoint {
         final String name;
         final double lat;
         final double lon;
@@ -227,7 +246,8 @@ public final class VoyageDatasetProducer {
 
     }
 
-    private static final class Port implements Waypoint {
+    @VisibleForTesting
+    static final class Port implements Waypoint {
         final String name;
         final String code;
         final Shapefile visitRegion;
@@ -250,7 +270,7 @@ public final class VoyageDatasetProducer {
 
     }
 
-    private static TimestampedPosition findRegionCrossingPoint(Shapefile region, Fix fix1, Fix fix2) {
+    private static TimedPosition findRegionCrossingPoint(Shapefile region, Fix fix1, Fix fix2) {
 
         Coordinate[] coords = new Coordinate[] { new Coordinate(fix1.lon(), fix1.lat()),
                 new Coordinate(fix2.lon(), fix2.lat()) };
@@ -268,34 +288,47 @@ public final class VoyageDatasetProducer {
                 double ac = a.getDistanceToKm(c);
                 double bc = b.getDistanceToKm(c);
                 if (ac == 0) {
-                    return new TimestampedPosition(fix1.lat(), fix1.lon(), fix1.time());
+                    return new TimedPosition(fix1.lat(), fix1.lon(), fix1.time());
                 } else if (bc == 0) {
-                    return new TimestampedPosition(fix2.lat(), fix2.lon(), fix2.time());
+                    return new TimedPosition(fix2.lat(), fix2.lon(), fix2.time());
                 } else {
                     // predict the timestamp based on distance from a and b
                     long diff = fix2.time() - fix1.time();
                     long t = Math.round(fix1.time() + (ac * diff + bc * diff) / (ac + bc));
-                    return new TimestampedPosition(latitude, longitude, t);
+                    return new TimedPosition(latitude, longitude, t);
                 }
             }
         }
         throw new RuntimeException("crossing not found");
     }
 
-    private static final class TimestampedPosition {
+    private static final class TimedPosition {
         final double lat;
         final double lon;
         final long time;
 
-        TimestampedPosition(double lat, double lon, long time) {
+        TimedPosition(double lat, double lon, long time) {
             this.lat = lat;
             this.lon = lon;
             this.time = time;
         }
     }
 
-    private static boolean inGbr(Fix fix) {
-        return fix.lat() >= -27.8 && fix.lat() <= -8.4 && fix.lon() >= 142 && fix.lon() <= 162;
+    @VisibleForTesting
+    static final class TimedWaypoint {
+        final Waypoint waypoint;
+        final long time;
+
+        TimedWaypoint(Waypoint waypoint, long time) {
+            this.waypoint = waypoint;
+            this.time = time;
+        }
+
+        @Override
+        public String toString() {
+            return "TimedWaypoint [waypoint=" + waypoint + ", time=" + time + "]";
+        }
+
     }
 
     public static void main(String[] args) throws Exception {
