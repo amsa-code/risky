@@ -1,0 +1,43 @@
+#
+# name <tab> shapefile <tab> thresholdKm
+# thresholdKm of 0 means unlimited
+#
+Abbot Point	abbot_point_visit_pl.zip	0
+Adelaide	adelaide_visit_pl.zip	0
+Albany	albany_visit_pl.zip	0
+Barrow Island	barrow_island_visit_pl.zip	0
+Bell Bay	bell_bay_visit_pl.zip	0
+Brisbane	brisbane_visit_pl.zip	0
+Broome	broome_visit_pl.zip	0
+Bunbury	bunbury_visit_pl.zip	0
+Burnie	burnie_visit_pl.zip	0
+Cairns	cairns_visit_pl.zip	0
+Cape Preston	cape_preston_visit_pl.zip	0
+Dampier	dampier_visit_pl.zip	0
+Devonport	devonport_visit_pl.zip	0
+Esperance	esperance_visit_pl.zip	0
+Fremantle	fremantle_visit_pl.zip	0
+Geelong	geelong_visit_pl.zip	0
+Geraldton	geraldton_visit_pl.zip	0
+Gladstone	gladstone_visit_pl.zip	0
+Gove	gove_visit_pl.zip	0
+Hay Point	hay_point_visit_pl.zip	0
+Hobart	hobart_visit_pl.zip	0
+Kurnell	kurnell_visit_pl.zip	0
+Kwinana	kwinana_visit_pl.zip	0
+Mackay	mackay_visit_pl.zip	0
+Melbourne	melbourne_visit_pl.zip	0
+Milne Bay	milne_bay_visit_pl.zip	0
+Newcastle	newcastle_visit_pl.zip	0
+Port Alma	port_alma_visit_pl.zip	0
+Port Botany	port_botany_visit_pl.zip	0
+Port Hedland	port_hedland_visit_pl.zip	0
+Port Kembla	port_kembla_visit_pl.zip	0
+Port Latta	port_latta_visit_pl.zip	0
+Port Walcott	port_walcott_visit_pl.zip	0
+Portland	portland_visit_pl.zip	0
+Sydney	sydney_visit_pl.zip	0
+Thevenard	thevenard_visit_pl.zip	0
+Townsville	townsville_visit_pl.zip	0
+Weipa	weipa_visit_pl.zip	0
+Whyalla	whyalla_visit_pl.zip	0
