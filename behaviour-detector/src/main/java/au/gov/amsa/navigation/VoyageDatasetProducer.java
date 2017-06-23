@@ -73,12 +73,12 @@ public class VoyageDatasetProducer {
             System.out.println(eez.contains(-35, 149));
             for (int i = 0; i > -40; i--) {
                 Coordinate[] coords = new Coordinate[] { new Coordinate(149, i), new Coordinate(175, i) };
-                System.out.println("lat="+ i);
+                System.out.println("lat=" + i);
                 LineString line = new GeometryFactory().createLineString(coords);
                 for (PreparedGeometry g : eez.geometries()) {
                     if (g.crosses(line)) {
                         Geometry intersection = g.getGeometry().intersection(line);
-                        System.out.println("intersection is " + intersection);
+                        System.out.println("intersection is " + intersection.getCoordinate());
                     }
                 }
             }
@@ -152,8 +152,7 @@ public class VoyageDatasetProducer {
                         boolean crossed = (inEez && previous.eez == EezStatus.OUT)
                                 || (!inEez && previous.eez == EezStatus.IN);
                         if (previousIsRecent && crossed) {
-                            TimestampedPosition crossingPoint = findRegionCrossingPoint(eez, previous.fix.lat(),
-                                    previous.fix.lon(), fix.lat(), fix.lon());
+                            TimestampedPosition crossingPoint = findRegionCrossingPoint(eez, previous.fix, fix);
                             EezWaypoint closest = null;
                             double closestDistanceKm = 0;
                             for (EezWaypoint w : eezWaypoints) {
@@ -240,15 +239,36 @@ public class VoyageDatasetProducer {
 
     }
 
-    private static TimestampedPosition findRegionCrossingPoint(Shapefile region, double lat, double lon, double lat2,
-            double lon2) {
-        Coordinate[] coords = new Coordinate[] { new Coordinate(lat, lon), new Coordinate(lat2, lon2) };
+    private static TimestampedPosition findRegionCrossingPoint(Shapefile region, Fix fix1, Fix fix2) {
+
+        Coordinate[] coords = new Coordinate[] { new Coordinate(fix1.lon(), fix1.lat()),
+                new Coordinate(fix2.lon(), fix2.lat()) };
         LineString line = new GeometryFactory().createLineString(coords);
         for (PreparedGeometry g : region.geometries()) {
-            Geometry intersection = g.getGeometry().intersection(line);
-            System.out.println(intersection);
+            if (g.crosses(line)) {
+                Geometry intersection = g.getGeometry().intersection(line);
+                // expecting just one point
+                Coordinate coord = intersection.getCoordinate();
+                double longitude = coord.x;
+                double latitude = coord.y;
+                Position a = Position.create(fix1.lat(), fix1.lon());
+                Position b = Position.create(fix2.lat(), fix2.lon());
+                Position c = Position.create(latitude, longitude);
+                double ac = a.getDistanceToKm(c);
+                double bc = b.getDistanceToKm(c);
+                if (ac == 0) {
+                    return new TimestampedPosition(fix1.lat(), fix1.lon(), fix1.time());
+                } else if (bc == 0) {
+                    return new TimestampedPosition(fix2.lat(), fix2.lon(), fix2.time());
+                } else {
+                    // predict the timestamp based on distance from a and b
+                    long diff = fix2.time() - fix1.time();
+                    long t = Math.round(fix1.time() + (ac * diff + bc * diff) / (ac + bc));
+                    return new TimestampedPosition(latitude, longitude, t);
+                }
+            }
         }
-        return null;
+        throw new RuntimeException("crossing not found");
     }
 
     private static final class TimestampedPosition {
