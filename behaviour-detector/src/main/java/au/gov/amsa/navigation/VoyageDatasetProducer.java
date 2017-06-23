@@ -32,7 +32,8 @@ import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.Files;
 import rx.Observable;
 
-public class VoyageDatasetProducer {
+public final class VoyageDatasetProducer {
+
     public static void produce() throws Exception {
         long t = System.currentTimeMillis();
         File out = new File("target/positions.txt");
@@ -59,9 +60,9 @@ public class VoyageDatasetProducer {
                         .filter(line -> line.length() > 0) //
                         .filter(line -> !line.startsWith("#")) //
                         .map(line -> line.split("\t"))
-                        .map(items -> new Port(items[0],
+                        .map(items -> new Port(items[0], items[1],
                                 Shapefile.fromZip(VoyageDatasetProducer.class
-                                        .getResourceAsStream("/port-visit-shapefiles/" + items[1])))) //
+                                        .getResourceAsStream("/port-visit-shapefiles/" + items[2])))) //
                         .doOnNext(System.out::println) //
                         .doOnNext(x -> System.out.println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
                         .toList() //
@@ -71,18 +72,7 @@ public class VoyageDatasetProducer {
                     .fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
             System.out.println("read eez shapefile");
             System.out.println(eez.contains(-35, 149));
-            for (int i = 0; i > -40; i--) {
-                Coordinate[] coords = new Coordinate[] { new Coordinate(149, i), new Coordinate(175, i) };
-                System.out.println("lat=" + i);
-                LineString line = new GeometryFactory().createLineString(coords);
-                for (PreparedGeometry g : eez.geometries()) {
-                    if (g.crosses(line)) {
-                        Geometry intersection = g.getGeometry().intersection(line);
-                        System.out.println("intersection is " + intersection.getCoordinate());
-                    }
-                }
-            }
-            System.exit(0);
+
             Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //
                     // .groupBy(f -> count.getAndIncrement() %
@@ -96,7 +86,6 @@ public class VoyageDatasetProducer {
                     // .onBackpressureBuffer() //
                     // .subscribeOn(Schedulers.computation()) //
                     ) //
-                    .count() //
                     .doOnNext(System.out::println) //
                     .toBlocking() //
                     .subscribe();
@@ -216,14 +205,17 @@ public class VoyageDatasetProducer {
         public String name() {
             return name;
         }
+
     }
 
     private static final class Port implements Waypoint {
         final String name;
+        final String code;
         final Shapefile visitRegion;
 
-        Port(String name, Shapefile visitRegion) {
+        Port(String name, String code, Shapefile visitRegion) {
             this.name = name;
+            this.code = code;
             this.visitRegion = visitRegion;
         }
 
