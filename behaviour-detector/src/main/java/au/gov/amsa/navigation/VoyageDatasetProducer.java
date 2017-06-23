@@ -3,6 +3,7 @@ package au.gov.amsa.navigation;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
@@ -52,36 +53,8 @@ public final class VoyageDatasetProducer {
             System.out.println(numFiles + " files");
 
             AtomicInteger fileNumber = new AtomicInteger(0);
-            Collection<Port> ports;
-            try (Reader reader = new InputStreamReader(VoyageDatasetProducer.class.getResourceAsStream("/ports.txt"))) {
-                ports = Strings.lines(reader) //
-                        .map(line -> line.trim()) //
-                        .filter(line -> line.length() > 0) //
-                        .filter(line -> !line.startsWith("#")) //
-                        .map(line -> line.split("\t"))
-                        .map(items -> new Port(items[0], items[1],
-                                Shapefile.fromZip(VoyageDatasetProducer.class
-                                        .getResourceAsStream("/port-visit-shapefiles/" + items[2])))) //
-                        .doOnNext(x -> System.out.println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
-                        .toList() //
-                        .toBlocking().single();
-            }
-            Collection<EezWaypoint> eezWaypoints;
-            try (Reader reader = new InputStreamReader(
-                    VoyageDatasetProducer.class.getResourceAsStream("/eez-waypoints.csv"))) {
-                eezWaypoints = Strings.lines(reader) //
-                        .map(line -> line.trim()) //
-                        .filter(line -> line.length() > 0) //
-                        .filter(line -> !line.startsWith("#")) //
-                        .map(line -> line.split(","))
-                        .map(items -> new EezWaypoint(items[0], Double.parseDouble(items[2]),
-                                Double.parseDouble(items[1]),
-                                // TODO read thresholdKm
-                                Optional.of(0.0))) //
-                        .doOnNext(System.out::println) //
-                        .toList() //
-                        .toBlocking().single();
-            }
+            Collection<Port> ports = readPorts();
+            Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
             Shapefile eezLine = loadEezLine();
             Shapefile eezPolygon = loadEezPolygon();
             System.out.println("read eez shapefile");
@@ -95,15 +68,56 @@ public final class VoyageDatasetProducer {
                             .compose(o -> logPercentCompleted(numFiles, o, fileNumber)) //
                             .concatMap(BinaryFixes::from) //
                             .compose(o -> toWaypoints(eezLine, eezPolygon, ports, eezWaypoints, o)) //
-                    // .filter(x -> inGbr(x)) //
-                    // .onBackpressureBuffer() //
-                    // .subscribeOn(Schedulers.computation()) //
+                            // .onBackpressureBuffer() //
+                            // .subscribeOn(Schedulers.computation()) //
+                            .doOnNext(x -> {
+                                System.out.println(files.getKey() + ":");
+                                for (TimedWaypoint y : x) {
+                                    System.out.println("  " + y);
+                                }
+                            }) //
                     ) //
-                    .doOnNext(System.out::println) //
                     .toBlocking() //
                     .subscribe();
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    private static Collection<EezWaypoint> readEezWaypoints() throws IOException {
+        Collection<EezWaypoint> eezWaypoints;
+        try (Reader reader = new InputStreamReader(
+                VoyageDatasetProducer.class.getResourceAsStream("/eez-waypoints.csv"))) {
+            eezWaypoints = Strings.lines(reader) //
+                    .map(line -> line.trim()) //
+                    .filter(line -> line.length() > 0) //
+                    .filter(line -> !line.startsWith("#")) //
+                    .map(line -> line.split(","))
+                    .map(items -> new EezWaypoint(items[0], Double.parseDouble(items[2]), Double.parseDouble(items[1]),
+                            // TODO read thresholdKm
+                            Optional.empty())) //
+                    .doOnNext(System.out::println) //
+                    .toList() //
+                    .toBlocking().single();
+        }
+        return eezWaypoints;
+    }
+
+    private static Collection<Port> readPorts() throws IOException {
+        Collection<Port> ports;
+        try (Reader reader = new InputStreamReader(VoyageDatasetProducer.class.getResourceAsStream("/ports.txt"))) {
+            ports = Strings.lines(reader) //
+                    .map(line -> line.trim()) //
+                    .filter(line -> line.length() > 0) //
+                    .filter(line -> !line.startsWith("#")) //
+                    .map(line -> line.split("\t"))
+                    .map(items -> new Port(items[0], items[1],
+                            Shapefile.fromZip(VoyageDatasetProducer.class
+                                    .getResourceAsStream("/port-visit-shapefiles/" + items[2])))) //
+                    .doOnNext(x -> System.out.println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
+                    .toList() //
+                    .toBlocking().single();
+        }
+        return ports;
     }
 
     static Shapefile loadEezLine() {
@@ -150,54 +164,73 @@ public final class VoyageDatasetProducer {
     private static final long FIX_AGE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(5);
 
     @VisibleForTesting
-    static Observable<TimedWaypoint> toWaypoints(Shapefile eezLine, Shapefile eezPolygon, Collection<Port> ports,
+    static Observable<List<TimedWaypoint>> toWaypoints(Shapefile eezLine, Shapefile eezPolygon, Collection<Port> ports,
             Collection<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
             State[] state = new State[1];
             state[0] = new State(EezStatus.UNKNOWN, null, Optional.empty());
+            List<TimedWaypoint> route = new ArrayList<>();
             return fixes //
-                    .flatMap(fix -> {
-                        List<TimedWaypoint> results = new ArrayList<>();
-                        boolean inEez = eezPolygon.contains(fix.lat(), fix.lon());
-                        State previous = state[0];
-                        long intervalMs = fix.time() - previous.time();
-                        Preconditions.checkArgument(intervalMs >= 0, "fixes out of time order!");
-                        boolean previousIsRecent = intervalMs <= FIX_AGE_THRESHOLD_MS;
-                        boolean crossed = (inEez && previous.eez == EezStatus.OUT)
-                                || (!inEez && previous.eez == EezStatus.IN);
-                        if (previousIsRecent && crossed) {
-                            TimedPosition crossingPoint = findRegionCrossingPoint(eezLine, previous.fix, fix);
-                            EezWaypoint closest = null;
-                            double closestDistanceKm = 0;
-                            for (EezWaypoint w : eezWaypoints) {
-                                double d = distanceKm(crossingPoint.lat, crossingPoint.lon, w.lat, w.lon);
-                                if (closest == null
-                                        || (d < closestDistanceKm && d <= w.thresholdKm.orElse(Double.MAX_VALUE))) {
-                                    closest = w;
-                                    closestDistanceKm = d;
+                    .materialize() //
+                    .flatMap(notif -> {
+                        if (notif.hasValue()) {
+                            Fix fix = notif.getValue();
+                            boolean inEez = eezPolygon.contains(fix.lat(), fix.lon());
+                            State previous = state[0];
+                            long intervalMs = fix.time() - previous.time();
+                            Preconditions.checkArgument(intervalMs >= 0, "fixes out of time order!");
+                            boolean previousIsRecent = intervalMs <= FIX_AGE_THRESHOLD_MS;
+                            boolean crossed = (inEez && previous.eez == EezStatus.OUT)
+                                    || (!inEez && previous.eez == EezStatus.IN);
+                            if (previousIsRecent && crossed) {
+                                TimedPosition crossingPoint = findRegionCrossingPoint(eezLine, previous.fix, fix);
+                                EezWaypoint closest = null;
+                                double closestDistanceKm = 0;
+                                for (EezWaypoint w : eezWaypoints) {
+                                    double d = distanceKm(crossingPoint.lat, crossingPoint.lon, w.lat, w.lon);
+                                    if (closest == null
+                                            || (d < closestDistanceKm && d <= w.thresholdKm.orElse(Double.MAX_VALUE))) {
+                                        closest = w;
+                                        closestDistanceKm = d;
+                                    }
                                 }
+                                Preconditions.checkNotNull(closest, "no eez waypoint found!");
+                                route.add(new TimedWaypoint(closest, crossingPoint.time));
                             }
-                            Preconditions.checkNotNull(closest, "no eez waypoint found!");
-                            results.add(new TimedWaypoint(closest, crossingPoint.time));
-                        }
-                        // Note that may have detected eez crossing but also
-                        // have arrived in port so may need to return both
-                        // waypoints
-                        if (inEez) {
-                            Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
-                            if (port.isPresent()) {
-                                if (port.get() != previous.port.orElse(null)) {
-                                    results.add(new TimedWaypoint(port.get(), fix.time()));
+                            // Note that may have detected eez crossing but also
+                            // have arrived in port so may need to return both
+                            // waypoints
+                            if (inEez) {
+                                Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
+                                if (port.isPresent()) {
+                                    if (port.get() != previous.port.orElse(null)) {
+                                        route.add(new TimedWaypoint(port.get(), fix.time()));
+                                    }
+                                    state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, port);
+                                } else {
+                                    state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, Optional.empty());
                                 }
-                                state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, port);
                             } else {
                                 state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, Optional.empty());
                             }
+                            Observable<List<TimedWaypoint>> result;
+                            if (crossed && !inEez) {
+                                result = Observable.just(new ArrayList<>(route));
+                                route.clear();
+                            } else {
+                                result = Observable.empty();
+                            }
+                            return result;
+                        } else if (notif.isOnCompleted()) {
+                            if (route.isEmpty()) {
+                                return Observable.empty();
+                            } else {
+                                return Observable.just(new ArrayList<>(route));
+                            }
                         } else {
-                            state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, Optional.empty());
+                            throw new RuntimeException(notif.getThrowable());
                         }
-                        return Observable.from(results);
                     });
         });
 
@@ -265,7 +298,7 @@ public final class VoyageDatasetProducer {
 
         @Override
         public String toString() {
-            return "Port [name=" + name + ", visitRegion=" + visitRegion + "]";
+            return "Port [name=" + name + "]";
         }
 
     }

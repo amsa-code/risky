@@ -40,7 +40,7 @@ public class VoyageDatasetProducerTest {
         Collection<Port> ports = Collections.emptyList();
         Collection<EezWaypoint> eezWaypoints = Collections
                 .singleton(new EezWaypoint("test", -32.0, 151.0, Optional.empty()));
-        List<TimedWaypoint> list = VoyageDatasetProducer.toWaypoints(eezLine, eezPolygon, ports, eezWaypoints, fixes) //
+        List<List<TimedWaypoint>> list = VoyageDatasetProducer.toWaypoints(eezLine, eezPolygon, ports, eezWaypoints, fixes) //
                 .toList() //
                 .toBlocking() //
                 .single();
