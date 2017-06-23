@@ -204,8 +204,29 @@ public final class VoyageDatasetProducer {
                             if (inEez) {
                                 Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
                                 if (port.isPresent()) {
-                                    if (port.get() != previous.port.orElse(null)) {
+                                    if (route.size() < 2) {
                                         route.add(new TimedWaypoint(port.get(), fix.time()));
+                                    } else {
+                                        TimedWaypoint wp1 = route.get(route.size() - 2);
+                                        TimedWaypoint wp2 = route.get(route.size() - 1);
+                                        if ((wp1.waypoint instanceof Port) && (wp2.waypoint instanceof Port)) {
+                                            Port p1 = (Port) wp1.waypoint;
+                                            Port p2 = (Port) wp2.waypoint;
+                                            if (p1 == p2) {
+                                                if (port.get() == p1) {
+                                                    // replace last
+                                                    route.set(route.size() - 1,
+                                                            new TimedWaypoint(port.get(), fix.time()));
+                                                } else {
+                                                    // is new port so add
+                                                    route.add(new TimedWaypoint(port.get(), fix.time()));
+                                                }
+                                            } else {
+                                                route.add(new TimedWaypoint(port.get(), fix.time()));
+                                            }
+                                        } else {
+                                            route.add(new TimedWaypoint(port.get(), fix.time()));
+                                        }
                                     }
                                     state[0] = new State(inEez ? EezStatus.IN : EezStatus.OUT, fix, port);
                                 } else {
