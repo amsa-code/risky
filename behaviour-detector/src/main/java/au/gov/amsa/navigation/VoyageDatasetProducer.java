@@ -19,6 +19,11 @@ import java.util.regex.Pattern;
 
 import com.github.davidmoten.grumpy.core.Position;
 import com.google.common.base.Preconditions;
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryFactory;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
@@ -134,7 +139,8 @@ public class VoyageDatasetProducer {
                         boolean crossed = (inEez && previous.eez == EezStatus.OUT)
                                 || (!inEez && previous.eez == EezStatus.IN);
                         if (previousIsRecent && crossed) {
-                            TimestampedPosition crossingPoint = findEezCrossingPoint(previous, fix);
+                            TimestampedPosition crossingPoint = findRegionCrossingPoint(eez, previous.fix.lat(),
+                                    previous.fix.lon(), fix.lat(), fix.lon());
                             EezWaypoint closest = null;
                             double closestDistanceKm = 0;
                             for (EezWaypoint w : eezWaypoints) {
@@ -221,8 +227,14 @@ public class VoyageDatasetProducer {
 
     }
 
-    private static TimestampedPosition findEezCrossingPoint(State previous, Fix fix) {
-        // TODO
+    private static TimestampedPosition findRegionCrossingPoint(Shapefile region, double lat, double lon, double lat2,
+            double lon2) {
+        Coordinate[] coords = new Coordinate[] { new Coordinate(lat, lon), new Coordinate(lat2, lon2) };
+        LineString line = new GeometryFactory().createLineString(coords);
+        for (PreparedGeometry g : region.geometries()) {
+            Geometry intersection = g.getGeometry().intersection(line);
+            System.out.println(intersection);
+        }
         return null;
     }
 
