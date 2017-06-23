@@ -63,12 +63,20 @@ public class VoyageDatasetProducer {
                                 Shapefile.fromZip(VoyageDatasetProducer.class
                                         .getResourceAsStream("/port-visit-shapefiles/" + items[1])))) // s
                         .doOnNext(System.out::println) //
+                        .doOnNext(x -> System.out.println(x.visitRegion.contains(-40, 140))) //
                         .toList() //
                         .toBlocking().single();
             }
             Shapefile eez = Shapefile
                     .fromZip(VoyageDatasetProducer.class.getResourceAsStream("/shapefile-mainland-eez-polygon.zip"));
             System.out.println("read eez shapefile");
+            System.out.println(eez.contains(-40 , 135));
+            Coordinate[] coords = new Coordinate[] { new Coordinate(-40, 130), new Coordinate(-40, 175) };
+            LineString line = new GeometryFactory().createLineString(coords);
+            for (PreparedGeometry g : eez.geometries()) {
+                Geometry intersection = g.getGeometry().intersection(line);
+                System.out.println(intersection);
+            }
             System.exit(0);
             Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //

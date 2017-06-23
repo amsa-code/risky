@@ -15,6 +15,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
+import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
@@ -28,6 +29,7 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.opengis.referencing.operation.MathTransform;
 
+import com.vividsolutions.jts.awt.PointShapeFactory.X;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -52,9 +54,7 @@ public final class Shapefile {
     private Shapefile(File file, double bufferDistance) {
         this.bufferDistance = bufferDistance;
         try {
-            Map<String, Serializable> map = new HashMap<>();
-            map.put("url", file.toURI().toURL());
-            datastore = DataStoreFinder.getDataStore(map);
+            datastore = new ShapefileDataStore(file.toURI().toURL());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -92,7 +92,8 @@ public final class Shapefile {
         try {
             File directory = Files.createTempDirectory("shape-").toFile();
             ZipUtil.unzip(is, directory);
-            return new Shapefile(directory, bufferDistance);
+            File f = directory.listFiles(x -> x.getName().endsWith(".shp"))[0];
+            return new Shapefile(f, bufferDistance);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
