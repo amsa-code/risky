@@ -63,8 +63,23 @@ public final class VoyageDatasetProducer {
                         .map(items -> new Port(items[0], items[1],
                                 Shapefile.fromZip(VoyageDatasetProducer.class
                                         .getResourceAsStream("/port-visit-shapefiles/" + items[2])))) //
-                        .doOnNext(System.out::println) //
                         .doOnNext(x -> System.out.println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
+                        .toList() //
+                        .toBlocking().single();
+            }
+            Collection<EezWaypoint> eezWaypoints;
+            try (Reader reader = new InputStreamReader(
+                    VoyageDatasetProducer.class.getResourceAsStream("/eez-waypoints.csv"))) {
+                eezWaypoints = Strings.lines(reader) //
+                        .map(line -> line.trim()) //
+                        .filter(line -> line.length() > 0) //
+                        .filter(line -> !line.startsWith("#")) //
+                        .map(line -> line.split(","))
+                        .map(items -> new EezWaypoint(items[0], Double.parseDouble(items[2]),
+                                Double.parseDouble(items[1]),
+                                // TODO read thresholdKm
+                                Optional.of(0.0))) //
+                        .doOnNext(System.out::println) //
                         .toList() //
                         .toBlocking().single();
             }
@@ -73,7 +88,6 @@ public final class VoyageDatasetProducer {
             System.out.println("read eez shapefile");
             System.out.println(eez.contains(-35, 149));
 
-            Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //
                     // .groupBy(f -> count.getAndIncrement() %
                     // Runtime.getRuntime().availableProcessors()) //
@@ -204,6 +218,11 @@ public final class VoyageDatasetProducer {
         @Override
         public String name() {
             return name;
+        }
+
+        @Override
+        public String toString() {
+            return "EezWaypoint [name=" + name + ", lat=" + lat + ", lon=" + lon + ", thresholdKm=" + thresholdKm + "]";
         }
 
     }
