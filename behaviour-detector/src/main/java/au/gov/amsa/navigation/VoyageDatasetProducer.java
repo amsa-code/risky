@@ -3,9 +3,12 @@ package au.gov.amsa.navigation;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +23,7 @@ import com.google.common.base.Preconditions;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
+import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.Files;
 import rx.Observable;
 
@@ -43,8 +47,21 @@ public class VoyageDatasetProducer {
             System.out.println(numFiles + " files");
 
             AtomicInteger fileNumber = new AtomicInteger(0);
-            Set<Port> ports = Collections.emptySet();
-            File portVisits = new File("/home/dave/workspace/amsa-java/parent/gis-data/port-visit-shapefiles");
+            Collection<Port> ports;
+            try (Reader reader = new InputStreamReader(VoyageDatasetProducer.class.getResourceAsStream("/ports.txt"))) {
+                ports = Strings.lines(reader) //
+                        .map(line -> line.trim()) //
+                        .filter(line -> line.length() > 0) //
+                        .filter(line -> !line.startsWith("#")) //
+                        .map(line -> line.split("\t"))
+                        .map(items -> new Port(items[0],
+                                Shapefile.fromZip(VoyageDatasetProducer.class
+                                        .getResourceAsStream("/port-visit-shapefiles/" + items[1])))) // s
+                        .doOnNext(System.out::println) //
+                        .toList() //
+                        .toBlocking().single();
+            }
+            System.exit(0);
             Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //
                     // .groupBy(f -> count.getAndIncrement() %
@@ -97,7 +114,7 @@ public class VoyageDatasetProducer {
 
     private static final long FIX_AGE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(5);
 
-    private static Observable<Waypoint> toWaypoints(Set<Port> ports, Set<EezWaypoint> eezWaypoints,
+    private static Observable<Waypoint> toWaypoints(Collection<Port> ports, Collection<EezWaypoint> eezWaypoints,
             Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
@@ -144,7 +161,7 @@ public class VoyageDatasetProducer {
 
     }
 
-    private static Optional<Port> findPort(Set<Port> ports, float lat, float lon) {
+    private static Optional<Port> findPort(Collection<Port> ports, float lat, float lon) {
         // TODO
         return null;
     }
@@ -188,6 +205,11 @@ public class VoyageDatasetProducer {
         @Override
         public String name() {
             return name;
+        }
+
+        @Override
+        public String toString() {
+            return "Port [name=" + name + ", visitRegion=" + visitRegion + "]";
         }
 
     }

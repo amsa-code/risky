@@ -27,7 +27,7 @@ Kurnell	kurnell_visit_pl.zip	0
 Kwinana	kwinana_visit_pl.zip	0
 Mackay	mackay_visit_pl.zip	0
 Melbourne	melbourne_visit_pl.zip	0
-Milne Bay	milne_bay_visit_pl.zip	0
+Milner Bay	milner_bay_visit_pl.zip	0
 Newcastle	newcastle_visit_pl.zip	0
 Port Alma	port_alma_visit_pl.zip	0
 Port Botany	port_botany_visit_pl.zip	0
