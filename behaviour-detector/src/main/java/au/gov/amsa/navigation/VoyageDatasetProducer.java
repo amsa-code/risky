@@ -44,6 +44,7 @@ public class VoyageDatasetProducer {
 
             AtomicInteger fileNumber = new AtomicInteger(0);
             Set<Port> ports = Collections.emptySet();
+            File portVisits = new File("/home/dave/workspace/amsa-java/parent/gis-data/port-visit-shapefiles");
             Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //
                     // .groupBy(f -> count.getAndIncrement() %
