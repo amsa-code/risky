@@ -61,21 +61,26 @@ public class VoyageDatasetProducer {
                         .map(line -> line.split("\t"))
                         .map(items -> new Port(items[0],
                                 Shapefile.fromZip(VoyageDatasetProducer.class
-                                        .getResourceAsStream("/port-visit-shapefiles/" + items[1])))) // s
+                                        .getResourceAsStream("/port-visit-shapefiles/" + items[1])))) //
                         .doOnNext(System.out::println) //
-                        .doOnNext(x -> System.out.println(x.visitRegion.contains(-40, 140))) //
+                        .doOnNext(x -> System.out.println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
                         .toList() //
                         .toBlocking().single();
             }
             Shapefile eez = Shapefile
-                    .fromZip(VoyageDatasetProducer.class.getResourceAsStream("/shapefile-mainland-eez-polygon.zip"));
+                    .fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
             System.out.println("read eez shapefile");
-            System.out.println(eez.contains(-40 , 135));
-            Coordinate[] coords = new Coordinate[] { new Coordinate(-40, 130), new Coordinate(-40, 175) };
-            LineString line = new GeometryFactory().createLineString(coords);
-            for (PreparedGeometry g : eez.geometries()) {
-                Geometry intersection = g.getGeometry().intersection(line);
-                System.out.println(intersection);
+            System.out.println(eez.contains(-35, 149));
+            for (int i = 0; i > -40; i--) {
+                Coordinate[] coords = new Coordinate[] { new Coordinate(149, i), new Coordinate(175, i) };
+                System.out.println("lat="+ i);
+                LineString line = new GeometryFactory().createLineString(coords);
+                for (PreparedGeometry g : eez.geometries()) {
+                    if (g.crosses(line)) {
+                        Geometry intersection = g.getGeometry().intersection(line);
+                        System.out.println("intersection is " + intersection);
+                    }
+                }
             }
             System.exit(0);
             Set<EezWaypoint> eezWaypoints = Collections.emptySet();
