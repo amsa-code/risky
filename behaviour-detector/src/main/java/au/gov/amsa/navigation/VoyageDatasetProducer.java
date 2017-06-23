@@ -61,6 +61,9 @@ public class VoyageDatasetProducer {
                         .toList() //
                         .toBlocking().single();
             }
+            Shapefile eez = Shapefile
+                    .fromZip(VoyageDatasetProducer.class.getResourceAsStream("/shapefile-mainland-eez-polygon.zip"));
+            System.out.println("read eez shapefile");
             System.exit(0);
             Set<EezWaypoint> eezWaypoints = Collections.emptySet();
             Observable.from(list) //
@@ -70,7 +73,7 @@ public class VoyageDatasetProducer {
                     .flatMap(files -> files // s
                             .compose(o -> logPercentCompleted(numFiles, o, fileNumber)) //
                             .concatMap(BinaryFixes::from) //
-                            .compose(o -> toWaypoints(ports, eezWaypoints, o)) //
+                            .compose(o -> toWaypoints(eez, ports, eezWaypoints, o)) //
                     // .filter(x -> inGbr(x)) //
                     // .onBackpressureBuffer() //
                     // .subscribeOn(Schedulers.computation()) //
@@ -114,8 +117,8 @@ public class VoyageDatasetProducer {
 
     private static final long FIX_AGE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(5);
 
-    private static Observable<Waypoint> toWaypoints(Collection<Port> ports, Collection<EezWaypoint> eezWaypoints,
-            Observable<Fix> fixes) {
+    private static Observable<Waypoint> toWaypoints(Shapefile eez, Collection<Port> ports,
+            Collection<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
             State[] state = new State[1];
@@ -123,7 +126,7 @@ public class VoyageDatasetProducer {
             return fixes //
                     .flatMap(fix -> {
                         List<Waypoint> results = new ArrayList<>();
-                        boolean inEez = inEez(fix);
+                        boolean inEez = eez.contains(fix.lat(), fix.lon());
                         State previous = state[0];
                         long intervalMs = fix.time() - previous.time();
                         Preconditions.checkArgument(intervalMs >= 0, "fixes out of time order!");
@@ -162,8 +165,12 @@ public class VoyageDatasetProducer {
     }
 
     private static Optional<Port> findPort(Collection<Port> ports, float lat, float lon) {
-        // TODO
-        return null;
+        for (Port port : ports) {
+            if (port.visitRegion.contains(lat, lon)) {
+                return Optional.of(port);
+            }
+        }
+        return Optional.empty();
     }
 
     private static double distanceKm(double lat, double lon, double lat2, double lon2) {
@@ -229,11 +236,6 @@ public class VoyageDatasetProducer {
             this.lon = lon;
             this.time = time;
         }
-    }
-
-    private static boolean inEez(Fix fix) {
-        // TODO
-        return true;
     }
 
     private static boolean inGbr(Fix fix) {
