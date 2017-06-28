@@ -79,9 +79,10 @@ public final class VoyageDatasetProducer {
                                             o)) //
                             // .onBackpressureBuffer() //
                             // .subscribeOn(Schedulers.computation()) //
+                            .filter(x -> includeLeg(x)) //
                             .doOnNext(x -> {
                                 try {
-                                    writer.write(x.mmsi);
+                                    writer.write(String.valueOf(x.mmsi));
                                     writer.write(COMMA);
                                     writer.write(formatTime(x.a.time));
                                     writer.write(COMMA);
@@ -100,6 +101,11 @@ public final class VoyageDatasetProducer {
                     .subscribe();
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    private static boolean includeLeg(TimedLeg x) {
+        //exclude EEZ -> EEZ
+        return !(x.a.waypoint instanceof EezWaypoint && x.b.waypoint instanceof EezWaypoint);
     }
 
     private static String formatTime(long t) {
