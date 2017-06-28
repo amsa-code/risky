@@ -15,7 +15,7 @@ import org.mockito.Mockito;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.navigation.VoyageDatasetProducer.EezWaypoint;
 import au.gov.amsa.navigation.VoyageDatasetProducer.Port;
-import au.gov.amsa.navigation.VoyageDatasetProducer.TimedWaypoint;
+import au.gov.amsa.navigation.VoyageDatasetProducer.TimedLeg;
 import au.gov.amsa.risky.format.Fix;
 import rx.Observable;
 
@@ -40,7 +40,7 @@ public class VoyageDatasetProducerTest {
         Collection<Port> ports = Collections.emptyList();
         Collection<EezWaypoint> eezWaypoints = Collections
                 .singleton(new EezWaypoint("test", -32.0, 151.0, Optional.empty()));
-        List<List<TimedWaypoint>> list = VoyageDatasetProducer.toWaypoints(eezLine, eezPolygon, ports, eezWaypoints, fixes) //
+        List<TimedLeg> list = VoyageDatasetProducer.toLegs(eezLine, eezPolygon, ports, eezWaypoints, fixes) //
                 .toList() //
                 .toBlocking() //
                 .single();
