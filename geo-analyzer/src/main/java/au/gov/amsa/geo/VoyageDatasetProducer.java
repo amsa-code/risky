@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation;
+package au.gov.amsa.geo;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -21,6 +21,9 @@ import java.util.regex.Pattern;
 
 import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+import com.github.davidmoten.rtree.RTree;
+import com.github.davidmoten.rtree.geometry.Geometries;
+import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -28,6 +31,7 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 
+import au.gov.amsa.gt.Rect;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
@@ -42,8 +46,7 @@ public final class VoyageDatasetProducer {
             .ofPattern("yyyy-MM-dd'T'HH:mm");
 
     public static void produce() throws Exception {
-        long t = System.currentTimeMillis();
-        File out = new File("target/positions.txt");
+        File out = new File("target/legs.txt");
         out.delete();
         try (BufferedWriter writer = new BufferedWriter(
                 new OutputStreamWriter(new FileOutputStream(out)))) {
@@ -71,12 +74,12 @@ public final class VoyageDatasetProducer {
             Shapefile eezPolygon = loadEezPolygon();
             System.out.println("read eez shapefile");
             System.out.println(eezLine.contains(-35, 149));
-
+            long t = System.currentTimeMillis();
             Observable.from(list) //
                     .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
                     .flatMap(
-                            files -> files // s
-                                    .compose(o -> logPercentCompleted(numFiles, o, fileNumber)) //
+                            files -> files //
+                                    .compose(o -> logPercentCompleted(numFiles, t, o, fileNumber)) //
                                     .concatMap(BinaryFixes::from) //
                                     .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints,
                                             o)) //
@@ -90,10 +93,10 @@ public final class VoyageDatasetProducer {
                                     writer.write(x.a.waypoint.code());
                                     writer.write(COMMA);
                                     writer.write(formatTime(x.a.time));
+                                    writer.write(COMMA);
                                     writer.write(x.b.waypoint.code());
                                     writer.write(COMMA);
                                     writer.write(formatTime(x.b.time));
-                                    writer.write(COMMA);
                                     writer.write("\n");
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
@@ -102,8 +105,18 @@ public final class VoyageDatasetProducer {
             ) //
                     .toBlocking() //
                     .subscribe();
+            System.out.println((System.currentTimeMillis() - t) + "ms");
         }
-        System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    public static RTree<Port, Rectangle> createRTree(Collection<Port> ports) {
+        RTree<Port, Rectangle> rtree = RTree.star().create();
+        for (Port port : ports) {
+            Rect r = port.visitRegion.mbr();
+            Rectangle rect = Geometries.rectangle(r.minX(), r.minY(), r.maxX(), r.maxY());
+            rtree = rtree.add(port, rect);
+        }
+        return rtree;
     }
 
     private static boolean includeLeg(TimedLeg x) {
@@ -167,13 +180,18 @@ public final class VoyageDatasetProducer {
                 VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
     }
 
-    private static Observable<File> logPercentCompleted(int numFiles, Observable<File> o,
-            AtomicInteger fileNumber) {
+    private static Observable<File> logPercentCompleted(int numFiles, long startTime,
+            Observable<File> o, AtomicInteger fileNumber) {
         return o.doOnNext(file -> {
             int n = fileNumber.incrementAndGet();
-            if (n % 1000 == 0)
-                System.out.println("complete: "
-                        + new DecimalFormat("0.0").format(n / (double) numFiles * 100) + "%");
+            if (n % 1000 == 0) {
+                long t = System.currentTimeMillis();
+                long timeRemainingSeconds = Math
+                        .round(((double) t - startTime) / n * (numFiles - n)) / 1000;
+                System.out.println(
+                        "complete: " + new DecimalFormat("0.0").format(n / (double) numFiles * 100)
+                                + "%, seconds remaining " + timeRemainingSeconds);
+            }
         });
     }
 

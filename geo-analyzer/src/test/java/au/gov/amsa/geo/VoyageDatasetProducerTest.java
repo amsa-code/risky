@@ -1,4 +1,4 @@
-package au.gov.amsa.navigation;
+package au.gov.amsa.geo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -13,10 +13,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import au.gov.amsa.geo.VoyageDatasetProducer.EezWaypoint;
+import au.gov.amsa.geo.VoyageDatasetProducer.Port;
+import au.gov.amsa.geo.VoyageDatasetProducer.TimedLeg;
 import au.gov.amsa.gt.Shapefile;
-import au.gov.amsa.navigation.VoyageDatasetProducer.EezWaypoint;
-import au.gov.amsa.navigation.VoyageDatasetProducer.Port;
-import au.gov.amsa.navigation.VoyageDatasetProducer.TimedLeg;
 import au.gov.amsa.risky.format.Fix;
 import rx.observers.AssertableSubscriber;
 import rx.subjects.PublishSubject;
@@ -68,7 +68,7 @@ public class VoyageDatasetProducerTest {
             assertTrue(leg.a.time < b.time());
             assertTrue(leg.a.time < leg.b.time);
         }
-        
+
         // another sydney report, the next leg should start with this timestamp
         long dTime = cTime + TimeUnit.DAYS.toMillis(1);
         Fix d = createInSydneyPort(dTime);
@@ -83,7 +83,7 @@ public class VoyageDatasetProducerTest {
         ts.assertNoTerminalEvent() //
                 .assertValueCount(1);
 
-        //out of eez
+        // out of eez
         long fTime = eTime + TimeUnit.DAYS.toMillis(1);
         Fix f = createOutOfEez(fTime);
         fixes.onNext(f);
