@@ -68,18 +68,22 @@ public class VoyageDatasetProducerTest {
             assertTrue(leg.a.time < b.time());
             assertTrue(leg.a.time < leg.b.time);
         }
+        
+        // another sydney report, the next leg should start with this timestamp
         long dTime = cTime + TimeUnit.DAYS.toMillis(1);
         Fix d = createInSydneyPort(dTime);
         fixes.onNext(d);
         ts.assertNoTerminalEvent() //
                 .assertValueCount(1);
 
+        // out of sydney
         long eTime = dTime + TimeUnit.DAYS.toMillis(1);
         Fix e = createInEez(eTime);
         fixes.onNext(e);
         ts.assertNoTerminalEvent() //
                 .assertValueCount(1);
 
+        //out of eez
         long fTime = eTime + TimeUnit.DAYS.toMillis(1);
         Fix f = createOutOfEez(fTime);
         fixes.onNext(f);
