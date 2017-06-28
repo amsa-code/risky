@@ -1,5 +1,6 @@
 package au.gov.amsa.navigation;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -22,6 +23,8 @@ import rx.subjects.PublishSubject;
 
 public class VoyageDatasetProducerTest {
 
+    private static final String EEZ_WAYPOINT_NAME = "test";
+
     @Test
     public void test() throws IOException {
         long aTime = 1498199825552L;
@@ -32,16 +35,14 @@ public class VoyageDatasetProducerTest {
         assertTrue(eezPolygon.contains(-35, 149));
         assertTrue(!eezPolygon.contains(-35, 175));
 
-        // in eez
         Fix a = createOutOfEez(aTime);
 
-        // out of eez
         Fix b = createInEez(bTime);
 
         PublishSubject<Fix> fixes = PublishSubject.create();
         Collection<Port> ports = VoyageDatasetProducer.loadPorts();
         Collection<EezWaypoint> eezWaypoints = Collections
-                .singleton(new EezWaypoint("test", -32.0, 151.0, Optional.empty()));
+                .singleton(new EezWaypoint(EEZ_WAYPOINT_NAME, -35, 151.0, Optional.empty()));
         AssertableSubscriber<TimedLeg> ts = VoyageDatasetProducer
                 .toLegs(eezLine, eezPolygon, ports, eezWaypoints, fixes) //
                 .test();
@@ -51,16 +52,21 @@ public class VoyageDatasetProducerTest {
 
         // in sydney port
         Fix c = createInSydneyPort(cTime);
-        
+
         fixes.onNext(c);
         ts.assertNoTerminalEvent() //
-        .assertValueCount(1);
-        
+                .assertValueCount(1);
+
         TimedLeg leg = ts.getOnNextEvents().get(0);
         System.out.println(leg);
         assertTrue(leg.a.waypoint instanceof EezWaypoint);
         assertTrue(leg.b.waypoint instanceof Port);
-
+        assertEquals(EEZ_WAYPOINT_NAME, leg.a.waypoint.name());
+        assertEquals("Sydney", leg.b.waypoint.name());
+        assertEquals(cTime, leg.b.time);
+        assertTrue(leg.a.time > a.time());
+        assertTrue(leg.a.time < b.time());
+        assertTrue(leg.a.time < leg.b.time);
     }
 
     private static Fix createOutOfEez(long bTime) {

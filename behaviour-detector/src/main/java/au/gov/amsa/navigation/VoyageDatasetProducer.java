@@ -38,7 +38,8 @@ import rx.Observable;
 public final class VoyageDatasetProducer {
 
     private static final String COMMA = ",";
-    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter format = DateTimeFormatter
+            .ofPattern("yyyy-MM-dd'T'HH:mm");
 
     public static void produce() throws Exception {
         long t = System.currentTimeMillis();
@@ -104,7 +105,7 @@ public final class VoyageDatasetProducer {
     }
 
     private static boolean includeLeg(TimedLeg x) {
-        //exclude EEZ -> EEZ
+        // exclude EEZ -> EEZ
         return !(x.a.waypoint instanceof EezWaypoint && x.b.waypoint instanceof EezWaypoint);
     }
 
@@ -407,7 +408,7 @@ public final class VoyageDatasetProducer {
                 } else {
                     // predict the timestamp based on distance from a and b
                     long diff = fix2.time() - fix1.time();
-                    long t = Math.round(fix1.time() + (ac * diff + bc * diff) / (ac + bc));
+                    long t = Math.round(fix1.time() + ac * diff / (ac + bc));
                     return new TimedPosition(latitude, longitude, t);
                 }
             }
