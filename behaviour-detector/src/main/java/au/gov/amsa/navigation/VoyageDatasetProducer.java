@@ -54,6 +54,8 @@ public final class VoyageDatasetProducer {
             // File("/media/an/binary-fixes-5-minute/2014"), pattern));
             // list.addAll(Files.find(new
             // File("/media/an/binary-fixes-5-minute/2015"), pattern));
+            list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2014"), pattern));
+            list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2015"), pattern));
             list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2016"), pattern));
             // list.addAll(Files.find(new File("/home/dave/Downloads/2016"),
             // pattern));
@@ -85,13 +87,13 @@ public final class VoyageDatasetProducer {
                                 try {
                                     writer.write(String.valueOf(x.mmsi));
                                     writer.write(COMMA);
+                                    writer.write(x.a.waypoint.code());
+                                    writer.write(COMMA);
                                     writer.write(formatTime(x.a.time));
+                                    writer.write(x.b.waypoint.code());
                                     writer.write(COMMA);
                                     writer.write(formatTime(x.b.time));
                                     writer.write(COMMA);
-                                    writer.write(x.a.waypoint.code());
-                                    writer.write(COMMA);
-                                    writer.write(x.b.waypoint.code());
                                     writer.write("\n");
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
