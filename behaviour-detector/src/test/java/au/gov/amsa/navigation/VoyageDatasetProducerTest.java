@@ -56,17 +56,44 @@ public class VoyageDatasetProducerTest {
         fixes.onNext(c);
         ts.assertNoTerminalEvent() //
                 .assertValueCount(1);
+        {
+            TimedLeg leg = ts.getOnNextEvents().get(0);
+            System.out.println(leg);
+            assertTrue(leg.a.waypoint instanceof EezWaypoint);
+            assertTrue(leg.b.waypoint instanceof Port);
+            assertEquals(EEZ_WAYPOINT_NAME, leg.a.waypoint.name());
+            assertEquals("Sydney", leg.b.waypoint.name());
+            assertEquals(cTime, leg.b.time);
+            assertTrue(leg.a.time > a.time());
+            assertTrue(leg.a.time < b.time());
+            assertTrue(leg.a.time < leg.b.time);
+        }
+        long dTime = cTime + TimeUnit.DAYS.toMillis(1);
+        Fix d = createInSydneyPort(dTime);
+        fixes.onNext(d);
+        ts.assertNoTerminalEvent() //
+                .assertValueCount(1);
 
-        TimedLeg leg = ts.getOnNextEvents().get(0);
-        System.out.println(leg);
-        assertTrue(leg.a.waypoint instanceof EezWaypoint);
-        assertTrue(leg.b.waypoint instanceof Port);
-        assertEquals(EEZ_WAYPOINT_NAME, leg.a.waypoint.name());
-        assertEquals("Sydney", leg.b.waypoint.name());
-        assertEquals(cTime, leg.b.time);
-        assertTrue(leg.a.time > a.time());
-        assertTrue(leg.a.time < b.time());
-        assertTrue(leg.a.time < leg.b.time);
+        long eTime = dTime + TimeUnit.DAYS.toMillis(1);
+        Fix e = createInEez(eTime);
+        fixes.onNext(e);
+        ts.assertNoTerminalEvent() //
+                .assertValueCount(1);
+
+        long fTime = eTime + TimeUnit.DAYS.toMillis(1);
+        Fix f = createOutOfEez(fTime);
+        fixes.onNext(f);
+        ts.assertNoTerminalEvent() //
+                .assertValueCount(2);
+        {
+            TimedLeg leg = ts.getOnNextEvents().get(1);
+            System.out.println(leg);
+            assertTrue(leg.a.waypoint instanceof Port);
+            assertEquals("Sydney", leg.a.waypoint.name());
+            assertTrue(leg.b.waypoint instanceof EezWaypoint);
+            assertEquals(EEZ_WAYPOINT_NAME, leg.b.waypoint.name());
+            assertEquals(dTime, leg.a.time);
+        }
     }
 
     private static Fix createOutOfEez(long bTime) {
