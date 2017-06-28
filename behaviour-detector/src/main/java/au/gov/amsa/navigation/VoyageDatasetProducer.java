@@ -8,6 +8,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -33,6 +37,8 @@ import rx.Observable;
 
 public final class VoyageDatasetProducer {
 
+    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
     public static void produce() throws Exception {
         long t = System.currentTimeMillis();
         File out = new File("target/positions.txt");
@@ -55,7 +61,7 @@ public final class VoyageDatasetProducer {
             System.out.println(numFiles + " files");
 
             AtomicInteger fileNumber = new AtomicInteger(0);
-            Collection<Port> ports = readPorts();
+            Collection<Port> ports = loadPorts();
             Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
             Shapefile eezLine = loadEezLine();
             Shapefile eezPolygon = loadEezPolygon();
@@ -75,13 +81,28 @@ public final class VoyageDatasetProducer {
                             // .onBackpressureBuffer() //
                             // .subscribeOn(Schedulers.computation()) //
                             .doOnNext(x -> {
-                                System.out.println(files.getKey() + ":" + x);
+                                try {
+                                    writer.write(formatTime(x.a.time));
+                                    writer.write(",");
+                                    writer.write(formatTime(x.b.time));
+                                    writer.write(",");
+                                    writer.write(x.a.waypoint.code());
+                                    writer.write(",");
+                                    writer.write(x.b.waypoint.code());
+                                    writer.write("\n");
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
                             }) //
             ) //
                     .toBlocking() //
                     .subscribe();
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    private static String formatTime(long t) {
+        return format.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(t), ZoneOffset.UTC));
     }
 
     private static Collection<EezWaypoint> readEezWaypoints() throws IOException {
@@ -104,7 +125,7 @@ public final class VoyageDatasetProducer {
         return eezWaypoints;
     }
 
-    private static Collection<Port> readPorts() throws IOException {
+    static Collection<Port> loadPorts() throws IOException {
         Collection<Port> ports;
         try (Reader reader = new InputStreamReader(
                 VoyageDatasetProducer.class.getResourceAsStream("/ports.txt"))) {
@@ -155,6 +176,9 @@ public final class VoyageDatasetProducer {
     }
 
     public static final class TimedLeg {
+
+        private static final DateTimeFormatter format = DateTimeFormatter
+                .ofPattern("yyyy-MM-dd HH:mm");
         public final TimedWaypoint a;
         public final TimedWaypoint b;
 
@@ -167,7 +191,12 @@ public final class VoyageDatasetProducer {
 
         @Override
         public String toString() {
-            return a.waypoint.name() + "->" + b.waypoint.name();
+            return format
+                    .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.time), ZoneOffset.UTC))
+                    + "->"
+                    + format.format(
+                            ZonedDateTime.ofInstant(Instant.ofEpochMilli(b.time), ZoneOffset.UTC))
+                    + " " + a.waypoint.name() + "->" + b.waypoint.name();
         }
     }
 
@@ -221,8 +250,8 @@ public final class VoyageDatasetProducer {
                     if (port.isPresent()) {
                         TimedWaypoint portTimedWaypoint = new TimedWaypoint(port.get(), fix.time());
                         state[0] = new State(portTimedWaypoint, fix, EezStatus.IN);
-                        if (current.fixStatus != EezStatus.UNKNOWN
-                                && state[0].timedWaypoint.waypoint != port.get()) {
+                        if (current.fixStatus != EezStatus.UNKNOWN && current.timedWaypoint != null
+                                && current.timedWaypoint.waypoint != port.get()) {
                             if (current.timedWaypoint != null) {
                                 if (legs == null) {
                                     legs = new ArrayList<>(2);
@@ -277,12 +306,14 @@ public final class VoyageDatasetProducer {
         return Position.create(lat, lon).getDistanceToKm(Position.create(lat2, lon2));
     }
 
-    private static interface Waypoint {
+    public static interface Waypoint {
         String name();
+
+        String code();
     }
 
     @VisibleForTesting
-    static final class EezWaypoint implements Waypoint {
+    public static final class EezWaypoint implements Waypoint {
         final String name;
         final double lat;
         final double lon;
@@ -306,13 +337,18 @@ public final class VoyageDatasetProducer {
                     + thresholdKm + "]";
         }
 
+        @Override
+        public String code() {
+            return name();
+        }
+
     }
 
     @VisibleForTesting
-    static final class Port implements Waypoint {
-        final String name;
-        final String code;
-        final Shapefile visitRegion;
+    public static final class Port implements Waypoint {
+        public final String name;
+        public final String code;
+        public final Shapefile visitRegion;
 
         Port(String name, String code, Shapefile visitRegion) {
             this.name = name;
@@ -328,6 +364,11 @@ public final class VoyageDatasetProducer {
         @Override
         public String toString() {
             return "Port [name=" + name + "]";
+        }
+
+        @Override
+        public String code() {
+            return code;
         }
 
     }
@@ -377,9 +418,9 @@ public final class VoyageDatasetProducer {
     }
 
     @VisibleForTesting
-    static final class TimedWaypoint {
-        final Waypoint waypoint;
-        final long time;
+    public static final class TimedWaypoint {
+        public final Waypoint waypoint;
+        public final long time;
 
         TimedWaypoint(Waypoint waypoint, long time) {
             this.waypoint = waypoint;
