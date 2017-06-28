@@ -37,6 +37,7 @@ import rx.Observable;
 
 public final class VoyageDatasetProducer {
 
+    private static final String COMMA = ",";
     private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public static void produce() throws Exception {
@@ -69,8 +70,6 @@ public final class VoyageDatasetProducer {
             System.out.println(eezLine.contains(-35, 149));
 
             Observable.from(list) //
-                    // .groupBy(f -> count.getAndIncrement() %
-                    // Runtime.getRuntime().availableProcessors()) //
                     .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
                     .flatMap(
                             files -> files // s
@@ -82,12 +81,14 @@ public final class VoyageDatasetProducer {
                             // .subscribeOn(Schedulers.computation()) //
                             .doOnNext(x -> {
                                 try {
+                                    writer.write(x.mmsi);
+                                    writer.write(COMMA);
                                     writer.write(formatTime(x.a.time));
-                                    writer.write(",");
+                                    writer.write(COMMA);
                                     writer.write(formatTime(x.b.time));
-                                    writer.write(",");
+                                    writer.write(COMMA);
                                     writer.write(x.a.waypoint.code());
-                                    writer.write(",");
+                                    writer.write(COMMA);
                                     writer.write(x.b.waypoint.code());
                                     writer.write("\n");
                                 } catch (Exception e) {
@@ -113,7 +114,7 @@ public final class VoyageDatasetProducer {
                     .map(line -> line.trim()) //
                     .filter(line -> line.length() > 0) //
                     .filter(line -> !line.startsWith("#")) //
-                    .map(line -> line.split(","))
+                    .map(line -> line.split(COMMA))
                     .map(items -> new EezWaypoint(items[0], Double.parseDouble(items[2]),
                             Double.parseDouble(items[1]),
                             // TODO read thresholdKm
@@ -179,12 +180,14 @@ public final class VoyageDatasetProducer {
 
         private static final DateTimeFormatter format = DateTimeFormatter
                 .ofPattern("yyyy-MM-dd HH:mm");
+        public final int mmsi;
         public final TimedWaypoint a;
         public final TimedWaypoint b;
 
-        public TimedLeg(TimedWaypoint a, TimedWaypoint b) {
+        public TimedLeg(int mmsi, TimedWaypoint a, TimedWaypoint b) {
             Preconditions.checkNotNull(a);
             Preconditions.checkNotNull(b);
+            this.mmsi = mmsi;
             this.a = a;
             this.b = b;
         }
@@ -238,7 +241,7 @@ public final class VoyageDatasetProducer {
                         if (legs == null) {
                             legs = new ArrayList<>(2);
                         }
-                        legs.add(new TimedLeg(current.timedWaypoint, closestWaypoint));
+                        legs.add(new TimedLeg(fix.mmsi(), current.timedWaypoint, closestWaypoint));
                     }
                     current = new State(closestWaypoint, fix, EezStatus.from(inEez));
                 }
@@ -256,7 +259,8 @@ public final class VoyageDatasetProducer {
                                 if (legs == null) {
                                     legs = new ArrayList<>(2);
                                 }
-                                legs.add(new TimedLeg(current.timedWaypoint, portTimedWaypoint));
+                                legs.add(new TimedLeg(fix.mmsi(), current.timedWaypoint,
+                                        portTimedWaypoint));
                             }
                         }
                     } else {
