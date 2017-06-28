@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import com.github.davidmoten.grumpy.core.Position;
@@ -25,12 +26,15 @@ import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.google.common.base.Preconditions;
+import com.sleepycat.je.dbi.MemoryBudget.Totals;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 
+import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
+import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.gt.Rect;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
@@ -75,14 +79,27 @@ public final class VoyageDatasetProducer {
             System.out.println("read eez shapefile");
             System.out.println(eezLine.contains(-35, 149));
             long t = System.currentTimeMillis();
+            AtomicLong failedCheck = new AtomicLong();
+            AtomicLong fixCount = new AtomicLong();
             Observable.from(list) //
                     .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
-                    .flatMap(
-                            files -> files //
-                                    .compose(o -> logPercentCompleted(numFiles, t, o, fileNumber)) //
-                                    .concatMap(BinaryFixes::from) //
-                                    .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints,
-                                            o)) //
+                    .flatMap(files -> files //
+                            .compose(o -> logPercentCompleted(numFiles, t, o, fileNumber)) //
+                            .concatMap(BinaryFixes::from) //
+                            .lift(new OperatorEffectiveSpeedChecker(SegmentOptions.builder()
+                                    .acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
+                            .doOnNext(check -> {
+                                long total = fixCount.incrementAndGet();
+                                if (!check.isOk()) {
+                                    long c = failedCheck.incrementAndGet();
+//                                    System.out.println(
+//                                            check.fix().mmsi() + " has high eff. speed, count = "
+//                                                    + c + ", total=" + total);
+                                }
+                            }) //
+                            .filter(check -> check.isOk()) //
+                            .map(check -> check.fix()) //
+                            .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                             // .onBackpressureBuffer() //
                             // .subscribeOn(Schedulers.computation()) //
                             .filter(x -> includeLeg(x)) //
@@ -106,6 +123,9 @@ public final class VoyageDatasetProducer {
                     .toBlocking() //
                     .subscribe();
             System.out.println((System.currentTimeMillis() - t) + "ms");
+            System.out.println("total fixes=" + fixCount.get());
+            System.out.println(
+                    "num fixes rejected due failed effective speed check=" + failedCheck.get());
         }
     }
 
