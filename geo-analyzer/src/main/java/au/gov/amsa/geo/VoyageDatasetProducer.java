@@ -14,10 +14,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
@@ -55,10 +56,6 @@ public final class VoyageDatasetProducer {
             Pattern pattern = Pattern.compile(".*\\.track");
             List<File> list = new ArrayList<File>();
 
-            // list.addAll(Files.find(new
-            // File("/media/an/binary-fixes-5-minute/2014"), pattern));
-            // list.addAll(Files.find(new
-            // File("/media/an/binary-fixes-5-minute/2015"), pattern));
             String baseFilename = "/media/an/binary-fixes-5-minute/";
             // String baseFilename = "/home/dave/Downloads/";
             list.addAll(Files.find(new File(baseFilename + "2014"), pattern));
@@ -77,7 +74,7 @@ public final class VoyageDatasetProducer {
             long t = System.currentTimeMillis();
             AtomicLong failedCheck = new AtomicLong();
             AtomicLong fixCount = new AtomicLong();
-            Set<Integer> mmsisWithFailedChecks = new HashSet<>();
+            Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
             Observable.from(list) //
                     .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
                     .flatMap(files -> files //
@@ -101,15 +98,18 @@ public final class VoyageDatasetProducer {
                     "num fixes rejected due failed effective speed check=" + failedCheck.get());
             System.out.println(
                     "num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
-            System.out.println(mmsisWithFailedChecks);
+            for (Integer mmsi : mmsisWithFailedChecks.keySet()) {
+                System.out.println(mmsi + " failed " + mmsisWithFailedChecks.get(mmsi) + " checks");
+            }
         }
     }
 
     private static void updatedCounts(AtomicLong failedCheck, AtomicLong fixCount,
-            Set<Integer> mmsisWithFailedChecks, EffectiveSpeedCheck check) {
+            Map<Integer, Integer> mmsisWithFailedChecks, EffectiveSpeedCheck check) {
         fixCount.incrementAndGet();
         if (!check.isOk()) {
-            mmsisWithFailedChecks.add(check.fix().mmsi());
+            int count = mmsisWithFailedChecks.getOrDefault(check.fix().mmsi(), 0);
+            mmsisWithFailedChecks.put(check.fix().mmsi(), count + 1);
             failedCheck.incrementAndGet();
         }
     }
