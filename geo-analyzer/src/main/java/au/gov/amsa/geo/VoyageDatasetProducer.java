@@ -77,20 +77,29 @@ public final class VoyageDatasetProducer {
             Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
             Observable.from(list) //
                     .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
-                    .flatMap(files -> files //
-                            .compose(o -> logPercentCompleted(numFiles, t, o, fileNumber)) //
-                            .concatMap(BinaryFixes::from) //
-                            .lift(new OperatorEffectiveSpeedChecker(SegmentOptions.builder()
-                                    .acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
-                            .doOnNext(check -> updatedCounts(failedCheck, fixCount,
-                                    mmsisWithFailedChecks, check)) //
-                            .filter(check -> check.isOk()) //
-                            .map(check -> check.fix()) //
-                            .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
-                            .filter(x -> includeLeg(x)) //
-                            .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
-                            .doOnNext(x -> write(writer, x)) //
+                    .flatMap(files -> {
+                        String k = files.getKey();
+                        if (!isShipMmsi(k)) {
+                            return Observable.empty();
+                        } else {
+                            return files //
+                                    .compose(o -> logPercentCompleted(numFiles, t, o, fileNumber)) //
+                                    .concatMap(BinaryFixes::from) //
+                                    .lift(new OperatorEffectiveSpeedChecker(SegmentOptions.builder()
+                                            .acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
+                                    .doOnNext(check -> updatedCounts(failedCheck, fixCount,
+                                            mmsisWithFailedChecks, check)) //
+                                    .filter(check -> check.isOk()) //
+                                    .map(check -> check.fix()) //
+                                    .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints,
+                                            o)) //
+                                    .filter(x -> includeLeg(x));
+                        }
+                    } //
+
             ) //
+                    .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
+                    .doOnNext(x -> write(writer, x)) //
                     .toBlocking() //
                     .subscribe();
             System.out.println((System.currentTimeMillis() - t) + "ms");
@@ -109,6 +118,16 @@ public final class VoyageDatasetProducer {
                 }
             }
         }
+    }
+
+    private static boolean isShipMmsi(String m) {
+        // first digit
+        // 0 - station, ship group
+        // 1 - SAR aircraft
+        // 8 - handheld VHF transceiver
+        // 9 - custom devices
+        return (m.length() == 9 && !m.startsWith("0") && !m.startsWith("1") && !m.startsWith("8")
+                && !m.startsWith("9"));
     }
 
     private static int compareByMmsiThenLegStartTime(TimedLeg x, TimedLeg y) {
