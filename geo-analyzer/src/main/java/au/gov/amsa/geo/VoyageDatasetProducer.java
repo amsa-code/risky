@@ -76,10 +76,10 @@ public final class VoyageDatasetProducer {
             AtomicLong fixCount = new AtomicLong();
             Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
             Observable.from(list) //
-                    .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
+                    .groupBy(f -> mmsiFromFilename(f)) //
                     .flatMap(files -> {
-                        String k = files.getKey();
-                        if (!isShipMmsi(k)) {
+                        String mmsi = files.getKey();
+                        if (!isShipMmsi(mmsi)) {
                             return Observable.empty();
                         } else {
                             return files //
@@ -108,16 +108,25 @@ public final class VoyageDatasetProducer {
                     "num fixes rejected due failed effective speed check=" + failedCheck.get());
             System.out.println(
                     "num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
-            System.out.println("failures mmsi <TAB> number of rejected fixes");
-            for (Integer mmsi : mmsisWithFailedChecks.keySet()) {
-                System.out.println(mmsi + "\t" + mmsisWithFailedChecks.get(mmsi));
+
+            try (PrintStream p = new PrintStream("target/info.txt")) {
+                p.println("total fixes=" + fixCount.get());
+                p.println(
+                        "num fixes rejected due failed effective speed check=" + failedCheck.get());
+                p.println("num mmsis with failed effective speed checks="
+                        + mmsisWithFailedChecks.size());
             }
             try (PrintStream p = new PrintStream("target/failures.txt")) {
+                p.println("failures mmsi <TAB> number of rejected fixes");
                 for (Integer mmsi : mmsisWithFailedChecks.keySet()) {
                     p.println(mmsi + "\t" + mmsisWithFailedChecks.get(mmsi));
                 }
             }
         }
+    }
+
+    private static String mmsiFromFilename(File f) {
+        return f.getName().substring(0, f.getName().indexOf("."));
     }
 
     private static boolean isShipMmsi(String m) {
