@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -46,7 +45,7 @@ public final class VoyageDatasetProducer {
 
     private static final String COMMA = ",";
     private static final DateTimeFormatter format = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm");
+            .ofPattern("yyyy-MM-dd'T'HH:mm'Z'");
 
     public static void produce() throws Exception {
         File out = new File("target/legs.txt");
@@ -88,6 +87,7 @@ public final class VoyageDatasetProducer {
                             .map(check -> check.fix()) //
                             .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                             .filter(x -> includeLeg(x)) //
+                            .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                             .doOnNext(x -> write(writer, x)) //
             ) //
                     .toBlocking() //
@@ -101,6 +101,15 @@ public final class VoyageDatasetProducer {
             for (Integer mmsi : mmsisWithFailedChecks.keySet()) {
                 System.out.println(mmsi + " failed " + mmsisWithFailedChecks.get(mmsi) + " checks");
             }
+        }
+    }
+
+    private static int compareByMmsiThenLegStartTime(TimedLeg x, TimedLeg y) {
+        if (x.mmsi == y.mmsi) {
+            // compare using just the start time of the leg
+            return Long.compare(x.a.time, y.a.time);
+        } else {
+            return Integer.compare(x.mmsi, y.mmsi);
         }
     }
 
