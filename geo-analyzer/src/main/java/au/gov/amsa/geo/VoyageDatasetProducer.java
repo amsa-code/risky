@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.text.DecimalFormat;
 import java.time.Instant;
@@ -98,8 +99,14 @@ public final class VoyageDatasetProducer {
                     "num fixes rejected due failed effective speed check=" + failedCheck.get());
             System.out.println(
                     "num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
+            System.out.println("failures mmsi <TAB> number of rejected fixes");
             for (Integer mmsi : mmsisWithFailedChecks.keySet()) {
-                System.out.println(mmsi + " failed " + mmsisWithFailedChecks.get(mmsi) + " checks");
+                System.out.println(mmsi + "\t" + mmsisWithFailedChecks.get(mmsi));
+            }
+            try (PrintStream p = new PrintStream("target/failures.txt")) {
+                for (Integer mmsi : mmsisWithFailedChecks.keySet()) {
+                    p.println(mmsi + "\t" + mmsisWithFailedChecks.get(mmsi));
+                }
             }
         }
     }
