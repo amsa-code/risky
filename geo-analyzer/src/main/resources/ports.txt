@@ -21,7 +21,7 @@ Geelong	GEX	geelong_visit_pl.zip	0
 Geraldton	GET	geraldton_visit_pl.zip	0
 Gladstone	GLT	gladstone_visit_pl.zip	0
 Gove	GOV	gove_visit_pl.zip	0
-Hay Point	HTP	hay_point_visit_pl.zip	0
+Hay Point	HPT	hay_point_visit_pl.zip	0
 Hobart	HBT	hobart_visit_pl.zip	0
 Kurnell	KUR	kurnell_visit_pl.zip	0
 Kwinana	KWI	kwinana_visit_pl.zip	0
