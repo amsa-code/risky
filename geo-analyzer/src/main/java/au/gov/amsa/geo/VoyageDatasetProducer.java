@@ -14,8 +14,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
@@ -26,7 +28,6 @@ import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.google.common.base.Preconditions;
-import com.sleepycat.je.dbi.MemoryBudget.Totals;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
@@ -81,6 +82,7 @@ public final class VoyageDatasetProducer {
             long t = System.currentTimeMillis();
             AtomicLong failedCheck = new AtomicLong();
             AtomicLong fixCount = new AtomicLong();
+            Set<Integer> mmsisWithFailedChecks = new HashSet<>();
             Observable.from(list) //
                     .groupBy(f -> f.getName().substring(0, f.getName().indexOf("."))) //
                     .flatMap(files -> files //
@@ -91,10 +93,12 @@ public final class VoyageDatasetProducer {
                             .doOnNext(check -> {
                                 long total = fixCount.incrementAndGet();
                                 if (!check.isOk()) {
+                                    mmsisWithFailedChecks.add(check.fix().mmsi());
                                     long c = failedCheck.incrementAndGet();
-//                                    System.out.println(
-//                                            check.fix().mmsi() + " has high eff. speed, count = "
-//                                                    + c + ", total=" + total);
+                                    // System.out.println(
+                                    // check.fix().mmsi() + " has high eff.
+                                    // speed, count = "
+                                    // + c + ", total=" + total);
                                 }
                             }) //
                             .filter(check -> check.isOk()) //
@@ -126,6 +130,9 @@ public final class VoyageDatasetProducer {
             System.out.println("total fixes=" + fixCount.get());
             System.out.println(
                     "num fixes rejected due failed effective speed check=" + failedCheck.get());
+            System.out.println(
+                    "num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
+            System.out.println(mmsisWithFailedChecks);
         }
     }
 
