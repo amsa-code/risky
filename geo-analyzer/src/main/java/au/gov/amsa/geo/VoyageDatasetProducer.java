@@ -24,9 +24,6 @@ import java.util.regex.Pattern;
 
 import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
-import com.github.davidmoten.rtree.RTree;
-import com.github.davidmoten.rtree.geometry.Geometries;
-import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -34,9 +31,9 @@ import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 
+import au.gov.amsa.geo.distance.EffectiveSpeedCheck;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
-import au.gov.amsa.gt.Rect;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;
@@ -62,23 +59,21 @@ public final class VoyageDatasetProducer {
             // File("/media/an/binary-fixes-5-minute/2014"), pattern));
             // list.addAll(Files.find(new
             // File("/media/an/binary-fixes-5-minute/2015"), pattern));
-            list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2014"), pattern));
-            list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2015"), pattern));
-            list.addAll(Files.find(new File("/media/an/binary-fixes-5-minute/2016"), pattern));
-            // list.addAll(Files.find(new File("/home/dave/Downloads/2016"),
-            // pattern));
-            // AtomicInteger count = new AtomicInteger();
+            String baseFilename = "/media/an/binary-fixes-5-minute/";
+            // String baseFilename = "/home/dave/Downloads/";
+            list.addAll(Files.find(new File(baseFilename + "2014"), pattern));
+            list.addAll(Files.find(new File(baseFilename + "2015"), pattern));
+            list.addAll(Files.find(new File(baseFilename + "2016"), pattern));
 
             int numFiles = list.size();
-            System.out.println(numFiles + " files");
+            System.out.println(numFiles + "binary fix files");
 
             AtomicInteger fileNumber = new AtomicInteger(0);
             Collection<Port> ports = loadPorts();
             Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
             Shapefile eezLine = loadEezLine();
             Shapefile eezPolygon = loadEezPolygon();
-            System.out.println("read eez shapefile");
-            System.out.println(eezLine.contains(-35, 149));
+            System.out.println("loaded eez shapefiles");
             long t = System.currentTimeMillis();
             AtomicLong failedCheck = new AtomicLong();
             AtomicLong fixCount = new AtomicLong();
@@ -90,39 +85,13 @@ public final class VoyageDatasetProducer {
                             .concatMap(BinaryFixes::from) //
                             .lift(new OperatorEffectiveSpeedChecker(SegmentOptions.builder()
                                     .acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
-                            .doOnNext(check -> {
-                                long total = fixCount.incrementAndGet();
-                                if (!check.isOk()) {
-                                    mmsisWithFailedChecks.add(check.fix().mmsi());
-                                    long c = failedCheck.incrementAndGet();
-                                    // System.out.println(
-                                    // check.fix().mmsi() + " has high eff.
-                                    // speed, count = "
-                                    // + c + ", total=" + total);
-                                }
-                            }) //
+                            .doOnNext(check -> updatedCounts(failedCheck, fixCount,
+                                    mmsisWithFailedChecks, check)) //
                             .filter(check -> check.isOk()) //
                             .map(check -> check.fix()) //
                             .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
-                            // .onBackpressureBuffer() //
-                            // .subscribeOn(Schedulers.computation()) //
                             .filter(x -> includeLeg(x)) //
-                            .doOnNext(x -> {
-                                try {
-                                    writer.write(String.valueOf(x.mmsi));
-                                    writer.write(COMMA);
-                                    writer.write(x.a.waypoint.code());
-                                    writer.write(COMMA);
-                                    writer.write(formatTime(x.a.time));
-                                    writer.write(COMMA);
-                                    writer.write(x.b.waypoint.code());
-                                    writer.write(COMMA);
-                                    writer.write(formatTime(x.b.time));
-                                    writer.write("\n");
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                            }) //
+                            .doOnNext(x -> write(writer, x)) //
             ) //
                     .toBlocking() //
                     .subscribe();
@@ -136,14 +105,30 @@ public final class VoyageDatasetProducer {
         }
     }
 
-    public static RTree<Port, Rectangle> createRTree(Collection<Port> ports) {
-        RTree<Port, Rectangle> rtree = RTree.star().create();
-        for (Port port : ports) {
-            Rect r = port.visitRegion.mbr();
-            Rectangle rect = Geometries.rectangle(r.minX(), r.minY(), r.maxX(), r.maxY());
-            rtree = rtree.add(port, rect);
+    private static void updatedCounts(AtomicLong failedCheck, AtomicLong fixCount,
+            Set<Integer> mmsisWithFailedChecks, EffectiveSpeedCheck check) {
+        fixCount.incrementAndGet();
+        if (!check.isOk()) {
+            mmsisWithFailedChecks.add(check.fix().mmsi());
+            failedCheck.incrementAndGet();
         }
-        return rtree;
+    }
+
+    private static void write(BufferedWriter writer, TimedLeg x) {
+        try {
+            writer.write(String.valueOf(x.mmsi));
+            writer.write(COMMA);
+            writer.write(x.a.waypoint.code());
+            writer.write(COMMA);
+            writer.write(formatTime(x.a.time));
+            writer.write(COMMA);
+            writer.write(x.b.waypoint.code());
+            writer.write(COMMA);
+            writer.write(formatTime(x.b.time));
+            writer.write("\n");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private static boolean includeLeg(TimedLeg x) {
