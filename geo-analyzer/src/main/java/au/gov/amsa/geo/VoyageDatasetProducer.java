@@ -55,36 +55,30 @@ public final class VoyageDatasetProducer {
     private static final String COMMA = ",";
     private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'");
 
-    public static void produce() throws Exception {
-        File out = new File("target/legs.txt");
-        File fixesOut = new File("/media/an/temp/fixes");
+    public static void produce(File output, File fixesOutput, List<File> list) throws Exception {
+        // reset output directories
+        output.delete();
+        FileUtils.deleteDirectory(fixesOutput);
 
-        out.delete();
-        FileUtils.deleteDirectory(fixesOut);
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)))) {
-            Pattern pattern = Pattern.compile(".*\\.track");
-            List<File> list = new ArrayList<File>();
+        int numFiles = list.size();
+        System.out.println(numFiles + "binary fix files");
 
-            String baseFilename = "/media/an/binary-fixes-5-minute/";
-            // String baseFilename = "/home/dave/Downloads/";
-            list.addAll(Files.find(new File(baseFilename + "2014"), pattern));
-            list.addAll(Files.find(new File(baseFilename + "2015"), pattern));
-            list.addAll(Files.find(new File(baseFilename + "2016"), pattern));
+        AtomicInteger fileNumber = new AtomicInteger(0);
+        Collection<Port> ports = loadPorts();
+        Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
+        Shapefile eezLine = loadEezLine();
+        Shapefile eezPolygon = loadEezPolygon();
+        System.out.println("loaded eez shapefiles");
+        long t = System.currentTimeMillis();
+        AtomicLong failedCheck = new AtomicLong();
+        AtomicLong fixCount = new AtomicLong();
+        Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
+        Persister persister = new Persister(fixesOutput);
 
-            int numFiles = list.size();
-            System.out.println(numFiles + "binary fix files");
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output)))) {
 
-            AtomicInteger fileNumber = new AtomicInteger(0);
-            Collection<Port> ports = loadPorts();
-            Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
-            Shapefile eezLine = loadEezLine();
-            Shapefile eezPolygon = loadEezPolygon();
-            System.out.println("loaded eez shapefiles");
-            long t = System.currentTimeMillis();
-            AtomicLong failedCheck = new AtomicLong();
-            AtomicLong fixCount = new AtomicLong();
-            Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
-            Persister persister = new Persister(fixesOut);
+            // Note that in the observable below we don't employ parallel techniques
+            // this is because the runtime is acceptable
             Observable.from(list) //
                     .groupBy(f -> mmsiFromFilename(f)) //
                     .flatMap(files -> {
@@ -135,13 +129,13 @@ public final class VoyageDatasetProducer {
     // not thread-safe!!!!
     final static class Persister implements Closeable {
 
-        private final File directory;
+        private final File outputDirectory;
         private OutputStream currentPersistOutputStream;
         private int currentPersistMmsi = -1;
 
-        public Persister(File directory) {
-            this.directory = directory;
-            directory.mkdirs();
+        public Persister(File outputDirectory) {
+            this.outputDirectory = outputDirectory;
+            outputDirectory.mkdirs();
         }
 
         /**
@@ -164,7 +158,7 @@ public final class VoyageDatasetProducer {
                 }
                 try {
                     currentPersistOutputStream = new BufferedOutputStream(
-                            new FileOutputStream(new File(directory, fix.mmsi() + ".track"), true));
+                            new FileOutputStream(new File(outputDirectory, fix.mmsi() + ".track"), true));
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
@@ -563,6 +557,16 @@ public final class VoyageDatasetProducer {
     }
 
     public static void main(String[] args) throws Exception {
-        VoyageDatasetProducer.produce();
+        File output = new File("target/legs.txt");
+        File fixesOutput = new File("/media/an/temp/fixes");
+        List<File> list = new ArrayList<File>();
+
+        String baseFilename = "/media/an/binary-fixes-5-minute/";
+        Pattern pattern = Pattern.compile(".*\\.track");
+        list.addAll(Files.find(new File(baseFilename + "2014"), pattern));
+        list.addAll(Files.find(new File(baseFilename + "2015"), pattern));
+        list.addAll(Files.find(new File(baseFilename + "2016"), pattern));
+
+        VoyageDatasetProducer.produce(output, fixesOutput, list);
     }
 }
