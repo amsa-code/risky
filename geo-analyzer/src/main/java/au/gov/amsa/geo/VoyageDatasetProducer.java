@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
+
 import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.Checked;
@@ -55,9 +57,10 @@ public final class VoyageDatasetProducer {
 
     public static void produce() throws Exception {
         File out = new File("target/legs.txt");
-        File fixesOut = new File("target/fixes");
+        File fixesOut = new File("/media/an/temp/fixes");
 
         out.delete();
+        FileUtils.deleteDirectory(fixesOut);
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)))) {
             Pattern pattern = Pattern.compile(".*\\.track");
             List<File> list = new ArrayList<File>();
@@ -138,6 +141,7 @@ public final class VoyageDatasetProducer {
 
         public Persister(File directory) {
             this.directory = directory;
+            directory.mkdirs();
         }
 
         /**
@@ -160,7 +164,7 @@ public final class VoyageDatasetProducer {
                 }
                 try {
                     currentPersistOutputStream = new BufferedOutputStream(
-                            new FileOutputStream(new File(directory, fix.mmsi() + ".track")));
+                            new FileOutputStream(new File(directory, fix.mmsi() + ".track"), true));
                 } catch (FileNotFoundException e) {
                     throw new RuntimeException(e);
                 }
