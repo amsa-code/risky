@@ -1,10 +1,14 @@
 package au.gov.amsa.geo;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.Reader;
@@ -25,6 +29,7 @@ import java.util.regex.Pattern;
 
 import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+import com.github.davidmoten.rx.Checked;
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
@@ -37,6 +42,7 @@ import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
+import au.gov.amsa.risky.format.BinaryFixesFormat;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.streams.Strings;
 import au.gov.amsa.util.Files;
@@ -45,14 +51,14 @@ import rx.Observable;
 public final class VoyageDatasetProducer {
 
     private static final String COMMA = ",";
-    private static final DateTimeFormatter format = DateTimeFormatter
-            .ofPattern("yyyy-MM-dd'T'HH:mm'Z'");
+    private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm'Z'");
 
     public static void produce() throws Exception {
         File out = new File("target/legs.txt");
+        File fixesOut = new File("target/fixes");
+
         out.delete();
-        try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(out)))) {
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)))) {
             Pattern pattern = Pattern.compile(".*\\.track");
             List<File> list = new ArrayList<File>();
 
@@ -75,6 +81,7 @@ public final class VoyageDatasetProducer {
             AtomicLong failedCheck = new AtomicLong();
             AtomicLong fixCount = new AtomicLong();
             Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
+            Persister persister = new Persister(fixesOut);
             Observable.from(list) //
                     .groupBy(f -> mmsiFromFilename(f)) //
                     .flatMap(files -> {
@@ -85,36 +92,33 @@ public final class VoyageDatasetProducer {
                             return files //
                                     .compose(o -> logPercentCompleted(numFiles, t, o, fileNumber)) //
                                     .concatMap(BinaryFixes::from) //
-                                    .lift(new OperatorEffectiveSpeedChecker(SegmentOptions.builder()
-                                            .acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
-                                    .doOnNext(check -> updatedCounts(failedCheck, fixCount,
-                                            mmsisWithFailedChecks, check)) //
+                                    .lift(new OperatorEffectiveSpeedChecker(
+                                            SegmentOptions.builder().acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
+                                    .doOnNext(
+                                            check -> updatedCounts(failedCheck, fixCount, mmsisWithFailedChecks, check)) //
                                     .filter(check -> check.isOk()) //
                                     .map(check -> check.fix()) //
-                                    .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints,
-                                            o)) //
+                                    .doOnNext(fix -> persister.persist(fix))
+                                    .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                                     .filter(x -> includeLeg(x));
                         }
                     } //
 
-            ) //
+                    ) //
                     .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                     .doOnNext(x -> write(writer, x)) //
+                    .doOnTerminate(Checked.a0(() -> persister.close())) //
                     .toBlocking() //
                     .subscribe();
             System.out.println((System.currentTimeMillis() - t) + "ms");
             System.out.println("total fixes=" + fixCount.get());
-            System.out.println(
-                    "num fixes rejected due failed effective speed check=" + failedCheck.get());
-            System.out.println(
-                    "num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
+            System.out.println("num fixes rejected due failed effective speed check=" + failedCheck.get());
+            System.out.println("num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
 
             try (PrintStream p = new PrintStream("target/info.txt")) {
                 p.println("total fixes=" + fixCount.get());
-                p.println(
-                        "num fixes rejected due failed effective speed check=" + failedCheck.get());
-                p.println("num mmsis with failed effective speed checks="
-                        + mmsisWithFailedChecks.size());
+                p.println("num fixes rejected due failed effective speed check=" + failedCheck.get());
+                p.println("num mmsis with failed effective speed checks=" + mmsisWithFailedChecks.size());
             }
             try (PrintStream p = new PrintStream("target/failures.txt")) {
                 p.println("failures mmsi <TAB> number of rejected fixes");
@@ -122,6 +126,55 @@ public final class VoyageDatasetProducer {
                     p.println(mmsi + "\t" + mmsisWithFailedChecks.get(mmsi));
                 }
             }
+        }
+    }
+
+    // not thread-safe!!!!
+    final static class Persister implements Closeable {
+
+        private final File directory;
+        private OutputStream currentPersistOutputStream;
+        private int currentPersistMmsi = -1;
+
+        public Persister(File directory) {
+            this.directory = directory;
+        }
+
+        /**
+         * Writes fix to binary track file in {@code directory}.
+         * 
+         * @param fix
+         *            fix to persist to file
+         */
+        void persist(Fix fix) {
+            // Note that this logic only works if this method called serially
+            // don't call this in parallel processing!
+            if (fix.mmsi() != currentPersistMmsi) {
+                currentPersistMmsi = fix.mmsi();
+                if (currentPersistOutputStream != null) {
+                    try {
+                        currentPersistOutputStream.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                try {
+                    currentPersistOutputStream = new BufferedOutputStream(
+                            new FileOutputStream(new File(directory, fix.mmsi() + ".track")));
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+
+            }
+            BinaryFixes.write(fix, currentPersistOutputStream, BinaryFixesFormat.WITHOUT_MMSI);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (currentPersistOutputStream != null) {
+                currentPersistOutputStream.close();
+            }
+
         }
     }
 
@@ -193,8 +246,7 @@ public final class VoyageDatasetProducer {
                     .filter(line -> line.length() > 0) //
                     .filter(line -> !line.startsWith("#")) //
                     .map(line -> line.split(COMMA))
-                    .map(items -> new EezWaypoint(items[0], Double.parseDouble(items[2]),
-                            Double.parseDouble(items[1]),
+                    .map(items -> new EezWaypoint(items[0], Double.parseDouble(items[2]), Double.parseDouble(items[1]),
                             // TODO read thresholdKm
                             Optional.empty())) //
                     .doOnNext(System.out::println) //
@@ -206,8 +258,7 @@ public final class VoyageDatasetProducer {
 
     static Collection<Port> loadPorts() throws IOException {
         Collection<Port> ports;
-        try (Reader reader = new InputStreamReader(
-                VoyageDatasetProducer.class.getResourceAsStream("/ports.txt"))) {
+        try (Reader reader = new InputStreamReader(VoyageDatasetProducer.class.getResourceAsStream("/ports.txt"))) {
             ports = Strings.lines(reader) //
                     .map(line -> line.trim()) //
                     .filter(line -> line.length() > 0) //
@@ -216,8 +267,7 @@ public final class VoyageDatasetProducer {
                     .map(items -> new Port(items[0], items[1],
                             Shapefile.fromZip(VoyageDatasetProducer.class
                                     .getResourceAsStream("/port-visit-shapefiles/" + items[2])))) //
-                    .doOnNext(x -> System.out
-                            .println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
+                    .doOnNext(x -> System.out.println(x.name + " - " + x.visitRegion.contains(-33.8568, 151.2153))) //
                     .toList() //
                     .toBlocking().single();
         }
@@ -226,27 +276,23 @@ public final class VoyageDatasetProducer {
 
     static Shapefile loadEezLine() {
         // good for crossing checks
-        return Shapefile.fromZip(
-                VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_line.zip"));
+        return Shapefile.fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_line.zip"));
     }
 
     static Shapefile loadEezPolygon() {
         // good for contains checks
-        return Shapefile.fromZip(
-                VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
+        return Shapefile.fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
     }
 
-    private static Observable<File> logPercentCompleted(int numFiles, long startTime,
-            Observable<File> o, AtomicInteger fileNumber) {
+    private static Observable<File> logPercentCompleted(int numFiles, long startTime, Observable<File> o,
+            AtomicInteger fileNumber) {
         return o.doOnNext(file -> {
             int n = fileNumber.incrementAndGet();
             if (n % 1000 == 0) {
                 long t = System.currentTimeMillis();
-                long timeRemainingSeconds = Math
-                        .round(((double) t - startTime) / n * (numFiles - n)) / 1000;
-                System.out.println(
-                        "complete: " + new DecimalFormat("0.0").format(n / (double) numFiles * 100)
-                                + "%, seconds remaining " + timeRemainingSeconds);
+                long timeRemainingSeconds = Math.round(((double) t - startTime) / n * (numFiles - n)) / 1000;
+                System.out.println("complete: " + new DecimalFormat("0.0").format(n / (double) numFiles * 100)
+                        + "%, seconds remaining " + timeRemainingSeconds);
             }
         });
     }
@@ -261,8 +307,7 @@ public final class VoyageDatasetProducer {
 
     public static final class TimedLeg {
 
-        private static final DateTimeFormatter format = DateTimeFormatter
-                .ofPattern("yyyy-MM-dd HH:mm");
+        private static final DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
         public final int mmsi;
         public final TimedWaypoint a;
         public final TimedWaypoint b;
@@ -277,12 +322,9 @@ public final class VoyageDatasetProducer {
 
         @Override
         public String toString() {
-            return format
-                    .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.time), ZoneOffset.UTC))
-                    + "->"
-                    + format.format(
-                            ZonedDateTime.ofInstant(Instant.ofEpochMilli(b.time), ZoneOffset.UTC))
-                    + " " + a.waypoint.name() + "->" + b.waypoint.name();
+            return format.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(a.time), ZoneOffset.UTC)) + "->"
+                    + format.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(b.time), ZoneOffset.UTC)) + " "
+                    + a.waypoint.name() + "->" + b.waypoint.name();
         }
     }
 
@@ -300,78 +342,74 @@ public final class VoyageDatasetProducer {
     }
 
     @VisibleForTesting
-    static Observable<TimedLeg> toLegs(Shapefile eezLine, Shapefile eezPolygon,
-            Collection<Port> ports, Collection<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
+    static Observable<TimedLeg> toLegs(Shapefile eezLine, Shapefile eezPolygon, Collection<Port> ports,
+            Collection<EezWaypoint> eezWaypoints, Observable<Fix> fixes) {
         return Observable.defer(() -> //
         {
             State[] state = new State[1];
             state[0] = new State(null, null, EezStatus.UNKNOWN);
             return fixes //
                     .flatMap(fix -> {
-                List<TimedLeg> legs = null; // only create when needed to reduce
-                                            // allocations
-                boolean inEez = eezPolygon.contains(fix.lat(), fix.lon());
-                State current = state[0];
-                Preconditions.checkArgument(
-                        current.latestFix == null || fix.time() >= current.latestFix.time(),
-                        "fixes out of time order!");
-                boolean crossed = (inEez && current.fixStatus == EezStatus.OUT)
-                        || (!inEez && current.fixStatus == EezStatus.IN);
-                if (crossed) {
-                    TimedWaypoint closestWaypoint = findClosestWaypoint(eezLine, eezWaypoints, fix,
-                            current);
-                    if (current.timedWaypoint != null) {
-                        if (legs == null) {
-                            legs = new ArrayList<>(2);
-                        }
-                        legs.add(new TimedLeg(fix.mmsi(), current.timedWaypoint, closestWaypoint));
-                    }
-                    current = new State(closestWaypoint, fix, EezStatus.from(inEez));
-                }
-                // Note that may have detected eez crossing but also
-                // have arrived in port so may need to return both
-                // waypoints
-                if (inEez) {
-                    Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
-                    if (port.isPresent()) {
-                        TimedWaypoint portTimedWaypoint = new TimedWaypoint(port.get(), fix.time());
-                        state[0] = new State(portTimedWaypoint, fix, EezStatus.IN);
-                        if (current.fixStatus != EezStatus.UNKNOWN && current.timedWaypoint != null
-                                && current.timedWaypoint.waypoint != port.get()) {
+                        List<TimedLeg> legs = null; // only create when needed to reduce
+                                                    // allocations
+                        boolean inEez = eezPolygon.contains(fix.lat(), fix.lon());
+                        State current = state[0];
+                        Preconditions.checkArgument(current.latestFix == null || fix.time() >= current.latestFix.time(),
+                                "fixes out of time order!");
+                        boolean crossed = (inEez && current.fixStatus == EezStatus.OUT)
+                                || (!inEez && current.fixStatus == EezStatus.IN);
+                        if (crossed) {
+                            TimedWaypoint closestWaypoint = findClosestWaypoint(eezLine, eezWaypoints, fix, current);
                             if (current.timedWaypoint != null) {
                                 if (legs == null) {
                                     legs = new ArrayList<>(2);
                                 }
-                                legs.add(new TimedLeg(fix.mmsi(), current.timedWaypoint,
-                                        portTimedWaypoint));
+                                legs.add(new TimedLeg(fix.mmsi(), current.timedWaypoint, closestWaypoint));
                             }
+                            current = new State(closestWaypoint, fix, EezStatus.from(inEez));
                         }
-                    } else {
-                        state[0] = new State(current.timedWaypoint, fix, EezStatus.IN);
-                    }
-                } else {
-                    state[0] = new State(current.timedWaypoint, fix, EezStatus.OUT);
-                }
-                if (legs == null) {
-                    return Observable.empty();
-                } else {
-                    return Observable.from(legs);
-                }
+                        // Note that may have detected eez crossing but also
+                        // have arrived in port so may need to return both
+                        // waypoints
+                        if (inEez) {
+                            Optional<Port> port = findPort(ports, fix.lat(), fix.lon());
+                            if (port.isPresent()) {
+                                TimedWaypoint portTimedWaypoint = new TimedWaypoint(port.get(), fix.time());
+                                state[0] = new State(portTimedWaypoint, fix, EezStatus.IN);
+                                if (current.fixStatus != EezStatus.UNKNOWN && current.timedWaypoint != null
+                                        && current.timedWaypoint.waypoint != port.get()) {
+                                    if (current.timedWaypoint != null) {
+                                        if (legs == null) {
+                                            legs = new ArrayList<>(2);
+                                        }
+                                        legs.add(new TimedLeg(fix.mmsi(), current.timedWaypoint, portTimedWaypoint));
+                                    }
+                                }
+                            } else {
+                                state[0] = new State(current.timedWaypoint, fix, EezStatus.IN);
+                            }
+                        } else {
+                            state[0] = new State(current.timedWaypoint, fix, EezStatus.OUT);
+                        }
+                        if (legs == null) {
+                            return Observable.empty();
+                        } else {
+                            return Observable.from(legs);
+                        }
 
-            });
+                    });
         });
 
     }
 
-    private static TimedWaypoint findClosestWaypoint(Shapefile eezLine,
-            Collection<EezWaypoint> eezWaypoints, Fix fix, State previous) {
+    private static TimedWaypoint findClosestWaypoint(Shapefile eezLine, Collection<EezWaypoint> eezWaypoints, Fix fix,
+            State previous) {
         TimedPosition crossingPoint = findRegionCrossingPoint(eezLine, previous.latestFix, fix);
         EezWaypoint closest = null;
         double closestDistanceKm = 0;
         for (EezWaypoint w : eezWaypoints) {
             double d = distanceKm(crossingPoint.lat, crossingPoint.lon, w.lat, w.lon);
-            if (closest == null
-                    || (d < closestDistanceKm && d <= w.thresholdKm.orElse(Double.MAX_VALUE))) {
+            if (closest == null || (d < closestDistanceKm && d <= w.thresholdKm.orElse(Double.MAX_VALUE))) {
                 closest = w;
                 closestDistanceKm = d;
             }
@@ -420,8 +458,7 @@ public final class VoyageDatasetProducer {
 
         @Override
         public String toString() {
-            return "EezWaypoint [name=" + name + ", lat=" + lat + ", lon=" + lon + ", thresholdKm="
-                    + thresholdKm + "]";
+            return "EezWaypoint [name=" + name + ", lat=" + lat + ", lon=" + lon + ", thresholdKm=" + thresholdKm + "]";
         }
 
         @Override
