@@ -40,7 +40,7 @@ public final class BinaryFixes {
     private static final int BINARY_FIX_WITH_MMSI_BYTES = 35;
     public static final short SOG_ABSENT = 1023;
     public static final short COG_ABSENT = 3600;
-    public static final short HEADING_ABSENT = 360;
+    public static final short HEADING_ABSENT = 3600;
     public static final byte NAV_STATUS_ABSENT = Byte.MAX_VALUE;
     public static final int LATENCY_ABSENT = -1;
     public static final short SOURCE_ABSENT = 0;

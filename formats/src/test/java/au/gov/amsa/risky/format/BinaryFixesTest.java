@@ -26,7 +26,7 @@ public final class BinaryFixesTest {
     @Test
     public void testWriteAndReadBinaryFixes() throws IOException {
         File trace = new File("target/123456789.track");
-        int numFixes = 10000;
+        int numFixes = 2;
         writeTrace(trace, numFixes, BinaryFixesFormat.WITHOUT_MMSI);
 
         System.out.println("wrote " + numFixes + " fixes");
@@ -140,4 +140,5 @@ public final class BinaryFixesTest {
     private Func1<File, Observable<Integer>> countFixes() {
         return file -> BinaryFixes.from(file).count();
     }
+    
 }
