@@ -86,7 +86,7 @@
         <!-- <module>renjin</module> -->
         <module>h2spatial</module>
         <module>spark</module>
-        <module>animator</module>
+    <!--    <module>animator</module> -->
         <module>geotools-extras</module>
         <module>mariweb-archive-parser</module>
         <module>ais-router</module>
