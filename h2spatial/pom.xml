@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>au.gov.amsa.risky</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.5.16</version>
+		<version>0.5.16.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>h2spatial</artifactId>
 	<name>${project.artifactId}</name>
