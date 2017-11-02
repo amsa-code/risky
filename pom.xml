@@ -20,12 +20,12 @@
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
         <compiler.source>1.8</compiler.source>
         <compiler.target>1.8</compiler.target>
-        <rxjava.version>1.2.10</rxjava.version>
+        <rxjava.version>1.3.3</rxjava.version>
         <rxjava.string.version>0.22.0</rxjava.string.version>
         <rxjava.math.version>1.0.0</rxjava.math.version>
-        <rxjava.extras.version>0.8.0.7</rxjava.extras.version>
-        <rxjava.slf4j.version>0.6.4</rxjava.slf4j.version>
-        <rtree.version>0.8.0.1</rtree.version>
+        <rxjava.extras.version>0.8.0.11</rxjava.extras.version>
+        <rxjava.slf4j.version>0.6.8</rxjava.slf4j.version>
+        <rtree.version>0.8.0.2</rtree.version>
         <slf4j.version>1.7.12</slf4j.version>
         <grumpy.version>0.2.3</grumpy.version>
         <guava.version>19.0</guava.version>
