@@ -21,14 +21,15 @@ public class AdhocMain2 {
 
     public static void main(String[] args) throws IOException {
 
-        File file = new File("/media/an/temp/out.fix");
+        String folder = "/media/an/temp";
+        File file = new File(folder + "/out.fix");
 
         int choice = 2;
         if (choice == 1) {
             // write the file
             try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file, true))) {
                 AtomicLong count = new AtomicLong();
-                Streams.nmeaFromGzip("/media/an/temp/2017-11-16.txt.gz") //
+                Streams.nmeaFromGzip(folder + "/2017-11-16.txt.gz") //
                         .compose(x -> Streams.extractFixes(x)) //
                         .doOnNext(f -> {
                             long c = count.incrementAndGet();
@@ -50,8 +51,10 @@ public class AdhocMain2 {
                     .map(x -> x.time()).reduce((x, y) -> Math.max(x, y)).toBlocking().single();
             System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime));
 
-            SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
-            long maxIndexes = 1L << (16 * 3);
+            int bits = 20;
+            int dimensions = 3;
+            SmallHilbertCurve h = HilbertCurve.small().bits(bits).dimensions(dimensions);
+            long maxIndexes = 1L << (bits * dimensions);
 
             int numPartitions = 800;
             int[] counts = new int[numPartitions];
@@ -91,8 +94,7 @@ public class AdhocMain2 {
 
             OutputStream[] outs = new OutputStream[numPartitions];
             for (int i = 0; i < outs.length; i++) {
-                outs[i] = new BufferedOutputStream(
-                        new FileOutputStream(new File("/media/an/temp/partition" + i + ".fix")));
+                outs[i] = new BufferedOutputStream(new FileOutputStream(new File(folder + "/partition" + i + ".fix")));
             }
             count.set(0);
             ByteBuffer bb = BinaryFixes.createFixByteBuffer(BinaryFixesFormat.WITH_MMSI);
@@ -117,12 +119,11 @@ public class AdhocMain2 {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-                    })
-                    .doOnError(t -> t.printStackTrace()) //
+                    }).doOnError(t -> t.printStackTrace()) //
                     .subscribe();
-            
+
             for (int i = 0; i < outs.length; i++) {
-                outs[i] .close();
+                outs[i].close();
             }
 
         }
