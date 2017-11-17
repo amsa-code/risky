@@ -39,8 +39,8 @@ public class AdhocMain2 {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-        } else {
-
+        } else if (choice == 2) {
+            // print out histogram (which turns out to be uniform surprisingly)
             long minTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
                     .map(x -> x.time()).reduce((x, y) -> Math.min(x, y)).toBlocking().single();
 
@@ -51,7 +51,7 @@ public class AdhocMain2 {
             SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
             long maxIndexes = 1L << (16 * 3);
 
-            int numPartitions = 1000;
+            int numPartitions = 80;
             int[] counts = new int[numPartitions];
             long step = maxIndexes / numPartitions;
             AtomicLong count = new AtomicLong();
@@ -65,17 +65,31 @@ public class AdhocMain2 {
                     .forEach(fix -> {
                         long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
                         long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
-                        long z = Math.round(
-                                Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
+                        long z = Math
+                                .round(Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
                         long index = h.index(x, y, z);
                         int partition = (int) (index / step);
                         counts[partition]++;
                     });
+            long sum = 0;
             for (int i = 0; i < numPartitions; i++) {
                 if (counts[i] != 0) {
                     System.out.println(i + " -> " + counts[i]);
+                    sum += counts[i];
                 }
             }
+            System.out.println("total=" + sum);
+        } else if (choice==3) {
+         // print out histogram (which turns out to be uniform surprisingly)
+            long minTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
+                    .map(x -> x.time()).reduce((x, y) -> Math.min(x, y)).toBlocking().single();
+
+            long maxTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
+                    .map(x -> x.time()).reduce((x, y) -> Math.max(x, y)).toBlocking().single();
+            System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime));
+
+            SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
+            long maxIndexes = 1L << (16 * 3);
 
         }
     }
