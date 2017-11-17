@@ -102,7 +102,7 @@ public class AdhocMain2 {
                             System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
                         }
                     }) //
-                    .forEach(fix -> {
+                    .doOnNext(fix -> {
                         long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
                         long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
                         long z = Math
@@ -115,7 +115,9 @@ public class AdhocMain2 {
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-                    });
+                    })
+                    .doOnError(t -> t.printStackTrace()) //
+                    .subscribe();
             
             for (int i = 0; i < outs.length; i++) {
                 outs[i] .close();
