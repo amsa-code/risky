@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -30,8 +31,8 @@ public class AdhocMain2 {
                         .compose(x -> Streams.extractFixes(x)) //
                         .doOnNext(f -> {
                             long c = count.incrementAndGet();
-                            if (c % 10000 == 0) {
-                                System.out.println("count=" + c);
+                            if (c % 1000000 == 0) {
+                                System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
                             }
                         }) //
                         .forEach(f -> BinaryFixes.write(f, os, BinaryFixesFormat.WITH_MMSI)); //
@@ -48,22 +49,24 @@ public class AdhocMain2 {
             System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime));
 
             SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
-            int numPartitions = 10000;
+            long maxIndexes = 1L << (16 * 3);
+
+            int numPartitions = 1000;
             int[] counts = new int[numPartitions];
-            long step = Long.MAX_VALUE / numPartitions;
+            long step = maxIndexes / numPartitions;
             AtomicLong count = new AtomicLong();
             BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
                     .doOnNext(f -> {
                         long c = count.incrementAndGet();
-                        if (c % 10000 == 0) {
-                            System.out.println("count=" + c);
+                        if (c % 1000000 == 0) {
+                            System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
                         }
                     }) //
                     .forEach(fix -> {
-                        long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * Long.MAX_VALUE));
-                        long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * Long.MAX_VALUE));
+                        long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
+                        long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
                         long z = Math.round(
-                                Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * Long.MAX_VALUE));
+                                Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
                         long index = h.index(x, y, z);
                         int partition = (int) (index / step);
                         counts[partition]++;
