@@ -110,6 +110,7 @@ public class AdhocMain2 {
                                 .round(Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
                         long index = h.index(x, y, z);
                         int partition = (int) (index / step);
+                        bb.clear();
                         BinaryFixes.write(fix, bb, BinaryFixesFormat.WITH_MMSI);
                         try {
                             outs[partition].write(bb.array());
