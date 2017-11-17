@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicLong;
@@ -18,7 +19,7 @@ import au.gov.amsa.risky.format.BinaryFixesFormat;
 
 public class AdhocMain2 {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
         File file = new File("/media/an/temp/out.fix");
 
@@ -41,6 +42,7 @@ public class AdhocMain2 {
             }
         } else if (choice == 2) {
             // print out histogram (which turns out to be uniform surprisingly)
+            // and files
             long minTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
                     .map(x -> x.time()).reduce((x, y) -> Math.min(x, y)).toBlocking().single();
 
@@ -51,7 +53,7 @@ public class AdhocMain2 {
             SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
             long maxIndexes = 1L << (16 * 3);
 
-            int numPartitions = 80;
+            int numPartitions = 800;
             int[] counts = new int[numPartitions];
             long step = maxIndexes / numPartitions;
             AtomicLong count = new AtomicLong();
@@ -71,6 +73,9 @@ public class AdhocMain2 {
                         int partition = (int) (index / step);
                         counts[partition]++;
                     });
+            System.out.println("===============");
+            System.out.println("== HISTOGRAM ==");
+            System.out.println("===============");
             long sum = 0;
             for (int i = 0; i < numPartitions; i++) {
                 if (counts[i] != 0) {
@@ -79,17 +84,42 @@ public class AdhocMain2 {
                 }
             }
             System.out.println("total=" + sum);
-        } else if (choice==3) {
-         // print out histogram (which turns out to be uniform surprisingly)
-            long minTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
-                    .map(x -> x.time()).reduce((x, y) -> Math.min(x, y)).toBlocking().single();
+            System.out.println();
+            System.out.println("===================");
+            System.out.println("== WRITING FILES ==");
+            System.out.println("===================");
 
-            long maxTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
-                    .map(x -> x.time()).reduce((x, y) -> Math.max(x, y)).toBlocking().single();
-            System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime));
-
-            SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
-            long maxIndexes = 1L << (16 * 3);
+            OutputStream[] outs = new OutputStream[numPartitions];
+            for (int i = 0; i < outs.length; i++) {
+                outs[i] = new BufferedOutputStream(
+                        new FileOutputStream(new File("/media/an/temp/partition" + i + ".fix")));
+            }
+            ByteBuffer bb = BinaryFixes.createFixByteBuffer(BinaryFixesFormat.WITH_MMSI);
+            BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
+                    .doOnNext(f -> {
+                        long c = count.incrementAndGet();
+                        if (c % 1000000 == 0) {
+                            System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
+                        }
+                    }) //
+                    .forEach(fix -> {
+                        long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
+                        long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
+                        long z = Math
+                                .round(Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
+                        long index = h.index(x, y, z);
+                        int partition = (int) (index / step);
+                        BinaryFixes.write(fix, bb, BinaryFixesFormat.WITH_MMSI);
+                        try {
+                            outs[partition].write(bb.array());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+            
+            for (int i = 0; i < outs.length; i++) {
+                outs[i] .close();
+            }
 
         }
     }
