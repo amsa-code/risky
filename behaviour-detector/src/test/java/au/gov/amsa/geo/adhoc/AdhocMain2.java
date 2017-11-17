@@ -94,6 +94,7 @@ public class AdhocMain2 {
                 outs[i] = new BufferedOutputStream(
                         new FileOutputStream(new File("/media/an/temp/partition" + i + ".fix")));
             }
+            count.set(0);
             ByteBuffer bb = BinaryFixes.createFixByteBuffer(BinaryFixesFormat.WITH_MMSI);
             BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
                     .doOnNext(f -> {
