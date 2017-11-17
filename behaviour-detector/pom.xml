@@ -130,6 +130,13 @@
         </dependency>
 
         <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>hilbert-curve</artifactId>
+            <version>0.1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>ihs-reader</artifactId>
             <version>${project.parent.version}</version>
