@@ -27,7 +27,8 @@ public class AdhocMain2 {
             try (OutputStream os = new BufferedOutputStream(new FileOutputStream(file, true))) {
                 AtomicLong count = new AtomicLong();
                 Streams.nmeaFromGzip("/media/an/temp/2017-11-16.txt.gz") //
-                        .compose(x -> Streams.extractFixes(x)).doOnNext(f -> {
+                        .compose(x -> Streams.extractFixes(x)) //
+                        .doOnNext(f -> {
                             long c = count.incrementAndGet();
                             if (c % 10000 == 0) {
                                 System.out.println("count=" + c);
@@ -47,10 +48,17 @@ public class AdhocMain2 {
             System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime));
 
             SmallHilbertCurve h = HilbertCurve.small().bits(16).dimensions(3);
-            int numPartitions = 1000;
+            int numPartitions = 10000;
             int[] counts = new int[numPartitions];
             long step = Long.MAX_VALUE / numPartitions;
+            AtomicLong count = new AtomicLong();
             BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
+                    .doOnNext(f -> {
+                        long c = count.incrementAndGet();
+                        if (c % 10000 == 0) {
+                            System.out.println("count=" + c);
+                        }
+                    }) //
                     .forEach(fix -> {
                         long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * Long.MAX_VALUE));
                         long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * Long.MAX_VALUE));
@@ -61,7 +69,9 @@ public class AdhocMain2 {
                         counts[partition]++;
                     });
             for (int i = 0; i < numPartitions; i++) {
-                System.out.println(i + " -> " + counts[i]);
+                if (counts[i] != 0) {
+                    System.out.println(i + " -> " + counts[i]);
+                }
             }
 
         }
