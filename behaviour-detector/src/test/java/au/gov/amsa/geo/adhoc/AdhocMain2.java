@@ -66,7 +66,7 @@ public class AdhocMain2 {
             double lat2 = -33.882896;
             double lon2 = 151.281330;
             long t2 = t1 + TimeUnit.HOURS.toMillis(1);
-            int splits = 4;
+            int splits = 6;
             List<Range> ranges = h.query(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
                     scalePoint(lat2, lon2, t2, minTime, maxTime, maxOrdinates), splits);
             ranges.forEach(System.out::println);
@@ -105,9 +105,10 @@ public class AdhocMain2 {
                     });
 
             System.out.println("ranges=" + ranges.size() + ", hit rate="
-                    + inBounds.get() / ((double) inRanges.get()) + ", missed=" + missed.get());
+                    + inBounds.get() / ((double) inRanges.get()) + ", missed=" + missed.get()
+                    + " of " + inBounds.get());
             System.out.println();
-            
+
             System.out.println("===============");
             System.out.println("== HISTOGRAM ==");
             System.out.println("===============");
