@@ -58,7 +58,7 @@ public class AdhocMain2 {
             long maxIndexes = 1L << bits * dimensions;
             long maxOrdinates = 1L << bits;
 
-            int numPartitions = 20;
+            int numPartitions = 10;
             int[] counts = new int[numPartitions];
             long step = maxIndexes / numPartitions;
             AtomicLong count = new AtomicLong();
