@@ -21,8 +21,8 @@ public class AdhocMain2 {
 
     public static void main(String[] args) throws IOException {
 
-        String folder = "/media/an/temp";
-        File file = new File(folder + "/out.fix");
+        String folder = "/home/dave/Downloads";
+        File file = new File(folder + "/2017-11-16.fix");
 
         int choice = 2;
         if (choice == 1) {
@@ -34,7 +34,8 @@ public class AdhocMain2 {
                         .doOnNext(f -> {
                             long c = count.incrementAndGet();
                             if (c % 1000000 == 0) {
-                                System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
+                                System.out.println("count="
+                                        + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
                             }
                         }) //
                         .forEach(f -> BinaryFixes.write(f, os, BinaryFixesFormat.WITH_MMSI)); //
@@ -54,9 +55,10 @@ public class AdhocMain2 {
             int bits = 20;
             int dimensions = 3;
             SmallHilbertCurve h = HilbertCurve.small().bits(bits).dimensions(dimensions);
-            long maxIndexes = 1L << (bits * dimensions);
+            long maxIndexes = 1L << bits * dimensions;
+            long maxOrdinates = 1L << bits;
 
-            int numPartitions = 800;
+            int numPartitions = 20;
             int[] counts = new int[numPartitions];
             long step = maxIndexes / numPartitions;
             AtomicLong count = new AtomicLong();
@@ -64,14 +66,15 @@ public class AdhocMain2 {
                     .doOnNext(f -> {
                         long c = count.incrementAndGet();
                         if (c % 1000000 == 0) {
-                            System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
+                            System.out.println("count="
+                                    + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
                         }
                     }) //
                     .forEach(fix -> {
-                        long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
-                        long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
-                        long z = Math
-                                .round(Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
+                        long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxOrdinates));
+                        long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxOrdinates));
+                        long z = Math.round(Math.floor((fix.time() - minTime)
+                                / ((double) maxTime - minTime) * maxOrdinates));
                         long index = h.index(x, y, z);
                         int partition = (int) (index / step);
                         counts[partition]++;
@@ -81,20 +84,26 @@ public class AdhocMain2 {
             System.out.println("===============");
             long sum = 0;
             for (int i = 0; i < numPartitions; i++) {
+                sum += counts[i];
+            }
+            DecimalFormat df = new DecimalFormat("0.00000");
+            for (int i = 0; i < numPartitions; i++) {
                 if (counts[i] != 0) {
-                    System.out.println(i + " -> " + counts[i]);
-                    sum += counts[i];
+                    System.out.println(i + " -> " + df.format(counts[i] * 100.0 / sum));
                 }
             }
             System.out.println("total=" + sum);
             System.out.println();
+
+            System.exit(0);
             System.out.println("===================");
             System.out.println("== WRITING FILES ==");
             System.out.println("===================");
 
             OutputStream[] outs = new OutputStream[numPartitions];
             for (int i = 0; i < outs.length; i++) {
-                outs[i] = new BufferedOutputStream(new FileOutputStream(new File(folder + "/partition" + i + ".fix")));
+                outs[i] = new BufferedOutputStream(
+                        new FileOutputStream(new File(folder + "/partition" + i + ".fix")));
             }
             count.set(0);
             ByteBuffer bb = BinaryFixes.createFixByteBuffer(BinaryFixesFormat.WITH_MMSI);
@@ -102,14 +111,15 @@ public class AdhocMain2 {
                     .doOnNext(f -> {
                         long c = count.incrementAndGet();
                         if (c % 1000000 == 0) {
-                            System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
+                            System.out.println("count="
+                                    + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
                         }
                     }) //
                     .doOnNext(fix -> {
                         long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
                         long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
-                        long z = Math
-                                .round(Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
+                        long z = Math.round(Math.floor((fix.time() - minTime)
+                                / ((double) maxTime - minTime) * maxIndexes));
                         long index = h.index(x, y, z);
                         int partition = (int) (index / step);
                         bb.clear();
