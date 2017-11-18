@@ -8,14 +8,21 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.davidmoten.hilbert.HilbertCurve;
+import org.davidmoten.hilbert.Range;
 import org.davidmoten.hilbert.SmallHilbertCurve;
+
+import com.github.davidmoten.guavamini.Preconditions;
 
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesFormat;
+import au.gov.amsa.risky.format.Fix;
+import rx.functions.Action1;
 
 public class AdhocMain2 {
 
@@ -31,13 +38,7 @@ public class AdhocMain2 {
                 AtomicLong count = new AtomicLong();
                 Streams.nmeaFromGzip(folder + "/2017-11-16.txt.gz") //
                         .compose(x -> Streams.extractFixes(x)) //
-                        .doOnNext(f -> {
-                            long c = count.incrementAndGet();
-                            if (c % 1000000 == 0) {
-                                System.out.println("count="
-                                        + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
-                            }
-                        }) //
+                        .doOnNext(log(count)) //
                         .forEach(f -> BinaryFixes.write(f, os, BinaryFixesFormat.WITH_MMSI)); //
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -58,27 +59,55 @@ public class AdhocMain2 {
             long maxIndexes = 1L << bits * dimensions;
             long maxOrdinates = 1L << bits;
 
+            // get ranges for Sydney query to measure effectiveness
+            double lat1 = -33.806477;
+            double lon1 = 151.181767;
+            long t1 = minTime + (maxTime - minTime) / 2;
+            double lat2 = -33.882896;
+            double lon2 = 151.281330;
+            long t2 = t1 + TimeUnit.HOURS.toMillis(1);
+            int splits = 4;
+            List<Range> ranges = h.query(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
+                    scalePoint(lat2, lon2, t2, minTime, maxTime, maxOrdinates), splits);
+            ranges.forEach(System.out::println);
+
             int numPartitions = 10;
             int[] counts = new int[numPartitions];
             long step = maxIndexes / numPartitions;
+            AtomicLong inBounds = new AtomicLong();
+            AtomicLong inRanges = new AtomicLong();
+            AtomicLong missed = new AtomicLong();
             AtomicLong count = new AtomicLong();
             BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
-                    .doOnNext(f -> {
-                        long c = count.incrementAndGet();
-                        if (c % 1000000 == 0) {
-                            System.out.println("count="
-                                    + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
-                        }
-                    }) //
+                    .doOnNext(log(count)) //
                     .forEach(fix -> {
-                        long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxOrdinates));
-                        long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxOrdinates));
-                        long z = Math.round(Math.floor((fix.time() - minTime)
-                                / ((double) maxTime - minTime) * maxOrdinates));
-                        long index = h.index(x, y, z);
+                        long index = h.index(scalePoint(fix.lat(), fix.lon(), fix.time(), minTime,
+                                maxTime, maxOrdinates));
                         int partition = (int) (index / step);
                         counts[partition]++;
+                        boolean inRange = false;
+                        for (Range r : ranges) {
+                            if (index >= r.low() && index <= r.high()) {
+                                inRanges.incrementAndGet();
+                                inRange = true;
+                                break;
+                            }
+                        }
+                        if (fix.lat() >= Math.min(lat1, lat2) && fix.lat() <= Math.max(lat1, lat2)
+                                && fix.lon() >= Math.min(lon1, lon2)
+                                && fix.lon() <= Math.max(lon1, lon2) && fix.time() >= t1
+                                && fix.time() <= t2) {
+                            inBounds.incrementAndGet();
+                            if (!inRange) {
+                                missed.incrementAndGet();
+                            }
+                        }
                     });
+
+            System.out.println("ranges=" + ranges.size() + ", hit rate="
+                    + inBounds.get() / ((double) inRanges.get()) + ", missed=" + missed.get());
+            System.out.println();
+            
             System.out.println("===============");
             System.out.println("== HISTOGRAM ==");
             System.out.println("===============");
@@ -108,13 +137,7 @@ public class AdhocMain2 {
             count.set(0);
             ByteBuffer bb = BinaryFixes.createFixByteBuffer(BinaryFixesFormat.WITH_MMSI);
             BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
-                    .doOnNext(f -> {
-                        long c = count.incrementAndGet();
-                        if (c % 1000000 == 0) {
-                            System.out.println("count="
-                                    + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
-                        }
-                    }) //
+                    .doOnNext(log(count)) //
                     .doOnNext(fix -> {
                         long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
                         long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
@@ -136,6 +159,33 @@ public class AdhocMain2 {
                 outs[i].close();
             }
 
+        }
+    }
+
+    private static Action1<? super Fix> log(AtomicLong count) {
+        return f -> {
+            long c = count.incrementAndGet();
+            if (c % 1000000 == 0) {
+                System.out
+                        .println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
+            }
+        };
+    }
+
+    private static long[] scalePoint(double lat, double lon, long time, long minTime, long maxTime,
+            long max) {
+        long x = scale((lat + 90.0) / 180, max);
+        long y = scale((lon + 180.0) / 360, max);
+        long z = scale(((double) time - minTime) / (maxTime - minTime), max);
+        return new long[] { x, y, z };
+    }
+
+    private static long scale(double d, long max) {
+        Preconditions.checkArgument(d >= 0 && d <= 1);
+        if (d == 1) {
+            return max;
+        } else {
+            return Math.round(Math.floor(d * (max + 1)));
         }
     }
 
