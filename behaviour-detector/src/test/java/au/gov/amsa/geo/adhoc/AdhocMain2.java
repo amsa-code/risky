@@ -28,7 +28,8 @@ public class AdhocMain2 {
 
     public static void main(String[] args) throws IOException {
 
-        String folder = "/home/dave/Downloads";
+//        String folder = "/home/dave/Downloads";
+        String folder = "/media/an/temp";
         File file = new File(folder + "/2017-11-16.fix");
 
         int choice = 2;
@@ -66,8 +67,8 @@ public class AdhocMain2 {
             double lat2 = -33.882896;
             double lon2 = 151.281330;
             long t2 = t1 + TimeUnit.HOURS.toMillis(1);
-            int splits = 6;
-            List<Range> ranges = h.query(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
+            int splits = 5;
+            List<Range> ranges = h.query2(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
                     scalePoint(lat2, lon2, t2, minTime, maxTime, maxOrdinates), splits);
             ranges.forEach(System.out::println);
 
