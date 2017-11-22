@@ -133,6 +133,16 @@ public class AdhocMain2 {
             System.out.println("===================");
             System.out.println("== WRITING FILES ==");
             System.out.println("===================");
+            // need to write out index and record in one binary file
+            // and write an index file of reasonable size that can be quickly downloaded and
+            // cached by searcher.
+            // index file will have a column of index and positions. index will be a long,
+            // position also a long so 16 bytes per entry
+            // go for a 100K index file as first guess. So that is 100,000/16 = 6250 entries
+            // that should be equally spaced in terms of number of
+            // records between them. With 20m records in the file that is 3200 records per
+            // index entry. If 20 ranges are read that could mean 20x3200 records = 2.2MB read
+            // unnecessarily
 
             OutputStream[] outs = new OutputStream[numPartitions];
             for (int i = 0; i < outs.length; i++) {
