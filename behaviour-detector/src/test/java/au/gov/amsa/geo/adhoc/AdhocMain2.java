@@ -67,7 +67,7 @@ public class AdhocMain2 {
             long t1 = minTime + (maxTime - minTime) / 2;
             float lat2 = -33.882896f;
             float lon2 = 151.281330f;
-            long t2 = t1 + TimeUnit.HOURS.toMillis(1);
+            long t2 = t1 + TimeUnit.MINUTES.toMillis(60);
             int splits = 4;
             System.out.println("calculating ranges");
             long timer = System.currentTimeMillis();
