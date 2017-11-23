@@ -1,12 +1,16 @@
 package au.gov.amsa.geo.adhoc;
 
 import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
@@ -14,8 +18,8 @@ import java.util.function.Function;
 
 public class Sorter {
 
-    public <T> void sort(Enumeration<byte[]> records, Function<byte[], T> decode, Comparator<T> comparator, File output)
-            throws IOException {
+    public <T> File sort(Enumeration<byte[]> records, Function<InputStream, Enumeration<byte[]>> read,
+            Function<byte[], T> decode, Comparator<T> comparator, File output) throws IOException {
         int MB = 1024 * 1024;
         int K = 1024;
         int maxFileSize = 320 * K;
@@ -50,10 +54,17 @@ public class Sorter {
                 list.add(b);
                 index += b.length;
             }
+            return merge(list, read, decode, comparator, output);
         } catch (IOException e) {
             out.close();
+            throw e;
         }
 
+    }
+
+    private <T> File merge(List<byte[]> list, Function<InputStream, Enumeration<byte[]>> read,
+            Function<byte[], T> decode, Comparator<T> comparator, File output) {
+        return null;
     }
 
     private File last(List<File> tempFiles) {
@@ -79,6 +90,9 @@ public class Sorter {
     }
 
     public static void main(String[] args) throws IOException {
+
+        final byte[] BYTES = "hello".getBytes(StandardCharsets.UTF_8);
+
         Enumeration<byte[]> e = new Enumeration<byte[]>() {
 
             int count = 1000000;
@@ -92,10 +106,63 @@ public class Sorter {
             @Override
             public byte[] nextElement() {
                 i++;
-                return "hello".getBytes(StandardCharsets.UTF_8);
+                return BYTES;
             }
         };
-        new Sorter().sort(e, b -> new String(b), Comparator.<String>naturalOrder(), new File("target/sorted"));
+        Function<InputStream, Enumeration<byte[]>> read = is -> new InputStreamFixedLengthRecordEnumeration(is,
+                BYTES.length);
+        new Sorter().sort(e, read, b -> new String(b), Comparator.<String>naturalOrder(), new File("target/sorted"));
+    }
+
+    private static final class InputStreamFixedLengthRecordEnumeration implements Enumeration<byte[]> {
+        boolean hasMoreElements = true;
+        final int recordLength;
+        final DataInputStream dis;
+        byte[] bytes = null;
+
+        InputStreamFixedLengthRecordEnumeration(InputStream is, int recordLength) {
+            this.dis = new DataInputStream(is);
+            this.recordLength = recordLength;
+        }
+
+        @Override
+        public boolean hasMoreElements() {
+            if (!hasMoreElements)
+                return false;
+            check();
+            return hasMoreElements;
+        }
+
+        private void check() {
+            if (bytes == null) {
+                read();
+            }
+        }
+
+        private void read() {
+            try {
+                bytes = new byte[recordLength];
+                dis.readFully(bytes);
+            } catch (EOFException e) {
+                hasMoreElements = false;
+                return;
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        public byte[] nextElement() {
+            check();
+            if (bytes == null) {
+                throw new RuntimeException("no more elements, you should check hasMoreElements");
+            }
+            byte[] result = Arrays.copyOf(bytes, bytes.length);
+            if (hasMoreElements) {
+                read();
+            }
+            return result;
+        }
     }
 
 }
