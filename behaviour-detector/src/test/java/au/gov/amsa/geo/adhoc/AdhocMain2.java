@@ -28,8 +28,8 @@ public class AdhocMain2 {
 
     public static void main(String[] args) throws IOException {
 
-        // String folder = "/home/dave/Downloads";
-        String folder = "/media/an/temp";
+        String folder = "/home/dave/Downloads";
+        // String folder = "/media/an/temp";
         File file = new File(folder + "/2017-11-16.fix");
 
         int choice = 2;
@@ -52,8 +52,8 @@ public class AdhocMain2 {
 
             long maxTime = BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
                     .map(x -> x.time()).reduce((x, y) -> Math.max(x, y)).toBlocking().single();
-            System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime) + ", [" + minTime + ","
-                    + maxTime + "]");
+            System.out.println("start=" + new Date(minTime) + ", finish=" + new Date(maxTime)
+                    + ", [" + minTime + "," + maxTime + "]");
 
             int bits = 10;
             int dimensions = 3;
@@ -71,9 +71,10 @@ public class AdhocMain2 {
             int splits = 4;
             System.out.println("calculating ranges");
             long timer = System.currentTimeMillis();
-            List<Range> ranges = h.query2(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
+            List<Range> ranges = h.query(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
                     scalePoint(lat2, lon2, t2, minTime, maxTime, maxOrdinates), splits);
-            System.out.println("ranges calculated in " + (System.currentTimeMillis() - timer) + "ms");
+            System.out
+                    .println("ranges calculated in " + (System.currentTimeMillis() - timer) + "ms");
             ranges.forEach(System.out::println);
             System.out.println("numRanges=" + ranges.size());
 
@@ -87,8 +88,8 @@ public class AdhocMain2 {
             BinaryFixes.from(file, false, BinaryFixesFormat.WITH_MMSI) //
                     .doOnNext(log(count)) //
                     .forEach(fix -> {
-                        long index = h
-                                .index(scalePoint(fix.lat(), fix.lon(), fix.time(), minTime, maxTime, maxOrdinates));
+                        long index = h.index(scalePoint(fix.lat(), fix.lon(), fix.time(), minTime,
+                                maxTime, maxOrdinates));
                         int partition = (int) (index / step);
                         counts[partition]++;
                         boolean inRange = false;
@@ -109,8 +110,9 @@ public class AdhocMain2 {
                         }
                     });
 
-            System.out.println("ranges=" + ranges.size() + ", hit rate=" + inBounds.get() / ((double) inRanges.get())
-                    + ", missed=" + missed.get() + " of " + inBounds.get());
+            System.out.println("ranges=" + ranges.size() + ", hit rate="
+                    + inBounds.get() / ((double) inRanges.get()) + ", missed=" + missed.get()
+                    + " of " + inBounds.get());
             System.out.println();
 
             System.out.println("===============");
@@ -141,12 +143,14 @@ public class AdhocMain2 {
             // go for a 100K index file as first guess. So that is 100,000/16 = 6250 entries
             // that should be equally spaced in terms of number of
             // records between them. With 20m records in the file that is 3200 records per
-            // index entry. If 20 ranges are read that could mean 20x3200 records = 2.2MB read
+            // index entry. If 20 ranges are read that could mean 20x3200 records = 2.2MB
+            // read
             // unnecessarily
 
             OutputStream[] outs = new OutputStream[numPartitions];
             for (int i = 0; i < outs.length; i++) {
-                outs[i] = new BufferedOutputStream(new FileOutputStream(new File(folder + "/partition" + i + ".fix")));
+                outs[i] = new BufferedOutputStream(
+                        new FileOutputStream(new File(folder + "/partition" + i + ".fix")));
             }
             count.set(0);
             ByteBuffer bb = BinaryFixes.createFixByteBuffer(BinaryFixesFormat.WITH_MMSI);
@@ -155,8 +159,8 @@ public class AdhocMain2 {
                     .doOnNext(fix -> {
                         long x = Math.round(Math.floor((fix.lat() + 90) / 180.0 * maxIndexes));
                         long y = Math.round(Math.floor((fix.lon() + 180) / 360.0 * maxIndexes));
-                        long z = Math
-                                .round(Math.floor((fix.time() - minTime) / ((double) maxTime - minTime) * maxIndexes));
+                        long z = Math.round(Math.floor((fix.time() - minTime)
+                                / ((double) maxTime - minTime) * maxIndexes));
                         long index = h.index(x, y, z);
                         int partition = (int) (index / step);
                         bb.clear();
@@ -184,12 +188,14 @@ public class AdhocMain2 {
         return f -> {
             long c = count.incrementAndGet();
             if (c % 1000000 == 0) {
-                System.out.println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
+                System.out
+                        .println("count=" + new DecimalFormat("0.###").format(c / 1000000.0) + "m");
             }
         };
     }
 
-    private static long[] scalePoint(float lat, float lon, long time, long minTime, long maxTime, long max) {
+    private static long[] scalePoint(float lat, float lon, long time, long minTime, long maxTime,
+            long max) {
         long x = scale((lat + 90.0f) / 180, max);
         long y = scale((lon + 180.0f) / 360, max);
         long z = scale(((float) time - minTime) / (maxTime - minTime), max);
