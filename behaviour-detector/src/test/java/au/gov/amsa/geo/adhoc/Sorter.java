@@ -1,12 +1,15 @@
 package au.gov.amsa.geo.adhoc;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -16,10 +19,15 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.function.Function;
 
+import com.github.davidmoten.rtree.internal.util.PriorityQueue;
+
+import net.jcip.annotations.NotThreadSafe;
+
 public class Sorter {
 
     public <T> File sort(Enumeration<byte[]> records, Function<InputStream, Enumeration<byte[]>> read,
-            Function<byte[], T> decode, Comparator<T> comparator, File output) throws IOException {
+            Function<byte[], T> decode, Comparator<T> comparator, File output, int maxFilesPerMerge, int recordSize)
+            throws IOException {
         int MB = 1024 * 1024;
         int K = 1024;
         int maxFileSize = 320 * K;
@@ -54,7 +62,7 @@ public class Sorter {
                 list.add(b);
                 index += b.length;
             }
-            return merge(list, read, decode, comparator, output);
+            return merge(tempFiles, read, decode, comparator, output, maxFilesPerMerge, recordSize);
         } catch (IOException e) {
             out.close();
             throw e;
@@ -62,9 +70,59 @@ public class Sorter {
 
     }
 
-    private <T> File merge(List<byte[]> list, Function<InputStream, Enumeration<byte[]>> read,
-            Function<byte[], T> decode, Comparator<T> comparator, File output) {
-        return null;
+    private <T> File merge(List<File> list, Function<InputStream, Enumeration<byte[]>> read, Function<byte[], T> decode,
+            Comparator<T> comparator, File output, int maxFilesPerMerge, int recordSize) throws IOException {
+
+        List<File> toFiles = new ArrayList<>();
+        while (list.size() > 1) {
+            List<File> group = new ArrayList<>(list.subList(0, Math.min(maxFilesPerMerge, list.size())));
+            File toFile = Files.createTempFile("merge", ".bin").toFile();
+            toFiles.add(toFile);
+            // merge group
+            try (OutputStream out = new BufferedOutputStream(new FileOutputStream(toFile))) {
+                List<InputStreamFixedLengthRecordEnumeration> enumerations = new ArrayList<>();
+                for (File file : group) {
+                    InputStreamFixedLengthRecordEnumeration en = new InputStreamFixedLengthRecordEnumeration(
+                            new BufferedInputStream(new FileInputStream(file)), recordSize);
+                    enumerations.add(en);
+                }
+                PriorityQueue<Integer> queue = new PriorityQueue<Integer>((x, y) -> {
+                    T a = decode.apply(enumerations.get(x).lastElement());
+                    T b = decode.apply(enumerations.get(y).lastElement());
+                    return comparator.compare(a, b);
+                });
+                for (int i = 0; i < enumerations.size(); i++) {
+                    InputStreamFixedLengthRecordEnumeration en = enumerations.get(i);
+                    if (en.hasMoreElements()) {
+                        // sets last element
+                        en.nextElement();
+                        queue.offer(i);
+                    }
+                }
+                while (true) {
+                    Integer i = queue.poll();
+                    if (i == null) {
+                        break;
+                    } else {
+                        byte[] bytes = enumerations.get(i).lastElement();
+                        out.write(bytes);
+                    }
+                }
+                for (InputStreamFixedLengthRecordEnumeration en : enumerations) {
+                    try {
+                        en.close();
+                    } catch (RuntimeException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            list = new ArrayList<>(list.subList(group.size(), list.size()));
+            if (list.isEmpty()) {
+                list = toFiles;
+            }
+        }
+        return list.get(0);
     }
 
     private File last(List<File> tempFiles) {
@@ -111,14 +169,17 @@ public class Sorter {
         };
         Function<InputStream, Enumeration<byte[]>> read = is -> new InputStreamFixedLengthRecordEnumeration(is,
                 BYTES.length);
-        new Sorter().sort(e, read, b -> new String(b), Comparator.<String>naturalOrder(), new File("target/sorted"));
+        new Sorter().sort(e, read, b -> new String(b), Comparator.<String>naturalOrder(), new File("target/sorted"), 10,
+                BYTES.length);
     }
 
-    private static final class InputStreamFixedLengthRecordEnumeration implements Enumeration<byte[]> {
+    @NotThreadSafe
+    static final class InputStreamFixedLengthRecordEnumeration implements Enumeration<byte[]> {
         boolean hasMoreElements = true;
         final int recordLength;
         final DataInputStream dis;
         byte[] bytes = null;
+        private byte[] lastElement;
 
         InputStreamFixedLengthRecordEnumeration(InputStream is, int recordLength) {
             this.dis = new DataInputStream(is);
@@ -151,6 +212,10 @@ public class Sorter {
             }
         }
 
+        public byte[] lastElement() {
+            return lastElement;
+        }
+
         @Override
         public byte[] nextElement() {
             check();
@@ -161,7 +226,12 @@ public class Sorter {
             if (hasMoreElements) {
                 read();
             }
+            lastElement = result;
             return result;
+        }
+
+        public void close() throws IOException {
+            dis.close();
         }
     }
 
