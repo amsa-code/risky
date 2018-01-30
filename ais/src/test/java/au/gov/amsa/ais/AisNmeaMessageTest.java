@@ -1,6 +1,7 @@
 package au.gov.amsa.ais;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.Date;
@@ -8,6 +9,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import au.gov.amsa.ais.message.AisAidToNavigation;
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaUtil;
 import au.gov.amsa.util.nmea.Talker;
@@ -105,6 +107,14 @@ public class AisNmeaMessageTest {
     public void testShipStaticDataFail() {
         String line = "\\s:DAMPIER,c:1495795358,T:2017-05-26 10.42.38*1D\\!ABVDM,2,1,3,B,57PK@>423P<iHP<F220=<j1LQT4hh62222222216>0M<<4t20>@hD1H4,0*13";
         AisNmeaMessage m = AisNmeaMessage.from(line);
+    }
+    
+    @Test(expected=AisParseException.class)
+    public void testParseCorruptAisAidToNavigationThrows() {
+        String line = "\\s:Kordia Terrestrial,c:1517229997,seq:11725574*18\\!AIVDM,2,1,8,B,E>m1cBFch80W4PP000000000000FDvc;lecp@00003j,0*11";
+        AisNmeaMessage m = AisNmeaMessage.from(line);
+        AisAidToNavigation aid =  (AisAidToNavigation) m.getMessage();
+        aid.getTimeSecondsOnly();
     }
 
     public static void main(String[] args) {

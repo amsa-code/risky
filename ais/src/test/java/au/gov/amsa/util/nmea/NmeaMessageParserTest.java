@@ -135,7 +135,7 @@ public class NmeaMessageParserTest {
     public void testGTagDoesNotHaveSufficientPartsThrowsNmeaMessageParseException() {
         LinkedHashMap<String, String> map = Maps.newLinkedHashMap();
         map.put("g", "1-2");
-        new NmeaMessage(map, Lists.<String> newArrayList("ABVDN", "2", "2"), "00");
+        new NmeaMessage(map, Lists.<String>newArrayList("ABVDN", "2", "2"), "00");
     }
 
     @Test
@@ -194,9 +194,7 @@ public class NmeaMessageParserTest {
     @Test
     public void testExtractMissingAisMessage() {
         String msg = "\\s:AISSat_2,c:1495765889,T:2017-05-26 02.31.29*24\\!AIVDM,1,1,,A,15Qp0b0029:obOH0wMO6k5Dp00S7,0*17";
-        NmeaMessage m = NmeaUtil.parseNmea(msg);
-        
-
+        NmeaUtil.parseNmea(msg);
     }
-
+    
 }
