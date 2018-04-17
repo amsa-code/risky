@@ -20,7 +20,6 @@ Status: *pre-alpha*
 | [craft-analyzer-wms](craft-analyzer-wms) | visualizations using OpenLayers and Grumpy WMS
 | [formats](formats) | read and write binary formatted vessel positions and static vessel data
 | [ihs-reader](ihs-reader) | read static ship information from [IHS LLoyds](http://www.shipfinder.org/) sourced zipped xml files
-| [mariweb-archive-parser](mariweb-archive-parser) | extract NMEA from mariweb archive export format (sql dumps)
 
 Maven site reports are [here](http://amsa-code.github.io/risky/index.html) including [javadoc](http://amsa-code.github.io/risky/apidocs/index.html).
 
