@@ -594,7 +594,7 @@ public class Streams {
 
     public static Observable<String> connectOnce(final HostPort hostPort) {
 
-        return Observable.create(new OnSubscribe<String>() {
+        return Observable.unsafeCreate(new OnSubscribe<String>() {
 
             private Socket socket = null;
 
