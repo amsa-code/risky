@@ -12,7 +12,6 @@ import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 //PRE-ALPHA! IN DEVELOPMENT
 public class Parquet {
-    
 
     public static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path, Schema schema)
             throws IOException {
@@ -34,17 +33,19 @@ public class Parquet {
         record.put("lat", fix.lat());
         record.put("lon", fix.lon());
         record.put("timeEpochMs", fix.time());
+        record.put("latencySeconds", fix.latencySeconds().or(-1));
+        record.put("source", (int) fix.source().or((short) 0));
+        record.put("navigationalStatus", fix.navigationalStatus().transform(n -> n.ordinal()).or(127));
+        record.put("rateOfTurn", fix.rateOfTurn().or((byte) -128));
         record.put("speedOverGroundKnots", fix.speedOverGroundKnots().or(-1f));
         record.put("courseOverGroundDegrees", fix.courseOverGroundDegrees().or(-1f));
         record.put("headingDegrees", fix.headingDegrees().or(-1f));
-        record.put("navigationalStatus", fix.navigationalStatus().transform(n -> n.ordinal()).or(127));
-        record.put("rateOfTurn", fix.rateOfTurn().or((byte) -128));
         record.put("aisClass", fix.aisClass());
-        record.put("source", (int) fix.source().or((short) 0));
         return record;
     }
 
-    private static Schema loadSchema() {
+    
+    public static Schema loadSchema() {
         try {
             return new Schema.Parser().parse(Parquet.class.getResourceAsStream("/fixes.avsc"));
         } catch (IOException e) {

@@ -26,6 +26,7 @@ import au.gov.amsa.risky.format.BinaryFixesWriter.ByMonth;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 public class StreamsTest {
 
@@ -156,6 +157,12 @@ public class StreamsTest {
     }
 
     public static void main(String[] args) {
-        System.out.println((byte) 128);
+        Observable<String> a = Observable.just("A").repeat();
+        Observable<String> b = Observable.just("B").repeat();
+        Observable.just(a, b) //
+                .flatMap(x -> x.subscribeOn(Schedulers.io()), 2) //
+                .doOnNext(System.out::println) //
+                .toBlocking() //
+                .subscribe();
     }
 }
