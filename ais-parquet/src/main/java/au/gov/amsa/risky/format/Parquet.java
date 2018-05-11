@@ -10,10 +10,17 @@ import org.apache.parquet.avro.AvroParquetWriter;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+
 //PRE-ALPHA! IN DEVELOPMENT
 public class Parquet {
 
-    public static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path, Schema schema)
+    public static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path)
+            throws IOException {
+        writeTo(recordsToWrite, path, FIX_WITH_MMSI_SCHEMA);
+    }
+    
+    private static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path, Schema schema)
             throws IOException {
         try (ParquetWriter<GenericData.Record> writer = AvroParquetWriter.<GenericData.Record>builder(path)
                 .withSchema(schema).withConf(new Configuration()).withCompressionCodec(CompressionCodecName.SNAPPY)
@@ -25,10 +32,10 @@ public class Parquet {
         }
     }
 
-    private static final Schema SCHEMA = loadSchema();
+    public static final Schema FIX_WITH_MMSI_SCHEMA = loadSchema();
 
     public static GenericData.Record toRecord(Fix fix) {
-        GenericData.Record record = new GenericData.Record(SCHEMA);
+        GenericData.Record record = new GenericData.Record(FIX_WITH_MMSI_SCHEMA);
         record.put("mmsi", fix.mmsi());
         record.put("lat", fix.lat());
         record.put("lon", fix.lon());
@@ -40,12 +47,13 @@ public class Parquet {
         record.put("speedOverGroundKnots", fix.speedOverGroundKnots().or(-1f));
         record.put("courseOverGroundDegrees", fix.courseOverGroundDegrees().or(-1f));
         record.put("headingDegrees", fix.headingDegrees().or(-1f));
-        record.put("aisClass", fix.aisClass());
+        record.put("aisClass", fix.aisClass() == AisClass.A);
         return record;
     }
 
     
-    public static Schema loadSchema() {
+    @VisibleForTesting
+    static Schema loadSchema() {
         try {
             return new Schema.Parser().parse(Parquet.class.getResourceAsStream("/fixes.avsc"));
         } catch (IOException e) {

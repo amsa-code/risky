@@ -1,10 +1,3 @@
-[
-{
-     "type": "enum",
-     "namespace": "au.gov.amsa.risky",
-     "name": "AisClass",
-     "symbols" : ["A", "B"]
-},
 {
     "type": "record", 
     "namespace": "au.gov.amsa.risky",
@@ -14,13 +7,13 @@
         {"name":"lat" , "type": "float"},
         {"name":"lon" , "type": "float"},        
         {"name":"timeEpochMs" , "type": "long"},
+        {"name":"latencySeconds", "type":"int"}, 
         {"name":"source" , "type": ["int", "null"]},
         {"name":"navigationalStatus" , "type": ["int", "null"]},
         {"name":"rateOfTurn" , "type": ["int", "null"]},
         {"name":"speedOverGroundKnots" , "type": ["float", "null"]},
         {"name":"courseOverGroundDegrees" , "type": ["float", "null"]},
         {"name":"headingDegrees" , "type": ["float", "null"]},
-        {"name":"aisClass" , "type": "AisClass"}
+        {"name":"aisClass" , "type": "boolean"}
 	]
 }
-]
