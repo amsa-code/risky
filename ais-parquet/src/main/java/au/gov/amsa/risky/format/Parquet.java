@@ -1,12 +1,17 @@
 package au.gov.amsa.risky.format;
 
 import java.io.IOException;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.parquet.avro.AvroParquetReader;
 import org.apache.parquet.avro.AvroParquetWriter;
+import org.apache.parquet.hadoop.ParquetReader;
 import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
@@ -15,11 +20,10 @@ import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 //PRE-ALPHA! IN DEVELOPMENT
 public class Parquet {
 
-    public static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path)
-            throws IOException {
+    public static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path) throws IOException {
         writeTo(recordsToWrite, path, FIX_WITH_MMSI_SCHEMA);
     }
-    
+
     private static void writeTo(Iterable<GenericData.Record> recordsToWrite, Path path, Schema schema)
             throws IOException {
         try (ParquetWriter<GenericData.Record> writer = AvroParquetWriter.<GenericData.Record>builder(path)
@@ -30,6 +34,45 @@ public class Parquet {
                 writer.write(record);
             }
         }
+    }
+
+    public static Stream<GenericData.Record> read(Path path) {
+        return read(path, FIX_WITH_MMSI_SCHEMA);
+    }
+
+    public static Stream<GenericData.Record> read(Path path, Schema schema) {
+        ParquetReader<GenericData.Record> reader;
+        try {
+            reader = AvroParquetReader.<GenericData.Record>builder(path).withConf(new Configuration()).build();
+        } catch (IOException e1) {
+            throw new RuntimeException(e1);
+        }
+
+        return Stream.generate(new Supplier<GenericData.Record>() {
+
+            @Override
+            public Record get() {
+                GenericData.Record r;
+                try {
+                    r = reader.read();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                if (r != null) {
+                    return r;
+                } else {
+                    return null;
+                }
+            }
+        }) //
+                .onClose(() -> {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
     }
 
     public static final Schema FIX_WITH_MMSI_SCHEMA = loadSchema();
@@ -51,7 +94,6 @@ public class Parquet {
         return record;
     }
 
-    
     @VisibleForTesting
     static Schema loadSchema() {
         try {
