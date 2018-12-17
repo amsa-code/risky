@@ -116,6 +116,12 @@ public class AisNmeaMessageTest {
         AisAidToNavigation aid =  (AisAidToNavigation) m.getMessage();
         aid.getTimeSecondsOnly();
     }
+    
+    @Test(expected=AisParseException.class)
+    public void testParseNothingAfterTagBlock() {
+        String line  ="\\1G2:2,s:Coquet Island,c:1545039426,seq:40829*31\\";
+        AisNmeaMessage.from(line);
+    }
 
     public static void main(String[] args) {
         System.out.println(AisNmeaMessage

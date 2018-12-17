@@ -66,7 +66,7 @@ public class AisExtractor {
             // calculated and safely published (thread safe).
             SixBit.convertSixBitToBits(message, padBits, bitSet, calculated, from, to);
             return (int) SixBit.getValue(from, to, bitSet);
-        } catch (SixBitException e) {
+        } catch (SixBitException | ArrayIndexOutOfBoundsException e) {
             throw new AisParseException(e);
         }
     }
