@@ -43,6 +43,8 @@ Until we start releasing to Maven Central this is the procedure:
 ```bash
 ./release.sh <VERSION>
 ```
+Once you've run the release script got to Jenkins AWS and update the *risky* job, setting **Source Code Management - Branches to build** 
+to the latest tag. Run this job manually and the risky artifacts will be deployed locally to the Jenkins AWS server so that they can be used by the parent build.
 
 Note that the above command will also deploy the site reports for the new version to [here](http://amsa-code.github.io/risky/index.html).
 
