@@ -8,7 +8,7 @@ Makes extensive use of lazy functional stream programming libraries from [RxJava
 
 Requires Java 8.
 
-Status: *pre-alpha*
+Status: *in production*
 
 | Subproject         | Description |
 |:-------------------|:------------|
