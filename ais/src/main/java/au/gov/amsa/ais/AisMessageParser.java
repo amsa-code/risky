@@ -71,6 +71,8 @@ public class AisMessageParser {
 			return new AisPositionBExtended(message, source, padBits);
 		else if (id == 21)
 			return new AisAidToNavigation(message, source, padBits);
+		else if (id == 27)
+			return new AisPositionGPS(message, source, padBits);
 		else
 			return new AisMessageOther(id, source, padBits);
 	}
