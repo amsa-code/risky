@@ -1,14 +1,16 @@
 package au.gov.amsa.ais.message;
 
-import au.gov.amsa.ais.*;
+import au.gov.amsa.ais.AisExtractor;
+import au.gov.amsa.ais.AisExtractorFactory;
+import au.gov.amsa.ais.AisParseException;
+import au.gov.amsa.ais.Util;
 
-import static au.gov.amsa.ais.AisMessageType.*;
 import static au.gov.amsa.ais.AisMessageType.POSITION_GPS;
 
 /**
  * Decoder for AIS message type 27 (AIS Satelitte).
  *
- * @author dxm
+ * @author dcuenot
  *
  */
 public class AisPositionGPS implements AisPosition {
@@ -23,10 +25,6 @@ public class AisPositionGPS implements AisPosition {
     private final int mmsi;
     private final Double longitude;
     private final Double latitude;
-
-    public AisPositionGPS(String message, String source, int padBits) {
-        this(Util.getAisExtractorFactory(), message, source, padBits);
-    }
 
     public AisPositionGPS(String message, int padBits) {
         this(Util.getAisExtractorFactory(), message, null, padBits);
@@ -112,9 +110,7 @@ public class AisPositionGPS implements AisPosition {
         return mmsi;
     }
 
-    public NavigationalStatus getNavigationalStatus() {
-        return NavigationalStatus.values()[extractor.getValue(40, 44)];
-    }
+    public NavigationalStatus getNavigationalStatus() { return NavigationalStatus.values()[extractor.getValue(40, 44)]; }
 
     @Override
     public Double getSpeedOverGroundKnots() {
