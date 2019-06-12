@@ -6,6 +6,7 @@ import au.gov.amsa.ais.message.AisMessageOther;
 import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.message.AisPositionB;
 import au.gov.amsa.ais.message.AisPositionBExtended;
+import au.gov.amsa.ais.message.AisPositionGPS;
 import au.gov.amsa.ais.message.AisShipStaticA;
 
 /**

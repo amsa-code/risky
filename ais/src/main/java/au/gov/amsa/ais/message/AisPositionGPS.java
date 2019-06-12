@@ -26,10 +26,13 @@ public class AisPositionGPS implements AisPosition {
     private final Double longitude;
     private final Double latitude;
 
-    public AisPositionGPS(String message, int padBits) {
-        this(Util.getAisExtractorFactory(), message, null, padBits);
+    public AisPositionGPS(String message, String source, int padBits) {
+        this(Util.getAisExtractorFactory(), message, source, padBits);
     }
-
+    
+    public AisPositionGPS(String message, int padBits) {
+        this(message, null, padBits);
+    }
 
     public AisPositionGPS(AisExtractorFactory factory, String message, String source, int padBits) {
         this.source = source;
