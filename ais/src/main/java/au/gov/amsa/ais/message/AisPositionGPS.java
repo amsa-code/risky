@@ -167,7 +167,7 @@ public class AisPositionGPS implements AisPosition {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("AisPositionA [source=");
+        builder.append("AisPositionGPS [source=");
         builder.append(source);
         builder.append(", messageId=");
         builder.append(messageId);
