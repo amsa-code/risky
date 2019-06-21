@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import au.gov.amsa.ais.AisMessage;
+import au.gov.amsa.ais.Timestamped;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.message.AisPositionBExtended;
@@ -14,7 +15,7 @@ import rx.Observable;
 
 public class NmeaGzToCsvMain {
 
-    private static final String POSITION_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,\"%s\",%s,%s,%s,%s,%s";
+    private static final String POSITION_FORMAT = "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,\"%s\",%s,%s,%s,%s,%s";
     private static final String ABSENT = "";
 
     public static void main(String[] args) throws IOException {
@@ -34,7 +35,7 @@ public class NmeaGzToCsvMain {
                         }
                     }) //
                     .filter(x -> x.getMessage().isPresent()) //
-                    .map(x -> csv(x.getMessage().get().message())) //
+                    .map(x -> csv(x.getMessage().get())) //
                     .filter(x -> !x.isEmpty()) //
                     .doOnNext(x -> out.println(x)) //
                     .subscribe();
@@ -42,22 +43,24 @@ public class NmeaGzToCsvMain {
         System.out.println("finished in "+ (System.currentTimeMillis() - t)/1000.0 + "s");
     }
 
-    private static String csv(AisMessage m) {
+    private static String csv(Timestamped<AisMessage> tm) {
+        AisMessage m = tm.message();
         if (m instanceof AisPositionA) {
-            return csv((AisPositionA) m);
+            return csv((AisPositionA) m, tm.time());
         } else if (m instanceof AisPositionBExtended) {
-            return csv((AisPositionBExtended) m);
+            return csv((AisPositionBExtended) m, tm.time());
         } else if (m instanceof AisPosition) {
-            return csv((AisPosition) m);
+            return csv((AisPosition) m, tm.time());
         } else {
             return "";
         }
     }
 
-    private static String csv(AisPositionA p) {
+    private static String csv(AisPositionA p, long time) {
         return String.format(POSITION_FORMAT, //
                 p.getMmsi(), //
                 p.getMessageId(), //
+                time, //
                 blankIfNull(p.getLatitude()), //
                 blankIfNull(p.getLongitude()), //
                 blankIfNull(p.getSpeedOverGroundKnots()), //
@@ -74,10 +77,11 @@ public class NmeaGzToCsvMain {
                 cls(p));
     }
 
-    private static String csv(AisPositionBExtended p) {
+    private static String csv(AisPositionBExtended p, long time) {
         return String.format(POSITION_FORMAT, //
                 p.getMmsi(), //
                 p.getMessageId(), //
+                time, //
                 blankIfNull(p.getLatitude()), //
                 blankIfNull(p.getLongitude()), //
                 blankIfNull(p.getSpeedOverGroundKnots()), //
@@ -94,10 +98,11 @@ public class NmeaGzToCsvMain {
                 cls(p));
     }
 
-    private static String csv(AisPosition p) {
+    private static String csv(AisPosition p, long time) {
         return String.format(POSITION_FORMAT, //
                 p.getMmsi(), //
                 p.getMessageId(), //
+                time, //
                 blankIfNull(p.getLatitude()), //
                 blankIfNull(p.getLongitude()), //
                 blankIfNull(p.getSpeedOverGroundKnots()), //

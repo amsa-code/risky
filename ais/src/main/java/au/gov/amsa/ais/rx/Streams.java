@@ -3,6 +3,7 @@ package au.gov.amsa.ais.rx;
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -232,7 +233,7 @@ public class Streams {
 
         Func0<Reader> resourceFactory = () -> {
             try {
-                return new InputStreamReader(new GZIPInputStream(new FileInputStream(file)), UTF8);
+                return new InputStreamReader(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))), UTF8);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

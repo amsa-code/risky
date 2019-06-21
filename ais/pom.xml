@@ -112,6 +112,20 @@
 			<artifactId>formats</artifactId>
 			<version>${project.parent.version}</version>
 		</dependency>
+        
+        <dependency>
+            <groupId>com.github.davidmoten</groupId>
+            <artifactId>sparse-hilbert-index</artifactId>
+            <version>0.1</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.7</version>
+            <scope>test</scope>
+        </dependency>
 		<!-- 
 		<dependency>
 			<groupId>dk.dma.ais.lib</groupId>
