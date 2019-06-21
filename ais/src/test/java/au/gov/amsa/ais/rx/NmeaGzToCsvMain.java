@@ -40,20 +40,25 @@ public class NmeaGzToCsvMain {
                     .doOnNext(x -> out.println(x)) //
                     .subscribe();
         }
-        System.out.println("finished in "+ (System.currentTimeMillis() - t)/1000.0 + "s");
+        System.out.println("finished in " + (System.currentTimeMillis() - t) / 1000.0 + "s");
     }
 
     private static String csv(Timestamped<AisMessage> tm) {
         AisMessage m = tm.message();
-        if (m instanceof AisPositionA) {
-            return csv((AisPositionA) m, tm.time());
-        } else if (m instanceof AisPositionBExtended) {
-            return csv((AisPositionBExtended) m, tm.time());
-        } else if (m instanceof AisPosition) {
-            return csv((AisPosition) m, tm.time());
-        } else {
+        if (m instanceof AisPosition) {
+            if (((AisPosition) m).getLatitude() == null) {
+                return "";
+            } else if (m instanceof AisPositionA) {
+                return csv((AisPositionA) m, tm.time());
+            } else if (m instanceof AisPositionBExtended) {
+                return csv((AisPositionBExtended) m, tm.time());
+            } else if (m instanceof AisPosition) {
+                return csv((AisPosition) m, tm.time());
+            } else {
+                return "";
+            }
+        } else
             return "";
-        }
     }
 
     private static String csv(AisPositionA p, long time) {

@@ -15,6 +15,7 @@ public class CsvHilbertIndexCreatorMain {
         Index //
                 .serializer(Serializer.csv(CSVFormat.DEFAULT.withRecordSeparator('\n'), StandardCharsets.UTF_8)) //
                 .pointMapper(r -> {
+                    System.out.println(r);
                     long time = Long.parseLong(r.get(2));
                     double lat = Double.parseDouble(r.get(3));
                     double lon = Double.parseDouble(r.get(4));
