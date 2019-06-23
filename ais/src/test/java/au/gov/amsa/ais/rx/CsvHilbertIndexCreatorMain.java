@@ -11,20 +11,27 @@ import com.github.davidmoten.shi.Index;
 public class CsvHilbertIndexCreatorMain {
 
     public static void main(String[] args) {
-        File input = new File(System.getProperty("user.home") + "/Downloads/2018-11-27-positions.csv");
+        File input = new File(
+                System.getProperty("user.home") + "/Downloads/2018-11-27-positions-sorted.csv");
         Index //
-                .serializer(Serializer.csv(CSVFormat.DEFAULT.withRecordSeparator('\n'), StandardCharsets.UTF_8)) //
+                .serializer(Serializer.csv(CSVFormat.DEFAULT.withRecordSeparator('\n'),
+                        StandardCharsets.UTF_8)) //
                 .pointMapper(r -> {
-                    System.out.println(r);
-                    long time = Long.parseLong(r.get(2));
-                    double lat = Double.parseDouble(r.get(3));
-                    double lon = Double.parseDouble(r.get(4));
-                    return new double[] { lat, lon, time };
+                    try {
+                        long time = Long.parseLong(r.get(2));
+                        double lat = Double.parseDouble(r.get(3));
+                        double lon = Double.parseDouble(r.get(4));
+                        return new double[] { lat, lon, time };
+                    } catch (Throwable e) {
+                        System.out.println(r);
+                        throw new RuntimeException(e);
+                    }
                 }) //
                 .input(input) //
                 .output(new File("target/2018-11-27-positions-sorted.csv")) //
                 .bits(10) //
                 .dimensions(3) //
+                .numIndexEntries(50000) //
                 .createIndex("target/2018-11-27-positions-sorted.csv.idx");
     }
 

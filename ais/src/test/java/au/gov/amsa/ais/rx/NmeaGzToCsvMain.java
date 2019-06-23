@@ -25,8 +25,8 @@ public class NmeaGzToCsvMain {
         long[] count = new long[1];
         Observable<String> nmea = Streams.nmeaFromGzip(input);
         long n = 100000;
-        try (PrintStream out = new PrintStream(
-                new BufferedOutputStream(new FileOutputStream("target/2018-11-27-positions.csv")))) {
+        try (PrintStream out = new PrintStream(new BufferedOutputStream(
+                new FileOutputStream("target/2018-11-27-positions.csv")))) {
             Streams.extract(nmea) //
                     .doOnNext(x -> {
                         count[0]++;
@@ -34,13 +34,24 @@ public class NmeaGzToCsvMain {
                             System.out.println(count[0] / 1000000.0 + "m records read");
                         }
                     }) //
-                    .filter(x -> x.getMessage().isPresent()) //
+                    .filter(x -> {
+                        if (x.getMessage().isPresent()) {
+                            if (x.getMessage().get().message() instanceof AisPosition) {
+                                AisPosition p = (AisPosition) x.getMessage().get().message();
+                                if (p.getLatitude() != null && p.getLongitude() != null) {
+                                    return true;
+                                }
+                            }
+                        }
+                        return false;
+                    }) //
                     .map(x -> csv(x.getMessage().get())) //
                     .filter(x -> !x.isEmpty()) //
                     .doOnNext(x -> out.println(x)) //
                     .subscribe();
         }
         System.out.println("finished in " + (System.currentTimeMillis() - t) / 1000.0 + "s");
+
     }
 
     private static String csv(Timestamped<AisMessage> tm) {
