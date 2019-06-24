@@ -35,7 +35,7 @@ public class CsvHilbertIndexSearchMain {
                 .serializer(serializer) //
                 .pointMapper(pointMapper) //
                 .read(new File(System.getProperty("user.home")
-                        + "/Downloads/2018-11-27-positions-sorted.csv.idx"));
+                        + "/Downloads/2018-11-27-positions-sorted.csv.idx.2"));
         long t1 = Math.round(index.mins()[2]) + TimeUnit.HOURS.toMillis(12);
         long t2 = t1 + TimeUnit.MINUTES.toMillis(60);
         final Bounds sydney = Bounds.create(new double[] { -33.68, 150.86, t1 },
@@ -46,11 +46,16 @@ public class CsvHilbertIndexSearchMain {
                 new double[] { -29.0, 155.47, t2 });
         final Bounds tas = Bounds.create(new double[] { -39.389, 143.491, t1 },
                 new double[] { -44, 149.5, t2 });
+        File sorted = new File(System.getProperty("user.home")
+                + "/Downloads/2018-11-27-positions-sorted.csv");
         index.search(sydney).withStats()
-                .file(new File(System.getProperty("user.home")
-                        + "/Downloads/2018-11-27-positions-sorted.csv"))
+                .file(sorted)
                 .last().forEach(System.out::println);
-        index = Index.serializer(serializer).pointMapper(pointMapper).read(new URL("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv.idx"));
+        for (Bounds bounds : new Bounds[] { sydney, brisbane, qld, tas }) {
+            index.search(bounds).withStats().file(sorted)
+                    .last().forEach(System.out::println);
+        }
+        //index = Index.serializer(serializer).pointMapper(pointMapper).read(new URL("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv.idx"));
         for (Bounds bounds : new Bounds[] { sydney, brisbane, qld, tas }) {
             index.search(bounds).withStats().url(
                     "https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv") //
