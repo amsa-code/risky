@@ -1,9 +1,11 @@
 package au.gov.amsa.ais.rx;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -11,25 +13,27 @@ import org.apache.commons.csv.CSVRecord;
 import com.github.davidmoten.bigsorter.Serializer;
 import com.github.davidmoten.shi.Bounds;
 import com.github.davidmoten.shi.Index;
-import com.github.davidmoten.shi.WithStats;
 
 public class CsvHilbertIndexSearchMain {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MalformedURLException {
+        Function<? super CSVRecord, double[]> pointMapper = r -> {
+            try {
+                long time = Long.parseLong(r.get(2));
+                double lat = Double.parseDouble(r.get(3));
+                double lon = Double.parseDouble(r.get(4));
+                return new double[] { lat, lon, time };
+            } catch (Throwable e) {
+                System.out.println(r);
+                throw new RuntimeException(e);
+            }
+        };
+        Serializer<CSVRecord> serializer = Serializer.csv(
+                CSVFormat.DEFAULT.withRecordSeparator('\n'),
+                StandardCharsets.UTF_8);
         Index<CSVRecord> index = Index
-                .serializer(Serializer.csv(CSVFormat.DEFAULT.withRecordSeparator('\n'),
-                        StandardCharsets.UTF_8)) //
-                .pointMapper(r -> {
-                    try {
-                        long time = Long.parseLong(r.get(2));
-                        double lat = Double.parseDouble(r.get(3));
-                        double lon = Double.parseDouble(r.get(4));
-                        return new double[] { lat, lon, time };
-                    } catch (Throwable e) {
-                        System.out.println(r);
-                        throw new RuntimeException(e);
-                    }
-                }) //
+                .serializer(serializer) //
+                .pointMapper(pointMapper) //
                 .read(new File(System.getProperty("user.home")
                         + "/Downloads/2018-11-27-positions-sorted.csv.idx"));
         long t1 = Math.round(index.mins()[2]) + TimeUnit.HOURS.toMillis(12);
@@ -46,6 +50,7 @@ public class CsvHilbertIndexSearchMain {
                 .file(new File(System.getProperty("user.home")
                         + "/Downloads/2018-11-27-positions-sorted.csv"))
                 .last().forEach(System.out::println);
+        index = Index.serializer(serializer).pointMapper(pointMapper).read(new URL("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv.idx"));
         for (Bounds bounds : new Bounds[] { sydney, brisbane, qld, tas }) {
             index.search(bounds).withStats().url(
                     "https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv") //
