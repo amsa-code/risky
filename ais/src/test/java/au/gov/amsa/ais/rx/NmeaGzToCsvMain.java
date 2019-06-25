@@ -57,7 +57,8 @@ public class NmeaGzToCsvMain {
     private static String csv(Timestamped<AisMessage> tm) {
         AisMessage m = tm.message();
         if (m instanceof AisPosition) {
-            if (((AisPosition) m).getLatitude() == null) {
+            AisPosition p = (AisPosition) m;
+            if (p.getLatitude() == null || p.getLongitude() == null) {
                 return "";
             } else if (m instanceof AisPositionA) {
                 return csv((AisPositionA) m, tm.time());
