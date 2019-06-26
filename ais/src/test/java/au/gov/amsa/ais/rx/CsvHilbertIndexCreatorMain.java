@@ -12,7 +12,7 @@ public class CsvHilbertIndexCreatorMain {
 
     public static void main(String[] args) {
         File input = new File(
-                System.getProperty("user.home") + "/Downloads/2018-11-27-positions-sorted.csv");
+                System.getProperty("user.home") + "/Downloads/2018-11-27-positions.csv");
         Index //
                 .serializer(Serializer.csv(CSVFormat.DEFAULT.withRecordSeparator('\n'),
                         StandardCharsets.UTF_8)) //

@@ -35,11 +35,14 @@ public class CsvHilbertIndexSearchMain {
                 .serializer(serializer) //
                 .pointMapper(pointMapper) //
                 .read(new File(System.getProperty("user.home")
-                        + "/Downloads/2018-11-27-positions-sorted.csv.idx.2"));
+                        + "/Downloads/2018-11-27-positions-sorted.csv.idx"));
+        
         long t1 = Math.round(index.mins()[2]) + TimeUnit.HOURS.toMillis(12);
         long t2 = t1 + TimeUnit.MINUTES.toMillis(60);
         final Bounds sydney = Bounds.create(new double[] { -33.68, 150.86, t1 },
                 new double[] { -34.06, 151.34, t2 });
+        final Bounds sydneyAllDay = Bounds.create(new double[] { -33.68, 150.86, index.mins()[2] },
+                new double[] { -34.06, 151.34, index.maxes()[2] });
         final Bounds brisbane = Bounds.create(new double[] { -24.9, 150, t1 },
                 new double[] { -29.5, 158, t2 });
         final Bounds qld = Bounds.create(new double[] { -9.481, 137.3, t1 },
@@ -51,12 +54,17 @@ public class CsvHilbertIndexSearchMain {
         index.search(sydney).withStats()
                 .file(sorted)
                 .last().forEach(System.out::println);
-        for (Bounds bounds : new Bounds[] { sydney, brisbane, qld, tas }) {
+        for (Bounds bounds : new Bounds[] { sydney, sydneyAllDay, brisbane, qld, tas }) {
             index.search(bounds).withStats().file(sorted)
                     .last().forEach(System.out::println);
         }
-        //index = Index.serializer(serializer).pointMapper(pointMapper).read(new URL("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv.idx"));
-        for (Bounds bounds : new Bounds[] { sydney, brisbane, qld, tas }) {
+        
+        System.out.println("loading index from s3");
+        long t = System.currentTimeMillis();
+        index = Index.serializer(serializer).pointMapper(pointMapper).read(new URL("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv.idx"));
+        System.out.println("index loaded in " + (System.currentTimeMillis() - t) + "ms");
+        System.out.println("searching via s3");
+        for (Bounds bounds : new Bounds[] { sydney, sydneyAllDay, brisbane, qld, tas }) {
             index.search(bounds).withStats().url(
                     "https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv") //
                     .last().forEach(System.out::println);
