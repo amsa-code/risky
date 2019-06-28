@@ -49,7 +49,7 @@ public class CsvHilbertIndexSearchMain {
                 .lastOrError() // 
                 .subscribe(System.out::println);
         for (Bounds bounds : new Bounds[] { sydney, sydneyAllDay, brisbane, qld, tas }) {
-            index.search(bounds).withStats().file(sorted).last().forEach(System.out::println);
+            index.search(bounds).withStats().file(sorted).lastOrError().doOnSuccess(System.out::println).blockingGet();
         }
 
         System.out.println("loading index from s3");
@@ -60,8 +60,9 @@ public class CsvHilbertIndexSearchMain {
         System.out.println("searching via s3");
         for (Bounds bounds : new Bounds[] { sydney, sydneyAllDay, brisbane, qld, tas }) {
             index.search(bounds).withStats()
+                    .concurrency(100)
                     .url("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv") //
-                    .last().forEach(System.out::println);
+                    .lastOrError().doOnSuccess(System.out::println).blockingGet();
         }
     }
 
