@@ -13,6 +13,7 @@ import org.apache.commons.csv.CSVRecord;
 import com.github.davidmoten.bigsorter.Serializer;
 import com.github.davidmoten.shi.Bounds;
 import com.github.davidmoten.shi.Index;
+import com.github.davidmoten.shi.WithStats;
 
 public class CsvHilbertIndexSearchMain {
 
@@ -46,7 +47,7 @@ public class CsvHilbertIndexSearchMain {
         index.search(sydney) //
                 .withStats() //
                 .file(sorted) //
-                .lastOrError() // 
+                .lastOrError() //
                 .subscribe(System.out::println);
         for (Bounds bounds : new Bounds[] { sydney, sydneyAllDay, brisbane, qld, tas }) {
             index.search(bounds).withStats().file(sorted).lastOrError().doOnSuccess(System.out::println).blockingGet();
@@ -58,11 +59,15 @@ public class CsvHilbertIndexSearchMain {
                 new URL("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv.idx"));
         System.out.println("index loaded in " + (System.currentTimeMillis() - t) + "ms");
         System.out.println("searching via s3");
+
         for (Bounds bounds : new Bounds[] { sydney, sydneyAllDay, brisbane, qld, tas }) {
-            index.search(bounds).withStats()
-                    .concurrency(100)
-                    .url("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv") //
-                    .lastOrError().doOnSuccess(System.out::println).blockingGet();
+            System.out.println(bounds);
+            for (int concurrency : new int[] { 1, 2, 4, 8, 12, 16, 32, 64, 128 }) {
+                WithStats<CSVRecord> w = index.search(bounds).withStats().concurrency(concurrency)
+                        .url("https://moten-fixes.s3-ap-southeast-2.amazonaws.com/2018-11-27-positions-sorted.csv") //
+                        .lastOrError().blockingGet();
+                System.out.println(w.elapsedTimeMs());
+            }
         }
     }
 
