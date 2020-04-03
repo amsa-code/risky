@@ -11,10 +11,13 @@ public final class OnSubscribeReader extends SyncOnSubscribe<Reader, String> {
 
     private final Reader reader;
     private final int size;
+    
+    private final char[] buffer;
 
     public OnSubscribeReader(Reader reader, int size) {
         this.reader = reader;
         this.size = size;
+        this.buffer = new char[size];
     }
 
     @Override
@@ -24,7 +27,6 @@ public final class OnSubscribeReader extends SyncOnSubscribe<Reader, String> {
 
     @Override
     protected Reader next(Reader reader, Observer<? super String> observer) {
-        char[] buffer = new char[size];
         try {
             int count = reader.read(buffer);
             if (count == -1)
