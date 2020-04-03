@@ -10,13 +10,11 @@ import rx.observables.SyncOnSubscribe;
 public final class OnSubscribeReader extends SyncOnSubscribe<Reader, String> {
 
     private final Reader reader;
-    private final int size;
     
     private final char[] buffer;
 
     public OnSubscribeReader(Reader reader, int size) {
         this.reader = reader;
-        this.size = size;
         this.buffer = new char[size];
     }
 
