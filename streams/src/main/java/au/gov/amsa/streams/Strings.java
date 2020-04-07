@@ -56,6 +56,11 @@ public final class Strings {
         return o.compose(com.github.davidmoten.rx.Transformers.split(pattern));
     }
 
+    public static Observable<String> split(Observable<String> o, int maxItemLength, String pattern, int maxPatternLength) {
+        return o.compose(com.github.davidmoten.rx.Transformers.split(maxItemLength, pattern, maxPatternLength));
+    }
+
+    
     public static Observable<String> from(final File file, final Charset charset) {
         return com.github.davidmoten.rx.Strings.from(file, charset);
     }

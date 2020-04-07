@@ -186,6 +186,23 @@ public final class StringSockets {
                 .compose(o -> Observable.merge(o));
     }
 
+    public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts, int maxLineLength) {
+        return mergeLinesFrom(hostPorts, Schedulers.io(), maxLineLength);
+    }
+    
+    public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts,
+            Scheduler scheduler, int maxLineLength) {
+        return hostPorts
+                //
+                .map(hp -> StringSockets
+                        .from(hp.getHost(), hp.getPort(), hp.getQuietTimeoutMs(),
+                                hp.getReconnectDelayMs(), StandardCharsets.UTF_8, scheduler)
+                        // split by new line character
+                        .compose(o -> Strings.split(o, maxLineLength,  "\n", 1)))
+                // merge streams of lines
+                .compose(o -> Observable.merge(o));
+    }
+
     public static Observable<String> mergeLinesFrom(Observable<HostPort> hostPorts) {
         return mergeLinesFrom(hostPorts, Schedulers.io());
     }
