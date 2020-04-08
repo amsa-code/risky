@@ -38,7 +38,7 @@ How to release
 ---------------
 For project maintainers only.
 
-Until we start releasing to Maven Central this is the procedure:
+This the procedure to install a new version to our internal repository.  
 
 ```bash
 ./release.sh <VERSION>
