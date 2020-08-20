@@ -73,6 +73,8 @@ Observable<String> nmea = ...
 Observable<Fix> fixes = Streams.extractFixes(nmea);
 ```
 
+See also the *ais* project [README][../ais#extract-binaryfixes-track-from-nmea-zip-files] to convert a gzipped nmea file to track (binary fix) files per vessel.
+
 How to downsample 
 ---------------------
 The code below downsamples a stream of fixes with for the same vessel that must be in ascending time order so that the minimum time between fixes is 5 minutes.
