@@ -233,7 +233,7 @@ public class Streams {
 
         Func0<Reader> resourceFactory = () -> {
             try {
-                return new InputStreamReader(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file))), UTF8);
+                return new InputStreamReader(new GZIPInputStream(new BufferedInputStream(new FileInputStream(file), 1024 * 1024)), UTF8);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

@@ -38,7 +38,7 @@ public class NmeaGzToBinaryFixesMain {
         int logEvery = 100000;
 
         // append fixes to a file once you have this many for the one mmsi
-        int writeBufferSize = 100;
+        int writeBufferSize = 200;
 
         // Note that the ring buffer size is twice the linesPerProcessor
         final int ringBufferSize = 16 * 8192;
