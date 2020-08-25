@@ -73,7 +73,7 @@ Observable<String> nmea = ...
 Observable<Fix> fixes = Streams.extractFixes(nmea);
 ```
 
-See also the *ais* project [README][../ais#extract-binaryfixes-track-from-nmea-zip-files] to convert a gzipped nmea file to track (binary fix) files per vessel.
+See also the *ais* project [README](../ais#extract-binaryfixes-track-from-nmea-zip-files) to convert a gzipped nmea file to track (binary fix) files per vessel.
 
 How to downsample 
 ---------------------
