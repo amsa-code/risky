@@ -26,8 +26,7 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
     private final Optional<Integer> mmsi;
     private final BinaryFixesFormat format;
 
-    public BinaryFixesOnSubscribeWithBackp(InputStream is, Optional<Integer> mmsi,
-            BinaryFixesFormat format) {
+    public BinaryFixesOnSubscribeWithBackp(InputStream is, Optional<Integer> mmsi, BinaryFixesFormat format) {
         this.is = is;
         this.mmsi = mmsi;
         this.format = format;
@@ -47,8 +46,8 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
     }
 
     /**
-     * Returns stream of fixes from the given file. If the file name ends in
-     * '.gz' then the file is unzipped before being read.
+     * Returns stream of fixes from the given file. If the file name ends in '.gz'
+     * then the file is unzipped before being read.
      * 
      * @param file
      * @return fixes stream
@@ -115,7 +114,7 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
             byte[] bytes = new byte[4096 * BinaryFixes.recordSize(format)];
             try {
                 int length;
-                if ((length = state.is.read(bytes)) > 0) {
+                if ((length = readFully(state.is, bytes)) > 0) {
                     for (int i = 0; i < length; i += recordSize) {
                         ByteBuffer bb = ByteBuffer.wrap(bytes, i, recordSize);
                         final int mmsi;
@@ -136,5 +135,22 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
         }
         return state;
     }
-    
+
+    private static final int readFully(InputStream in, byte[] bytes) throws IOException {
+        int n = 0;
+        int len = bytes.length;
+        while (n < len) {
+            int count;
+            count = in.read(bytes, n, len - n);
+            if (count < 0) {
+                if (n == 0)
+                    return -1;
+                else
+                    return n;
+            }
+            n += count;
+        }
+        return n;
+    }
+
 }
