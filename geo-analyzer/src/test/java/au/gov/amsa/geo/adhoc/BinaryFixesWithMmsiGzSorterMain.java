@@ -14,7 +14,6 @@ import org.apache.log4j.Logger;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesFormat;
 import rx.Observable;
-import rx.schedulers.Schedulers;
 
 public class BinaryFixesWithMmsiGzSorterMain {
 
@@ -32,7 +31,6 @@ public class BinaryFixesWithMmsiGzSorterMain {
         AtomicInteger n = new AtomicInteger();
         files.flatMap(x -> Observable //
                 .just(x) //
-                .observeOn(Schedulers.computation()) //
                 .doOnNext(f -> log.info(n.incrementAndGet() + ": sorting " + f.getName())) //
                 .doOnNext(f -> sort(f, sortedTracks))) //
                 .doOnNext(f -> log.info(n.get() + ": sorted " + f.getName())) //

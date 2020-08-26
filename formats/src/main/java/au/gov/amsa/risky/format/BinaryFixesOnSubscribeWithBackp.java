@@ -140,8 +140,7 @@ public final class BinaryFixesOnSubscribeWithBackp extends SyncOnSubscribe<State
         int n = 0;
         int len = bytes.length;
         while (n < len) {
-            int count;
-            count = in.read(bytes, n, len - n);
+            int count = in.read(bytes, n, len - n);
             if (count < 0) {
                 if (n == 0)
                     return -1;
