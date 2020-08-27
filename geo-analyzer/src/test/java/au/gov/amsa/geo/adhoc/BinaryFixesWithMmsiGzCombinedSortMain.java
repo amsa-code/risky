@@ -27,15 +27,15 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
     private static final Logger log = Logger.getLogger(BinaryFixesWithMmsiGzCombinedSortMain.class);
 
     public static void main(String[] args) throws InterruptedException {
-        File sortedTracks = new File("/home/dxm/AIS/tracks-sorted");
+        File tracks = new File("/home/dxm/AIS/tracks");
         File combinedSortedTracks = new File("/home/dxm/combinedSortedTracks");
         combinedSortedTracks.mkdir();
 
         AtomicReference<FileFixes> previous = new AtomicReference<>();
         AtomicInteger n = new AtomicInteger();
         Observable //
-                .from(sortedTracks.listFiles()) //
-                .filter(x -> x.getName().endsWith(".track.gz")) //
+                .from(tracks.listFiles()) //
+                .filter(x -> x.getName().endsWith(".track.gz") && x.getName().compareTo("2019-08-06") >= 0) //
                 .map(x -> new FileFixes(x,
                         BinaryFixes.from(x, true, BinaryFixesFormat.WITH_MMSI).toList().toBlocking().first()))
                 .doOnNext(ff -> {
@@ -60,7 +60,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }
-                        log.info(n.incrementAndGet() + ": added " + addThese.size() + " to " + f);
+                        log.info(n.incrementAndGet() + ": removed " + move.size() + ", added " + addThese.size() + " to " + f);
                     }
                     previous.set(ff);
                 }).subscribe();
