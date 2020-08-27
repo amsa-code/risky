@@ -27,7 +27,7 @@ public class DistanceTravelledInEezMain {
         Fix fix;
         Location location;
         double distanceKm;
-        
+
         double totalTimeMs;
     }
 
@@ -61,23 +61,29 @@ public class DistanceTravelledInEezMain {
                                             if (crossed) {
                                                 TimedPosition point = ShapefileUtil.findRegionCrossingPoint(eezLine,
                                                         state.fix, fix);
+                                                final double distance;
                                                 if (state.location == Location.IN) {
-                                                    state.distanceKm += distanceKm(fix.lat(), fix.lon(), point.lat,
-                                                            point.lon);
+                                                    distance = distanceKm(fix.lat(), fix.lon(), point.lat, point.lon);
                                                 } else {
-                                                    state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(),
-                                                            point.lat, point.lon);
+                                                    distance = distanceKm(state.fix.lat(), state.fix.lon(), point.lat,
+                                                            point.lon);
                                                 }
+                                                state.distanceKm += distance;
+                                                state.totalTimeMs += distance / distanceKm(state.fix.lat(),
+                                                        state.fix.lon(), fix.lat(), fix.lon())
+                                                        * (fix.time() - state.fix.time());
                                             } else {
-                                                state.distanceKm+= distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon());
+                                                state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(),
+                                                        fix.lat(), fix.lon());
+                                                state.totalTimeMs += fix.time() - state.fix.time();
                                             }
                                         }
                                         state.fix = fix;
                                         state.location = location;
                                     }).count() //
-                                    .map(f -> new Vessel(o.getKey(), f, state.distanceKm));
+                                    .map(f -> new Vessel(o.getKey(), f, state.distanceKm, state.totalTimeMs));
                         })) //
-                .forEach(x -> System.out.println(x.mmsi + ": " + x.count + ", kmInEez=" + df.format(x.distanceKm)));
+                .forEach(x -> System.out.println(x.mmsi + ": " + x.count + ", kmInEez=" + df.format(x.distanceKm) + ", timeHoursInEez=" + x.totalTimeMs));
         System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
@@ -85,11 +91,14 @@ public class DistanceTravelledInEezMain {
         final int mmsi;
         final long count;
         double distanceKm;
+        
+        double totalTimeMs;
 
-        Vessel(int mmsi, long count, double distanceKm) {
+        Vessel(int mmsi, long count, double distanceKm, double totalTimeMs) {
             this.mmsi = mmsi;
             this.count = count;
             this.distanceKm = distanceKm;
+            this.totalTimeMs = totalTimeMs;
         }
 
     }
