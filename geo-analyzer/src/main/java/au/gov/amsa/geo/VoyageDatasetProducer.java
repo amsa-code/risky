@@ -33,11 +33,6 @@ import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.Checked;
 import com.google.common.base.Preconditions;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
 
 import au.gov.amsa.geo.distance.EffectiveSpeedCheck;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
@@ -66,8 +61,8 @@ public final class VoyageDatasetProducer {
         AtomicInteger fileNumber = new AtomicInteger(0);
         Collection<Port> ports = loadPorts();
         Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
-        Shapefile eezLine = loadEezLine();
-        Shapefile eezPolygon = loadEezPolygon();
+        Shapefile eezLine = Eez.loadEezLine();
+        Shapefile eezPolygon = Eez.loadEezPolygon();
         System.out.println("loaded eez shapefiles");
         long t = System.currentTimeMillis();
         AtomicLong failedCheck = new AtomicLong();
@@ -272,16 +267,6 @@ public final class VoyageDatasetProducer {
         return ports;
     }
 
-    static Shapefile loadEezLine() {
-        // good for crossing checks
-        return Shapefile.fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_line.zip"));
-    }
-
-    static Shapefile loadEezPolygon() {
-        // good for contains checks
-        return Shapefile.fromZip(VoyageDatasetProducer.class.getResourceAsStream("/eez_aust_mainland_pl.zip"));
-    }
-
     private static Observable<File> logPercentCompleted(int numFiles, long startTime, Observable<File> o,
             AtomicInteger fileNumber) {
         return o.doOnNext(file -> {
@@ -402,7 +387,7 @@ public final class VoyageDatasetProducer {
 
     private static TimedWaypoint findClosestWaypoint(Shapefile eezLine, Collection<EezWaypoint> eezWaypoints, Fix fix,
             State previous) {
-        TimedPosition crossingPoint = findRegionCrossingPoint(eezLine, previous.latestFix, fix);
+        TimedPosition crossingPoint = ShapefileUtil.findRegionCrossingPoint(eezLine, previous.latestFix, fix);
         EezWaypoint closest = null;
         double closestDistanceKm = 0;
         for (EezWaypoint w : eezWaypoints) {
@@ -493,50 +478,6 @@ public final class VoyageDatasetProducer {
             return code;
         }
 
-    }
-
-    private static TimedPosition findRegionCrossingPoint(Shapefile region, Fix fix1, Fix fix2) {
-
-        Coordinate[] coords = new Coordinate[] { new Coordinate(fix1.lon(), fix1.lat()),
-                new Coordinate(fix2.lon(), fix2.lat()) };
-        LineString line = new GeometryFactory().createLineString(coords);
-        for (PreparedGeometry g : region.geometries()) {
-            if (g.crosses(line)) {
-                Geometry intersection = g.getGeometry().intersection(line);
-                // expecting just one point
-                Coordinate coord = intersection.getCoordinate();
-                double longitude = coord.x;
-                double latitude = coord.y;
-                Position a = Position.create(fix1.lat(), fix1.lon());
-                Position b = Position.create(fix2.lat(), fix2.lon());
-                Position c = Position.create(latitude, longitude);
-                double ac = a.getDistanceToKm(c);
-                double bc = b.getDistanceToKm(c);
-                if (ac == 0) {
-                    return new TimedPosition(fix1.lat(), fix1.lon(), fix1.time());
-                } else if (bc == 0) {
-                    return new TimedPosition(fix2.lat(), fix2.lon(), fix2.time());
-                } else {
-                    // predict the timestamp based on distance from a and b
-                    long diff = fix2.time() - fix1.time();
-                    long t = Math.round(fix1.time() + ac * diff / (ac + bc));
-                    return new TimedPosition(latitude, longitude, t);
-                }
-            }
-        }
-        throw new RuntimeException("crossing not found");
-    }
-
-    private static final class TimedPosition {
-        final double lat;
-        final double lon;
-        final long time;
-
-        TimedPosition(double lat, double lon, long time) {
-            this.lat = lat;
-            this.lon = lon;
-            this.time = time;
-        }
     }
 
     @VisibleForTesting

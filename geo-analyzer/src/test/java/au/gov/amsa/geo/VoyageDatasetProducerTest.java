@@ -30,8 +30,8 @@ public class VoyageDatasetProducerTest {
         long aTime = 1498199825552L;
         long bTime = aTime + TimeUnit.DAYS.toMillis(2);
         long cTime = bTime + TimeUnit.DAYS.toMillis(4);
-        Shapefile eezLine = VoyageDatasetProducer.loadEezLine();
-        Shapefile eezPolygon = VoyageDatasetProducer.loadEezPolygon();
+        Shapefile eezLine = Eez.loadEezLine();
+        Shapefile eezPolygon = Eez.loadEezPolygon();
         assertTrue(eezPolygon.contains(-35, 149));
         assertTrue(!eezPolygon.contains(-35, 175));
 

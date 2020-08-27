@@ -1,13 +1,19 @@
 package au.gov.amsa.geo.adhoc;
 
 import java.io.File;
+import java.text.DecimalFormat;
 
-import au.gov.amsa.geo.VoyageDatasetProducer;
+import com.github.davidmoten.grumpy.core.Position;
+
+import au.gov.amsa.geo.Eez;
+import au.gov.amsa.geo.ShapefileUtil;
+import au.gov.amsa.geo.TimedPosition;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesFormat;
+import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.identity.MmsiValidator2;
 import rx.Observable;
 
@@ -18,16 +24,19 @@ public class DistanceTravelledInEezMain {
     }
 
     private static final class State {
-        double lat;
-        double lon;
-        long time;
+        Fix fix;
         Location location;
+        double distanceKm;
+        
+        double totalTimeMs;
     }
 
     public static void main(String[] args) {
-        Shapefile eezLine = loadEezLine();
+        Shapefile eezLine = Eez.loadEezLine();
+        Shapefile eezPolygon = Eez.loadEezPolygon();
         File tracks = new File("/home/dxm/combinedSortedTracks");
         long t = System.currentTimeMillis();
+        DecimalFormat df = new DecimalFormat("0.00");
         Observable //
                 .from(tracks.listFiles()) //
                 .filter(x -> x.getName().endsWith("2019-01-01.track.gz")) //
@@ -45,29 +54,48 @@ public class DistanceTravelledInEezMain {
                                     .map(check -> check.fix()) //
                                     //
                                     .doOnNext(fix -> {
-                                        state.lat = fix.lat();
-                                        state.lon = fix.lon();
-                                        state.location = Location.UNKNOWN;
+                                        boolean inside = eezPolygon.contains(fix.lat(), fix.lon());
+                                        Location location = inside ? Location.IN : Location.OUT;
+                                        if (state.location != Location.UNKNOWN) {
+                                            boolean crossed = state.location != location;
+                                            if (crossed) {
+                                                TimedPosition point = ShapefileUtil.findRegionCrossingPoint(eezLine,
+                                                        state.fix, fix);
+                                                if (state.location == Location.IN) {
+                                                    state.distanceKm += distanceKm(fix.lat(), fix.lon(), point.lat,
+                                                            point.lon);
+                                                } else {
+                                                    state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(),
+                                                            point.lat, point.lon);
+                                                }
+                                            } else {
+                                                state.distanceKm+= distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon());
+                                            }
+                                        }
+                                        state.fix = fix;
+                                        state.location = location;
                                     }).count() //
-                                    .map(f -> new Vessel(o.getKey(), f));
+                                    .map(f -> new Vessel(o.getKey(), f, state.distanceKm));
                         })) //
-                .forEach(x -> System.out.println(x.mmsi + ": " + x.count));
+                .forEach(x -> System.out.println(x.mmsi + ": " + x.count + ", kmInEez=" + df.format(x.distanceKm)));
         System.out.println((System.currentTimeMillis() - t) + "ms");
-    }
-
-    private static Shapefile loadEezLine() {
-        return Shapefile.fromZip(DistanceTravelledInEezMain.class.getResourceAsStream("/eez_aust_mainland_line.zip"));
     }
 
     static final class Vessel {
         final int mmsi;
         final long count;
+        double distanceKm;
 
-        Vessel(int mmsi, long count) {
+        Vessel(int mmsi, long count, double distanceKm) {
             this.mmsi = mmsi;
             this.count = count;
+            this.distanceKm = distanceKm;
         }
 
+    }
+
+    private static double distanceKm(double lat, double lon, double lat2, double lon2) {
+        return Position.create(lat, lon).getDistanceToKm(Position.create(lat2, lon2));
     }
 
 }
