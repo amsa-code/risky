@@ -2,6 +2,7 @@ package au.gov.amsa.geo.adhoc;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.concurrent.TimeUnit;
 
 import com.github.davidmoten.grumpy.core.Position;
 
@@ -83,7 +84,9 @@ public class DistanceTravelledInEezMain {
                                     }).count() //
                                     .map(f -> new Vessel(o.getKey(), f, state.distanceKm, state.totalTimeMs));
                         })) //
-                .forEach(x -> System.out.println(x.mmsi + ": " + x.count + ", kmInEez=" + df.format(x.distanceKm) + ", timeHoursInEez=" + x.totalTimeMs));
+                .filter(x -> x.distanceKm/x.totalTimeHours() > 35) //
+                .forEach(x -> System.out.println(x.mmsi + ": " + x.count + ", kmInEez=" + df.format(x.distanceKm)
+                        + ", timeHoursInEez=" + df.format(x.totalTimeHours()) + ", speed=" + df.format(x.distanceKm/x.totalTimeHours()) + "km/hr"));
         System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
@@ -91,8 +94,12 @@ public class DistanceTravelledInEezMain {
         final int mmsi;
         final long count;
         double distanceKm;
-        
+
         double totalTimeMs;
+        
+        double totalTimeHours() {
+            return totalTimeMs / TimeUnit.HOURS.toMillis(1);
+        }
 
         Vessel(int mmsi, long count, double distanceKm, double totalTimeMs) {
             this.mmsi = mmsi;
