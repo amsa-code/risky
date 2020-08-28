@@ -88,9 +88,11 @@ public class DistanceTravelledInEezMain {
                     .filter(x -> !x.getName().startsWith("2020-08")) //
                     .flatMap(file -> {
                         log.info(file);
+
+                        // Note that the Shapefile objects are not thread-safe so we make new one for
+                        // each file to enable parallel processing
                         
-                     // Note that the Shapefile objects are not thread-safe so we make new one for each file to enable parallel processing
-                     // used for intersections with eez boundary
+                        // used for intersections with eez boundary
                         Shapefile eezLine = Eez.loadEezLine();
 
                         // used for contains tests
