@@ -7,8 +7,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
@@ -51,12 +55,31 @@ public class DistanceTravelledInEezMain {
         public double totalTimeHours() {
             return totalTimeMs / HOUR_MILLIS;
         }
+        
+        public String formattedDate() {
+            SimpleDateFormat sdfIn = new SimpleDateFormat("yyyy-mm-dd");
+            sdfIn.setTimeZone(TimeZone.getTimeZone("UTC"));
+            try {
+                Date d = sdfIn.parse(date);
+                // Sabine's preferred date format for importing into SPSS
+                SimpleDateFormat sdfOut = new SimpleDateFormat("dd-MMM-yyyy");
+                sdfOut.setTimeZone(TimeZone.getTimeZone("UTC"));
+                return sdfOut.format(d);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         System.out.println("running");
+        
+        // used for intersections with eez boundary 
         Shapefile eezLine = Eez.loadEezLine();
+        
+        // used for contains tests
         Shapefile eezPolygon = Eez.loadEezPolygon();
+        
         File tracks = new File("/home/dxm/combinedSortedTracks");
         long t = System.currentTimeMillis();
         List<File> files = Arrays.asList(tracks.listFiles());
@@ -66,7 +89,7 @@ public class DistanceTravelledInEezMain {
             Observable //
                     .from(files) //
                     .filter(x -> x.getName().endsWith(".track.gz")) //
-                    .filter(x -> x.getName().startsWith("2019-01")) //
+                    .filter(x -> x.getName().startsWith("2019-01-01")) //
                     .flatMap(file -> {
                         log.info("processing " + file);
                         return BinaryFixes //
@@ -137,13 +160,13 @@ public class DistanceTravelledInEezMain {
         }
 
         static String headings() {
-            return "date,mmsi,aisClass,count,distanceNmInEEZ,timeHoursInEEZ";
+            return "dateUTC,mmsi,aisClass,numReports,distanceNmInEEZ,elapsedTimeHoursInEEZ";
         }
 
         String line() {
             DecimalFormat df = new DecimalFormat("0.000");
-            return String.format("%s,%s,%s,%s,%s", //
-                    state.date, //
+            return String.format("%s,%s,%s,%s,%s,%s", //
+                    state.formattedDate(), //
                     state.mmsi, //
                     state.fix.aisClass(), //
                     count, //
