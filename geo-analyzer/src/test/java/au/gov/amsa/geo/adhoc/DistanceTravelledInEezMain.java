@@ -30,9 +30,10 @@ import au.gov.amsa.risky.format.BinaryFixesFormat;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.identity.MmsiValidator2;
 import rx.Observable;
+import rx.schedulers.Schedulers;
 
 public class DistanceTravelledInEezMain {
-    
+
     private static final Logger log = Logger.getLogger(DistanceTravelledInEezMain.class);
 
     private enum Location {
@@ -55,7 +56,7 @@ public class DistanceTravelledInEezMain {
         public double totalTimeHours() {
             return totalTimeMs / HOUR_MILLIS;
         }
-        
+
         public String formattedDate() {
             SimpleDateFormat sdfIn = new SimpleDateFormat("yyyy-mm-dd");
             sdfIn.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -73,13 +74,7 @@ public class DistanceTravelledInEezMain {
 
     public static void main(String[] args) throws FileNotFoundException, IOException {
         System.out.println("running");
-        
-        // used for intersections with eez boundary 
-        Shapefile eezLine = Eez.loadEezLine();
-        
-        // used for contains tests
-        Shapefile eezPolygon = Eez.loadEezPolygon();
-        
+
         File tracks = new File("/home/dxm/combinedSortedTracks");
         long t = System.currentTimeMillis();
         List<File> files = Arrays.asList(tracks.listFiles());
@@ -89,11 +84,20 @@ public class DistanceTravelledInEezMain {
             Observable //
                     .from(files) //
                     .filter(x -> x.getName().endsWith(".track.gz")) //
-                    .filter(x -> x.getName().startsWith("2019-01-01")) //
+                    .filter(x -> x.getName().startsWith("2019")) //
+                    .filter(x -> !x.getName().startsWith("2020-08")) //
                     .flatMap(file -> {
-                        log.info("processing " + file);
+                        log.info(file);
+                        
+                     // Note that the Shapefile objects are not thread-safe so we make new one for each file to enable parallel processing
+                     // used for intersections with eez boundary
+                        Shapefile eezLine = Eez.loadEezLine();
+
+                        // used for contains tests
+                        Shapefile eezPolygon = Eez.loadEezPolygon();
                         return BinaryFixes //
                                 .from(file, true, BinaryFixesFormat.WITH_MMSI) //
+                                .subscribeOn(Schedulers.computation()) //
                                 .filter(f -> MmsiValidator2.INSTANCE.isValid(f.mmsi())) //
                                 .groupBy(fix -> fix.mmsi()) //
                                 .flatMap(o -> {
@@ -138,7 +142,7 @@ public class DistanceTravelledInEezMain {
                                             }).count() //
                                             .map(count -> new Vessel(count, state));
                                 });
-                    }) //
+                    }, Runtime.getRuntime().availableProcessors()) //
                     .filter(x -> x.state.fix != null) //
                     .toBlocking().forEach(x -> out.println(x.line()));
         }
