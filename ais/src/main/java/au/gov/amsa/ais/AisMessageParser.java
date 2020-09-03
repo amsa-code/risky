@@ -1,6 +1,13 @@
 package au.gov.amsa.ais;
 
+import java.util.Optional;
+
+import com.google.common.annotations.VisibleForTesting;
+
+import au.gov.amsa.ais.message.AbstractAisBStaticDataReport;
 import au.gov.amsa.ais.message.AisAidToNavigation;
+import au.gov.amsa.ais.message.AisBStaticDataReportPartA;
+import au.gov.amsa.ais.message.AisBStaticDataReportPartB;
 import au.gov.amsa.ais.message.AisBaseStation;
 import au.gov.amsa.ais.message.AisMessageOther;
 import au.gov.amsa.ais.message.AisPositionA;
@@ -60,6 +67,7 @@ public class AisMessageParser {
 	public AisMessage parse(String message, String source, int padBits) {
 		AisExtractor extractor = factory.create(message, 0, padBits);
 		int id = extractor.getMessageId();
+		
 		if (Util.isClassAPositionReport(id)) {
 			return new AisPositionA(message, source, padBits);
 		} else if (id == 4)
@@ -72,10 +80,27 @@ public class AisMessageParser {
 			return new AisPositionBExtended(message, source, padBits);
 		else if (id == 21)
 			return new AisAidToNavigation(message, source, padBits);
+		else if (id == AisMessageType.STATIC_DATA_REPORT.getId()) {
+			return parseStaticDataReport(id, message, source, padBits);
+		}
 		else if (id == 27)
 			return new AisPositionGPS(message, source, padBits);
 		else
 			return new AisMessageOther(id, source, padBits);
 	}
-
+	
+	private AisMessage parseStaticDataReport(int id, String message, String source, int padBits) {
+		Optional<AisStaticDataReportPart> dataReportPart = 
+				AisStaticDataReportPart.lookup(AbstractAisBStaticDataReport.extractPartNumber(factory, message, padBits));
+		
+		if(dataReportPart.isPresent()) {
+			switch(dataReportPart.get()) {
+				case PART_A: return new AisBStaticDataReportPartA(message, source, padBits);
+				case PART_B: return new AisBStaticDataReportPartB(message, source, padBits);
+				default: return new AisMessageOther(id, source, padBits);
+			}
+		}
+		
+		return new AisMessageOther(id, source, padBits);
+	}
 }

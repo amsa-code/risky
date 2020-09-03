@@ -94,6 +94,43 @@ public class UtilTest {
 				AisMessageType.POSITION_REPORT_ASSIGNED,
 				AisMessageType.POSITION_REPORT_CLASS_B);
 	}
+	
+	@Test(expected = AisParseException.class)
+	public void testChheckStaticDataReportPartNumberThrowsAisParseExceptionWhenMessageIdsNotEqual() {
+		Util.checkStaticDataReportPartNumber(0, AisStaticDataReportPart.PART_B);
+	}
+
+	@Test
+	public void testCheckStaticDataReportPartNumber() {
+		Util.checkStaticDataReportPartNumber(AisStaticDataReportPart.PART_B.getPartNumber(),
+				AisStaticDataReportPart.PART_B);
+	}
+
+	@Test(expected = AisParseException.class)
+	public void testCheckStaticDataReportPartNumberShouldThrowExceptionIfListEmpty() {
+		Util.checkStaticDataReportPartNumber(AisStaticDataReportPart.PART_A.getPartNumber());
+	}
+
+	@Test
+	public void testCheckStaticDataReportPartNumberInMultiple() {
+		Util.checkStaticDataReportPartNumber(AisStaticDataReportPart.PART_A.getPartNumber(),
+				AisStaticDataReportPart.PART_A,
+				AisStaticDataReportPart.PART_B);
+	}
+
+	@Test
+	public void testCheckStaticDataReportPartNumberInMultipleChangedOrder() {
+		Util.checkStaticDataReportPartNumber(AisStaticDataReportPart.PART_A.getPartNumber(),
+				AisStaticDataReportPart.PART_A,
+				AisStaticDataReportPart.PART_B);
+	}
+
+	@Test(expected = AisParseException.class)
+	public void testCheckStaticDataReportPartNumberNotInMultiple() {
+		Util.checkStaticDataReportPartNumber(-1,
+				AisStaticDataReportPart.PART_A,
+				AisStaticDataReportPart.PART_B);
+	}
 
 	@Test
 	public void areEqualTestEquality() {
