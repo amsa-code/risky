@@ -44,37 +44,24 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
 
     private static void convert(File file, File outputDir, AtomicInteger n) {
         try {
-            log.info("converting " + file.getName() + ", gzipped file size = " + (double) file.length() / 1024 / 1024 + "MB");
+            log.info("converting " + file.getName() + ", gzipped file size = " + (double) file.length() / 1024 / 1024
+                    + "MB");
             long t = System.currentTimeMillis();
             Observable<String> nmea = Streams.nmeaFromGzip(file).onErrorResumeNext(e -> Observable.empty());
-            long downsampleMs = TimeUnit.MINUTES.toMillis(15);
-            Map<Integer, Long> latestMmsiTime = new HashMap<>();
             long count;
-
             String outFilename = file.getName().substring(0, file.getName().indexOf(".txt.gz")) + ".track.gz";
             File outFile = new File(file.getParentFile(), outFilename);
             try (OutputStream out = new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(outFile)))) {
                 count = nmea //
                         .compose(o -> Streams.extractFixes(o)) //
                         .filter(x -> inRegion(x)) //
-                        .filter(x -> {
-                            // crude downsample because nmea not sorted by position time
-                            Long time = latestMmsiTime.get(x.mmsi());
-                            if (time == null || Math.abs(x.time() - time) >= downsampleMs) {
-                                if (time != null && x.time() > time) {
-                                    latestMmsiTime.put(x.mmsi(), x.time());
-                                }
-                                return true;
-                            } else {
-                                return false;
-                            }
-                        }).doOnNext(fix -> BinaryFixes.write(fix, out, BinaryFixesFormat.WITH_MMSI)) //
+                        .doOnNext(fix -> BinaryFixes.write(fix, out, BinaryFixesFormat.WITH_MMSI)) //
                         .countLong().toBlocking().first();
             }
             double seconds = (System.currentTimeMillis() - t) / 1000.0;
             n.incrementAndGet();
-            log.info( n.get() + ": file=" + file.getName() //
-            + ", count=" + count  //"
+            log.info(n.get() + ": file=" + file.getName() //
+                    + ", count=" + count // "
                     + ", time=" + seconds + "s" //
                     + ", rate = " + (count / seconds) + " lines/s" //
                     + ", outputFileSize = " + outFile.length() / 1024.0 / 1024 + "MB");
