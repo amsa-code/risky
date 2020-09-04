@@ -295,7 +295,7 @@ public final class Util {
 					s.append(",");
 				s.append(reportPartNumber.getPartNumber() + "");
 			}
-			checkArgument(found, "part number must be in [" + s + "]  but was " + partNumber);
+			checkArgument(found, "part number must be either 1 or 2");
 		}
 	}
 
