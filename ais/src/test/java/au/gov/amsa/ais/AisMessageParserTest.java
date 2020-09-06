@@ -1,5 +1,6 @@
 package au.gov.amsa.ais;
 
+import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -88,6 +89,16 @@ public class AisMessageParserTest {
         AisMessage m = p.parse("H7PJ@:4UCBD6f6<57hhh001H5220", 0);
 
         assertTrue(m instanceof AisBStaticDataReportPartB);
+    }
+    
+    @Test(expected = AisParseException.class) 
+    public void testParseStaticDataReportWithInvalidPartNumberException() {
+
+		AisExtractorFactory factory = createMock(AisExtractorFactory.class);
+   	
+    	AisMessageParser p = new AisMessageParser();
+    	
+    	p.parseStaticDataReport(-1, 24, "H7PJ@:4UCBD6f6<57hhh001H5220", null, 0);
     }
 
     @Test

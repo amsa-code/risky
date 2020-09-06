@@ -2,10 +2,9 @@ package au.gov.amsa.ais.message;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
-import au.gov.amsa.ais.AisStaticDataReportPart;
 import au.gov.amsa.ais.Util;
 
-public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport implements AisStaticDataReportPartA {
+public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport {
 
 	private final static int MESSAGE_LENGTH = 160;
 	
@@ -23,7 +22,7 @@ public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport impl
 
     public AisBStaticDataReportPartA(AisExtractorFactory factory, String message, String source,
             int padBits) {
-    	super(AisStaticDataReportPart.PART_A, 
+    	super(PART_NUMBER_A, 
     		  factory, 
     		  source, 
     		  factory.create(message, MESSAGE_LENGTH, padBits));
@@ -40,7 +39,6 @@ public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport impl
     	}
     }
 
-    @Override
     public String getName() {
         return name;
     }

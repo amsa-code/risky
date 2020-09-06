@@ -274,30 +274,6 @@ public final class Util {
 			checkArgument(found, "messageId must be in [" + s + "]  but was " + messageId);
 		}
 	}
-	
-	/**
-	 * A check that the part number provided matches the collection of 
-	 * available AisStaticDataReportPart objects.
-	 * 
-	 * @param partNumber The part number.
-	 * @param partNumbers The collection of AisStaticDataReportPart objects.
-	 */
-	public static void checkStaticDataReportPartNumber(int partNumber, AisStaticDataReportPart... partNumbers) {
-		boolean found = false;
-		for (AisStaticDataReportPart reportPartNumber : partNumbers) {
-			if (reportPartNumber.getPartNumber() == partNumber)
-				found = true;
-		}
-		if (!found) {
-			StringBuffer s = new StringBuffer();
-			for (AisStaticDataReportPart reportPartNumber : partNumbers) {
-				if (s.length() > 0)
-					s.append(",");
-				s.append(reportPartNumber.getPartNumber() + "");
-			}
-			checkArgument(found, "part number must be either 1 or 2");
-		}
-	}
 
 	/**
 	 * Returns true if and only if given integers are equal. This was extracted

@@ -10,7 +10,6 @@ import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 import au.gov.amsa.ais.AisExtractor;
-import au.gov.amsa.ais.AisStaticDataReportPart;
 import au.gov.amsa.ais.Util;
 
 public class AisBStaticDataReportPartBTest {
@@ -26,7 +25,7 @@ public class AisBStaticDataReportPartBTest {
 		assertEquals(24, message.getMessageId());
 		assertEquals(503746600, message.getMmsi());
 		assertEquals(0, message.getRepeatIndicator());
-		assertEquals(AisStaticDataReportPart.PART_B.getPartNumber(), message.getPartNumber());
+		assertEquals(AbstractAisBStaticDataReport.PART_NUMBER_B, message.getPartNumber());
 		assertEquals(37, message.getShipType());
 		assertEquals("SRT", message.getVendorManufacturerId());
 		assertEquals(Integer.valueOf(1), message.getVendorUnitModelCode());
@@ -48,7 +47,7 @@ public class AisBStaticDataReportPartBTest {
 		
 		final int partNumber = AbstractAisBStaticDataReport.extractPartNumber(Util.getAisExtractorFactory(), message, 0);
 		
-		assertEquals(AisStaticDataReportPart.PART_B.getPartNumber(), partNumber);
+		assertEquals(AbstractAisBStaticDataReport.PART_NUMBER_B, partNumber);
 	}
 	
 	@Test

@@ -4,10 +4,9 @@ import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
-import au.gov.amsa.ais.AisStaticDataReportPart;
 import au.gov.amsa.ais.Util;
 
-public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport implements AisStaticDataReportPartB {
+public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 	
 	private final static int MESSAGE_LENGTH = 168;
 
@@ -35,7 +34,7 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
 
     public AisBStaticDataReportPartB(AisExtractorFactory factory, String message, String source,
             int padBits) {
-    	super(AisStaticDataReportPart.PART_B,
+    	super(PART_NUMBER_B,
     		  factory, 
     		  source, 
     		  factory.create(message, MESSAGE_LENGTH, padBits));
@@ -136,22 +135,18 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         return builder.toString();
     }
 
-	@Override
 	public int getShipType() {
 		return shipType;
 	}
 
-	@Override
 	public String getCallsign() {
 		return callsign;
 	}
 
-	@Override
 	public int getTypeOfElectronicPosition() {
 		return typeOfElectronicPosition;
 	}
 
-	@Override
 	public Optional<Integer> getDimensionA() {
         if (dimensionA == 0) {
             return Optional.absent();
@@ -160,7 +155,6 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         }
 	}
 
-	@Override
 	public Optional<Integer> getDimensionB() {
 		if (dimensionB == 0) {
             return Optional.absent();
@@ -169,7 +163,6 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         }
 	}
 
-	@Override
 	public Optional<Integer> getDimensionC() {
 		if (dimensionC == 0) {
             return Optional.absent();
@@ -178,7 +171,6 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         }
 	}
 
-	@Override
 	public Optional<Integer> getDimensionD() {
 		if (dimensionD == 0) {
             return Optional.absent();
@@ -187,7 +179,6 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         }
 	}
 
-	@Override
     public Optional<Integer> getLengthMetres() {
         Optional<Integer> a = getDimensionA();
         if (!a.isPresent()) {
@@ -200,7 +191,6 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         return Optional.of(a.get() + b.get());
     }
 
-    @Override
     public Optional<Integer> getWidthMetres() {
         Optional<Integer> c = getDimensionC();
         if (!c.isPresent()) {
@@ -213,17 +203,14 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport impl
         return Optional.of(c.get() + d.get());
     }
 
-	@Override
 	public String getVendorManufacturerId() {
 		return vendorManufacturerId;
 	}
 
-	@Override
 	public Integer getVendorUnitModelCode() {
 		return vendorUnitModelCode;
 	}
 
-	@Override
 	public Integer getVendorUnitSerialNumber() {
 		return vendorUnitSerialNumber;
 	}
