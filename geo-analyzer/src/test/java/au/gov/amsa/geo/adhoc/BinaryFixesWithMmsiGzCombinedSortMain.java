@@ -7,13 +7,12 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 
 import org.apache.log4j.Logger;
@@ -29,16 +28,23 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
 
     public static void main(String[] args) throws InterruptedException {
         File tracks = new File("/home/dxm/AIS/tracks");
-        File combinedSortedTracks = new File("/home/dxm/combinedSortedTracks");
+        File combinedSortedTracks = new File("/home/dxm/combinedSortedTracks2");
         combinedSortedTracks.mkdir();
 
         AtomicReference<FileFixes> previous = new AtomicReference<>();
         AtomicInteger n = new AtomicInteger();
         Observable //
                 .from(tracks.listFiles()) //
-                .filter(x -> x.getName().endsWith(".track.gz") && x.getName().compareTo("2019-08-06") >= 0) //
-                .map(x -> new FileFixes(x,
-                        BinaryFixes.from(x, true, BinaryFixesFormat.WITH_MMSI).toList().toBlocking().first()))
+                .filter(x -> x.getName().endsWith(".track.gz") && x.getName().startsWith("2019-01-0")) //
+                .sorted((x,y) -> x.getName().compareTo(y.getName())) //
+                .map(x -> new FileFixes(x, BinaryFixes.from(x, true, BinaryFixesFormat.WITH_MMSI) //
+                        // use a linked list because iterator.remove is efficient with that data structure
+                        .reduce(new LinkedList<Fix>(), (list, fix) -> {
+                            list.add(fix);
+                            return list;
+                        }) //
+                        .toBlocking() //
+                        .first()))
                 .doOnNext(ff -> {
                     FileFixes prev = previous.get();
                     if (prev != null) {
@@ -57,18 +63,26 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                             }
                         }
                         prev.fixes.sort((x, y) -> Long.compare(x.time(), y.time()));
-                        File f = new File(combinedSortedTracks, prev.file.getName());
-                        try (OutputStream out = new GZIPOutputStream(new FileOutputStream(f))) {
-                            for (Fix fix : prev.fixes) {
-                                BinaryFixes.write(fix, out, BinaryFixesFormat.WITH_MMSI);
-                            }
-                        } catch (IOException e) {
-                            throw new UncheckedIOException(e);
-                        }
-                        log.info(n.incrementAndGet() + ": removed " + removed + ", added " + added + " to " + f);
+                        writeFixes(combinedSortedTracks, n, prev, removed, added);
                     }
                     previous.set(ff);
                 }).subscribe();
+        if (previous.get() != null) {
+            writeFixes(combinedSortedTracks, n, previous.get(), 0, 0);
+        }
+    }
+
+    private static void writeFixes(File combinedSortedTracks, AtomicInteger n, FileFixes prev, long removed,
+            long added) {
+        File f = new File(combinedSortedTracks, prev.file.getName());
+        try (OutputStream out = new GZIPOutputStream(new FileOutputStream(f))) {
+            for (Fix fix : prev.fixes) {
+                BinaryFixes.write(fix, out, BinaryFixesFormat.WITH_MMSI);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        log.info(n.incrementAndGet() + ": removed from next day=" + removed + ", added to this day=" + added + " to " + f);
     }
 
     private static final class FileFixes {
