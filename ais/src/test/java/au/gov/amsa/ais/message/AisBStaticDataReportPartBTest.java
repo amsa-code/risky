@@ -4,6 +4,7 @@ import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -59,6 +60,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		Integer result = AisBStaticDataReportPartB.extractShipType(ex);
 		assertEquals(typeOfShip, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -71,6 +73,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		Integer result = AisBStaticDataReportPartB.extractShipType(ex);
 		assertNull(result);
+		verify(ex);
 	}
 	
 	@Test
@@ -83,6 +86,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		String result = AisBStaticDataReportPartB.extractCallSign(ex);
 		assertNull(result);
+		verify(ex);
 	}
 	
 	@Test
@@ -94,6 +98,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		String result = AisBStaticDataReportPartB.extractVendorManufacturerId(ex);
 		assertEquals(vendorManufacturerId, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -105,6 +110,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		Integer result = AisBStaticDataReportPartB.extractVendorUnitModelCode(ex);
 		assertEquals(vendorUnitModelCode, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -116,6 +122,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		Integer result = AisBStaticDataReportPartB.extractVendorUnitSerialNumber(ex);
 		assertEquals(vendorUnitSerialNumber, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -127,6 +134,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		String result = AisBStaticDataReportPartB.extractCallSign(ex);
 		assertEquals(vendorCallSign, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -138,6 +146,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		int result = AisBStaticDataReportPartB.extractDimensionA(ex);
 		assertEquals(dimensionA, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -149,6 +158,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		int result = AisBStaticDataReportPartB.extractDimensionB(ex);
 		assertEquals(dimensionB, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -160,6 +170,7 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		int result = AisBStaticDataReportPartB.extractDimensionC(ex);
 		assertEquals(dimensionC, result);
+		verify(ex);
 	}
 	
 	@Test
@@ -171,5 +182,6 @@ public class AisBStaticDataReportPartBTest {
 		replay(ex);
 		int result = AisBStaticDataReportPartB.extractDimensionD(ex);
 		assertEquals(dimensionD, result);
+		verify(ex);
 	}
 }

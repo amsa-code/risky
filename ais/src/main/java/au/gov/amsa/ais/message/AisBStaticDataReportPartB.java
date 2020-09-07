@@ -22,7 +22,7 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     private final int dimensionB;
     private final int dimensionC;
     private final int dimensionD;
-    private int typeOfElectronicPosition;
+    private final int typeOfElectronicPosition;
 
     public AisBStaticDataReportPartB(String message, int padBits) {
         this(message, null, padBits);

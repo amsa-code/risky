@@ -4,6 +4,7 @@ import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -51,6 +52,7 @@ public class AisBStaticDataReportPartATest {
 		replay(ex);
 		String name = AisBStaticDataReportPartA.extractName(ex);
 		assertEquals(shipName, name);
+		verify(ex);
 	}
 	
 	@Test
@@ -63,5 +65,6 @@ public class AisBStaticDataReportPartATest {
 		replay(ex);
 		String name = AisBStaticDataReportPartA.extractName(ex);
 		assertNull(name);
+		verify(ex);		
 	}
 }
