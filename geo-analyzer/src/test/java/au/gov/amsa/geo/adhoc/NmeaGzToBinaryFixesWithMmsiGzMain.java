@@ -6,9 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
@@ -56,7 +53,9 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
                         .compose(o -> Streams.extractFixes(o)) //
                         .filter(x -> inRegion(x)) //
                         .doOnNext(fix -> BinaryFixes.write(fix, out, BinaryFixesFormat.WITH_MMSI)) //
-                        .countLong().toBlocking().first();
+                        .countLong() //
+                        .toBlocking() //
+                        .first();
             }
             double seconds = (System.currentTimeMillis() - t) / 1000.0;
             n.incrementAndGet();

@@ -8,6 +8,7 @@ import java.io.UncheckedIOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -41,16 +42,20 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                 .doOnNext(ff -> {
                     FileFixes prev = previous.get();
                     if (prev != null) {
-                        List<Fix> move = new ArrayList<>();
-                        for (Fix fix : ff.fixes) {
+                        long removed = 0;
+                        long added = 0;
+                        Iterator<Fix> it = ff.fixes.iterator();
+                        while (it.hasNext()) {
+                            Fix fix = it.next();
                             if (fix.time() < ff.startTime) {
-                                move.add(fix);
+                                it.remove();
+                                removed++;
+                                if (fix.time() >= prev.startTime) {
+                                    prev.fixes.add(fix);
+                                    added++;
+                                }
                             }
                         }
-                        ff.fixes.removeAll(move);
-                        List<Fix> addThese = move.stream().filter(fix -> fix.time() >= prev.startTime)
-                                .collect(Collectors.toList());
-                        prev.fixes.addAll(addThese);
                         prev.fixes.sort((x, y) -> Long.compare(x.time(), y.time()));
                         File f = new File(combinedSortedTracks, prev.file.getName());
                         try (OutputStream out = new GZIPOutputStream(new FileOutputStream(f))) {
@@ -60,7 +65,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                         } catch (IOException e) {
                             throw new UncheckedIOException(e);
                         }
-                        log.info(n.incrementAndGet() + ": removed " + move.size() + ", added " + addThese.size() + " to " + f);
+                        log.info(n.incrementAndGet() + ": removed " + removed + ", added " + added + " to " + f);
                     }
                     previous.set(ff);
                 }).subscribe();
