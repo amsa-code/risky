@@ -22,14 +22,17 @@ import com.github.davidmoten.grumpy.core.Position;
 import au.gov.amsa.geo.Eez;
 import au.gov.amsa.geo.ShapefileUtil;
 import au.gov.amsa.geo.TimedPosition;
+import au.gov.amsa.geo.adhoc.DistanceTravelledInEezMain.Vessel;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.gt.Shapefile;
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesFormat;
+import au.gov.amsa.risky.format.Downsample;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.util.identity.MmsiValidator2;
 import rx.Observable;
+import rx.observables.GroupedObservable;
 import rx.schedulers.Schedulers;
 
 public class DistanceTravelledInEezMain {
@@ -75,7 +78,7 @@ public class DistanceTravelledInEezMain {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         System.out.println("running");
 
-        File tracks = new File("/home/dxm/combinedSortedTracks");
+        File tracks = new File("/home/dxm/combinedSortedTracks2");
         long t = System.currentTimeMillis();
         List<File> files = Arrays.asList(tracks.listFiles());
         files.sort((a, b) -> a.getName().compareTo(b.getName()));
@@ -91,7 +94,7 @@ public class DistanceTravelledInEezMain {
 
                         // Note that the Shapefile objects are not thread-safe so we make new one for
                         // each file to enable parallel processing
-                        
+
                         // used for intersections with eez boundary
                         Shapefile eezLine = Eez.loadEezLine();
 
@@ -102,53 +105,56 @@ public class DistanceTravelledInEezMain {
                                 .subscribeOn(Schedulers.computation()) //
                                 .filter(f -> MmsiValidator2.INSTANCE.isValid(f.mmsi())) //
                                 .groupBy(fix -> fix.mmsi()) //
-                                .flatMap(o -> {
-                                    State state = new State();
-                                    state.date = file.getName().substring(0, file.getName().indexOf(".track.gz"));
-                                    state.mmsi = o.getKey();
-                                    state.location = Location.UNKNOWN;
-                                    return o //
-                                            .lift(new OperatorEffectiveSpeedChecker(SegmentOptions.builder()
-                                                    .acceptAnyFixHours(12L).maxSpeedKnots(50).build()))
-                                            .filter(check -> check.isOk()) //
-                                            .map(check -> check.fix()) //
-                                            .doOnNext(fix -> {
-                                                boolean inside = eezPolygon.contains(fix.lat(), fix.lon());
-                                                Location location = inside ? Location.IN : Location.OUT;
-                                                if (state.location != Location.UNKNOWN) {
-                                                    boolean crossed = state.location != location;
-                                                    if (crossed) {
-                                                        TimedPosition point = ShapefileUtil
-                                                                .findRegionCrossingPoint(eezLine, state.fix, fix);
-                                                        final double distance;
-                                                        if (state.location == Location.IN) {
-                                                            distance = distanceKm(fix.lat(), fix.lon(), point.lat,
-                                                                    point.lon);
-                                                        } else {
-                                                            distance = distanceKm(state.fix.lat(), state.fix.lon(),
-                                                                    point.lat, point.lon);
-                                                        }
-                                                        state.distanceKm += distance;
-                                                        state.totalTimeMs += distance
-                                                                / distanceKm(state.fix.lat(), state.fix.lon(),
-                                                                        fix.lat(), fix.lon())
-                                                                * (fix.time() - state.fix.time());
-                                                    } else {
-                                                        state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(),
-                                                                fix.lat(), fix.lon());
-                                                        state.totalTimeMs += fix.time() - state.fix.time();
-                                                    }
-                                                }
-                                                state.fix = fix;
-                                                state.location = location;
-                                            }).count() //
-                                            .map(count -> new Vessel(count, state));
-                                });
+                                .flatMap(o -> calculateDistance(file, eezLine, eezPolygon, o));
                     }, Runtime.getRuntime().availableProcessors()) //
                     .filter(x -> x.state.fix != null) //
-                    .toBlocking().forEach(x -> out.println(x.line()));
+                    .toBlocking() //
+                    .forEach(x -> out.println(x.line()));
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    private static Observable<? extends Vessel> calculateDistance(File file, Shapefile eezLine, Shapefile eezPolygon,
+            GroupedObservable<Integer, Fix> o) {
+        return Observable.defer(() -> {
+            State state = new State();
+            state.date = file.getName().substring(0, file.getName().indexOf(".track.gz"));
+            state.mmsi = o.getKey();
+            state.location = Location.UNKNOWN;
+            return o //
+                    .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)) //
+                    .lift(new OperatorEffectiveSpeedChecker(
+                            SegmentOptions.builder().acceptAnyFixHours(12L).maxSpeedKnots(50).build()))
+                    .filter(check -> check.isOk()) //
+                    .map(check -> check.fix()) //
+                    .doOnNext(fix -> {
+                        boolean inside = eezPolygon.contains(fix.lat(), fix.lon());
+                        Location location = inside ? Location.IN : Location.OUT;
+                        if (state.location != Location.UNKNOWN) {
+                            boolean crossed = state.location != location;
+                            if (crossed) {
+                                TimedPosition point = ShapefileUtil.findRegionCrossingPoint(eezLine, state.fix, fix);
+                                final double distance;
+                                if (state.location == Location.IN) {
+                                    distance = distanceKm(fix.lat(), fix.lon(), point.lat, point.lon);
+                                } else {
+                                    distance = distanceKm(state.fix.lat(), state.fix.lon(), point.lat, point.lon);
+                                }
+                                state.distanceKm += distance;
+                                state.totalTimeMs += distance
+                                        / distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon())
+                                        * (fix.time() - state.fix.time());
+                            } else {
+                                state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon());
+                                state.totalTimeMs += fix.time() - state.fix.time();
+                            }
+                        }
+                        state.fix = fix;
+                        state.location = location;
+                    }) //
+                    .count() //
+                    .map(count -> new Vessel(count, state));
+        });
     }
 
     static final class Vessel {
