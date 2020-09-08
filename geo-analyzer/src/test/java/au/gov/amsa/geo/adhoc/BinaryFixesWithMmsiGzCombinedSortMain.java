@@ -7,8 +7,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,10 +26,12 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
     private static final Logger log = Logger.getLogger(BinaryFixesWithMmsiGzCombinedSortMain.class);
 
     public static void main(String[] args) throws InterruptedException {
+        log.info("starting");
         File tracks = new File("/home/dxm/AIS/tracks");
         File combinedSortedTracks = new File("/home/dxm/combinedSortedTracks2");
         combinedSortedTracks.mkdir();
 
+        
         AtomicReference<FileFixes> previous = new AtomicReference<>();
         AtomicInteger n = new AtomicInteger();
         Observable //
@@ -38,11 +39,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                 .filter(x -> x.getName().endsWith(".track.gz") && x.getName().startsWith("2019-01-0")) //
                 .sorted((x,y) -> x.getName().compareTo(y.getName())) //
                 .map(x -> new FileFixes(x, BinaryFixes.from(x, true, BinaryFixesFormat.WITH_MMSI) //
-                        // use a linked list because iterator.remove is efficient with that data structure
-                        .reduce(new LinkedList<Fix>(), (list, fix) -> {
-                            list.add(fix);
-                            return list;
-                        }) //
+                        .toList() //
                         .toBlocking() //
                         .first()))
                 .doOnNext(ff -> {
@@ -50,11 +47,10 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                     if (prev != null) {
                         long removed = 0;
                         long added = 0;
-                        Iterator<Fix> it = ff.fixes.iterator();
-                        while (it.hasNext()) {
-                            Fix fix = it.next();
+                        List<Fix> removeThese = new ArrayList<>(); 
+                        for (Fix fix: ff.fixes) {
                             if (fix.time() < ff.startTime) {
-                                it.remove();
+                                removeThese.add(fix);
                                 removed++;
                                 if (fix.time() >= prev.startTime) {
                                     prev.fixes.add(fix);
@@ -62,6 +58,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                                 }
                             }
                         }
+                        prev.fixes.removeAll(removeThese);
                         prev.fixes.sort((x, y) -> Long.compare(x.time(), y.time()));
                         writeFixes(combinedSortedTracks, n, prev, removed, added);
                     }
