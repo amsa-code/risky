@@ -1,6 +1,9 @@
 package au.gov.amsa.ais;
 
+import au.gov.amsa.ais.message.AbstractAisBStaticDataReport;
 import au.gov.amsa.ais.message.AisAidToNavigation;
+import au.gov.amsa.ais.message.AisBStaticDataReportPartA;
+import au.gov.amsa.ais.message.AisBStaticDataReportPartB;
 import au.gov.amsa.ais.message.AisBaseStation;
 import au.gov.amsa.ais.message.AisMessageOther;
 import au.gov.amsa.ais.message.AisPositionA;
@@ -60,6 +63,7 @@ public class AisMessageParser {
 	public AisMessage parse(String message, String source, int padBits) {
 		AisExtractor extractor = factory.create(message, 0, padBits);
 		int id = extractor.getMessageId();
+		
 		if (Util.isClassAPositionReport(id)) {
 			return new AisPositionA(message, source, padBits);
 		} else if (id == 4)
@@ -72,10 +76,24 @@ public class AisMessageParser {
 			return new AisPositionBExtended(message, source, padBits);
 		else if (id == 21)
 			return new AisAidToNavigation(message, source, padBits);
+		else if (id == AisMessageType.STATIC_DATA_REPORT.getId()) {
+			int partNumber = AbstractAisBStaticDataReport.extractPartNumber(factory, message, padBits);
+			return parseStaticDataReport(partNumber, id, message, source, padBits);
+		}
 		else if (id == 27)
 			return new AisPositionGPS(message, source, padBits);
 		else
 			return new AisMessageOther(id, source, padBits);
 	}
-
+	
+	AisMessage parseStaticDataReport(int partNumber, int id, String message, String source, int padBits) {
+		
+		if(partNumber==AbstractAisBStaticDataReport.PART_NUMBER_A) {
+			return new AisBStaticDataReportPartA(message, source, padBits);
+		} else if (partNumber==AbstractAisBStaticDataReport.PART_NUMBER_B) {
+			return new AisBStaticDataReportPartB(message, source, padBits);
+		} else {
+			throw new AisParseException("Unsupported part number ["+partNumber+"]");
+		}
+	}
 }

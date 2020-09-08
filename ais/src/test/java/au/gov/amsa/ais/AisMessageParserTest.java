@@ -1,11 +1,14 @@
 package au.gov.amsa.ais;
 
+import static org.easymock.EasyMock.createMock;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import au.gov.amsa.ais.message.AisAidToNavigation;
+import au.gov.amsa.ais.message.AisBStaticDataReportPartA;
+import au.gov.amsa.ais.message.AisBStaticDataReportPartB;
 import au.gov.amsa.ais.message.AisBaseStation;
 import au.gov.amsa.ais.message.AisPositionA;
 import au.gov.amsa.ais.message.AisPositionB;
@@ -70,6 +73,32 @@ public class AisMessageParserTest {
         assertEquals("QUETTA ROCK", a.getName());
         assertEquals("", a.getAtonStatus());
         assertTrue(a.isHighAccuracyPosition());
+    }
+    
+    @Test
+    public void testStaticDataReportPartA() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("H7PH6A15DDDr1=@5:0f22222220", 0);
+
+        assertTrue(m instanceof AisBStaticDataReportPartA);
+    }
+    
+    @Test
+    public void testStaticDataReportPartB() {
+        AisMessageParser p = new AisMessageParser();
+        AisMessage m = p.parse("H7PJ@:4UCBD6f6<57hhh001H5220", 0);
+
+        assertTrue(m instanceof AisBStaticDataReportPartB);
+    }
+    
+    @Test(expected = AisParseException.class) 
+    public void testParseStaticDataReportWithInvalidPartNumberException() {
+
+		AisExtractorFactory factory = createMock(AisExtractorFactory.class);
+   	
+    	AisMessageParser p = new AisMessageParser();
+    	
+    	p.parseStaticDataReport(-1, 24, "H7PJ@:4UCBD6f6<57hhh001H5220", null, 0);
     }
 
     @Test
