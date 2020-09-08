@@ -128,7 +128,7 @@ public class DistanceTravelledInEezMain {
             return o //
                     .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)) //
                     .lift(new OperatorEffectiveSpeedChecker(
-                            SegmentOptions.builder().acceptAnyFixHours(120L).maxSpeedKnots(50).build()))
+                            SegmentOptions.builder().acceptAnyFixHours(480L).maxSpeedKnots(50).build()))
                     .filter(check -> check.isOk()) //
                     .map(check -> check.fix()) //
                     .doOnNext(fix -> {
