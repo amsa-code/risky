@@ -38,7 +38,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
         AtomicInteger n = new AtomicInteger();
         Observable //
                 .from(tracks.listFiles()) //
-                .filter(x -> x.getName().endsWith(".track.gz") && x.getName().startsWith("2019-01-0")) //
+                .filter(x -> x.getName().endsWith(".track.gz")) //
                 .sorted((x,y) -> x.getName().compareTo(y.getName())) //
                 .doOnNext(x -> log.info("reading " + x)) //
                 .map(x -> new FileFixes(x, BinaryFixes.from(x, true, BinaryFixesFormat.WITH_MMSI) //
