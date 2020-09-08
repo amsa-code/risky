@@ -128,7 +128,7 @@ public class DistanceTravelledInEezMain {
             return o //
                     .compose(Downsample.minTimeStep(5, TimeUnit.MINUTES)) //
                     .lift(new OperatorEffectiveSpeedChecker(
-                            SegmentOptions.builder().acceptAnyFixHours(12L).maxSpeedKnots(50).build()))
+                            SegmentOptions.builder().acceptAnyFixHours(120L).maxSpeedKnots(50).build()))
                     .filter(check -> check.isOk()) //
                     .map(check -> check.fix()) //
                     .doOnNext(fix -> {
@@ -139,7 +139,7 @@ public class DistanceTravelledInEezMain {
                             if (crossed) {
                                 TimedPosition point = ShapefileUtil.findRegionCrossingPoint(eezLine, state.fix, fix);
                                 final double distance;
-                                if (state.location == Location.IN) {
+                                if (location == Location.IN) {
                                     distance = distanceKm(fix.lat(), fix.lon(), point.lat, point.lon);
                                 } else {
                                     distance = distanceKm(state.fix.lat(), state.fix.lon(), point.lat, point.lon);
