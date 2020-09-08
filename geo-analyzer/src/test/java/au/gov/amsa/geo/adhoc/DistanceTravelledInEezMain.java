@@ -22,7 +22,6 @@ import com.github.davidmoten.grumpy.core.Position;
 import au.gov.amsa.geo.Eez;
 import au.gov.amsa.geo.ShapefileUtil;
 import au.gov.amsa.geo.TimedPosition;
-import au.gov.amsa.geo.adhoc.DistanceTravelledInEezMain.Vessel;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.gt.Shapefile;
@@ -61,20 +60,25 @@ public class DistanceTravelledInEezMain {
         }
 
         public String formattedDate() {
-            SimpleDateFormat sdfIn = new SimpleDateFormat("yyyy-mm-dd");
-            sdfIn.setTimeZone(TimeZone.getTimeZone("UTC"));
-            try {
-                Date d = sdfIn.parse(date);
-                // Sabine's preferred date format for importing into SPSS
-                SimpleDateFormat sdfOut = new SimpleDateFormat("dd-MMM-yyyy");
-                sdfOut.setTimeZone(TimeZone.getTimeZone("UTC"));
-                return sdfOut.format(d);
-            } catch (ParseException e) {
-                throw new RuntimeException(e);
-            }
+            return DistanceTravelledInEezMain.formattedDate(date);
         }
+        
     }
 
+    static String formattedDate(String date) {
+        SimpleDateFormat sdfIn = new SimpleDateFormat("yyyy-MM-dd");
+        sdfIn.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            Date d = sdfIn.parse(date);
+            // Sabine's preferred date format for importing into SPSS
+            SimpleDateFormat sdfOut = new SimpleDateFormat("dd-MMM-yyyy");
+            sdfOut.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return sdfOut.format(d);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
     public static void main(String[] args) throws FileNotFoundException, IOException {
         System.out.println("running");
 
@@ -92,7 +96,7 @@ public class DistanceTravelledInEezMain {
                     .flatMap(file -> {
                         log.info(file);
 
-                        // Note that the Shapefile objects are not thread-safe so we make new one for
+                        // Note that the Shapefile objects are not thread-safe so we make new one for   
                         // each file to enable parallel processing
 
                         // used for intersections with eez boundary
