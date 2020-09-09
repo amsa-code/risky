@@ -30,7 +30,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
     public static void main(String[] args) throws InterruptedException {
         log.info("starting");
         File tracks = new File("/home/dxm/AIS/tracks");
-        File combinedSortedTracks = new File("/home/dxm/combinedSortedTracks2");
+        File combinedSortedTracks = new File("/home/dxm/combinedSortedTracks");
         combinedSortedTracks.mkdir();
 
         

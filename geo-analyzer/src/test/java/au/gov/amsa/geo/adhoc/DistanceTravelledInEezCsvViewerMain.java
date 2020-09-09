@@ -3,7 +3,9 @@ package au.gov.amsa.geo.adhoc;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import au.gov.amsa.ais.rx.Streams;
 
@@ -28,11 +30,23 @@ public class DistanceTravelledInEezCsvViewerMain {
                 // .map(x -> Arrays.toString(x) + ": avg speed in knots = " + speedKnots(x)) //
                 .sorted((a, b) -> Double.compare(a.distanceKm, b.distanceKm)) //
                 .doOnNext(System.out::println) //
+                .toList() //
+                .doOnNext(list -> System.out.println("median = " + list.get(list.size() / 2)))//
+                .doOnNext(list -> System.out.println("average = " + average(list.stream().map(x -> x.distanceKm).collect(Collectors.toList())))) //
                 .toBlocking() //
                 .subscribe();
         System.out.println("finished");
     }
 
+    
+    private static double average(List<Double> list) {
+        double sum = 0;
+        for (double d: list) {
+            sum += d;
+        }
+        return sum/list.size();
+    }
+    
     private static double speedKnots(String[] x) {
         return Double.parseDouble(x[4]) / Double.parseDouble(x[5]);
     }
