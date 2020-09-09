@@ -82,7 +82,7 @@ public class DistanceTravelledInEezMain {
     public static void main(String[] args) throws FileNotFoundException, IOException {
         System.out.println("running");
 
-        File tracks = new File("/home/dxm/combinedSortedTracks2");
+        File tracks = new File("/home/dxm/combinedSortedTracks");
         long t = System.currentTimeMillis();
         List<File> files = Arrays.asList(tracks.listFiles());
         files.sort((a, b) -> a.getName().compareTo(b.getName()));
@@ -148,7 +148,7 @@ public class DistanceTravelledInEezMain {
                                 state.totalTimeMs += distance
                                         / distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon())
                                         * (fix.time() - state.fix.time());
-                            } else {
+                            } else if (location == Location.IN) {
                                 state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon());
                                 state.totalTimeMs += fix.time() - state.fix.time();
                             }
