@@ -132,6 +132,7 @@ public class DistanceTravelledInEezMain {
                     .filter(check -> check.isOk()) //
                     .map(check -> check.fix()) //
                     .doOnNext(fix -> {
+                        //TODO unit test
                         boolean inside = eezPolygon.contains(fix.lat(), fix.lon());
                         Location location = inside ? Location.IN : Location.OUT;
                         if (state.location != Location.UNKNOWN) {
