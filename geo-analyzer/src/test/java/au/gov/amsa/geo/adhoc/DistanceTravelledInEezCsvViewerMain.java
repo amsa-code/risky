@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 import au.gov.amsa.ais.rx.Streams;
 
-public class DistanceTravelledInEezCsvViewerMain {
+public final class DistanceTravelledInEezCsvViewerMain {
 
     public static void main(String[] args) throws FileNotFoundException {
         SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
@@ -29,10 +29,11 @@ public class DistanceTravelledInEezCsvViewerMain {
                 // .doOnNext(x -> mmsis.add(x[1])) //
                 // .map(x -> Arrays.toString(x) + ": avg speed in knots = " + speedKnots(x)) //
                 .sorted((a, b) -> Double.compare(a.distanceKm, b.distanceKm)) //
-                .doOnNext(System.out::println) //
                 .toList() //
+                .doOnNext(list -> System.out.println("number of vessels = " + list.size())) //
                 .doOnNext(list -> System.out.println("median = " + list.get(list.size() / 2)))//
-                .doOnNext(list -> System.out.println("average = " + average(list.stream().map(x -> x.distanceKm).collect(Collectors.toList())))) //
+                .doOnNext(list -> System.out.println("averageKm = " + Math.round(average(list.stream().map(x -> x.distanceKm).collect(Collectors.toList()))))) //
+                .doOnNext(list -> System.out.println("totalNmInEez = " + Math.round(list.stream().mapToDouble(x -> x.distanceKm).sum() / 1.852))) //
                 .toBlocking() //
                 .subscribe();
         System.out.println("finished");
