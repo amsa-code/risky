@@ -26,7 +26,7 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
         // input is one year of nmea lines split into daily files
         //
         File inputDir = new File("/home/dxm/AIS");
-        File outputDir = new File(inputDir, "tracks");
+        File outputDir = new File(inputDir, "tracks2");
         outputDir.mkdir();
         Observable<File> inputFiles = Observable.from(inputDir.listFiles()) //
                 .filter(f -> f.getName().endsWith(".txt.gz")).toSortedList() //
@@ -47,7 +47,7 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
             Observable<String> nmea = Streams.nmeaFromGzip(file).onErrorResumeNext(e -> Observable.empty());
             long count;
             String outFilename = file.getName().substring(0, file.getName().indexOf(".txt.gz")) + ".track.gz";
-            File outFile = new File(file.getParentFile(), outFilename);
+            File outFile = new File(outputDir, outFilename);
             try (OutputStream out = new GZIPOutputStream(new BufferedOutputStream(new FileOutputStream(outFile)))) {
                 count = nmea //
                         .compose(o -> Streams.extractFixes(o)) //
