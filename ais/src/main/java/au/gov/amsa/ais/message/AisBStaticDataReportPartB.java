@@ -12,10 +12,10 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 
 	private final static String CALL_SIGN_NOT_AVAILABLE = "@@@@@@@";
 
-    private final Integer shipType;
+    private final int shipType;
     private final String vendorManufacturerId;
-    private final Integer vendorUnitModelCode;
-    private final Integer vendorUnitSerialNumber;
+    private final int vendorUnitModelCode;
+    private final int vendorUnitSerialNumber;
     private final Optional<String> callsign;
     private final int dimensionA;
     private final int dimensionB;
