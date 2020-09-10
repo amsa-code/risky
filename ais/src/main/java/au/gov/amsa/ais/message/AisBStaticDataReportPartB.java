@@ -11,18 +11,16 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 	private final static int MESSAGE_LENGTH = 168;
 
 	private final static String CALL_SIGN_NOT_AVAILABLE = "@@@@@@@";
-	private final static int TYPE_OF_SHIP_AND_CARGO_TYPE_NOT_AVAILABLE = 0;
 
     private final Integer shipType;
     private final String vendorManufacturerId;
     private final Integer vendorUnitModelCode;
     private final Integer vendorUnitSerialNumber;
-    private final String callsign;
+    private final Optional<String> callsign;
     private final int dimensionA;
     private final int dimensionB;
     private final int dimensionC;
     private final int dimensionD;
-    private final int typeOfElectronicPosition;
 
     public AisBStaticDataReportPartB(String message, int padBits) {
         this(message, null, padBits);
@@ -48,16 +46,10 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
         dimensionB = extractDimensionB(getExtractor());
         dimensionC = extractDimensionC(getExtractor());
         dimensionD = extractDimensionD(getExtractor());
-    	typeOfElectronicPosition = getExtractor().getValue(162, 4);
     }
     
     static Integer extractShipType(AisExtractor extractor) {
-    	int value = extractor.getValue(40, 48);
-    	if(TYPE_OF_SHIP_AND_CARGO_TYPE_NOT_AVAILABLE == value) {
-    		return null;
-    	} else {
-    		return value;
-    	}
+    	return extractor.getValue(40, 48);
     }
     
     static String extractVendorManufacturerId(AisExtractor extractor) {
@@ -72,13 +64,13 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     	return extractor.getValue(70, 90);
     }
     
-    static String extractCallSign(AisExtractor extractor) {
+    static Optional<String> extractCallSign(AisExtractor extractor) {
 
     	String value = extractor.getString(90, 132);
     	if(CALL_SIGN_NOT_AVAILABLE.contentEquals(value)) {
-    		return null;
+    		return Optional.absent();
     	} else {
-    		return value;
+    		return Optional.of(value);
     	}
     }
     
@@ -129,8 +121,6 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
         builder.append(getDimensionC());
         builder.append(", dimensionD=");
         builder.append(getDimensionD());
-        builder.append(", typeOfElectronicPosition=");
-        builder.append(getTypeOfElectronicPosition());
         builder.append("]");
         return builder.toString();
     }
@@ -139,12 +129,8 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 		return shipType;
 	}
 
-	public String getCallsign() {
+	public Optional<String> getCallsign() {
 		return callsign;
-	}
-
-	public int getTypeOfElectronicPosition() {
-		return typeOfElectronicPosition;
 	}
 
 	public Optional<Integer> getDimensionA() {

@@ -6,9 +6,11 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.Util;
@@ -29,7 +31,7 @@ public class AisBStaticDataReportPartATest {
 		assertEquals(503711300, message.getMmsi());
 		assertEquals(0, message.getRepeatIndicator());
 		assertEquals(0, message.getPartNumber());
-		assertEquals("QUEEN STAR K", message.getName());
+		assertEquals("QUEEN STAR K", message.getName().get());
 		assertEquals(source, message.getSource());
 	}
 	
@@ -50,8 +52,8 @@ public class AisBStaticDataReportPartATest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getString(anyInt(), anyInt())).andReturn(shipName).atLeastOnce();
 		replay(ex);
-		String name = AisBStaticDataReportPartA.extractName(ex);
-		assertEquals(shipName, name);
+		Optional<String> name = AisBStaticDataReportPartA.extractName(ex);
+		assertEquals(shipName, name.get());
 		verify(ex);
 	}
 	
@@ -63,8 +65,8 @@ public class AisBStaticDataReportPartATest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getString(anyInt(), anyInt())).andReturn(shipName).atLeastOnce();
 		replay(ex);
-		String name = AisBStaticDataReportPartA.extractName(ex);
-		assertNull(name);
+		Optional<String> name = AisBStaticDataReportPartA.extractName(ex);
+		assertFalse(name.isPresent());
 		verify(ex);		
 	}
 }
