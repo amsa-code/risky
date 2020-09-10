@@ -141,49 +141,49 @@ public class AisBStaticDataReportPartBTest {
 	
 	@Test
 	public void testDimensionA() {
-		final int dimensionA = 123;
+		final Integer dimensionA = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionA).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionA(ex);
-		assertEquals(dimensionA, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionA(ex);
+		assertEquals(dimensionA, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionB() {
-		final int dimensionB = 123;
+		final Integer dimensionB = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionB).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionB(ex);
-		assertEquals(dimensionB, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionB(ex);
+		assertEquals(dimensionB, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionC() {
-		final int dimensionC = 123;
+		final Integer dimensionC = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionC).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionC(ex);
-		assertEquals(dimensionC, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionC(ex);
+		assertEquals(dimensionC, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionD() {
-		final int dimensionD = 123;
+		final Integer dimensionD = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionD).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionD(ex);
-		assertEquals(dimensionD, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionD(ex);
+		assertEquals(dimensionD, result.get());
 		verify(ex);
 	}
 }

@@ -1,5 +1,6 @@
 package au.gov.amsa.ais.message;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisExtractor;
@@ -11,16 +12,17 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 	private final static int MESSAGE_LENGTH = 168;
 
 	private final static String CALL_SIGN_NOT_AVAILABLE = "@@@@@@@";
+	private final static int DIMENSION_ZERO = 0;
 
     private final int shipType;
     private final String vendorManufacturerId;
     private final int vendorUnitModelCode;
     private final int vendorUnitSerialNumber;
     private final Optional<String> callsign;
-    private final int dimensionA;
-    private final int dimensionB;
-    private final int dimensionC;
-    private final int dimensionD;
+    private final Optional<Integer> dimensionA;
+    private final Optional<Integer> dimensionB;
+    private final Optional<Integer> dimensionC;
+    private final Optional<Integer> dimensionD;
 
     public AisBStaticDataReportPartB(String message, int padBits) {
         this(message, null, padBits);
@@ -48,22 +50,27 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
         dimensionD = extractDimensionD(getExtractor());
     }
     
+    @VisibleForTesting
     static Integer extractShipType(AisExtractor extractor) {
     	return extractor.getValue(40, 48);
     }
     
+    @VisibleForTesting
     static String extractVendorManufacturerId(AisExtractor extractor) {
     	return extractor.getString(48, 66);
     }
     
+    @VisibleForTesting
     static Integer extractVendorUnitModelCode(AisExtractor extractor) {
     	return extractor.getValue(66, 70);
     }
     
+    @VisibleForTesting
     static Integer extractVendorUnitSerialNumber(AisExtractor extractor) {
     	return extractor.getValue(70, 90);
     }
     
+    @VisibleForTesting
     static Optional<String> extractCallSign(AisExtractor extractor) {
 
     	String value = extractor.getString(90, 132);
@@ -74,20 +81,32 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     	}
     }
     
-    static int extractDimensionA(AisExtractor extractor) {
-    	return extractor.getValue(132, 141);
+    @VisibleForTesting
+    static Optional<Integer> extractDimensionA(AisExtractor extractor) {
+    	int value = extractor.getValue(132, 141);
+    	
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
     }
     
-    static int extractDimensionB(AisExtractor extractor) {
-    	return extractor.getValue(141, 150);
+    @VisibleForTesting
+    static Optional<Integer> extractDimensionB(AisExtractor extractor) {
+    	int value = extractor.getValue(141, 150);
+    	
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
     }
     
-    static int extractDimensionC(AisExtractor extractor) {
-    	return extractor.getValue(150, 156);
+    @VisibleForTesting
+    static Optional<Integer> extractDimensionC(AisExtractor extractor) {
+    	int value = extractor.getValue(150, 156);
+    	
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
     }
     
-    static int extractDimensionD(AisExtractor extractor) {
-    	return extractor.getValue(156, 162);
+    @VisibleForTesting
+    static Optional<Integer> extractDimensionD(AisExtractor extractor) {
+    	int value = extractor.getValue(156, 162);
+    	
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
     }
 
     @Override
@@ -134,35 +153,19 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 	}
 
 	public Optional<Integer> getDimensionA() {
-        if (dimensionA == 0) {
-            return Optional.absent();
-        } else {
-            return Optional.of(dimensionA);
-        }
+		return dimensionA;
 	}
 
 	public Optional<Integer> getDimensionB() {
-		if (dimensionB == 0) {
-            return Optional.absent();
-        } else {
-            return Optional.of(dimensionB);
-        }
+		return dimensionB;
 	}
 
 	public Optional<Integer> getDimensionC() {
-		if (dimensionC == 0) {
-            return Optional.absent();
-        } else {
-            return Optional.of(dimensionC);
-        }
+		return dimensionC;
 	}
 
 	public Optional<Integer> getDimensionD() {
-		if (dimensionD == 0) {
-            return Optional.absent();
-        } else {
-            return Optional.of(dimensionD);
-        }
+		return dimensionD;
 	}
 
     public Optional<Integer> getLengthMetres() {
