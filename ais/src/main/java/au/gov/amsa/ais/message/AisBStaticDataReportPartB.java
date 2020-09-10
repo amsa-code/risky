@@ -51,7 +51,7 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     }
     
     @VisibleForTesting
-    static Integer extractShipType(AisExtractor extractor) {
+    static int extractShipType(AisExtractor extractor) {
     	return extractor.getValue(40, 48);
     }
     
@@ -61,12 +61,12 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     }
     
     @VisibleForTesting
-    static Integer extractVendorUnitModelCode(AisExtractor extractor) {
+    static int extractVendorUnitModelCode(AisExtractor extractor) {
     	return extractor.getValue(66, 70);
     }
     
     @VisibleForTesting
-    static Integer extractVendorUnitSerialNumber(AisExtractor extractor) {
+    static int extractVendorUnitSerialNumber(AisExtractor extractor) {
     	return extractor.getValue(70, 90);
     }
     
@@ -153,19 +153,40 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 	}
 
 	public Optional<Integer> getDimensionA() {
-		return dimensionA;
+		
+		if(dimensionA.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionB.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.absent();
+		} else {		
+			return dimensionA;
+		}
 	}
 
 	public Optional<Integer> getDimensionB() {
-		return dimensionB;
+		if(dimensionA.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionB.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.absent();
+		} else {		
+			return dimensionB;
+		}
 	}
 
 	public Optional<Integer> getDimensionC() {
-		return dimensionC;
+		if(dimensionC.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionD.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.absent();
+		} else {
+			return dimensionC;
+		}
 	}
 
 	public Optional<Integer> getDimensionD() {
-		return dimensionD;
+		if(dimensionC.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionD.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.absent();
+		} else {
+			return dimensionD;
+		}
 	}
 
     public Optional<Integer> getLengthMetres() {
