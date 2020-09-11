@@ -88,12 +88,12 @@ public class AisMessageParser {
 	
 	AisMessage parseStaticDataReport(int partNumber, int id, String message, String source, int padBits) {
 		
-		if(partNumber==AbstractAisBStaticDataReport.PART_NUMBER_A) {
-			return new AisBStaticDataReportPartA(message, source, padBits);
-		} else if (partNumber==AbstractAisBStaticDataReport.PART_NUMBER_B) {
-			return new AisBStaticDataReportPartB(message, source, padBits);
-		} else {
-			throw new AisParseException("Unsupported part number ["+partNumber+"]");
-		}
+        if (partNumber == AbstractAisBStaticDataReport.PART_NUMBER_A) {
+            return new AisBStaticDataReportPartA(message, source, padBits);
+        } else if (partNumber == AbstractAisBStaticDataReport.PART_NUMBER_B) {
+            return new AisBStaticDataReportPartB(message, source, padBits);
+        } else {
+            throw new AisParseException("Unsupported part number [" + partNumber + "]");
+        }
 	}
 }
