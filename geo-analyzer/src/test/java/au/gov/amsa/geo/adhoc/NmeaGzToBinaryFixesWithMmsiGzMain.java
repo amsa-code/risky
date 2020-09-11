@@ -35,7 +35,7 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
         inputFiles //
                 .flatMap(x -> Observable.just(x) //
                         .doOnNext(f -> convert(f, outputDir, n)) //
-                        .subscribeOn(Schedulers.computation())) //
+                        .subscribeOn(Schedulers.computation()), Runtime.getRuntime().availableProcessors()) //
                 .toBlocking().subscribe();
     }
 

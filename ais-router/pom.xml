@@ -3,7 +3,7 @@
     <parent>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>parent</artifactId>
-        <version>0.5.24.1-SNAPSHOT</version>
+        <version>0.5.25</version>
     </parent>
     <artifactId>ais-router</artifactId>
     <name>${project.artifactId}</name>
