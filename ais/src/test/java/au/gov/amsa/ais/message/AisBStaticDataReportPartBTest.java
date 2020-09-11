@@ -7,8 +7,11 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertFalse;
 
 import org.junit.Test;
+
+import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.Util;
@@ -31,12 +34,11 @@ public class AisBStaticDataReportPartBTest {
 		assertEquals("SRT", message.getVendorManufacturerId());
 		assertEquals(Integer.valueOf(1), message.getVendorUnitModelCode());
 		assertEquals(Integer.valueOf(713100), message.getVendorUnitSerialNumber());
-		assertEquals("EG000", message.getCallsign());
+		assertEquals("EG000", message.getCallsign().get());
 		assertEquals(Integer.valueOf(11), message.getDimensionA().get());
 		assertEquals(Integer.valueOf(5), message.getDimensionB().get());
 		assertEquals(Integer.valueOf(2), message.getDimensionC().get());
 		assertEquals(Integer.valueOf(2), message.getDimensionD().get());
-		assertEquals(0, message.getTypeOfElectronicPosition());
 		assertEquals(source, message.getSource());
 		assertEquals(Integer.valueOf(16), message.getLengthMetres().get());
 		assertEquals(Integer.valueOf(4), message.getWidthMetres().get());
@@ -72,7 +74,7 @@ public class AisBStaticDataReportPartBTest {
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(typeOfShip).atLeastOnce();
 		replay(ex);
 		Integer result = AisBStaticDataReportPartB.extractShipType(ex);
-		assertNull(result);
+		assertEquals(0, result.intValue());
 		verify(ex);
 	}
 	
@@ -84,8 +86,8 @@ public class AisBStaticDataReportPartBTest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getString(anyInt(), anyInt())).andReturn(callSign).atLeastOnce();
 		replay(ex);
-		String result = AisBStaticDataReportPartB.extractCallSign(ex);
-		assertNull(result);
+		Optional<String> result = AisBStaticDataReportPartB.extractCallSign(ex);
+		assertFalse(result.isPresent());
 		verify(ex);
 	}
 	
@@ -132,56 +134,56 @@ public class AisBStaticDataReportPartBTest {
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getString(anyInt(), anyInt())).andReturn(vendorCallSign).atLeastOnce();
 		replay(ex);
-		String result = AisBStaticDataReportPartB.extractCallSign(ex);
-		assertEquals(vendorCallSign, result);
+		Optional<String> result = AisBStaticDataReportPartB.extractCallSign(ex);
+		assertEquals(vendorCallSign, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionA() {
-		final int dimensionA = 123;
+		final Integer dimensionA = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionA).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionA(ex);
-		assertEquals(dimensionA, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionA(ex);
+		assertEquals(dimensionA, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionB() {
-		final int dimensionB = 123;
+		final Integer dimensionB = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionB).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionB(ex);
-		assertEquals(dimensionB, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionB(ex);
+		assertEquals(dimensionB, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionC() {
-		final int dimensionC = 123;
+		final Integer dimensionC = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionC).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionC(ex);
-		assertEquals(dimensionC, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionC(ex);
+		assertEquals(dimensionC, result.get());
 		verify(ex);
 	}
 	
 	@Test
 	public void testDimensionD() {
-		final int dimensionD = 123;
+		final Integer dimensionD = 123;
 		
 		AisExtractor ex = createMock(AisExtractor.class);
 		expect(ex.getValue(anyInt(), anyInt())).andReturn(dimensionD).atLeastOnce();
 		replay(ex);
-		int result = AisBStaticDataReportPartB.extractDimensionD(ex);
-		assertEquals(dimensionD, result);
+		Optional<Integer> result = AisBStaticDataReportPartB.extractDimensionD(ex);
+		assertEquals(dimensionD, result.get());
 		verify(ex);
 	}
 }

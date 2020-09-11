@@ -1,5 +1,8 @@
 package au.gov.amsa.ais.message;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Optional;
+
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
 import au.gov.amsa.ais.Util;
@@ -10,7 +13,7 @@ public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport {
 	
 	private final static String NAME_NOT_AVAILABLE = "@@@@@@@@@@@@@@@@@@@@";
 	
-    private final String name;
+    private final Optional<String> name;
 
     public AisBStaticDataReportPartA(String message, int padBits) {
         this(message, null, padBits);
@@ -30,16 +33,17 @@ public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport {
         name = extractName(getExtractor());
     }
     
-    static String extractName(AisExtractor extractor) {
+    @VisibleForTesting
+    static Optional<String> extractName(AisExtractor extractor) {
     	String value = extractor.getString(40, 160);
     	if(NAME_NOT_AVAILABLE.contentEquals(value)) {
-    		return null;
+    		return Optional.absent();
     	} else {
-    		return value;
+    		return Optional.of(value);
     	}
     }
 
-    public String getName() {
+    public Optional<String> getName() {
         return name;
     }
 
