@@ -38,14 +38,15 @@ public final class DistanceTravelledInEezCsvViewerMain {
                     .toBlocking() //
                     .subscribe();
         }
-        {
+        for (String aisClass : new String[] { "A", "B" }) {
+            System.out.println("Class = "+ aisClass);
             Streams.nmeaFrom(new FileInputStream("target/output.csv")) //
                     // .doOnNext(System.out::println)
                     // .take(3) //
                     .skip(1) //
                     .filter(line -> line.trim().length() > 0) //
                     .map(x -> x.split(",")) //
-                    // .filter(x -> x[2].equals("B")) //
+                    .filter(x -> x[2].equals(aisClass)) //
                     .groupBy(x -> x[1])
                     .flatMap(o -> o.reduce(0.0, (sum, x) -> sum + Double.parseDouble(x[4]))
                             .map(x -> new VesselDistance(o.getKey(), x)))//
@@ -55,26 +56,13 @@ public final class DistanceTravelledInEezCsvViewerMain {
                     .sorted((a, b) -> Double.compare(a.distanceNm, b.distanceNm)) //
                     .toList() //
                     .doOnNext(list -> System.out.println("number of vessels = " + list.size())) //
-                    .doOnNext(list -> System.out.println("median = " + list.get(list.size() / 2)))//
-                    .doOnNext(list -> System.out.println("averageKm = "
-                            + Math.round(average(list.stream().map(x -> x.distanceNm).collect(Collectors.toList()))))) //
+//                    .doOnNext(list -> System.out.println("median = " + list.get(list.size() / 2)))//
+//                    .doOnNext(list -> System.out.println("averageKm = "
+//                            + Math.round(average(list.stream().map(x -> x.distanceNm).collect(Collectors.toList()))))) //
                     .doOnNext(list -> System.out.println(
                             "totalNmInEez = " + Math.round(list.stream().mapToDouble(x -> x.distanceNm).sum()))) //
                     .toBlocking() //
                     .subscribe();
-        }
-        {
-            Streams.nmeaFrom(new FileInputStream("target/output.csv")) //
-                    // .doOnNext(System.out::println)
-                    // .take(3) //
-                    .skip(1) //
-                    .filter(line -> line.trim().length() > 0) //
-                    .map(x -> x.split(",")) //
-                    .filter(x -> x[2].equals("A")) //
-                    .map(x -> Double.parseDouble(x[4])) //
-                    .reduce(0.0, (sum, x) -> sum + x) //
-                    .doOnNext(System.out::println) //
-                    .toBlocking().subscribe();
         }
         System.out.println("finished");
     }
