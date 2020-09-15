@@ -111,7 +111,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
             this.file = file;
             this.fixes = fixes;
             String datePart = file.getName().substring(0, 10);
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-mm-dd");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
             sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
             try {
                 startTime = sdf.parse(datePart).getTime();

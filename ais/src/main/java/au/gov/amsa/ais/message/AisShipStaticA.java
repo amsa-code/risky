@@ -86,7 +86,7 @@ public class AisShipStaticA implements AisShipStatic {
     }
 
     public String getCallsign() {
-        if (callsign == null)
+        if (callsign == null) 
             callsign = extractor.getString(70, 112);
         return callsign;
     }
