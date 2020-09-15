@@ -16,12 +16,12 @@ import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.risky.format.AisClass;
 
-public class AdHocMain2 {
+public class ExtractStaticDataAsCsvFromNmeaGz {
 
-    public static void extractStatic(File input, File output) throws IOException {
-        output.mkdirs();
+    public static void extractStaticData(File input, File output) throws IOException {
+        output.getParentFile().mkdirs();
         try (PrintStream out = new PrintStream(output)) {
-            Streams.nmeaFromGzip(new File("/home/dxm/AIS/2020-01-01.txt.gz")) //
+            Streams.nmeaFromGzip(input) //
                     .compose(o -> Streams.extractMessages(o)) //
                     .filter(x -> (x.message() instanceof AisShipStatic) //
                             || (x.message() instanceof AisBStaticDataReportPartA) //
@@ -185,7 +185,7 @@ public class AdHocMain2 {
     }
     
     public static void main(String[] args) throws IOException {
-        extractStatic(new File("/home/dxm/AIS/2020-01-01.txt.gz"), new File("target/static-data.txt"));
+        extractStaticData(new File("/home/dxm/AIS/2020-01-01.txt.gz"), new File("target/static-data.txt"));
     }
 
 }

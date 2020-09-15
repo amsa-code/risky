@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
-import java.util.stream.Collectors;
 
 import au.gov.amsa.ais.rx.Streams;
 
