@@ -36,6 +36,7 @@ import rx.schedulers.Schedulers;
 
 public class DistanceTravelledInEezMain {
 
+    private static final int MIN_DISTANCE_KM_TO_ESTIMATE_TIME = 1;
     private static final Logger log = Logger.getLogger(DistanceTravelledInEezMain.class);
 
     private enum Location {
@@ -145,9 +146,12 @@ public class DistanceTravelledInEezMain {
                                     distance = distanceKm(state.fix.lat(), state.fix.lon(), point.lat, point.lon);
                                 }
                                 state.distanceKm += distance;
-                                state.totalTimeMs += distance
-                                        / distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon())
-                                        * (fix.time() - state.fix.time());
+                                double d = distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon());
+                                if (d >= MIN_DISTANCE_KM_TO_ESTIMATE_TIME) {
+                                    // we ensure that d is not close to zero so that the time estimate does not get
+                                    // blown out by instability in the division.
+                                    state.totalTimeMs += distance / d * (fix.time() - state.fix.time());
+                                }
                             } else if (location == Location.IN) {
                                 state.distanceKm += distanceKm(state.fix.lat(), state.fix.lon(), fix.lat(), fix.lon());
                                 state.totalTimeMs += fix.time() - state.fix.time();
