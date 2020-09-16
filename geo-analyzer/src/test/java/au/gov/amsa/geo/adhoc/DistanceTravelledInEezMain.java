@@ -104,10 +104,13 @@ public class DistanceTravelledInEezMain {
 
                         // used for contains tests
                         Shapefile eezPolygon = Eez.loadEezPolygon();
+                        long startTime = extracted(file);
+                        long endTime = startTime + TimeUnit.HOURS.toMillis(24);
                         return BinaryFixes //
                                 .from(file, true, BinaryFixesFormat.WITH_MMSI) //
                                 .subscribeOn(Schedulers.computation()) //
                                 .filter(f -> MmsiValidator2.INSTANCE.isValid(f.mmsi())) //
+                                .filter(f -> f.time() >= startTime && f.time() <= endTime) //
                                 .groupBy(fix -> fix.mmsi()) //
                                 .flatMap(o -> calculateDistance(file, eezLine, eezPolygon, o));
                     }, Runtime.getRuntime().availableProcessors()) //
@@ -116,6 +119,19 @@ public class DistanceTravelledInEezMain {
                     .forEach(x -> out.println(x.line()));
         }
         System.out.println((System.currentTimeMillis() - t) + "ms");
+    }
+
+    private static long extracted(File file) {
+        String date = file.getName().substring(0, 10);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        long startTime;
+        try {
+            startTime = sdf.parse(date).getTime();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        return startTime;
     }
 
     private static Observable<? extends Vessel> calculateDistance(File file, Shapefile eezLine, Shapefile eezPolygon,
