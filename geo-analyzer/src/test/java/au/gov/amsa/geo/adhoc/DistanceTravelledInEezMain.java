@@ -104,7 +104,7 @@ public class DistanceTravelledInEezMain {
 
                         // used for contains tests
                         Shapefile eezPolygon = Eez.loadEezPolygon();
-                        long startTime = extracted(file);
+                        long startTime = getStartTime(file);
                         long endTime = startTime + TimeUnit.HOURS.toMillis(24);
                         return BinaryFixes //
                                 .from(file, true, BinaryFixesFormat.WITH_MMSI) //
@@ -121,7 +121,7 @@ public class DistanceTravelledInEezMain {
         System.out.println((System.currentTimeMillis() - t) + "ms");
     }
 
-    private static long extracted(File file) {
+    private static long getStartTime(File file) {
         String date = file.getName().substring(0, 10);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
