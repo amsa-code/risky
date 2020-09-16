@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPOutputStream;
@@ -50,6 +51,7 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                     FileFixes prev = previous.get();
                     if (prev != null) {
                         long removed = 0;
+                        long removedBadTimes = 0;
                         long added = 0;
                         List<Fix> removeThese = new ArrayList<>(32*1024); 
                         List<Fix> addThese = new ArrayList<>(32*1024);
@@ -61,6 +63,10 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                                     addThese.add(fix);
                                     added++;
                                 }
+                            } else if (fix.time() > ff.startTime + TimeUnit.HOURS.toMillis(24)) {
+                                // invalid time
+                                removeThese.add(fix);
+                                removedBadTimes++;
                             }
                         }
                         TreeSet<Fix> set = new TreeSet<Fix>((x, y) ->  {
@@ -70,9 +76,10 @@ public final class BinaryFixesWithMmsiGzCombinedSortMain {
                                 return Long.compare(x.time(), y.time());
                             }
                         });
+                        
                         log.info("  building tree set");
                         set.addAll(ff.fixes);
-                        log.info("  removing " + removeThese.size() + " from " + ff.file.getName());
+                        log.info("  removing " + removeThese.size() + " from " + ff.file.getName() + " (badTimes="+ removedBadTimes + ")");
                         set.removeAll(removeThese);
                         log.info("  copying fixes from set to list");
                         ff.fixes = new ArrayList<>(set);
