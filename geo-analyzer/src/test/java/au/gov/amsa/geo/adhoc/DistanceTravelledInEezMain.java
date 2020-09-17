@@ -92,7 +92,7 @@ public class DistanceTravelledInEezMain {
             Observable //
                     .from(files) //
                     .filter(x -> x.getName().endsWith(".track.gz")) //
-                    .filter(x -> x.getName().startsWith("2020")) //
+                    .filter(x -> x.getName().startsWith("2019")) //
                     .flatMap(file -> {
                         log.info(file);
 

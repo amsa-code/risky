@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
@@ -38,6 +39,8 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
                         .subscribeOn(Schedulers.computation()), Runtime.getRuntime().availableProcessors()) //
                 .toBlocking().subscribe();
     }
+    
+    
 
     private static void convert(File file, File outputDir, AtomicInteger n) {
         try {
@@ -52,6 +55,8 @@ public final class NmeaGzToBinaryFixesWithMmsiGzMain {
                 count = nmea //
                         .compose(o -> Streams.extractFixes(o)) //
                         .filter(x -> inRegion(x)) //
+                        // ensure that time is not ridiculous (1970 < time < 2050)
+                        .filter(x -> x.time() > 0 && x.time() < TimeUnit.DAYS.toMillis(80*365)) //
                         .doOnNext(fix -> BinaryFixes.write(fix, out, BinaryFixesFormat.WITH_MMSI)) //
                         .countLong() //
                         .toBlocking() //
