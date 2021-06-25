@@ -96,7 +96,7 @@ public class Animator {
                 }
                 worker.schedule(() -> {
                     redrawAll();
-                } , 50, TimeUnit.MILLISECONDS);
+                }, 50, TimeUnit.MILLISECONDS);
             }
 
             @Override
@@ -119,12 +119,15 @@ public class Animator {
             }
 
             private void zoom(Point2D.Float p, double factor) {
-                double w = bounds.getWidth() * factor;
-                double h = bounds.getHeight() * factor;
-                if (w >= map.getMaxBounds().getWidth() || h >= map.getMaxBounds().getHeight())
+                double minX = p.getX() - (p.getX() - bounds.getMinX()) * factor;
+                double maxX = p.getX() + (bounds.getMaxX() - p.getX()) * factor;
+                double minY = p.getY() - (p.getY() - bounds.getMinY()) * factor;
+                double maxY = p.getY() + (bounds.getMaxY() - p.getY()) * factor;
+                if ((maxX - minX) >= map.getMaxBounds().getWidth()
+                        || (maxY - minY) >= map.getMaxBounds().getHeight())
                     bounds = map.getMaxBounds();
-                bounds = new ReferencedEnvelope(p.getX() - w / 2, p.getX() + w / 2,
-                        p.getY() - h / 2, p.getY() + h / 2, bounds.getCoordinateReferenceSystem());
+                bounds = new ReferencedEnvelope(minX, maxX, minY, maxY,
+                        bounds.getCoordinateReferenceSystem());
             }
 
             private Point2D.Float toWorld(MouseEvent e) {
@@ -177,7 +180,7 @@ public class Animator {
         worker.schedulePeriodically(() -> {
             model.updateModel(timeStep.getAndIncrement());
             redrawAnimationLayer();
-        } , 50, 50, TimeUnit.MILLISECONDS);
+        }, 50, 50, TimeUnit.MILLISECONDS);
     }
 
     private void redrawAll() {
