@@ -41,8 +41,8 @@ public class Animator {
     private final View view;
     private volatile AtomicReference<BufferedImage> backgroundImage = new AtomicReference<>();
     private volatile ReferencedEnvelope bounds;
-    final JPanel panel = createMapPanel();
-    final MapContent map;
+    private final JPanel panel = createMapPanel();
+    private final MapContent map;
     private final SubscriptionList subscriptions;
     private final Worker worker;
     private volatile AffineTransform worldToScreen;
@@ -208,7 +208,7 @@ public class Animator {
         worker.schedulePeriodically(() -> {
             model.updateModel(timeStep.getAndIncrement());
             panel.repaint();
-        }, 50, 50, TimeUnit.MILLISECONDS);
+        }, 100, 100, TimeUnit.MILLISECONDS);
     }
 
     private void redrawAll() {
