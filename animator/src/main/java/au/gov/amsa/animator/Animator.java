@@ -17,8 +17,8 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -39,14 +39,12 @@ public class Animator {
 
     private final Model model;
     private final View view;
-    private volatile BufferedImage image;
-    private volatile BufferedImage backgroundImage;
+    private volatile AtomicReference<BufferedImage> backgroundImage = new AtomicReference<>();
     private volatile ReferencedEnvelope bounds;
     final JPanel panel = createMapPanel();
     final MapContent map;
     private final SubscriptionList subscriptions;
     private final Worker worker;
-    private volatile BufferedImage offScreenImage;
     private volatile AffineTransform worldToScreen;
 
     public Animator(MapContent map, Model model, View view) {
@@ -71,13 +69,43 @@ public class Animator {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.drawImage(image, 0, 0, null);
+                paintMap(g);
             }
         };
         MouseAdapter listener = createMouseListener();
         panel.addMouseListener(listener);
         panel.addMouseWheelListener(listener);
         return panel;
+    }
+
+    private void paintMap(Graphics g) {
+        BufferedImage bi;
+        while (true) {
+            int width = panel.getParent().getWidth();
+            double ratio = bounds.getHeight() / bounds.getWidth();
+            int proportionalHeight = (int) Math.round(width * ratio);
+            Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
+            bi = backgroundImage.get();
+            if (bi == null) {
+                // get the frame width and height
+                bi = createImage(imageBounds);
+                Graphics2D gr = bi.createGraphics();
+                gr.setPaint(Color.WHITE);
+                gr.fill(imageBounds);
+                StreamingRenderer renderer = new StreamingRenderer();
+                renderer.setMapContent(map);
+                renderer.paint(gr, imageBounds, bounds);
+                this.worldToScreen = RendererUtilities.worldToScreenTransform(bounds,
+                        new Rectangle(0, 0, bi.getWidth(), bi.getHeight()));
+                if (this.backgroundImage.compareAndSet(null, bi)) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        g.drawImage(bi, 0, 0, null);
+        view.draw(model, (Graphics2D) g, worldToScreen);
     }
 
     private MouseAdapter createMouseListener() {
@@ -179,38 +207,13 @@ public class Animator {
         final AtomicInteger timeStep = new AtomicInteger();
         worker.schedulePeriodically(() -> {
             model.updateModel(timeStep.getAndIncrement());
-            redrawAnimationLayer();
+            panel.repaint();
         }, 50, 50, TimeUnit.MILLISECONDS);
     }
 
     private void redrawAll() {
-        backgroundImage = null;
-        redraw();
-    }
-
-    private synchronized void redraw() {
-
-        if (backgroundImage == null) {
-            // get the frame width and height
-            int width = panel.getParent().getWidth();
-            double ratio = bounds.getHeight() / bounds.getWidth();
-            int proportionalHeight = (int) Math.round(width * ratio);
-            Rectangle imageBounds = new Rectangle(0, 0, width, proportionalHeight);
-            image = createImage(imageBounds);
-            BufferedImage backgroundImage = createImage(imageBounds);
-            Graphics2D gr = backgroundImage.createGraphics();
-            gr.setPaint(Color.WHITE);
-            gr.fill(imageBounds);
-            StreamingRenderer renderer = new StreamingRenderer();
-            renderer.setMapContent(map);
-            renderer.paint(gr, imageBounds, bounds);
-            this.backgroundImage = backgroundImage;
-            this.offScreenImage = createImage(imageBounds);
-            worldToScreen = RendererUtilities.worldToScreenTransform(bounds,
-                    new Rectangle(0, 0, backgroundImage.getWidth(), backgroundImage.getHeight()));
-        }
-        redrawAnimationLayer();
-
+        backgroundImage.set(null);
+        panel.repaint();
     }
 
     private static BufferedImage createImage(Rectangle imageBounds) {
@@ -220,23 +223,6 @@ public class Animator {
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setBackground(Color.white);
         return img;
-    }
-
-    private final AtomicBoolean redrawing = new AtomicBoolean(false);
-
-    private void redrawAnimationLayer() {
-        if (redrawing.compareAndSet(false, true)) {
-            // if (backgroundImage != null && offscreenImage != null) {
-            if (offScreenImage != null) {
-                offScreenImage.getGraphics().drawImage(backgroundImage, 0, 0, null);
-                view.draw(model, (Graphics2D) offScreenImage.getGraphics(), worldToScreen);
-                BufferedImage temp = offScreenImage;
-                offScreenImage = image;
-                image = temp;
-            }
-            panel.repaint();
-            redrawing.set(false);
-        }
     }
 
     public void close() {
