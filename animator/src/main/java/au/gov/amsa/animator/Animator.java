@@ -3,6 +3,7 @@ package au.gov.amsa.animator;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
@@ -142,7 +143,9 @@ public class Animator {
                     }
                     redrawAll();
                 } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
-                    System.out.println(p.getX() + " " + p.getY());
+                    System.out.println();
+                    Point2D.Float q = new Point2D.Float();
+                    System.out.println("click world=" + p.getX() + " " + p.getY());
                 }
             }
 
