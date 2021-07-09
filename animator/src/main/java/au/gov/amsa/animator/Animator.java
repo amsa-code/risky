@@ -31,8 +31,6 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
 
-import com.google.common.collect.Maps;
-
 import au.gov.amsa.util.swing.FramePreferences;
 import rx.Scheduler.Worker;
 import rx.internal.util.SubscriptionList;
@@ -161,8 +159,6 @@ public class Animator {
                     }
                     redrawAll();
                 } else if (e.getClickCount() == 1 && e.getButton() == MouseEvent.BUTTON1) {
-                    System.out.println();
-                    Point2D.Float q = new Point2D.Float();
                     System.out.println("click world=" + p.getX() + " " + p.getY());
                 }
             }
