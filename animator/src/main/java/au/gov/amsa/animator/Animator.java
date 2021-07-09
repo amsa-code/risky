@@ -3,7 +3,6 @@ package au.gov.amsa.animator;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
@@ -17,6 +16,7 @@ import java.awt.geom.AffineTransform;
 import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -26,9 +26,12 @@ import javax.swing.JPanel;
 
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.map.MapContent;
+import org.geotools.map.MapViewport;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.renderer.lite.RendererUtilities;
 import org.geotools.renderer.lite.StreamingRenderer;
+
+import com.google.common.collect.Maps;
 
 import au.gov.amsa.util.swing.FramePreferences;
 import rx.Scheduler.Worker;
@@ -78,6 +81,15 @@ public class Animator {
         panel.addMouseWheelListener(listener);
         return panel;
     }
+    
+    
+    private static final RenderingHints HINTS = createRenderingHints();
+    
+    private static RenderingHints createRenderingHints() {
+        java.util.Map<RenderingHints.Key, Object> hints = new HashMap<RenderingHints.Key, Object>();
+        hints.put(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        return new RenderingHints(hints);
+    }
 
     private void paintMap(Graphics g) {
         BufferedImage bi;
@@ -94,10 +106,16 @@ public class Animator {
                 gr.setPaint(Color.WHITE);
                 gr.fill(imageBounds);
                 StreamingRenderer renderer = new StreamingRenderer();
+                MapViewport viewport = new MapViewport();
+                viewport.setScreenArea(imageBounds);
+                viewport.setCoordinateReferenceSystem(DefaultGeographicCRS.WGS84);
+                viewport.setBounds(bounds);
                 renderer.setMapContent(map);
+                renderer.setJava2DHints(HINTS);
+                map.setViewport(viewport);
                 renderer.paint(gr, imageBounds, bounds);
                 this.worldToScreen = RendererUtilities.worldToScreenTransform(bounds,
-                        new Rectangle(0, 0, bi.getWidth(), bi.getHeight()));
+                        imageBounds);
                 if (this.backgroundImage.compareAndSet(null, bi)) {
                     break;
                 }
