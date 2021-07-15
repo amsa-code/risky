@@ -15,9 +15,9 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Test;
 
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 
 import au.gov.amsa.streams.Strings;
 

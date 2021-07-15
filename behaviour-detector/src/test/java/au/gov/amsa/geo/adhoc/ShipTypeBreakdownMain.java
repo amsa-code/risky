@@ -26,11 +26,11 @@ import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.base.Optional;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.prep.PreparedGeometry;
-import com.vividsolutions.jts.geom.prep.PreparedGeometryFactory;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.prep.PreparedGeometry;
+import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.ShipTypeDecoder;

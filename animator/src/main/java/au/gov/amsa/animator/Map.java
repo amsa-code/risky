@@ -9,7 +9,6 @@ import java.util.List;
 import org.geotools.data.FileDataStore;
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.geotools.data.wms.WebMapServer;
 import org.geotools.feature.DefaultFeatureCollection;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -17,18 +16,18 @@ import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.geotools.map.FeatureLayer;
 import org.geotools.map.Layer;
 import org.geotools.map.MapContent;
-import org.geotools.map.WMSLayer;
 import org.geotools.ows.ServiceException;
+import org.geotools.ows.wms.WebMapServer;
+import org.geotools.ows.wms.map.WMSLayer;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.geotools.swing.wms.WMSLayerChooser;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
 
 public class Map {
 
@@ -95,8 +94,8 @@ public class Map {
         } catch (ServiceException | IOException e) {
             throw new RuntimeException(e);
         }
-        List<org.geotools.data.ows.Layer> wmsLayers = WMSLayerChooser.showSelectLayer(wms);
-        for (org.geotools.data.ows.Layer wmsLayer : wmsLayers) {
+        List<org.geotools.ows.wms.Layer> wmsLayers = WMSLayerChooser.showSelectLayer(wms);
+        for (org.geotools.ows.wms.Layer wmsLayer : wmsLayers) {
             System.out.println("adding " + wmsLayer.getTitle());
             WMSLayer displayLayer = new WMSLayer(wms, wmsLayer);
             map.addLayer(displayLayer);

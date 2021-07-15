@@ -16,9 +16,9 @@ import org.opengis.referencing.operation.TransformException;
 
 import au.gov.amsa.geo.model.Position;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 
 public class FeatureUtil {
 	public static final String EPSG_4326 = "EPSG:4326";

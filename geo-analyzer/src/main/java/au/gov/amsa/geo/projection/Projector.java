@@ -12,8 +12,8 @@ import org.opengis.referencing.operation.TransformException;
 
 import au.gov.amsa.util.navigation.Position;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  * Uses geotools libraries to perform transformations between coordinate
@@ -53,10 +53,10 @@ public class Projector {
 
 	public Point2D.Double toPointInSrs(double lat, double lon) {
 		Coordinate coordinate = new Coordinate(lon, lat);
-		com.vividsolutions.jts.geom.Point point = geometryFactory
+		org.locationtech.jts.geom.Point point = geometryFactory
 				.createPoint(coordinate);
 		try {
-			point = (com.vividsolutions.jts.geom.Point) JTS.transform(point,
+			point = (org.locationtech.jts.geom.Point) JTS.transform(point,
 					transform);
 			return new Point2D.Double(point.getX(), point.getY());
 		} catch (MismatchedDimensionException e) {
@@ -68,10 +68,10 @@ public class Projector {
 
 	public Point2D.Double toPoint2D(double lat, double lon) {
 		Coordinate coordinate = new Coordinate(lon, lat);
-		com.vividsolutions.jts.geom.Point point = geometryFactory
+		org.locationtech.jts.geom.Point point = geometryFactory
 				.createPoint(coordinate);
 		try {
-			point = (com.vividsolutions.jts.geom.Point) JTS.transform(point,
+			point = (org.locationtech.jts.geom.Point) JTS.transform(point,
 					transform);
 		} catch (MismatchedDimensionException e) {
 			throw new RuntimeException(e);
@@ -96,10 +96,10 @@ public class Projector {
 		double y = bounds.getMaxY() - proportionY
 				* (bounds.getMaxY() - bounds.getMinY());
 		Coordinate coordinate = new Coordinate(x, y);
-		com.vividsolutions.jts.geom.Point point = geometryFactory
+		org.locationtech.jts.geom.Point point = geometryFactory
 				.createPoint(coordinate);
 		try {
-			point = (com.vividsolutions.jts.geom.Point) JTS.transform(point,
+			point = (org.locationtech.jts.geom.Point) JTS.transform(point,
 					transform.inverse());
 		} catch (MismatchedDimensionException e) {
 			throw new RuntimeException(e);
