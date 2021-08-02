@@ -49,7 +49,7 @@
         <dependency>
             <groupId>org.functionaljava</groupId>
             <artifactId>functionaljava</artifactId>
-            <version>4.2-beta-1</version>
+            <version>4.9</version>
         </dependency>
 
         <dependency>
