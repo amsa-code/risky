@@ -1,11 +1,10 @@
 package au.gov.amsa.geo.model;
 
 import java.text.SimpleDateFormat;
+import java.util.Optional;
 
 import au.gov.amsa.risky.format.HasPosition;
 import au.gov.amsa.util.navigation.Position;
-
-import com.google.common.base.Optional;
 
 public class Util {
     public static Position toPos(HasPosition a) {

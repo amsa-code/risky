@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
 import com.google.common.collect.Sets;
 
 import au.gov.amsa.navigation.ShipStaticData.Info;
@@ -43,7 +43,7 @@ public class CollisionDetectorMain {
                     // ignore tugs, pilots, towing
                     .filter(p -> {
                         Mmsi mmsi = (Mmsi) p.id();
-                        Optional<Info> info = Optional.fromNullable(ships.get(mmsi.value()));
+                        Optional<Info> info = Optional.ofNullable(ships.get(mmsi.value()));
                         return (!info.isPresent() || !info.get().shipType.isPresent()
                                 || !isTugPilotTowing(info.get().shipType.get()));
                     })

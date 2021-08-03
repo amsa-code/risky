@@ -30,9 +30,9 @@ import java.util.regex.Pattern;
 import org.apache.commons.io.FileUtils;
 
 import com.github.davidmoten.grumpy.core.Position;
+import com.github.davidmoten.guavamini.Preconditions;
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.Checked;
-import com.google.common.base.Preconditions;
 
 import au.gov.amsa.geo.distance.EffectiveSpeedCheck;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;

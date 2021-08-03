@@ -1,8 +1,7 @@
 package au.gov.amsa.geo.distance;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
-import com.google.common.base.Optional;
 
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
@@ -30,7 +29,7 @@ public class EffectiveSpeedChecker {
 
         if (o.acceptAnyFixAfterHours() != null
                 && timeDiffMs >= TimeUnit.HOURS.toMillis(o.acceptAnyFixAfterHours())) {
-            return Optional.absent();
+            return Optional.empty();
         } else {
             double distanceBetweenFixesNm = Position.create(aLat, aLon)
                     .getDistanceToKm(Position.create(bLat, bLon)) / 1.852;
@@ -40,7 +39,7 @@ public class EffectiveSpeedChecker {
                 double effectiveSpeedKnots = distanceBetweenFixesNm / timeDiffHoursFloored;
                 return Optional.of(effectiveSpeedKnots);
             } else
-                return Optional.absent();
+                return Optional.empty();
         }
     }
 }

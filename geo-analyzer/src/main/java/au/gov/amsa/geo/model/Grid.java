@@ -3,12 +3,12 @@ package au.gov.amsa.geo.model;
 import static au.gov.amsa.util.navigation.Position.to180;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -122,7 +122,7 @@ public class Grid {
 
 	public Optional<Cell> cellAt(double lat, double lon) {
 		if (!options.getFilterBounds().contains(lat, lon))
-			return Optional.absent();
+			return Optional.empty();
 		else {
 			Long latIndex = latIndexes.get(lats.ceiling(lat));
 			Long lonIndex = lonIndexes.get(lons.floor(lon));

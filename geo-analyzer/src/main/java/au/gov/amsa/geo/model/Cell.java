@@ -1,10 +1,9 @@
 package au.gov.amsa.geo.model;
 
 import java.io.Serializable;
+import java.util.Optional;
 
 import au.gov.amsa.risky.format.HasPosition;
-
-import com.google.common.base.Optional;
 
 /**
  * A latitude longitude rectangle bordered by rhumb lines east-west and

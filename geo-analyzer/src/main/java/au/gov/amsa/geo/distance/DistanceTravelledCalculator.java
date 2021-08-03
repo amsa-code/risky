@@ -10,14 +10,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.log4j.Logger;
 
+import com.github.davidmoten.guavamini.Preconditions;
 import com.github.davidmoten.rx.slf4j.Logging;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
 
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Cell;

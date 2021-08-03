@@ -2,22 +2,23 @@ package au.gov.amsa.geo.distance;
 
 import static au.gov.amsa.geo.distance.DistanceTravelledCalculator.calculateTrafficDensity;
 import static au.gov.amsa.geo.distance.Renderer.saveAsPng;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
+import au.gov.amsa.geo.Util;
+import au.gov.amsa.geo.distance.DistanceTravelledCalculator.CalculationResult;
+import au.gov.amsa.geo.model.Options;
 import rx.Observable;
 import rx.Observer;
 import rx.functions.Action1;
 import rx.functions.Func1;
-import au.gov.amsa.geo.Util;
-import au.gov.amsa.geo.distance.DistanceTravelledCalculator.CalculationResult;
-import au.gov.amsa.geo.model.Options;
 
 public class DistanceTravelledMovieMaker {
 

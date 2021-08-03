@@ -3,11 +3,11 @@ package au.gov.amsa.geo.model;
 import static au.gov.amsa.geo.model.Util.formatDate;
 
 import java.math.BigDecimal;
+import java.util.Optional;
 
 import org.joda.time.DateTime;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import com.github.davidmoten.guavamini.Preconditions;
 
 public class Options {
 
@@ -158,9 +158,9 @@ public class Options {
 		private Bounds bounds = new Bounds(15, 67, -60, 179);
 		private SegmentOptions segmentOptions = SegmentOptions.builder()
 				.build();
-		private Optional<Bounds> filterBounds = Optional.absent();
-		private Optional<Long> startTime = Optional.absent();
-		private Optional<Long> finishTime = Optional.absent();
+		private Optional<Bounds> filterBounds = Optional.empty();
+		private Optional<Long> startTime = Optional.empty();
+		private Optional<Long> finishTime = Optional.empty();
 
 		private Builder() {
 		}

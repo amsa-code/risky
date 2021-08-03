@@ -1,13 +1,14 @@
 package au.gov.amsa.geo.distance;
 
 import static au.gov.amsa.geo.distance.EffectiveSpeedChecker.effectiveSpeedOk;
-import static com.google.common.base.Optional.of;
-import rx.Observable.Operator;
-import rx.Subscriber;
+import static java.util.Optional.of;
+
+import java.util.Optional;
+
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.risky.format.Fix;
-
-import com.google.common.base.Optional;
+import rx.Observable.Operator;
+import rx.Subscriber;
 
 /**
  * Given a sequence of fixes the first fix is consider to be the first fix that
@@ -38,12 +39,12 @@ public class OperatorEffectiveSpeedChecker implements Operator<EffectiveSpeedChe
             /**
              * The last emitted fix.
              */
-            private Optional<Fix> previousFix = Optional.absent();
+            private Optional<Fix> previousFix = Optional.empty();
 
             /**
              * The latest fix.
              */
-            private Optional<Fix> first = Optional.absent();
+            private Optional<Fix> first = Optional.empty();
 
             @Override
             public void onCompleted() {

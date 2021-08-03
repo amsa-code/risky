@@ -8,11 +8,11 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
 
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.Fix;

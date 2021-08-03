@@ -39,7 +39,7 @@ public class ExtractStaticDataAsCsvFromNmeaGz {
                                     AisShipStaticA a = (AisShipStaticA) x.message();
                                     callsign = a.getCallsign();
                                     name = a.getName();
-                                    imo = a.getImo().orNull();
+                                    imo = a.getImo().orElse(null);
                                     shipType = a.getShipType();
                                     aisClass = AisClass.A;
                                 } else if (x.message() instanceof AisPositionBExtended) {
