@@ -1,26 +1,27 @@
 #!/bin/bash
-set -e
-set -x
-if [ $# -eq 0 ]; then
-    echo "Usage: ./release.sh <VERSION>"
-    exit 1
+set -e 
+if [ $# -ne 1 ]
+then
+  echo "Usage: ./`basename $0` <VERSION>"
+  # `basename $0` is the script's filename.
+  exit 1 
 fi
 VERSION=$1
-git checkout master
-git pull
+git pull origin master
 mvn versions:set -DnewVersion=$VERSION -DgenerateBackupPoms=false
-mvn clean install 
+## test build works
+mvn clean install
 git commit -am "prepare for release $VERSION"
-git push
 git tag -a $VERSION -m "$VERSION"
 git push origin $VERSION
-git checkout $VERSION
-mvn deploy -Dmode=test -Drisky.repo=amsa-maven -Drisky.repo.url=http://mvlrep001.infra.amsa.gov.au:8081/artifactory/libs-releases-local
-git checkout master
-mvn versions:set -DnewVersion=$VERSION.1-SNAPSHOT -DgenerateBackupPoms=false
-git commit -am "setting versions to snapshot"
-git push
-git checkout $VERSION
-./generate-site.sh
-git checkout master
-
+git push origin master
+mvn versions:set -DnextSnapshot=true -DgenerateBackupPoms=false
+git commit -am "set versions to next snapshot"
+git push origin master
+echo =========================================================================
+echo At this point the tag has been pushed to the git repository on GitHub
+echo and you should go to the GitHub UI to indicate that that tag is the 
+echo latest release which will trigger the workflow that pushes the versioned
+echo binaries to Maven Central.
+echo =========================================================================
+ 

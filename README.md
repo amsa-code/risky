@@ -1,6 +1,8 @@
 risky
 =====
-<a href="https://travis-ci.org/amsa-code/risky"><img src="https://travis-ci.org/amsa-code/risky.svg"/></a><br/>
+<a href="https://github.com/amsa-code/risky/actions/workflows/ci.yml"><img src="https://github.com/amsa-code/risky/actions/workflows/ci.yml/badge.svg"/></a><br/>
+[![codecov](https://codecov.io/gh/amsa-code/risky/branch/master/graph/badge.svg)](https://codecov.io/gh/amsa-code/risky)<br/>
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/au.gov.amsa/risky/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/au.gov.amsa/risky)<br/>
 
 Tools for analyzing timestamped position data such as vessel position reports from AIS.
 
@@ -43,10 +45,8 @@ This the procedure to install a new version to our internal repository.
 ```bash
 ./release.sh <VERSION>
 ```
-Once you've run the release script got to Jenkins AWS and update the *risky* job, setting **Source Code Management - Branches to build** 
-to the latest tag. Run this job manually and the risky artifacts will be deployed locally to the Jenkins AWS server so that they can be used by the parent build.
-
-Note that the above command will also deploy the site reports for the new version to [here](http://amsa-code.github.io/risky/index.html).
+The script above pushes a tagged version to github. Go to the project Releases and publish the release for the tag you just made. This will initiate a GitHub Action that deploys 
+the jars to Maven Central.
 
 To release a non-tagged snapshot version to the AMSA internal repository:
 
