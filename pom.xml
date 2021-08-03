@@ -42,10 +42,10 @@
 
         <cobertura.version>2.7</cobertura.version>
         <checkstyle.version>2.13</checkstyle.version>
-        <findbugs.version>3.0.1</findbugs.version>
+        <findbugs.version>3.0.5</findbugs.version>
         <javadoc.version>3.3.0</javadoc.version>
         <pmd.version>3.4</pmd.version>
-        <jdepend.version>2.0-beta-2</jdepend.version>
+        <jdepend.version>2.0</jdepend.version>
         <javancss.version>2.1</javancss.version>
         <project.info.version>2.7</project.info.version>
         <jxr.version>2.5</jxr.version>
@@ -142,6 +142,9 @@
                         </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <source>8</source>
+                </configuration>
             </plugin>
         </plugins>
     </build>
