@@ -1,12 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<!--
-    <parent>
-        <groupId>com.github.davidmoten</groupId>
-        <artifactId>sonatype-parent</artifactId>
-        <version>0.1</version>
-    </parent>
--->
+    <!-- <parent> <groupId>com.github.davidmoten</groupId> <artifactId>sonatype-parent</artifactId> 
+        <version>0.1</version> </parent> -->
     <groupId>au.gov.amsa.risky</groupId>
     <artifactId>parent</artifactId>
     <version>0.5.25.1-SNAPSHOT</version>
@@ -35,7 +32,7 @@
         <junit.version>4.13.2</junit.version>
         <exec.version>1.3.2</exec.version>
         <mockito.version>3.11.2</mockito.version>
-        <jmh.version>1.10.2</jmh.version>
+        <jmh.version>1.32</jmh.version>
         <parquet.version>1.12.0</parquet.version>
         <hadoop.version>3.3.1</hadoop.version>
         <easymock.version>4.3</easymock.version>
@@ -54,20 +51,20 @@
         <changelog.version>2.2</changelog.version>
         <coverage.reports.dir>${project.build.directory}/target/coverage-reports</coverage.reports.dir>
     </properties>
-    
+
     <licenses>
-	    <license>
-		    <name>The Apache License, Version 2.0</name>
-		    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-		</license>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
     </licenses>
 
     <developers>
         <developer>
-          <name>Dave Moten</name>
-          <email>david.moten@amsa.gov.au</email>
-          <organization>AMSA</organization>
-          <organizationUrl>http://www.amsa.gov.au</organizationUrl>
+            <name>Dave Moten</name>
+            <email>david.moten@amsa.gov.au</email>
+            <organization>AMSA</organization>
+            <organizationUrl>http://www.amsa.gov.au</organizationUrl>
         </developer>
     </developers>
 
@@ -75,8 +72,8 @@
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
         <url>${scm.url}</url>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <modules>
         <module>streams</module>
@@ -90,7 +87,7 @@
         <!-- <module>renjin</module> -->
         <module>h2spatial</module>
         <module>spark</module>
-        <module>animator</module> 
+        <module>animator</module>
         <module>geotools-extras</module>
         <module>ais-router</module>
         <module>ais-parquet</module>
@@ -102,7 +99,7 @@
                 <inherited>true</inherited>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.3</version>
+                <version>3.8.1</version>
                 <configuration>
                     <verbose>true</verbose>
                     <fork>true</fork>
@@ -137,13 +134,13 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <doclint>none</doclint>
+                            <source>8</source>
+                            <detectJavaApiLink>false</detectJavaApiLink>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <doclint>false</doclint>
-                    <source>8</source>
-                    <detectJavaApiLink>false</detectJavaApiLink>
-                </configuration>
             </plugin>
         </plugins>
     </build>
@@ -152,7 +149,8 @@
         <excludeDefaults>true</excludeDefaults>
         <outputDirectory>${project.build.directory}/site</outputDirectory>
         <plugins>
-            <!-- this one should go first so that it is available to other plugins when they run -->
+            <!-- this one should go first so that it is available to other 
+                plugins when they run -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jxr-plugin</artifactId>
@@ -198,7 +196,8 @@
                 <artifactId>jdepend-maven-plugin</artifactId>
                 <version>${jdepend.version}</version>
             </plugin>
-            <!-- javancss failing on OperatorSubscriptionInterval.java so disabling -->
+            <!-- javancss failing on OperatorSubscriptionInterval.java so 
+                disabling -->
             <!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>javancss-maven-plugin</artifactId> 
                 <version>${javancss.version}</version> </plugin> -->
             <plugin>
@@ -224,10 +223,11 @@
                     <additionalparam>-Xdoclint:none</additionalparam>
                 </configuration>
             </plugin>
-            <!-- commented this plugin out because cannot run offline (e.g. at home) -->
+            <!-- commented this plugin out because cannot run offline (e.g. 
+                at home) -->
             <!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-changelog-plugin</artifactId> 
-                <version>${changelog.version}</version> <configuration> <username>${svn.username}</username> <password>${svn.password}</password> 
-                </configuration> </plugin> -->
+                <version>${changelog.version}</version> <configuration> <username>${svn.username}</username> 
+                <password>${svn.password}</password> </configuration> </plugin> -->
         </plugins>
     </reporting>
 
