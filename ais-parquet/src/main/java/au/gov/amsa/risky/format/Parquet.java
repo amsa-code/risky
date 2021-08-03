@@ -40,13 +40,13 @@ public class Parquet {
         record.put("lat", fix.lat());
         record.put("lon", fix.lon());
         record.put("timeEpochMs", fix.time());
-        record.put("latencySeconds", fix.latencySeconds().or(-1));
-        record.put("source", (int) fix.source().or((short) 0));
-        record.put("navigationalStatus", fix.navigationalStatus().transform(n -> n.ordinal()).or(127));
-        record.put("rateOfTurn", fix.rateOfTurn().or((byte) -128));
-        record.put("speedOverGroundKnots", fix.speedOverGroundKnots().or(-1f));
-        record.put("courseOverGroundDegrees", fix.courseOverGroundDegrees().or(-1f));
-        record.put("headingDegrees", fix.headingDegrees().or(-1f));
+        record.put("latencySeconds", fix.latencySeconds().orElse(-1));
+        record.put("source", (int) fix.source().orElse((short) 0));
+        record.put("navigationalStatus", fix.navigationalStatus().map(n -> n.ordinal()).orElse(127));
+        record.put("rateOfTurn", fix.rateOfTurn().orElse((byte) -128));
+        record.put("speedOverGroundKnots", fix.speedOverGroundKnots().orElse(-1f));
+        record.put("courseOverGroundDegrees", fix.courseOverGroundDegrees().orElse(-1f));
+        record.put("headingDegrees", fix.headingDegrees().orElse(-1f));
         record.put("aisClass", fix.aisClass() == AisClass.A);
         return record;
     }

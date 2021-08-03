@@ -1,10 +1,9 @@
 package au.gov.amsa.risky.format;
 
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.avro.generic.GenericData.Record;
 import org.apache.hadoop.fs.Path;
