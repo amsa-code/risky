@@ -15,8 +15,8 @@ public enum MapDb {
 	private MapDb() {
 		try {
 			File file = File.createTempFile("geo-analyzer", ".db");
-			db = DBMaker.newFileDB(file).asyncWriteEnable().cacheSize(100000)
-					.closeOnJvmShutdown().transactionDisable().make();
+			db = DBMaker.fileDB(file)
+					.closeOnJvmShutdown().make();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

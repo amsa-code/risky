@@ -25,9 +25,10 @@ public class OperatorSumCellValues implements Operator<CellValue, CellValue> {
      */
     final Map<Position, Double> map;
 
+    @SuppressWarnings("unchecked")
     public OperatorSumCellValues(boolean useDisk) {
         if (useDisk)
-            map = MapDb.INSTANCE.getDb().getHashMap(UUID.randomUUID().toString());
+            map = (Map<Position, Double>) MapDb.INSTANCE.getDb().hashMap(UUID.randomUUID().toString()).create();
         else
             map = new HashMap<Position, Double>(INITIAL_CAPACITY, 1.0f);
     }
