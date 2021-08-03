@@ -5,8 +5,6 @@ import java.util.LinkedHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.google.common.collect.Maps;
-
 /**
  * Parses NMEA messages.
  * 
@@ -24,7 +22,7 @@ public class NmeaMessageParser {
      * @return
      */
     public NmeaMessage parse(String line) {
-        LinkedHashMap<String, String> tags = Maps.newLinkedHashMap();
+        LinkedHashMap<String, String> tags = new LinkedHashMap<>();
 
         String remaining;
         if (line.startsWith("\\")) {
@@ -82,7 +80,7 @@ public class NmeaMessageParser {
      * @return
      */
     public static LinkedHashMap<String, String> extractTags(String s) {
-        LinkedHashMap<String, String> map = Maps.newLinkedHashMap();
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
         int c = s.lastIndexOf(CHECKSUM_DELIMITER);
         if (c == -1) {
             return map;

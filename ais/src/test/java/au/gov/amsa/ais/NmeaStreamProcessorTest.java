@@ -7,10 +7,10 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
+import com.github.davidmoten.guavamini.Lists;
+
 import au.gov.amsa.util.nmea.NmeaReader;
 import au.gov.amsa.util.nmea.NmeaReaderFromSocket;
-
-import com.google.common.collect.Lists;
 
 public class NmeaStreamProcessorTest {
 

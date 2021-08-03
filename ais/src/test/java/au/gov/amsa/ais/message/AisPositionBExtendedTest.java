@@ -1,6 +1,6 @@
 package au.gov.amsa.ais.message;
 
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
 import static org.easymock.EasyMock.anyInt;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.expect;

@@ -9,8 +9,7 @@ import java.util.LinkedHashMap;
 
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.github.davidmoten.guavamini.Lists;
 
 public class NmeaMessageParserTest {
 
@@ -133,7 +132,7 @@ public class NmeaMessageParserTest {
 
     @Test(expected = NmeaMessageParseException.class)
     public void testGTagDoesNotHaveSufficientPartsThrowsNmeaMessageParseException() {
-        LinkedHashMap<String, String> map = Maps.newLinkedHashMap();
+        LinkedHashMap<String, String> map = new LinkedHashMap<>();
         map.put("g", "1-2");
         new NmeaMessage(map, Lists.<String>newArrayList("ABVDN", "2", "2"), "00");
     }

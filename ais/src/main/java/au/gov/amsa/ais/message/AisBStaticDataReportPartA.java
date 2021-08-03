@@ -1,7 +1,8 @@
 package au.gov.amsa.ais.message;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
+import java.util.Optional;
+
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
@@ -37,7 +38,7 @@ public class AisBStaticDataReportPartA extends AbstractAisBStaticDataReport {
     static Optional<String> extractName(AisExtractor extractor) {
     	String value = extractor.getString(40, 160);
     	if(NAME_NOT_AVAILABLE.contentEquals(value)) {
-    		return Optional.absent();
+    		return Optional.empty();
     	} else {
     		return Optional.of(value);
     	}

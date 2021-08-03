@@ -3,7 +3,7 @@ package au.gov.amsa.ais.message;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;

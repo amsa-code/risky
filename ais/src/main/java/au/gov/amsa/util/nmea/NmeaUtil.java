@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import au.gov.amsa.ais.AisParseException;
+import com.github.davidmoten.guavamini.Sets;
 
-import com.google.common.collect.Sets;
+import au.gov.amsa.ais.AisParseException;
 
 public final class NmeaUtil {
 

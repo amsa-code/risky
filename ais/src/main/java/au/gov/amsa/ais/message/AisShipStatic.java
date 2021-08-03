@@ -1,9 +1,9 @@
 package au.gov.amsa.ais.message;
 
+import java.util.Optional;
+
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.HasMmsi;
-
-import com.google.common.base.Optional;
 
 public interface AisShipStatic extends AisMessage, HasMmsi {
 

@@ -1,7 +1,7 @@
 package au.gov.amsa.ais.rx;
 
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -17,6 +17,7 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -31,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.rx.Checked;
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.AisNmeaBuffer;
@@ -89,7 +89,7 @@ public class Streams {
             Observable<String> rawAisNmea) {
         return rawAisNmea
                 // parse nmea
-                .map(LINE_TO_NMEA_MESSAGE)
+                .map(Streams.LINE_TO_NMEA_MESSAGE)
                 // if error filter out
                 .compose(Streams.<NmeaMessage> valueIfPresent())
                 // aggregate multi line nmea
@@ -155,23 +155,23 @@ public class Streams {
                         AisPositionA p = (AisPositionA) a;
                         nav = of(NavigationalStatus.values()[p.getNavigationalStatus().ordinal()]);
                     } else
-                        nav = absent();
+                        nav = empty();
 
                     Optional<Float> sog;
                     if (a.getSpeedOverGroundKnots() == null)
-                        sog = absent();
+                        sog = empty();
                     else
                         sog = of((a.getSpeedOverGroundKnots().floatValue()));
                     Optional<Float> cog;
                     if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
                             || a.getCourseOverGround() < 0)
-                        cog = absent();
+                        cog = empty();
                     else
                         cog = of((a.getCourseOverGround().floatValue()));
                     Optional<Float> heading;
                     if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
                             || a.getTrueHeading() < 0)
-                        heading = absent();
+                        heading = empty();
                     else
                         heading = of((a.getTrueHeading().floatValue()));
 
@@ -185,10 +185,10 @@ public class Streams {
                         // TODO decode
                         src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
                     } else
-                        src = absent();
+                        src = empty();
 
                     // TODO latency
-                    Optional<Integer> latency = absent();
+                    Optional<Integer> latency = empty();
 
                     Fix f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(),
                             a.getLongitude().floatValue(), m.time(), latency, src, nav, sog, cog,
@@ -279,7 +279,7 @@ public class Streams {
         try {
             return Optional.of(NmeaUtil.parseNmea(line));
         } catch (RuntimeException e) {
-            return Optional.absent();
+            return Optional.empty();
         }
     };
 
@@ -455,7 +455,7 @@ public class Streams {
                 // }
                 return Optional.of(m);
             } catch (RuntimeException e) {
-                return Optional.absent();
+                return Optional.empty();
             }
         }
     };
@@ -481,7 +481,7 @@ public class Streams {
             return new TimestampedAndLine<AisMessage>(
                     Optional.of(n.getTimestampedMessage(System.currentTimeMillis())), line, null);
         } catch (AisParseException e) {
-            return new TimestampedAndLine<AisMessage>(Optional.<Timestamped<AisMessage>> absent(),
+            return new TimestampedAndLine<AisMessage>(Optional.<Timestamped<AisMessage>> empty(),
                     line, e.getMessage());
         } catch (RuntimeException e) {
             log.warn(e.getMessage(), e);
@@ -508,14 +508,14 @@ public class Streams {
                             null);
                 } catch (AisParseException e) {
                     return new TimestampedAndLines<AisMessage>(
-                            Optional.<Timestamped<AisMessage>> absent(), lines, e.getMessage());
+                            Optional.<Timestamped<AisMessage>> empty(), lines, e.getMessage());
                 }
             } else {
                 return new TimestampedAndLines<AisMessage>(
-                        Optional.<Timestamped<AisMessage>> absent(), lines, "could not concat");
+                        Optional.<Timestamped<AisMessage>> empty(), lines, "could not concat");
             }
         } else {
-            return new TimestampedAndLines<AisMessage>(Optional.absent(), Collections.emptyList(),
+            return new TimestampedAndLines<AisMessage>(Optional.empty(), Collections.emptyList(),
                     null);
         }
     };

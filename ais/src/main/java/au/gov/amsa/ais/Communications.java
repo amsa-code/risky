@@ -1,6 +1,6 @@
 package au.gov.amsa.ais;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 /**
  * Provides the fields inside the Communications portion of an AIS Message.

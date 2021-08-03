@@ -1,7 +1,8 @@
 package au.gov.amsa.ais.message;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
+import java.util.Optional;
+
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
@@ -75,7 +76,7 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 
     	String value = extractor.getString(90, 132);
     	if(CALL_SIGN_NOT_AVAILABLE.contentEquals(value)) {
-    		return Optional.absent();
+    		return Optional.empty();
     	} else {
     		return Optional.of(value);
     	}
@@ -85,28 +86,28 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     static Optional<Integer> extractDimensionA(AisExtractor extractor) {
     	int value = extractor.getValue(132, 141);
     	
-    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.empty();
     }
     
     @VisibleForTesting
     static Optional<Integer> extractDimensionB(AisExtractor extractor) {
     	int value = extractor.getValue(141, 150);
     	
-    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.empty();
     }
     
     @VisibleForTesting
     static Optional<Integer> extractDimensionC(AisExtractor extractor) {
     	int value = extractor.getValue(150, 156);
     	
-    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.empty();
     }
     
     @VisibleForTesting
     static Optional<Integer> extractDimensionD(AisExtractor extractor) {
     	int value = extractor.getValue(156, 162);
     	
-    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.absent();
+    	return value != DIMENSION_ZERO ? Optional.of(value) : Optional.empty();
     }
 
     @Override
@@ -154,36 +155,36 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
 
 	public Optional<Integer> getDimensionA() {
 		
-		if(dimensionA.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
-		   dimensionB.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
-			return Optional.absent();
+		if(dimensionA.orElse(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionB.orElse(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.empty();
 		} else {		
 			return dimensionA;
 		}
 	}
 
 	public Optional<Integer> getDimensionB() {
-		if(dimensionA.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
-		   dimensionB.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
-			return Optional.absent();
+		if(dimensionA.orElse(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionB.orElse(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.empty();
 		} else {		
 			return dimensionB;
 		}
 	}
 
 	public Optional<Integer> getDimensionC() {
-		if(dimensionC.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
-		   dimensionD.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
-			return Optional.absent();
+		if(dimensionC.orElse(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionD.orElse(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.empty();
 		} else {
 			return dimensionC;
 		}
 	}
 
 	public Optional<Integer> getDimensionD() {
-		if(dimensionC.or(DIMENSION_ZERO)==DIMENSION_ZERO &&
-		   dimensionD.or(DIMENSION_ZERO)==DIMENSION_ZERO) {
-			return Optional.absent();
+		if(dimensionC.orElse(DIMENSION_ZERO)==DIMENSION_ZERO &&
+		   dimensionD.orElse(DIMENSION_ZERO)==DIMENSION_ZERO) {
+			return Optional.empty();
 		} else {
 			return dimensionD;
 		}
@@ -192,11 +193,11 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     public Optional<Integer> getLengthMetres() {
         Optional<Integer> a = getDimensionA();
         if (!a.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         Optional<Integer> b = getDimensionB();
         if (!b.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         return Optional.of(a.get() + b.get());
     }
@@ -204,11 +205,11 @@ public class AisBStaticDataReportPartB extends AbstractAisBStaticDataReport {
     public Optional<Integer> getWidthMetres() {
         Optional<Integer> c = getDimensionC();
         if (!c.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         Optional<Integer> d = getDimensionD();
         if (!d.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         return Optional.of(c.get() + d.get());
     }

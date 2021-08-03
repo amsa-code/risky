@@ -5,18 +5,18 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+
+import au.gov.amsa.util.nmea.NmeaUtil;
 import rx.Observable;
 import rx.Scheduler;
 import rx.Subscriber;
 import rx.schedulers.Schedulers;
-import au.gov.amsa.util.nmea.NmeaUtil;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
 
 public class NmeaSaver {
 
@@ -60,8 +60,8 @@ public class NmeaSaver {
 
         return new Subscriber<String>() {
 
-            Optional<BufferedWriter> current = Optional.absent();
-            Optional<String> currentKey = Optional.absent();
+            Optional<BufferedWriter> current = Optional.empty();
+            Optional<String> currentKey = Optional.empty();
             boolean firstLineInFile = true;
 
             @Override

@@ -5,11 +5,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.base.Optional;
+import com.github.davidmoten.guavamini.Lists;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Lists;
 
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
@@ -70,7 +70,7 @@ public class AisNmeaBuffer {
                 buffer.removeAll(groupId);
                 return Optional.of(list);
             } else
-                return Optional.absent();
+                return Optional.empty();
         }
     }
 
@@ -108,7 +108,7 @@ public class AisNmeaBuffer {
             }
         }
         if (foundItems == null) {
-            return Optional.absent();
+            return Optional.empty();
         }
         // copy cols so we can modify, don't want to affect the original nmea
         // message
@@ -124,7 +124,7 @@ public class AisNmeaBuffer {
             NmeaMessage message = new NmeaMessage(tags, cols, checksum);
             return Optional.of(message);
         } catch (NmeaMessageParseException e) {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 

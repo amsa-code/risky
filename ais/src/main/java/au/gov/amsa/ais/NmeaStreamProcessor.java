@@ -3,6 +3,7 @@ package au.gov.amsa.ais;
 import static au.gov.amsa.ais.NmeaMessageExactEarthTimestamp.isExactEarthTimestamp;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -10,14 +11,13 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.davidmoten.guavamini.Lists;
+import com.github.davidmoten.guavamini.Sets;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * Extracts time from a message if possible and reports results to listeners.
@@ -143,7 +143,7 @@ public class NmeaStreamProcessor {
 					arrivalTime, earliestTimestampLineIndex);
 		} else
 			removeThese = findExpiredIndexesBeforeIndex(lastIndex());
-		TreeSet<Integer> orderedIndexes = Sets.newTreeSet(removeThese);
+		TreeSet<Integer> orderedIndexes = new TreeSet<>(removeThese);
 		for (int index : orderedIndexes.descendingSet()) {
 			removeLineWithIndex(index);
 		}

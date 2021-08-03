@@ -8,9 +8,9 @@ import static org.easymock.EasyMock.verify;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import org.junit.Test;
+import java.util.Optional;
 
-import com.google.common.base.Optional;
+import org.junit.Test;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.Util;
@@ -23,8 +23,6 @@ public class AisBStaticDataReportPartATest {
 		final String line = "H7PH6A15DDDr1=@5:0f22222220";
 		final String source = "some source";
 		
-		int p = AbstractAisBStaticDataReport.extractPartNumber(Util.getAisExtractorFactory(), line, 0);
-
 		AisBStaticDataReportPartA message = new AisBStaticDataReportPartA(line, source, 0);
 
 		assertEquals(24, message.getMessageId());

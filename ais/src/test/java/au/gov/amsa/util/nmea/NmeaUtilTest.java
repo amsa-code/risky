@@ -10,8 +10,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import com.github.davidmoten.guavamini.Lists;
 
 public class NmeaUtilTest {
 
@@ -149,7 +148,7 @@ public class NmeaUtilTest {
     }
 
     private LinkedHashMap<String, String> createSampleTags() {
-        LinkedHashMap<String, String> tags = Maps.newLinkedHashMap();
+        LinkedHashMap<String, String> tags = new LinkedHashMap<>();
         tags.put("g", "1-2-1536");
         tags.put("c", "1334258609");
         return tags;

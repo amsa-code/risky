@@ -1,10 +1,10 @@
 package au.gov.amsa.ais.message;
 
 import java.util.Calendar;
+import java.util.Optional;
 import java.util.TimeZone;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
@@ -80,7 +80,7 @@ public class AisShipStaticA implements AisShipStatic {
         if (imo == null)
             imo = extractor.getValue(40, 70);
         if (imo == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(imo);
     }
@@ -110,7 +110,7 @@ public class AisShipStaticA implements AisShipStatic {
         if (dimensionA == null)
             dimensionA = extractor.getValue(240, 249);
         if (dimensionA == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionA);
     }
@@ -120,7 +120,7 @@ public class AisShipStaticA implements AisShipStatic {
         if (dimensionB == null)
             dimensionB = extractor.getValue(249, 258);
         if (dimensionB == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionB);
     }
@@ -130,7 +130,7 @@ public class AisShipStaticA implements AisShipStatic {
         if (dimensionC == null)
             dimensionC = extractor.getValue(258, 264);
         if (dimensionC == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionC);
     }
@@ -140,7 +140,7 @@ public class AisShipStaticA implements AisShipStatic {
         if (dimensionD == null)
             dimensionD = extractor.getValue(264, 270);
         if (dimensionD == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionD);
     }
@@ -157,7 +157,7 @@ public class AisShipStaticA implements AisShipStatic {
             if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
                 return b;
             else
-                return Optional.absent();
+                return Optional.empty();
         }
     }
 
@@ -173,7 +173,7 @@ public class AisShipStaticA implements AisShipStatic {
             if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
                 return d;
             else
-                return Optional.absent();
+                return Optional.empty();
         }
     }
 

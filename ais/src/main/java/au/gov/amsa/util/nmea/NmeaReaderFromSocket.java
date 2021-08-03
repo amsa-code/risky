@@ -6,9 +6,9 @@ import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
 
-import au.gov.amsa.ais.rx.Streams;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
-import com.google.common.annotations.VisibleForTesting;
+import au.gov.amsa.ais.rx.Streams;
 
 /**
  * Reads NMEA messages from a {@link Socket}.

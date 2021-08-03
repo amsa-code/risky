@@ -5,11 +5,11 @@ import static java.lang.Integer.parseInt;
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+
 import au.gov.amsa.util.nmea.NmeaMessage;
 import au.gov.amsa.util.nmea.NmeaMessageParseException;
 import au.gov.amsa.util.nmea.NmeaUtil;
-
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * Parses a custom ExactEarth NMEA line for AMSA so that we can obtain the

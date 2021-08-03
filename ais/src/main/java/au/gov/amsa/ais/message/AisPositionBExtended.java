@@ -1,6 +1,6 @@
 package au.gov.amsa.ais.message;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
@@ -169,7 +169,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     @Override
     public Optional<Integer> getDimensionA() {
         if (dimensionA == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionA);
     }
@@ -177,7 +177,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     @Override
     public Optional<Integer> getDimensionB() {
         if (dimensionB == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionB);
     }
@@ -185,7 +185,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     @Override
     public Optional<Integer> getDimensionC() {
         if (dimensionC == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionC);
     }
@@ -193,7 +193,7 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     @Override
     public Optional<Integer> getDimensionD() {
         if (dimensionD == 0)
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of(dimensionD);
     }
@@ -202,10 +202,10 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     public Optional<Integer> getLengthMetres() {
         Optional<Integer> a = getDimensionA();
         if (!a.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         Optional<Integer> b = getDimensionB();
         if (!b.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         return Optional.of(a.get() + b.get());
     }
 
@@ -213,10 +213,10 @@ public class AisPositionBExtended implements AisPosition, AisShipStatic {
     public Optional<Integer> getWidthMetres() {
         Optional<Integer> c = getDimensionC();
         if (!c.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         Optional<Integer> d = getDimensionD();
         if (!d.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         return Optional.of(c.get() + d.get());
     }
 

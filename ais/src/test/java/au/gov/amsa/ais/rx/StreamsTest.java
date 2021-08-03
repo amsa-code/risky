@@ -9,11 +9,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.util.Optional;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
-
-import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.message.AisShipStaticA;

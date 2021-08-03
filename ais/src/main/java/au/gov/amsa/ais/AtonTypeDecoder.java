@@ -2,7 +2,7 @@ package au.gov.amsa.ais;
 
 import java.math.BigInteger;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 /**
  * Decodes the AtoN type code as per Table 71 in 1371-4.pdf.

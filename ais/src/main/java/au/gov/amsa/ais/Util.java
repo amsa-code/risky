@@ -4,7 +4,7 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.TimeZone;
 
-import com.google.common.annotations.VisibleForTesting;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
 /**
  * Ais utility methods.

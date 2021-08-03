@@ -1,6 +1,6 @@
 package au.gov.amsa.ais.message;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 //TODO unit tests
 public final class AisShipStaticUtil {
@@ -13,7 +13,7 @@ public final class AisShipStaticUtil {
             if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
                 return b;
             else
-                return Optional.absent();
+                return Optional.empty();
         }
     }
 
@@ -30,7 +30,7 @@ public final class AisShipStaticUtil {
             if (!a.isPresent() && !c.isPresent() && b.isPresent() && d.isPresent())
                 return d;
             else
-                return Optional.absent();
+                return Optional.empty();
         }
     }
 
