@@ -3,9 +3,8 @@ package au.gov.amsa.ihs.reader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.time.OffsetDateTime;
 import java.util.Optional;
-
-import org.joda.time.DateTime;
 
 import au.gov.amsa.ihs.model.Ship;
 import rx.functions.Action1;
@@ -34,7 +33,7 @@ public class ExtractCsvMain {
         out.close();
     }
 
-    private static String dst(Optional<DateTime> d) {
+    private static String dst(Optional<OffsetDateTime> d) {
 
         if (d.isPresent())
             return d.get().toString();

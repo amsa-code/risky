@@ -1,8 +1,7 @@
 package au.gov.amsa.ihs.model;
 
+import java.time.OffsetDateTime;
 import java.util.Optional;
-
-import org.joda.time.DateTime;
 
 import com.github.davidmoten.guavamini.Preconditions;
 
@@ -29,7 +28,7 @@ public class Ship {
     private final Optional<Float> displacementTonnage;
     private final Optional<Float> draughtMetres;
     private final Optional<Float> speedKnots;
-    private final Optional<DateTime> lastUpdateTime;
+    private final Optional<OffsetDateTime> lastUpdateTime;
     private final Optional<String> name;
     private final Optional<String> shipBuilderCompanyCode;
 
@@ -43,7 +42,7 @@ public class Ship {
             Optional<String> statCode5, Optional<Float> lengthOverallMetres,
             Optional<Float> breadthMetres, Optional<Float> displacementTonnage,
             Optional<Float> draughtMetres, Optional<Float> speedKnots,
-            Optional<DateTime> lastUpdateTime, Optional<String> name,
+            Optional<OffsetDateTime> lastUpdateTime, Optional<String> name,
             Optional<String> shipBuilderCompanyCode) {
         Preconditions.checkNotNull(imo);
         Preconditions.checkNotNull(mmsi);
@@ -186,7 +185,7 @@ public class Ship {
         return speedKnots;
     }
 
-    public Optional<DateTime> getLastUpdateTime() {
+    public Optional<OffsetDateTime> getLastUpdateTime() {
         return lastUpdateTime;
     }
 
@@ -221,7 +220,7 @@ public class Ship {
         private Optional<Float> displacementTonnage;
         private Optional<Float> draughtMetres;
         private Optional<Float> speedKnots;
-        private Optional<DateTime> lastUpdateTime;
+        private Optional<OffsetDateTime> lastUpdateTime;
         private Optional<String> name;
         private Optional<String> shipBuilderCompanyCode;
 
@@ -335,7 +334,7 @@ public class Ship {
             return this;
         }
 
-        public Builder lastUpdateTime(Optional<DateTime> value) {
+        public Builder lastUpdateTime(Optional<OffsetDateTime> value) {
             this.lastUpdateTime = value;
             return this;
         }

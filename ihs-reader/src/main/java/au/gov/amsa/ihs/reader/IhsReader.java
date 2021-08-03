@@ -6,13 +6,12 @@ import static java.util.Optional.of;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
-import org.joda.time.DateTime;
 
 import au.gov.amsa.ihs.model.Ship;
 import rx.Observable;
@@ -123,12 +122,12 @@ public class IhsReader {
 
     }
 
-    private static Optional<DateTime> toDateTime(Optional<String> value) {
+    private static Optional<OffsetDateTime> toDateTime(Optional<String> value) {
         if (!value.isPresent())
             return empty();
         else {
             try {
-                return of(DateTime.parse(value.get()));
+                return of(OffsetDateTime.parse(value.get()));
             } catch (RuntimeException e) {
                 return empty();
             }
