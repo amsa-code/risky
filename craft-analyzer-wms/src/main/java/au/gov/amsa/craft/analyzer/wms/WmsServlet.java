@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.github.davidmoten.grumpy.wms.Capabilities;
+import com.github.davidmoten.grumpy.wms.CapabilitiesLayer;
 import com.github.davidmoten.grumpy.wms.Layer;
 import com.github.davidmoten.grumpy.wms.WmsServletRequestProcessor;
 
@@ -40,7 +41,7 @@ public class WmsServlet extends HttpServlet {
                 // add info format
                 .infoFormat("text/html")
                 // add custom layer
-                .layer(layer)
+                .layerFeatures(layer) //
                 // build caps
                 .build();
 
