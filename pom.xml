@@ -38,6 +38,7 @@
         <jmh.version>1.10.2</jmh.version>
         <parquet.version>1.12.0</parquet.version>
         <hadoop.version>3.3.1</hadoop.version>
+        <easymock.version>4.3</easymock.version>
 
         <cobertura.version>2.7</cobertura.version>
         <checkstyle.version>2.13</checkstyle.version>
