@@ -4,11 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.Test;
-
-import com.google.common.base.Charsets;
 
 import au.gov.amsa.navigation.ShipStaticData.Info;
 import au.gov.amsa.risky.format.AisClass;
@@ -18,7 +17,7 @@ public class ShipStaticDataTest {
     @Test
     public void testParse() {
         InputStreamReader isr = new InputStreamReader(
-                ShipStaticDataTest.class.getResourceAsStream("/ship-data.txt"), Charsets.UTF_8);
+                ShipStaticDataTest.class.getResourceAsStream("/ship-data.txt"), StandardCharsets.UTF_8);
         List<Info> list = ShipStaticData.fromAndClose(isr).toList().toBlocking().single();
         assertEquals(2, list.size());
         Info a = list.get(0);

@@ -1,19 +1,18 @@
 package au.gov.amsa.ihs.reader;
 
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Enumeration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
 
 import au.gov.amsa.ihs.model.Ship;
 import rx.Observable;
@@ -115,54 +114,54 @@ public class IhsReader {
         private Optional<String> value(String name) {
             String val = values.get(name);
             if (val == null)
-                return absent();
+                return empty();
             else if (val.trim().length() == 0)
-                return absent();
+                return empty();
             else
-                return Optional.fromNullable(val.trim());
+                return Optional.ofNullable(val.trim());
         }
 
     }
 
     private static Optional<DateTime> toDateTime(Optional<String> value) {
         if (!value.isPresent())
-            return absent();
+            return empty();
         else {
             try {
                 return of(DateTime.parse(value.get()));
             } catch (RuntimeException e) {
-                return absent();
+                return empty();
             }
         }
     }
 
     private static Optional<Integer> toYearOfBuild(Optional<String> value) {
         if (!value.isPresent())
-            return absent();
+            return empty();
         else {
             try {
                 return of(Integer.parseInt(value.get().substring(0, 4)));
             } catch (RuntimeException e) {
-                return absent();
+                return empty();
             }
         }
     }
 
     private static Optional<Integer> toMonthOfBuild(Optional<String> value) {
         if (!value.isPresent())
-            return absent();
+            return empty();
         else {
             int month = Integer.parseInt(value.get().substring(4, 6));
             if (month > 0)
                 return of(month);
             else
-                return absent();
+                return empty();
         }
     }
 
     private static Optional<Long> toLong(Optional<String> value) {
         if (!value.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         else {
             return Optional.of(Long.parseLong(value.get()));
         }
@@ -170,7 +169,7 @@ public class IhsReader {
 
     private static Optional<Float> toFloat(Optional<String> value) {
         if (!value.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         else {
             return Optional.of(Float.parseFloat(value.get()));
         }

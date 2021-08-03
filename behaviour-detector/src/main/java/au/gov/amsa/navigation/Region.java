@@ -1,6 +1,6 @@
 package au.gov.amsa.navigation;
 
-import com.google.common.base.Preconditions;
+import com.github.davidmoten.guavamini.Preconditions;
 
 public class Region {
 

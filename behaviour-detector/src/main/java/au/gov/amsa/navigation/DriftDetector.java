@@ -2,10 +2,10 @@ package au.gov.amsa.navigation;
 
 import java.util.concurrent.TimeUnit;
 
+import com.github.davidmoten.guavamini.Preconditions;
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.StateMachine.Transition;
 import com.github.davidmoten.rx.Transformers;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasFix;
@@ -258,9 +258,7 @@ public class DriftDetector {
                 // never gets emitted
                 return false;
             }
-
         }
-
     }
 
     @VisibleForTesting

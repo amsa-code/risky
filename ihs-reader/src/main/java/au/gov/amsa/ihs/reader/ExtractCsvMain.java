@@ -3,10 +3,9 @@ package au.gov.amsa.ihs.reader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.util.Optional;
 
 import org.joda.time.DateTime;
-
-import com.google.common.base.Optional;
 
 import au.gov.amsa.ihs.model.Ship;
 import rx.functions.Action1;
@@ -51,6 +50,6 @@ public class ExtractCsvMain {
     }
 
     private static String st(Optional<String> value) {
-        return value.or("");
+        return value.orElse("");
     }
 }

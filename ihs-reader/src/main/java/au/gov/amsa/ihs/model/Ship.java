@@ -1,9 +1,10 @@
 package au.gov.amsa.ihs.model;
 
+import java.util.Optional;
+
 import org.joda.time.DateTime;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import com.github.davidmoten.guavamini.Preconditions;
 
 public class Ship {
 
@@ -87,7 +88,7 @@ public class Ship {
         this.lengthOverallMetres = lengthOverallMetres;
         this.breadthMetres = breadthMetres;
         if (displacementTonnage.isPresent() && displacementTonnage.get() == 0)
-            this.displacementTonnage = Optional.absent();
+            this.displacementTonnage = Optional.empty();
         else
             this.displacementTonnage = displacementTonnage;
         this.draughtMetres = draughtMetres;
