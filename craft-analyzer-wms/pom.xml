@@ -32,7 +32,7 @@
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>grumpy-ogc</artifactId>
-			<version>0.2.3</version>
+			<version>${grumpy.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
