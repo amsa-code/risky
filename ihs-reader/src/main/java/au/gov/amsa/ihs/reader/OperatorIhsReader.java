@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
@@ -12,8 +13,6 @@ import org.apache.log4j.Logger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
-
-import com.google.common.base.Optional;
 
 import rx.Observable.Operator;
 import rx.Subscriber;
@@ -74,7 +73,7 @@ public class OperatorIhsReader implements Operator<Map<String, String>, InputStr
 
         private int count = 0;
         private final Map<String, String> values = new HashMap<String, String>();
-        private Optional<String> currentElement = Optional.absent();
+        private Optional<String> currentElement = Optional.empty();
         private final Subscriber<? super Map<String, String>> subscriber;
         private final String parentElementName;
 

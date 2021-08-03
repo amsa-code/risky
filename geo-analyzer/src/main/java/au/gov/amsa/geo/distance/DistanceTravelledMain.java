@@ -7,6 +7,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,8 +15,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.log4j.Logger;
-
-import com.google.common.base.Charsets;
 
 import au.gov.amsa.geo.BinaryCellValuesObservable;
 import au.gov.amsa.geo.OperatorCellValuesToBytes;
@@ -45,7 +44,7 @@ public class DistanceTravelledMain {
             throw new RuntimeException(e);
         }
         Map<Integer, Info> shipInfo = ShipStaticData
-                .getMapFromReader(new InputStreamReader(is, Charsets.UTF_8));
+                .getMapFromReader(new InputStreamReader(is, StandardCharsets.UTF_8));
 
         List<Setting> settings = new ArrayList<>();
         settings.add(Setting.create(30, 30, "fishing"));

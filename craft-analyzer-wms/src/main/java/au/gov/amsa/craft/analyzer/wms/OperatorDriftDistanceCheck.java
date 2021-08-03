@@ -1,17 +1,17 @@
 package au.gov.amsa.craft.analyzer.wms;
 
-import static com.google.common.base.Optional.absent;
+import static java.util.Optional.empty;
 
 import java.util.LinkedList;
 import java.util.List;
-
-import rx.Observable.Operator;
-import rx.Subscriber;
-import au.gov.amsa.navigation.Identifier;
-import au.gov.amsa.navigation.VesselPosition;
+import java.util.Optional;
 
 import com.github.davidmoten.grumpy.core.Position;
-import com.google.common.base.Optional;
+
+import au.gov.amsa.navigation.Identifier;
+import au.gov.amsa.navigation.VesselPosition;
+import rx.Observable.Operator;
+import rx.Subscriber;
 
 public class OperatorDriftDistanceCheck implements Operator<VesselPosition, VesselPosition> {
 
@@ -21,9 +21,9 @@ public class OperatorDriftDistanceCheck implements Operator<VesselPosition, Vess
     public Subscriber<? super VesselPosition> call(final Subscriber<? super VesselPosition> child) {
         return new Subscriber<VesselPosition>(child) {
 
-            Optional<Position> min = absent();
-            Optional<Position> max = absent();
-            Optional<Identifier> id = absent();
+            Optional<Position> min = empty();
+            Optional<Position> max = empty();
+            Optional<Identifier> id = empty();
             List<VesselPosition> buffer = new LinkedList<VesselPosition>();
 
             @Override

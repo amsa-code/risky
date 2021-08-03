@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
@@ -25,14 +26,18 @@ import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.functions.Action0;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.functions.Func2;
-import rx.schedulers.Schedulers;
+import com.github.davidmoten.grumpy.core.Position;
+import com.github.davidmoten.grumpy.projection.Projector;
+import com.github.davidmoten.grumpy.wms.Layer;
+import com.github.davidmoten.grumpy.wms.LayerFeatures;
+import com.github.davidmoten.grumpy.wms.WmsRequest;
+import com.github.davidmoten.grumpy.wms.WmsUtil;
+import com.github.davidmoten.guavamini.Preconditions;
+import com.github.davidmoten.rtree.RTree;
+import com.github.davidmoten.rtree.geometry.Geometries;
+import com.github.davidmoten.rtree.geometry.Rectangle;
+import com.github.davidmoten.rx.slf4j.Logging;
+
 import au.gov.amsa.ais.LineAndTime;
 import au.gov.amsa.ais.ShipTypeDecoder;
 import au.gov.amsa.ais.rx.Streams;
@@ -44,19 +49,14 @@ import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.navigation.ais.AisVesselPositions;
 import au.gov.amsa.navigation.ais.SortOperator;
 import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold.FixWithPreAndPostEffectiveSpeed;
-
-import com.github.davidmoten.grumpy.core.Position;
-import com.github.davidmoten.grumpy.projection.Projector;
-import com.github.davidmoten.grumpy.wms.Layer;
-import com.github.davidmoten.grumpy.wms.LayerFeatures;
-import com.github.davidmoten.grumpy.wms.WmsRequest;
-import com.github.davidmoten.grumpy.wms.WmsUtil;
-import com.github.davidmoten.rtree.RTree;
-import com.github.davidmoten.rtree.geometry.Geometries;
-import com.github.davidmoten.rtree.geometry.Rectangle;
-import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.functions.Func2;
+import rx.schedulers.Schedulers;
 
 public class DriftingLayer implements Layer {
 
@@ -406,8 +406,8 @@ public class DriftingLayer implements Layer {
         Position b = projector.toPosition(request.getWidth(), request.getHeight());
         Rectangle r = Geometries.rectangle(a.getLon(), b.getLat(), b.getLon(), a.getLat());
 
-        Optional<VesselPosition> last = Optional.absent();
-        Optional<Point> lastPoint = Optional.absent();
+        Optional<VesselPosition> last = Optional.empty();
+        Optional<Point> lastPoint = Optional.empty();
         // Iterable<VesselPosition> positions = tree
         // .search(r)
         // .map(new Func1<Entry<VesselPosition,
