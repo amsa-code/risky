@@ -13,11 +13,11 @@ import java.util.List;
 
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.junit.Test;
-
-import com.google.common.collect.Lists;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+
+import com.github.davidmoten.guavamini.Lists;
 
 import au.gov.amsa.streams.Strings;
 
