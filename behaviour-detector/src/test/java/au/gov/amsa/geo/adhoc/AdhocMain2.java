@@ -8,12 +8,12 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.davidmoten.hilbert.HilbertCurve;
 import org.davidmoten.hilbert.Range;
+import org.davidmoten.hilbert.Ranges;
 import org.davidmoten.hilbert.SmallHilbertCurve;
 
 import com.github.davidmoten.guavamini.Preconditions;
@@ -71,7 +71,7 @@ public class AdhocMain2 {
             int splits = 4;
             System.out.println("calculating ranges");
             long timer = System.currentTimeMillis();
-            List<Range> ranges = h.query(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
+            Ranges ranges = h.query(scalePoint(lat1, lon1, t1, minTime, maxTime, maxOrdinates),
                     scalePoint(lat2, lon2, t2, minTime, maxTime, maxOrdinates), splits);
             System.out.println("ranges calculated in " + (System.currentTimeMillis() - timer) + "ms");
             ranges.forEach(System.out::println);
