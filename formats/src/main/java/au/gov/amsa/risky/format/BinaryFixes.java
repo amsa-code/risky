@@ -93,13 +93,13 @@ public final class BinaryFixes {
             s.append(COMMA);
             s.append(new DateTime(f.time()).toString());
             s.append(COMMA);
-            s.append(f.source().or(SOURCE_ABSENT));
+            s.append(f.source().orElse(SOURCE_ABSENT));
             s.append(COMMA);
-            s.append(f.latencySeconds().or(LATENCY_ABSENT));
+            s.append(f.latencySeconds().orElse(LATENCY_ABSENT));
             s.append(COMMA);
-            s.append(f.navigationalStatus().or(NavigationalStatus.values()[NAV_STATUS_ABSENT]));
+            s.append(f.navigationalStatus().orElse(NavigationalStatus.values()[NAV_STATUS_ABSENT]));
             s.append(COMMA);
-            s.append(f.rateOfTurn().or(RATE_OF_TURN_ABSENT));
+            s.append(f.rateOfTurn().orElse(RATE_OF_TURN_ABSENT));
             s.append(COMMA);
             // TODO add the rest of the fields
             return s.toString();

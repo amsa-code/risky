@@ -13,7 +13,7 @@ import java.util.zip.GZIPOutputStream;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import com.google.common.base.Preconditions;
+import com.github.davidmoten.util.Preconditions;
 import com.google.common.util.concurrent.Striped;
 
 import rx.Observable;

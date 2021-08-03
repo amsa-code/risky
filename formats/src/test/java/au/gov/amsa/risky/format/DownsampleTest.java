@@ -1,7 +1,7 @@
 package au.gov.amsa.risky.format;
 
 import static au.gov.amsa.risky.format.Downsample.minTimeStep;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;

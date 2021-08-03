@@ -6,10 +6,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.github.davidmoten.guavamini.Lists;
+import com.github.davidmoten.guavamini.Preconditions;
 
 import ucar.ma2.Array;
 import ucar.ma2.DataType;
@@ -108,10 +108,10 @@ public class NetCdfWriter implements AutoCloseable {
         private final NetCdfWriter writer;
         final String shortName;
         final Class<T> cls;
-        Optional<String> longName = Optional.absent();
-        Optional<String> units = Optional.absent();
-        Optional<String> encoding = Optional.absent();
-        Optional<Integer> numRecords = Optional.absent();
+        Optional<String> longName = Optional.empty();
+        Optional<String> units = Optional.empty();
+        Optional<String> encoding = Optional.empty();
+        Optional<Integer> numRecords = Optional.empty();
 
         VarBuilder(NetCdfWriter writer, String shortName, Class<T> cls) {
             this.writer = writer;

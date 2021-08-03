@@ -10,9 +10,9 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.Functions;
 import com.github.davidmoten.util.Preconditions;
-import com.google.common.annotations.VisibleForTesting;
 
 import au.gov.amsa.util.Files;
 import rx.Observable;

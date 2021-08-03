@@ -4,9 +4,9 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import com.github.davidmoten.util.Preconditions;
 
 public final class FixImpl implements HasFix, Fix {
 
@@ -25,8 +25,8 @@ public final class FixImpl implements HasFix, Fix {
     private final Optional<Short> source;
 
     public FixImpl(int mmsi, float lat, float lon, long time, AisClass aisClass) {
-        this(mmsi, lat, lon, time, Optional.absent(), Optional.absent(), Optional.absent(),
-                Optional.absent(), Optional.absent(), Optional.absent(), aisClass);
+        this(mmsi, lat, lon, time, Optional.empty(), Optional.empty(), Optional.empty(),
+                Optional.empty(), Optional.empty(), Optional.empty(), aisClass);
     }
 
     public FixImpl(int mmsi, float lat, float lon, long time, Optional<Integer> latencySeconds,
@@ -48,10 +48,10 @@ public final class FixImpl implements HasFix, Fix {
             }
             if (headingDegrees.isPresent()) {
                 Preconditions
-                        .checkArgument(headingDegrees.get() < 360 && headingDegrees.get() >= 0);
+                        .checkArgument(headingDegrees.get() < 360 && headingDegrees.get() >= 0, "heading must be >=0 and < 360");
             }
-            Preconditions.checkArgument(lat >= -90 && lat <= 90);
-            Preconditions.checkArgument(lon >= -180 && lon <= 180);
+            Preconditions.checkArgument(lat >= -90 && lat <= 90, "latitude must be >=-90 and <=90");
+            Preconditions.checkArgument(lon >= -180 && lon <= 180, "longitude must be >=-180 and <=180");
         }
         this.mmsi = mmsi;
         this.lat = lat;
@@ -123,7 +123,7 @@ public final class FixImpl implements HasFix, Fix {
 
     @Override
     public Optional<Byte> rateOfTurn() {
-        return Optional.absent();
+        return Optional.empty();
     }
 
     @Override
@@ -139,19 +139,19 @@ public final class FixImpl implements HasFix, Fix {
         b.append(DateTimeFormatter.ISO_DATE_TIME
                 .format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), ZoneId.of("UTC"))));
         b.append(", navigationalStatus=");
-        b.append(navigationalStatus.orNull());
+        b.append(navigationalStatus.orElse(null));
         b.append(", speedOverGroundKnots=");
-        b.append(speedOverGroundKnots.orNull());
+        b.append(speedOverGroundKnots.orElse(null));
         b.append(", courseOverGroundDegrees=");
-        b.append(courseOverGroundDegrees.orNull());
+        b.append(courseOverGroundDegrees.orElse(null));
         b.append(", headingDegrees=");
-        b.append(headingDegrees.orNull());
+        b.append(headingDegrees.orElse(null));
         b.append(", aisClass=");
         b.append(aisClass);
         b.append(", latencySeconds=");
-        b.append(latencySeconds.orNull());
+        b.append(latencySeconds.orElse(null));
         b.append(", source=");
-        b.append(source.orNull());
+        b.append(source.orElse(null));
         b.append("]");
         return b.toString();
     }

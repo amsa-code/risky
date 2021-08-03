@@ -128,10 +128,10 @@ public class NetcdfFixesWriter {
                 dataTime.setDouble(i, days);
 
                 // source
-                dataSource.setShort(i, fix.source().or(BinaryFixes.SOURCE_ABSENT));
+                dataSource.setShort(i, fix.source().orElse(BinaryFixes.SOURCE_ABSENT));
 
                 // latency
-                dataLatency.setInt(i, fix.latencySeconds().or(BinaryFixes.LATENCY_ABSENT));
+                dataLatency.setInt(i, fix.latencySeconds().orElse(BinaryFixes.LATENCY_ABSENT));
 
                 // navigational status
                 int navStatus;

@@ -5,12 +5,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Optional;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -43,7 +42,7 @@ public class BinaryFixesOnSubscribeFastPath implements OnSubscribe<Fix> {
             subscriber.add(createSubscription(fis, closed));
             Optional<Integer> mmsi;
             if (format == BinaryFixesFormat.WITH_MMSI)
-                mmsi = Optional.absent();
+                mmsi = Optional.empty();
             else
                 mmsi = Optional.of(BinaryFixesUtil.getMmsi(file));
             reportFixes(mmsi, subscriber, fis, format);

@@ -1,6 +1,6 @@
 package au.gov.amsa.risky.format;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 public interface Fix extends HasFix, HasPosition {
 

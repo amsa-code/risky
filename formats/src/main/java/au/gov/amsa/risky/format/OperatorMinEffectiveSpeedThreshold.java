@@ -1,15 +1,15 @@
 package au.gov.amsa.risky.format;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable.Operator;
-import rx.Subscriber;
+import com.github.davidmoten.grumpy.core.Position;
+
 import au.gov.amsa.risky.format.OperatorMinEffectiveSpeedThreshold.FixWithPreAndPostEffectiveSpeed;
 import au.gov.amsa.util.RingBuffer;
-
-import com.github.davidmoten.grumpy.core.Position;
-import com.google.common.base.Optional;
+import rx.Observable.Operator;
+import rx.Subscriber;
 
 public final class OperatorMinEffectiveSpeedThreshold implements
         Operator<FixWithPreAndPostEffectiveSpeed, HasFix> {
@@ -29,7 +29,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
             final Subscriber<? super FixWithPreAndPostEffectiveSpeed> child) {
         return new Subscriber<HasFix>(child) {
 
-            private Optional<HasFix> middle = Optional.absent();
+            private Optional<HasFix> middle = Optional.empty();
 
             @Override
             public void onCompleted() {
@@ -47,7 +47,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                 // if mmsi changes then clear the fix history
                 if (!buffer.isEmpty() && buffer.peek().fix().mmsi() != fix.fix().mmsi()) {
                     buffer.clear();
-                    middle = Optional.absent();
+                    middle = Optional.empty();
                 }
                 buffer.add(fix);
                 HasFix latest = fix;
@@ -69,7 +69,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
                         double distanceFirstToMiddleKm = 0;
                         Iterator<HasFix> en = buffer.iterator();
                         {
-                            Optional<HasFix> previous = Optional.absent();
+                            Optional<HasFix> previous = Optional.empty();
                             boolean keepGoing = en.hasNext();
                             while (keepGoing) {
                                 HasFix f = en.next();
@@ -82,7 +82,7 @@ public final class OperatorMinEffectiveSpeedThreshold implements
 
                         // measure distance from middle to latest
                         double distanceMiddleToLatestKm = 0;
-                        Optional<HasFix> firstAfterMiddle = Optional.absent();
+                        Optional<HasFix> firstAfterMiddle = Optional.empty();
                         {
                             Optional<HasFix> previous = middle;
                             boolean keepGoing = en.hasNext();
