@@ -10,10 +10,10 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.Checked;
 import com.github.davidmoten.rx.RetryWhen;
 import com.github.davidmoten.util.Preconditions;
-import com.google.common.annotations.VisibleForTesting;
 
 import rx.Observable;
 import rx.Scheduler;
