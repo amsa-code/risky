@@ -137,12 +137,10 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
-                        </configuration>
                     </execution>
                 </executions>
                 <configuration>
+                    <doclint>false</doclint>
                     <source>8</source>
                     <detectJavaApiLink>false</detectJavaApiLink>
                 </configuration>
