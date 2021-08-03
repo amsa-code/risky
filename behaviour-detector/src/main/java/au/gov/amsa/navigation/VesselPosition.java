@@ -1,13 +1,13 @@
 package au.gov.amsa.navigation;
 
-import static com.google.common.base.Optional.of;
 import static java.lang.Math.toRadians;
+import static java.util.Optional.of;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.davidmoten.grumpy.core.Position;
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import com.github.davidmoten.guavamini.Preconditions;
 
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.Fix;
@@ -113,7 +113,7 @@ public class VesselPosition implements HasFix {
         if (lengthMetres.isPresent() && widthMetres.isPresent())
             return Optional.of(Math.max(lengthMetres.get(), widthMetres.get()));
         else
-            return Optional.absent();
+            return Optional.empty();
     }
 
     public Optional<Double> cogDegrees() {
@@ -129,7 +129,7 @@ public class VesselPosition implements HasFix {
     }
 
     public Optional<Double> speedKnots() {
-        return speedMetresPerSecond.transform(x -> x / 0.5144444);
+        return speedMetresPerSecond.map(x -> x / 0.5144444);
     }
 
     public VesselClass cls() {
@@ -165,8 +165,8 @@ public class VesselPosition implements HasFix {
         private Identifier id;
         private double lat;
         private double lon;
-        private Optional<Integer> lengthMetres = Optional.absent();
-        private Optional<Integer> widthMetres = Optional.absent();
+        private Optional<Integer> lengthMetres = Optional.empty();
+        private Optional<Integer> widthMetres = Optional.empty();
         // leave these null so if not set get an error in VesselPosition
         // constructor
         private Optional<Double> cogDegrees;
@@ -176,7 +176,7 @@ public class VesselPosition implements HasFix {
         private Optional<String> shipStaticAisNmea;
         private VesselClass cls;
         private long time;
-        private Optional<Integer> shipType = Optional.absent();
+        private Optional<Integer> shipType = Optional.empty();
         private NavigationalStatus navigationalStatus;
         private Optional<?> data;
 
@@ -300,7 +300,7 @@ public class VesselPosition implements HasFix {
         if (!speedMetresPerSecond.isPresent() || !cogDegrees.isPresent()
                 || navigationalStatus == NavigationalStatus.AT_ANCHOR
                 || navigationalStatus == NavigationalStatus.MOORED)
-            return Optional.absent();
+            return Optional.empty();
         else {
             double lat = this.lat - speedMetresPerSecond.get() / metresPerDegreeLatitude()
                     * (t - time) / 1000.0 * Math.cos(Math.toRadians(cogDegrees.get()));
@@ -324,11 +324,11 @@ public class VesselPosition implements HasFix {
                     speedMetresPerSecond.get() * Math.sin(Math.toRadians(cogDegrees.get())),
                     speedMetresPerSecond.get() * Math.cos(Math.toRadians(cogDegrees.get()))));
         else
-            return Optional.absent();
+            return Optional.empty();
     }
 
     /**
-     * Returns absent if no intersection occurs else return the one or two times
+     * Returns empty if no intersection occurs else return the one or two times
      * of intersection of circles around the vessel relative to this.time().
      * 
      * @param vp
@@ -341,15 +341,15 @@ public class VesselPosition implements HasFix {
 
         Optional<VesselPosition> p = vp.predict(time);
         if (!p.isPresent()) {
-            return Optional.absent();
+            return Optional.empty();
         }
         Vector deltaV = velocity().get().minus(p.get().velocity().get());
         Vector deltaP = position(this).minus(p.get().position(this));
 
         // imagine a ring around the vessel centroid with maxDimensionMetres/2
         // radius. This is the ring we are going to test for collision.
-        double r = p.get().maxDimensionMetres().or(maxDimensionMetresWhenUnknown) / 2
-                + maxDimensionMetres().or(maxDimensionMetresWhenUnknown) / 2;
+        double r = p.get().maxDimensionMetres().orElse(maxDimensionMetresWhenUnknown) / 2
+                + maxDimensionMetres().orElse(maxDimensionMetresWhenUnknown) / 2;
 
         if (deltaP.dot(deltaP) <= r)
             return of(new Times(p.get().time()));
@@ -362,9 +362,9 @@ public class VesselPosition implements HasFix {
         double discriminant = b * b - 4 * a * c;
 
         if (a == 0)
-            return Optional.absent();
+            return Optional.empty();
         else if (discriminant < 0)
-            return Optional.absent();
+            return Optional.empty();
         else {
             if (discriminant == 0) {
                 return of(new Times(Math.round(-b / 2 / a)));
@@ -486,7 +486,7 @@ public class VesselPosition implements HasFix {
                 if (speedMetresPerSecond.isPresent())
                     return Optional.of((float) metresPerSecondToKnots(speedMetresPerSecond.get()));
                 else
-                    return Optional.absent();
+                    return Optional.empty();
             }
 
             @Override
@@ -511,17 +511,17 @@ public class VesselPosition implements HasFix {
 
             @Override
             public Optional<Integer> latencySeconds() {
-                return Optional.absent();
+                return Optional.empty();
             }
 
             @Override
             public Optional<Short> source() {
-                return Optional.absent();
+                return Optional.empty();
             }
 
             @Override
             public Optional<Byte> rateOfTurn() {
-                return Optional.absent();
+                return Optional.empty();
             }
         };
     }
@@ -534,7 +534,7 @@ public class VesselPosition implements HasFix {
         if (value.isPresent())
             return Optional.of(value.get().floatValue());
         else
-            return Optional.absent();
+            return Optional.empty();
     }
 
 }

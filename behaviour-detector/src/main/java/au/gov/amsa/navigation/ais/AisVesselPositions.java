@@ -1,13 +1,10 @@
 package au.gov.amsa.navigation.ais;
 
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.ofNullable;
 
 import java.util.Comparator;
+import java.util.Optional;
 
-import rx.Observable;
-import rx.Observable.Transformer;
-import rx.functions.Func1;
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.message.AisPosition;
 import au.gov.amsa.ais.message.AisPositionA;
@@ -17,8 +14,9 @@ import au.gov.amsa.navigation.Mmsi;
 import au.gov.amsa.navigation.VesselClass;
 import au.gov.amsa.navigation.VesselPosition;
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
-
-import com.google.common.base.Optional;
+import rx.Observable;
+import rx.Observable.Transformer;
+import rx.functions.Func1;
 
 public class AisVesselPositions {
 
@@ -80,16 +78,16 @@ public class AisVesselPositions {
         Mmsi id = new Mmsi(p.getMmsi());
         Optional<Vessel> vessel = messageAndData.data().get(id);
         Optional<Integer> lengthMetres = vessel.isPresent() ? vessel.get().getLengthMetres()
-                : Optional.<Integer> absent();
+                : Optional.<Integer> empty();
 
         Optional<Integer> widthMetres = vessel.isPresent() ? vessel.get().getWidthMetres()
-                : Optional.<Integer> absent();
+                : Optional.<Integer> empty();
 
-        Optional<Double> speedMetresPerSecond = p.getSpeedOverGroundKnots() != null ? of(p
-                .getSpeedOverGroundKnots() * 0.5144444444) : Optional.<Double> absent();
+        Optional<Double> speedMetresPerSecond = p.getSpeedOverGroundKnots() != null ? Optional.of(p
+                .getSpeedOverGroundKnots() * 0.5144444444) : Optional.<Double> empty();
 
         Optional<Integer> shipType = vessel.isPresent() ? vessel.get().getShipType() : Optional
-                .<Integer> absent();
+                .<Integer> empty();
 
         NavigationalStatus navigationalStatus;
         if (p instanceof AisPositionA) {
@@ -109,13 +107,13 @@ public class AisVesselPositions {
         if (p instanceof AisPositionA) {
             positionAisNmea = Optional.of(messageAndData.message().get().getLine());
         } else
-            positionAisNmea = Optional.absent();
+            positionAisNmea = Optional.empty();
 
         Optional<String> shipStaticAisNmea;
         if (vessel.isPresent())
             shipStaticAisNmea = vessel.get().getNmea();
         else
-            shipStaticAisNmea = Optional.absent();
+            shipStaticAisNmea = Optional.empty();
 
         // TODO adjust lat, lon for position of ais set on ship
         // given by A,B,C,D? Or instead store the position offset in
@@ -123,9 +121,9 @@ public class AisVesselPositions {
         // (ROT) may enter the picture later).
         return VesselPosition.builder()
         // cog
-                .cogDegrees(fromNullable(p.getCourseOverGround()))
+                .cogDegrees(ofNullable(p.getCourseOverGround()))
                 // heading
-                .headingDegrees(fromNullable(toDouble(p.getTrueHeading())))
+                .headingDegrees(ofNullable(toDouble(p.getTrueHeading())))
                 // speed
                 .speedMetresPerSecond(speedMetresPerSecond)
                 // lat

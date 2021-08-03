@@ -1,12 +1,12 @@
 package au.gov.amsa.navigation.ais;
 
-import rx.functions.Func2;
+import java.util.Optional;
+
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.message.AisPositionBExtended;
 import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
-
-import com.google.common.base.Optional;
+import rx.functions.Func2;
 
 public final class AisMessageAndVesselData {
 
@@ -19,7 +19,7 @@ public final class AisMessageAndVesselData {
     }
 
     public AisMessageAndVesselData() {
-        this(Optional.<TimestampedAndLine<AisMessage>> absent(), new VesselData());
+        this(Optional.<TimestampedAndLine<AisMessage>> empty(), new VesselData());
     }
 
     public Optional<TimestampedAndLine<AisMessage>> message() {

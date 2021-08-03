@@ -1,15 +1,15 @@
 package au.gov.amsa.navigation;
 
-import static com.google.common.base.Optional.absent;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Optional;
 
 import com.github.davidmoten.rx.Checked;
-import com.google.common.base.Charsets;
-import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.message.AisShipStaticUtil;
 import au.gov.amsa.risky.format.AisClass;
@@ -70,15 +70,15 @@ public final class ShipStaticData {
             builder.append(", maxDraftMetres=");
             builder.append(maxDraftMetres);
             builder.append(", dimensionAMetres=");
-            builder.append(dimensionAMetres.or(-1));
+            builder.append(dimensionAMetres.orElse(-1));
             builder.append(", dimensionBMetres=");
-            builder.append(dimensionBMetres.or(-1));
+            builder.append(dimensionBMetres.orElse(-1));
             builder.append(", dimensionCMetres=");
-            builder.append(dimensionCMetres.or(-1));
+            builder.append(dimensionCMetres.orElse(-1));
             builder.append(", dimensionDMetres=");
-            builder.append(dimensionDMetres.or(-1));
+            builder.append(dimensionDMetres.orElse(-1));
             builder.append(", name=");
-            builder.append(name.or(""));
+            builder.append(name.orElse(""));
             builder.append("]");
             return builder.toString();
         }
@@ -87,7 +87,7 @@ public final class ShipStaticData {
 
     public static Map<Integer, Info> getMapFromResource(String resource) {
         return getMapFromReader(new InputStreamReader(
-                ShipStaticData.class.getResourceAsStream(resource), Charsets.UTF_8));
+                ShipStaticData.class.getResourceAsStream(resource), StandardCharsets.UTF_8));
     }
 
     public static Map<Integer, Info> getMapFromReader(Reader reader) {
@@ -127,27 +127,27 @@ public final class ShipStaticData {
                     String imoTemp = items[i++];
                     Optional<String> imo;
                     if (imoTemp.trim().length() == 0 || Integer.parseInt(imoTemp.trim()) == -1)
-                        imo = Optional.absent();
+                        imo = Optional.empty();
                     else
                         imo = Optional.of(imoTemp);
                     AisClass cls = items[i++].equals("A") ? AisClass.A : AisClass.B;
                     int type = Integer.parseInt(items[i++]);
-                    Optional<Integer> shipType = type == -1 ? absent() : of(type);
+                    Optional<Integer> shipType = type == -1 ? empty() : of(type);
                     float draft = Float.parseFloat(items[i++]);
-                    Optional<Float> maxDraftMetres = draft == -1 ? absent() : of(draft);
+                    Optional<Float> maxDraftMetres = draft == -1 ? empty() : of(draft);
                     int a = Integer.parseInt(items[i++]);
                     int b = Integer.parseInt(items[i++]);
                     int c = Integer.parseInt(items[i++]);
                     int d = Integer.parseInt(items[i++]);
-                    Optional<Integer> dimensionAMetres = a == -1 ? absent() : of(a);
-                    Optional<Integer> dimensionBMetres = b == -1 ? absent() : of(b);
-                    Optional<Integer> dimensionCMetres = c == -1 ? absent() : of(c);
-                    Optional<Integer> dimensionDMetres = d == -1 ? absent() : of(d);
+                    Optional<Integer> dimensionAMetres = a == -1 ? empty() : of(a);
+                    Optional<Integer> dimensionBMetres = b == -1 ? empty() : of(b);
+                    Optional<Integer> dimensionCMetres = c == -1 ? empty() : of(c);
+                    Optional<Integer> dimensionDMetres = d == -1 ? empty() : of(d);
                     // skip length and width
                     i += 2;
                     Optional<String> name;
                     if (i >= items.length || items[i].trim().length() == 0)
-                        name = Optional.absent();
+                        name = Optional.empty();
                     else
                         name = Optional.of(items[i].trim());
                     return new Info(mmsi, imo, cls, shipType, maxDraftMetres, dimensionAMetres,

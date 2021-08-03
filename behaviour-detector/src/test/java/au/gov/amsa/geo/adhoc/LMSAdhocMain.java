@@ -77,7 +77,7 @@ public class LMSAdhocMain {
                                     .format(ZonedDateTime.ofInstant(
                                             Instant.ofEpochMilli(fix.time()), ZoneOffset.UTC))
                                     .replace("[UTC]", "");
-                            String imo = info == null ? "" : info.imo.or("");
+                            String imo = info == null ? "" : info.imo.orElse("");
                             System.out.format("%s,%s,%s,%s,\"%s\",%s,%s,%s\n", shapeName,
                                     fix.mmsi(), imo, fix.aisClass().name(), type, fix.lat(),
                                     fix.lon(), t);

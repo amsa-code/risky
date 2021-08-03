@@ -60,12 +60,12 @@ public class CollisionDetectorMain {
                     .doOnNext(cc -> out.format("%s,%s,%s,%s,%s,%s,%s,%s,%s,%s", cc.time(),
                             cc.position1().id().uniqueId(), cc.position1().lat(),
                             cc.position1().lon(), cc.position1().cogDegrees(),
-                            cc.position1().speedMetresPerSecond().transform(x -> String.valueOf(x))
-                                    .or(""),
+                            cc.position1().speedMetresPerSecond().map(x -> String.valueOf(x))
+                                    .orElse(""),
                             cc.position2().id().uniqueId(), cc.position2().lat(),
                             cc.position2().lon(), cc.position2().cogDegrees(),
-                            cc.position2().speedMetresPerSecond().transform(x -> String.valueOf(x))
-                                    .or("")))
+                            cc.position2().speedMetresPerSecond().map(x -> String.valueOf(x))
+                                    .orElse("")))
                     // count
                     .count()
                     // go

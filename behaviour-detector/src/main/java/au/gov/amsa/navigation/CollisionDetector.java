@@ -8,6 +8,7 @@ import static rx.Observable.from;
 import static rx.Observable.just;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +16,6 @@ import com.github.davidmoten.rtree.Entry;
 import com.github.davidmoten.rtree.geometry.Point;
 import com.github.davidmoten.rtree.geometry.Rectangle;
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
 
 import rx.Observable;
 import rx.Observable.Transformer;
@@ -159,8 +159,8 @@ public class CollisionDetector {
 
     private static Func1<List<CollisionCandidate>, Observable<CollisionCandidate>> isSmallTimePeriod() {
         return list -> {
-            Optional<Long> min = Optional.absent();
-            Optional<Long> max = Optional.absent();
+            Optional<Long> min = Optional.empty();
+            Optional<Long> max = Optional.empty();
             for (CollisionCandidate c : list) {
                 if (!min.isPresent() || c.position1().time() < min.get())
                     min = Optional.of(c.position1().time());
@@ -181,7 +181,7 @@ public class CollisionDetector {
     private static Func1<TreeSet<VesselPosition>, Observable<CollisionCandidate>> toCollisionCandidates2(
             final VesselPosition p, final Optional<VesselPosition> next) {
         return set -> {
-            Optional<VesselPosition> other = Optional.fromNullable(set.lower(p));
+            Optional<VesselPosition> other = Optional.ofNullable(set.lower(p));
             if (other.isPresent()) {
                 Optional<Times> times = p.intersectionTimes(other.get());
                 if (times.isPresent()) {
@@ -189,7 +189,7 @@ public class CollisionDetector {
                     if (tCollision.isPresent()
                             && tCollision.get() < p.time() + MAX_TIME_INTERVAL_MS) {
                         Optional<VesselPosition> otherNext = Optional
-                                .fromNullable(set.higher(other.get()));
+                                .ofNullable(set.higher(other.get()));
                         if (otherNext.isPresent() && otherNext.get().time() < tCollision.get())
                             return empty();
                         else if (next.isPresent() && next.get().time() < tCollision.get())
@@ -209,7 +209,7 @@ public class CollisionDetector {
         if (a.isPresent())
             return Optional.of(a.get() + b);
         else
-            return Optional.absent();
+            return Optional.empty();
     }
 
     private static Func1<GroupedObservable<Identifier, VesselPosition>, Observable<TreeSet<VesselPosition>>> toSortedSet() {

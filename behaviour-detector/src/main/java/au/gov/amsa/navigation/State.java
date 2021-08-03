@@ -1,6 +1,7 @@
 package au.gov.amsa.navigation;
 
-import static com.google.common.base.Optional.absent;
+
+import static java.util.Optional.empty;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.github.davidmoten.rtree.RTree;
 import com.github.davidmoten.rtree.geometry.Geometries;
 import com.github.davidmoten.rtree.geometry.Point;
-import com.google.common.base.Optional;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 
@@ -51,7 +52,7 @@ class State {
     State() {
         this(new HashMap<Identifier, Set<VesselPosition>>(), EMPTY,
                 RTree.star().maxChildren(R_TREE_MAX_CHILDREN).<VesselPosition, Point> create(),
-                Optional.<VesselPosition> absent(), 0);
+                Optional.<VesselPosition> empty(), 0);
     }
 
     private static Ord<VesselPosition> ordering = toOrdering(Comparators.timeIdMessageIdComparator);
@@ -61,12 +62,12 @@ class State {
         if (last.isPresent())
             return next(last.get());
         else
-            return Optional.absent();
+            return Optional.empty();
     }
 
     private Optional<VesselPosition> next(VesselPosition p) {
         Iterator<VesselPosition> it = map.get(p.id()).split(p)._3().iterator();
-        return it.hasNext() ? Optional.of(it.next()) : Optional.<VesselPosition> absent();
+        return it.hasNext() ? Optional.of(it.next()) : Optional.<VesselPosition> empty();
     }
 
     RTree<VesselPosition, Point> tree() {
@@ -82,10 +83,10 @@ class State {
     }
 
     private static final VesselPosition.Builder BUILDER = VesselPosition.builder()
-            .positionAisNmea(absent()).cls(VesselClass.A).cogDegrees(Optional.of(0.0))
-            .headingDegrees(absent()).data(absent()).lat(0.0).lon(0.0).lengthMetres(absent())
-            .navigationalStatus(NavigationalStatus.NOT_DEFINED).shipStaticAisNmea(absent())
-            .shipType(absent()).speedMetresPerSecond(Optional.of(0.0)).widthMetres(absent())
+            .positionAisNmea(empty()).cls(VesselClass.A).cogDegrees(Optional.of(0.0))
+            .headingDegrees(empty()).data(empty()).lat(0.0).lon(0.0).lengthMetres(empty())
+            .navigationalStatus(NavigationalStatus.NOT_DEFINED).shipStaticAisNmea(empty())
+            .shipType(empty()).speedMetresPerSecond(Optional.of(0.0)).widthMetres(empty())
             .id(new Mmsi(0));
 
     State nextState(final long maxTimeInterval, VesselPosition p) {
@@ -140,7 +141,7 @@ class State {
     }
 
     private static void addToMap(Map<Identifier, Set<VesselPosition>> map, VesselPosition p) {
-        Optional<Set<VesselPosition>> existing = Optional.fromNullable(map.get(p.id()));
+        Optional<Set<VesselPosition>> existing = Optional.ofNullable(map.get(p.id()));
         if (existing.isPresent())
             map.put(p.id(), add(existing.get(), p));
         else

@@ -1,6 +1,6 @@
 package au.gov.amsa.navigation;
 
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;

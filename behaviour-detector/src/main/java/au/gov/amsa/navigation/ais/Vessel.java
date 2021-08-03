@@ -1,7 +1,8 @@
 package au.gov.amsa.navigation.ais;
 
-import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
+import java.util.Optional;
+
+import com.github.davidmoten.guavamini.Preconditions;
 
 public class Vessel {
 
@@ -97,15 +98,15 @@ public class Vessel {
 	public static class Builder {
 
 		private long mmsi;
-		private Optional<Integer> imo = Optional.absent();
-		private Optional<Integer> shipType = Optional.absent();
-		private Optional<Integer> dimensionA = Optional.absent();
-		private Optional<Integer> dimensionB = Optional.absent();
-		private Optional<Integer> dimensionC = Optional.absent();
-		private Optional<Integer> dimensionD = Optional.absent();
-		private Optional<Integer> lengthMetres = Optional.absent();
-		private Optional<Integer> widthMetres = Optional.absent();
-		private Optional<String> nmea = Optional.absent();
+		private Optional<Integer> imo = Optional.empty();
+		private Optional<Integer> shipType = Optional.empty();
+		private Optional<Integer> dimensionA = Optional.empty();
+		private Optional<Integer> dimensionB = Optional.empty();
+		private Optional<Integer> dimensionC = Optional.empty();
+		private Optional<Integer> dimensionD = Optional.empty();
+		private Optional<Integer> lengthMetres = Optional.empty();
+		private Optional<Integer> widthMetres = Optional.empty();
+		private Optional<String> nmea = Optional.empty();
 
 		private Builder() {
 		}

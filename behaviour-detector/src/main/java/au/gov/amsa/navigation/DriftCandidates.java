@@ -6,10 +6,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 
 import com.github.davidmoten.rx.Checked;
-import com.google.common.base.Optional;
 
 import au.gov.amsa.risky.format.AisClass;
 import au.gov.amsa.risky.format.FixImpl;
@@ -45,7 +45,7 @@ public final class DriftCandidates {
         long driftingSince = Long.parseLong(items[i++]);
         final Optional<NavigationalStatus> navigationalStatus;
         if (status.trim().length() == 0)
-            navigationalStatus = Optional.absent();
+            navigationalStatus = Optional.empty();
         else
             navigationalStatus = Optional.of(NavigationalStatus.valueOf(status));
         final AisClass aisClass;
@@ -55,8 +55,8 @@ public final class DriftCandidates {
             aisClass = AisClass.A;
         else
             aisClass = AisClass.B;
-        FixImpl fix = new FixImpl(mmsi, lat, lon, time, Optional.<Integer> absent(),
-                Optional.<Short> absent(), navigationalStatus, Optional.of(speedKnots),
+        FixImpl fix = new FixImpl(mmsi, lat, lon, time, Optional.<Integer> empty(),
+                Optional.<Short> empty(), navigationalStatus, Optional.of(speedKnots),
                 Optional.of(course), Optional.of(heading), aisClass);
         return new DriftCandidate(fix, driftingSince);
     }

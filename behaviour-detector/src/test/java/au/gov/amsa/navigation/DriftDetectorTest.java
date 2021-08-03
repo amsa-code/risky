@@ -6,12 +6,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 import org.mockito.Mockito;
-
-import com.google.common.base.Optional;
 
 import au.gov.amsa.navigation.DriftDetector.Options;
 import au.gov.amsa.risky.format.Fix;
@@ -60,17 +59,17 @@ public class DriftDetectorTest {
         Mockito.when(fix.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
         Mockito.when(fix.headingDegrees()).thenReturn(Optional.of(110.0f));
         Mockito.when(fix.speedOverGroundKnots()).thenReturn(Optional.of(DRIFT_SPEED_KNOTS));
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertTrue(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
     @Test
     public void testDriftedFalseIfNoCog() {
         Fix fix = Mockito.mock(Fix.class);
-        Mockito.when(fix.courseOverGroundDegrees()).thenReturn(Optional.<Float> absent());
+        Mockito.when(fix.courseOverGroundDegrees()).thenReturn(Optional.<Float> empty());
         Mockito.when(fix.headingDegrees()).thenReturn(Optional.of(110.0f));
         Mockito.when(fix.speedOverGroundKnots()).thenReturn(Optional.of(DRIFT_SPEED_KNOTS));
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertFalse(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
@@ -78,9 +77,9 @@ public class DriftDetectorTest {
     public void testDriftedFalseIfNoHeading() {
         Fix fix = Mockito.mock(Fix.class);
         Mockito.when(fix.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
-        Mockito.when(fix.headingDegrees()).thenReturn(Optional.<Float> absent());
+        Mockito.when(fix.headingDegrees()).thenReturn(Optional.<Float> empty());
         Mockito.when(fix.speedOverGroundKnots()).thenReturn(Optional.of(DRIFT_SPEED_KNOTS));
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertFalse(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
@@ -89,8 +88,8 @@ public class DriftDetectorTest {
         Fix fix = Mockito.mock(Fix.class);
         Mockito.when(fix.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
         Mockito.when(fix.headingDegrees()).thenReturn(Optional.of(110.0f));
-        Mockito.when(fix.speedOverGroundKnots()).thenReturn(Optional.<Float> absent());
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.speedOverGroundKnots()).thenReturn(Optional.<Float> empty());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertFalse(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
@@ -101,7 +100,7 @@ public class DriftDetectorTest {
         Mockito.when(fix.headingDegrees()).thenReturn(Optional.of(110.0f));
         Mockito.when(fix.speedOverGroundKnots()).thenReturn(
                 Optional.of(DriftDetector.Options.DEFAULT_MAX_DRIFTING_SPEED_KNOTS * 1.01f));
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertFalse(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
@@ -112,7 +111,7 @@ public class DriftDetectorTest {
         Mockito.when(fix.headingDegrees()).thenReturn(Optional.of(110.0f));
         Mockito.when(fix.speedOverGroundKnots()).thenReturn(
                 Optional.of(DriftDetector.Options.DEFAULT_MIN_DRIFTING_SPEED_KNOTS * 0.99f));
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertFalse(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
@@ -122,7 +121,7 @@ public class DriftDetectorTest {
         Mockito.when(fix.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
         Mockito.when(fix.headingDegrees()).thenReturn(Optional.of(11.0f));
         Mockito.when(fix.speedOverGroundKnots()).thenReturn(Optional.of(DRIFT_SPEED_KNOTS));
-        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(fix.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         assertFalse(DriftDetector.isCandidate(Options.instance()).call(fix));
     }
 
@@ -335,7 +334,7 @@ public class DriftDetectorTest {
         Mockito.when(f.courseOverGroundDegrees()).thenReturn(Optional.of(10.0f));
         Mockito.when(f.headingDegrees()).thenReturn(Optional.of(10.0f + courseHeadingDiff));
         Mockito.when(f.speedOverGroundKnots()).thenReturn(Optional.of(speedKnots));
-        Mockito.when(f.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> absent());
+        Mockito.when(f.navigationalStatus()).thenReturn(Optional.<NavigationalStatus> empty());
         Mockito.when(f.mmsi()).thenReturn(mmsi);
         Mockito.when(f.fix()).thenReturn(f);
         Mockito.when(f.time()).thenReturn(time);

@@ -1,8 +1,7 @@
 package au.gov.amsa.navigation;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
-import com.google.common.base.Optional;
 
 import au.gov.amsa.navigation.VesselPosition.NavigationalStatus;
 import au.gov.amsa.risky.format.AisClass;
@@ -25,8 +24,8 @@ public class VesselPositions {
                 .navigationalStatus(fix.navigationalStatus().isPresent()
                         ? NavigationalStatus.values()[fix.navigationalStatus().get().ordinal()]
                         : NavigationalStatus.NOT_DEFINED)
-                .positionAisNmea(Optional.<String> absent())
-                .shipStaticAisNmea(Optional.<String> absent())
+                .positionAisNmea(Optional.<String> empty())
+                .shipStaticAisNmea(Optional.<String> empty())
                 // set data
                 .data(data)
                 // build
@@ -34,7 +33,7 @@ public class VesselPositions {
     }
 
     public static Func1<HasFix, VesselPosition> TO_VESSEL_POSITION = fix -> toVesselPosition(
-            fix.fix(), Optional.absent());
+            fix.fix(), Optional.empty());
 
     public static <T extends HasFix> Func1<T, VesselPosition> toVesselPosition(
             final Func1<T, Optional<?>> dataExtractor) {
@@ -43,14 +42,14 @@ public class VesselPositions {
 
     private static Optional<Double> toDouble(Optional<Float> value) {
         if (!value.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of((double) value.get());
     }
 
     private static Optional<Double> multiply(Optional<Float> value, double factor) {
         if (!value.isPresent())
-            return Optional.absent();
+            return Optional.empty();
         else
             return Optional.of((double) value.get() * factor);
     }

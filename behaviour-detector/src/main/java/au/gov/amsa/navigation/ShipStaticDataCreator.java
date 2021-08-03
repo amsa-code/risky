@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.TreeSet;
 
@@ -13,7 +14,6 @@ import com.github.davidmoten.guavamini.Preconditions;
 import com.github.davidmoten.rx.Checked;
 import com.github.davidmoten.rx.Transformers;
 import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
 
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.Timestamped;
@@ -73,12 +73,12 @@ public final class ShipStaticDataCreator {
                 //
                 .doOnNext(m -> {
                     out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
-                            getImo(m).or(-1), m instanceof AisShipStaticA ? "A" : "B",
-                            m.getShipType(), getMaximumPresentStaticDraughtMetres(m).or(-1F),
-                            m.getDimensionA().or(-1), m.getDimensionB().or(-1),
-                            m.getDimensionC().or(-1), m.getDimensionD().or(-1),
-                            AisShipStaticUtil.lengthMetres(m).or(-1),
-                            AisShipStaticUtil.widthMetres(m).or(-1), prepareName(m.getName()));
+                            getImo(m).orElse(-1), m instanceof AisShipStaticA ? "A" : "B",
+                            m.getShipType(), getMaximumPresentStaticDraughtMetres(m).orElse(-1F),
+                            m.getDimensionA().orElse(-1), m.getDimensionB().orElse(-1),
+                            m.getDimensionC().orElse(-1), m.getDimensionD().orElse(-1),
+                            AisShipStaticUtil.lengthMetres(m).orElse(-1),
+                            AisShipStaticUtil.widthMetres(m).orElse(-1), prepareName(m.getName()));
                     out.flush();
                 });
 
@@ -111,13 +111,13 @@ public final class ShipStaticDataCreator {
                 .doOnNext(k -> {
                     AisShipStatic m = k.message();
                     out.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", m.getMmsi(),
-                            sdf.format(new Date(k.time())), getImo(m).or(-1),
+                            sdf.format(new Date(k.time())), getImo(m).orElse(-1),
                             m instanceof AisShipStaticA ? "A" : "B", m.getShipType(),
-                            getMaximumPresentStaticDraughtMetres(m).or(-1F),
-                            m.getDimensionA().or(-1), m.getDimensionB().or(-1),
-                            m.getDimensionC().or(-1), m.getDimensionD().or(-1),
-                            AisShipStaticUtil.lengthMetres(m).or(-1),
-                            AisShipStaticUtil.widthMetres(m).or(-1), prepareName(m.getName()));
+                            getMaximumPresentStaticDraughtMetres(m).orElse(-1F),
+                            m.getDimensionA().orElse(-1), m.getDimensionB().orElse(-1),
+                            m.getDimensionC().orElse(-1), m.getDimensionD().orElse(-1),
+                            AisShipStaticUtil.lengthMetres(m).orElse(-1),
+                            AisShipStaticUtil.widthMetres(m).orElse(-1), prepareName(m.getName()));
                     out.flush();
                 });
         Action1<PrintStream> disposeAction = out -> out.close();
@@ -226,14 +226,14 @@ public final class ShipStaticDataCreator {
         if (m instanceof AisShipStaticA) {
             return ((AisShipStaticA) m).getImo();
         } else
-            return Optional.absent();
+            return Optional.empty();
     }
 
     private static Optional<Float> getMaximumPresentStaticDraughtMetres(AisShipStatic m) {
         if (m instanceof AisShipStaticA) {
             return Optional.of((float) ((AisShipStaticA) m).getMaximumPresentStaticDraughtMetres());
         } else
-            return Optional.absent();
+            return Optional.empty();
     }
 
     private static Func1<TimestampedAndLine<AisMessage>, Observable<TimestampedAndLine<AisShipStatic>>> aisShipStaticOnly = m -> {

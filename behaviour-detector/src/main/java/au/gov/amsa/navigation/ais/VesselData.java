@@ -1,8 +1,9 @@
 package au.gov.amsa.navigation.ais;
 
-import static com.google.common.base.Optional.fromNullable;
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
+import static java.util.Optional.ofNullable;
 
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import au.gov.amsa.ais.message.AisPositionBExtended;
@@ -11,21 +12,19 @@ import au.gov.amsa.navigation.Identifier;
 import au.gov.amsa.navigation.Mmsi;
 import au.gov.amsa.navigation.ais.Vessel.Builder;
 
-import com.google.common.base.Optional;
-
 public class VesselData {
 
 	private ConcurrentHashMap<Identifier, Vessel> map = new ConcurrentHashMap<>();
 
 	public Optional<Vessel> get(Identifier id) {
-		return Optional.fromNullable(map.get(id));
+		return Optional.ofNullable(map.get(id));
 	}
 
 	public VesselData add(AisShipStaticA m, Optional<String> nmea) {
 		Identifier id = new Mmsi(m.getMmsi());
 		// use atomic compare and set algorithm for non-blocking concurrency
 		while (true) {
-			Optional<Vessel> value = fromNullable(map.get(id));
+			Optional<Vessel> value = ofNullable(map.get(id));
 			final Optional<Vessel> v;
 			if (!value.isPresent()) {
 				v = of(Vessel.builder().mmsi(m.getMmsi()).build());

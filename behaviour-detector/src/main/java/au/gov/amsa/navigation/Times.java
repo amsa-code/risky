@@ -1,8 +1,8 @@
 package au.gov.amsa.navigation;
 
-import static com.google.common.base.Optional.of;
+import static java.util.Optional.of;
 
-import com.google.common.base.Optional;
+import java.util.Optional;
 
 public class Times {
 
@@ -15,7 +15,7 @@ public class Times {
 	}
 
 	public Times(long time1) {
-		this(time1, Optional.<Long> absent());
+		this(time1, Optional.<Long> empty());
 	}
 
 	public Times(long time1, long time2) {
@@ -39,6 +39,6 @@ public class Times {
 		else if (time2.isPresent() && time2.get() >= 0) {
 			return of(time2.get());
 		} else
-			return Optional.absent();
+			return Optional.empty();
 	}
 }

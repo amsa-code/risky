@@ -60,7 +60,7 @@ public class CountCrossingsIntoRegionMain {
                                 .ofInstant(Instant.ofEpochMilli(fix.time()), ZoneId.of("UTC")));
                         System.out.println(t + ", mmsi=" + fix.mmsi() + ", class="
                                 + fix.aisClass().name() + ", lengthMetres="
-                                + info.lengthMetres().orNull() + ", type=" + type + ", lat="
+                                + info.lengthMetres().orElse(null) + ", type=" + type + ", lat="
                                 + fix.lat() + ", lon=" + fix.lon());
                     }
                 }).count().toBlocking().single();

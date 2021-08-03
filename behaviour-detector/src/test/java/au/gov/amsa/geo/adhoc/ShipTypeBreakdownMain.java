@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,17 +21,16 @@ import org.geotools.data.DataStoreFinder;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.data.simple.SimpleFeatureSource;
-import org.opengis.feature.simple.SimpleFeature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.github.davidmoten.rx.slf4j.Logging;
-import com.google.common.base.Optional;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.prep.PreparedGeometry;
 import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
+import org.opengis.feature.simple.SimpleFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.github.davidmoten.rx.slf4j.Logging;
 
 import au.gov.amsa.ais.AisMessage;
 import au.gov.amsa.ais.ShipTypeDecoder;
@@ -96,7 +96,7 @@ public class ShipTypeBreakdownMain {
 
         Streams.extract(Streams.nmeaFromGzip(filename)).flatMap(aisShipStaticOnly).doOnNext(m -> {
             AisShipStatic s = m.getMessage().get().message();
-            if (mmsi.contains(s.getMmsi())) {
+            if (mmsi.contains(Long.valueOf(s.getMmsi()))) {
                 boolean isClassA = s instanceof AisShipStaticA;
                 ShipTypeClass shipTypeClass = new ShipTypeClass(isClassA, s.getShipType());
                 if (countsByShipType.get(shipTypeClass) == null)
