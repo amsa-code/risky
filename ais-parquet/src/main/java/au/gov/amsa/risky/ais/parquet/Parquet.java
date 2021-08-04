@@ -1,4 +1,4 @@
-package au.gov.amsa.risky.parquet;
+package au.gov.amsa.risky.ais.parquet;
 
 import java.io.IOException;
 

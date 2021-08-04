@@ -1,4 +1,4 @@
-package au.gov.amsa.risky.format;
+package au.gov.amsa.risky.ais.parquet;
 
 import static java.util.Optional.of;
 
@@ -11,7 +11,9 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterators;
 
-import au.gov.amsa.risky.parquet.Parquet;
+import au.gov.amsa.risky.format.AisClass;
+import au.gov.amsa.risky.format.FixImpl;
+import au.gov.amsa.risky.format.NavigationalStatus;
 
 public final class ParquetTest {
 
