@@ -11,6 +11,8 @@ import org.junit.Test;
 
 import com.google.common.collect.Iterators;
 
+import au.gov.amsa.risky.parquet.Parquet;
+
 public final class ParquetTest {
 
     @Test

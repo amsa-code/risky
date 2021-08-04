@@ -1,4 +1,4 @@
-package au.gov.amsa.risky.format;
+package au.gov.amsa.risky.parquet;
 
 import java.io.IOException;
 
@@ -11,6 +11,9 @@ import org.apache.parquet.hadoop.ParquetWriter;
 import org.apache.parquet.hadoop.metadata.CompressionCodecName;
 
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
+
+import au.gov.amsa.risky.format.AisClass;
+import au.gov.amsa.risky.format.Fix;
 
 //PRE-ALPHA! IN DEVELOPMENT
 public class Parquet {

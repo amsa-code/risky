@@ -10,6 +10,8 @@
     <name>${project.artifactId}</name>
     <description>Parent pom for risky project modules</description>
     <packaging>pom</packaging>
+    
+    <url>http://github.com/amsa-code/risky</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
