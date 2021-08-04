@@ -38,7 +38,7 @@
         <easymock.version>4.3</easymock.version>
 
         <cobertura.version>2.7</cobertura.version>
-        <checkstyle.version>2.13</checkstyle.version>
+        <checkstyle.version>3.1.2</checkstyle.version>
         <findbugs.version>3.0.5</findbugs.version>
         <javadoc.version>3.3.0</javadoc.version>
         <pmd.version>3.4</pmd.version>
