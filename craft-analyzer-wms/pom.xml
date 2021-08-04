@@ -9,7 +9,7 @@
 	<name>${project.artifactId}</name>
 	<description />
 	<properties>
-		<jetty.plugin.version>8.1.15.v20140411</jetty.plugin.version>
+		<jetty.plugin.version>8.1.16.v20140903</jetty.plugin.version>
 		<drift.candidates>${user.home}/drift-candidates.txt</drift.candidates>
 		<stop.port>9999</stop.port>
 	</properties>
