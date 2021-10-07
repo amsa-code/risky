@@ -35,7 +35,7 @@
         <exec.version>3.0.0</exec.version>
         <mockito.version>3.12.4</mockito.version>
         <jmh.version>1.33</jmh.version>
-        <parquet.version>1.12.1</parquet.version>
+        <parquet.version>1.12.2</parquet.version>
         <hadoop.version>3.3.1</hadoop.version>
         <easymock.version>4.3</easymock.version>
 
