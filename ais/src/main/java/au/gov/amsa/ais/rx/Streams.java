@@ -398,7 +398,7 @@ public class Streams {
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            if (message != null)
+            if (message.isPresent())
                 builder.append("message=" + message);
             else
                 builder.append("error=" + error);
