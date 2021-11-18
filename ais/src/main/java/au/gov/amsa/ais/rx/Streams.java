@@ -460,20 +460,6 @@ public class Streams {
         }
     };
 
-    private static boolean containsWeirdCharacters(String s) {
-        if (s == null)
-            return false;
-        else {
-            for (char ch : s.toCharArray()) {
-                if (ch < 32 && ch != 10 && ch != 13) {
-                    log.warn("ch=" + (int) ch);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
     public static final Func1<NmeaMessage, TimestampedAndLine<AisMessage>> TO_AIS_MESSAGE_AND_LINE = nmea -> {
         String line = nmea.toLine();
         try {
