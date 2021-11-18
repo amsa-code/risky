@@ -44,7 +44,7 @@ public class NmeaMessageParser {
                 throw new NmeaMessageParseException("checksum delimiter * not found");
             items = getNmeaItems(remaining);
             // TODO validate message using checksum
-            checksum = line.substring(line.indexOf('*') + 1);
+            checksum = remaining.substring(remaining.indexOf('*') + 1);
         } else {
             items = new String[] {};
             // TODO decide what value to put here

@@ -195,5 +195,42 @@ public class NmeaMessageParserTest {
         String msg = "\\s:AISSat_2,c:1495765889,T:2017-05-26 02.31.29*24\\!AIVDM,1,1,,A,15Qp0b0029:obOH0wMO6k5Dp00S7,0*17";
         NmeaUtil.parseNmea(msg);
     }
-    
+
+    @Test
+    public void extractsCorrectChecksumFromMessageWithoutTagBlock() {
+        final NmeaMessage nmeaMessage = NmeaUtil.parseNmea("!AIVDM,2,1,3,A,57P@t402AG69HPPr2218UHE9LTa>0l58T62222001p@654bd,0*59");
+
+        final String checksum = nmeaMessage.getChecksum();
+
+        assertEquals("Unexpected checksum extracted from message without tag block.", "59", checksum);
+    }
+
+    @Test
+    public void extractsCorrectChecksumFromMessageWithTagBlock() {
+        final NmeaMessage nmeaMessage = NmeaUtil.parseNmea("\\g:1-2-1130*5E\\!BSVDM,2,1,0,A,00000000002,0*3D");
+
+        final String checksum = nmeaMessage.getChecksum();
+
+        assertEquals("Unexpected checksum extracted from message with tag block.", "3D", checksum);
+    }
+
+    @Test
+    public void calculatesChecksumCorrectlyForMessageWithoutTagBlock() {
+        // Checksum has been manipulated to ensure that provided and calculated sums differ.
+        final NmeaMessage nmeaMessage = NmeaUtil.parseNmea("!AIVDM,2,1,3,A,57P@t402AG69HPPr2218UHE9LTa>0l58T62222001p@654bd,0*4C");
+
+        final String checksum = nmeaMessage.calculateChecksum();
+
+        assertEquals("Unexpected checksum calculated for message without tag block.", "59", checksum);
+    }
+
+    @Test
+    public void calculatesChecksumCorrectlyForMessageWithTagBlock() {
+        // Checksum has been manipulated to ensure that provided and calculated sums differ.
+        final NmeaMessage nmeaMessage = NmeaUtil.parseNmea("\\s:rEV05,c:1399340268*3e\\!AIVDM,1,1,,B,19NWq7h02i9q0bGcNT05NDQN04:D,0*22");
+
+        final String checksum = nmeaMessage.calculateChecksum();
+
+        assertEquals("Unexpected checksum calculated for message with tag block.", "3F", checksum);
+    }
 }
