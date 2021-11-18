@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>au.gov.amsa.risky</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.6.2.1-SNAPSHOT</version>
+		<version>0.6.3</version>
 	</parent>
 	<artifactId>ihs-reader</artifactId>
 
