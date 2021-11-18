@@ -1,9 +1,5 @@
 package au.gov.amsa.ais.rx;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +7,8 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
+import au.gov.amsa.ais.Timestamped;
+import au.gov.amsa.ais.message.AisMessageOther;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
@@ -26,6 +24,8 @@ import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import rx.Observable;
 import rx.schedulers.Schedulers;
+
+import static org.junit.Assert.*;
 
 public class StreamsTest {
 
@@ -153,6 +153,27 @@ public class StreamsTest {
         File f = new File(base + File.separator + "2014" + File.separator + "12");
         assertTrue(f.exists());
         assertEquals(85, f.listFiles().length);
+    }
+
+    @Test
+    public void stringRepresentationOfTimestampedAndLineContainsErrorMessageInCaseOfError() {
+        final TimestampedAndLine<AisMessage> message = new TimestampedAndLine<>(Optional.empty(), "broken", "invalid message");
+
+        final String representation = message.toString();
+
+        assertNotNull(representation);
+        assertTrue("String representation should contain error message, but got: " + representation, representation.contains("invalid message"));
+    }
+
+    @Test
+    public void stringRepresentationOfTimestampedAndLineContainsMessageInCaseOfSuccess() {
+        final Timestamped<AisMessage> aisMessage = new Timestamped<>(new AisMessageOther(4242, "source", 0), 0);
+        final TimestampedAndLine<AisMessage> message = new TimestampedAndLine<>(Optional.of(aisMessage), "test", null);
+
+        final String representation = message.toString();
+
+        assertNotNull(representation);
+        assertTrue("String representation should contain message ID, but got: " + representation, representation.contains("4242"));
     }
 
     public static void main(String[] args) {
