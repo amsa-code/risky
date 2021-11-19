@@ -24,7 +24,8 @@ public class NmeaMessageParser {
      * is true and the line fails the checksum check then an
      * {@link NmeaMessageParseException) is thrown.
      * 
-     * @param line
+     * @param line NMEA line (without EOL terminator)
+     * @param validateChecksum if true then throws NmeaMessageParseException on invalid checksum
      * @return parsed message
      * @throws NmeaMessageParseException if tag block badly formed or no checksum
      *                                   found or if validateChecksum is true and
