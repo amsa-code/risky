@@ -63,9 +63,12 @@ public final class NmeaUtil {
     public static String getChecksum(String sentence) {
         return getChecksum(sentence, true);
     }
-
+    
+    public static String getChecksumWhenHasNoTagBlock(String sentence) {
+        return getChecksumWhenHasNoTagBlock(sentence, true, 0);
+    }
+    
     public static String getChecksum(String sentence, boolean ignoreLeadingDollarOrExclamation) {
-
         int startIndex;
         // Start after tag block
         if (sentence.startsWith("\\")) {
@@ -74,10 +77,15 @@ public final class NmeaUtil {
                 throw new AisParseException("no closing \\ for tag block");
         } else
             startIndex = 0;
+        return getChecksumWhenHasNoTagBlock(sentence, ignoreLeadingDollarOrExclamation, startIndex);
+    }
+
+    private static String getChecksumWhenHasNoTagBlock(String sentenceWithoutTagBlock, boolean ignoreLeadingDollarOrExclamation,
+            int startIndex) {
         // Loop through all chars to get a checksum
         int checksum = 0;
-        for (int i = startIndex; i < sentence.length(); i++) {
-            char ch = sentence.charAt(i);
+        for (int i = startIndex; i < sentenceWithoutTagBlock.length(); i++) {
+            char ch = sentenceWithoutTagBlock.charAt(i);
             if (ignoreLeadingDollarOrExclamation && (ch == '$' || ch == '!')) {
                 // Ignore the dollar sign
             } else if (ch == '*') {
@@ -104,7 +112,11 @@ public final class NmeaUtil {
     private static NmeaMessageParser nmeaParser = new NmeaMessageParser();
 
     public static NmeaMessage parseNmea(String line) {
-        return nmeaParser.parse(line);
+        return parseNmea(line, false);
+    }
+        
+    public static NmeaMessage parseNmea(String line, boolean validateChecksum) {
+        return nmeaParser.parse(line, validateChecksum);
     }
     
     public static String insertKeyValueInTagBlock(String line, String name, String value) {

@@ -277,7 +277,7 @@ public class Streams {
 
     public static final Func1<String, Optional<NmeaMessage>> LINE_TO_NMEA_MESSAGE = line -> {
         try {
-            return Optional.of(NmeaUtil.parseNmea(line));
+            return Optional.of(NmeaUtil.parseNmea(line, true));
         } catch (RuntimeException e) {
             return Optional.empty();
         }
@@ -459,20 +459,6 @@ public class Streams {
             }
         }
     };
-
-    private static boolean containsWeirdCharacters(String s) {
-        if (s == null)
-            return false;
-        else {
-            for (char ch : s.toCharArray()) {
-                if (ch < 32 && ch != 10 && ch != 13) {
-                    log.warn("ch=" + (int) ch);
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
 
     public static final Func1<NmeaMessage, TimestampedAndLine<AisMessage>> TO_AIS_MESSAGE_AND_LINE = nmea -> {
         String line = nmea.toLine();

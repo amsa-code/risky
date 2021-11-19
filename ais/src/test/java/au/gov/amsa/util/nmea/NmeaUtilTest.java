@@ -44,6 +44,18 @@ public class NmeaUtilTest {
     public void testChecksumTwoLineMessage() {
         assertEquals(CHECKSUM2, NmeaUtil.getChecksum(MESSAGE2A + MESSAGE2B, false));
     }
+    
+    @Test
+    public void testNmeaMessageParserChecksum() {
+        String line = "\\g:3-3-1234*hh\\$ABVSI,r3669961,1,013536.96326433,1386,-98,,*hh";
+        assertEquals("14", NmeaUtil.getChecksum(line));
+    }
+    
+    @Test
+    public void testNmeaMessageParserChecksumWhenNoTagBlock() {
+        String line = "$ABVSI,r3669961,1,013536.96326433,1386,-98,,*hh";
+        assertEquals("14", NmeaUtil.getChecksum(line));
+    }
 
     @Test
     public void testCreateProprietaryHeartbeatLine() {

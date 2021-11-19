@@ -15,13 +15,23 @@ public class NmeaMessageParser {
     private static final String PARAMETER_DELIMITER = ",";
     private static final String CODE_DELIMITER = ":";
 
-    /**
-     * Return an {@link NmeaMessage} from the given NMEA line.
-     * 
-     * @param line
-     * @return
-     */
     public NmeaMessage parse(String line) {
+        return parse(line, false);
+    }
+    
+    /**
+     * Return an {@link NmeaMessage} from the given NMEA line. If validate checksum
+     * is true and the line fails the checksum check then an
+     * {@link NmeaMessageParseException) is thrown.
+     * 
+     * @param line NMEA line (without EOL terminator)
+     * @param validateChecksum if true then throws NmeaMessageParseException on invalid checksum
+     * @return parsed message
+     * @throws NmeaMessageParseException if tag block badly formed or no checksum
+     *                                   found or if validateChecksum is true and
+     *                                   line fails the checksum check
+     */
+    public NmeaMessage parse(String line, boolean validateChecksum) {
         LinkedHashMap<String, String> tags = new LinkedHashMap<>();
 
         String remaining;
@@ -32,6 +42,7 @@ public class NmeaMessageParser {
                         "no matching \\ symbol to finish tag block: " + line);
             if (tagFinish == 0)
                 throw new NmeaMessageParseException("tag block is empty or not terminated");
+            // TODO if validateChecksum is true then validate the tag block checksum
             tags = extractTags(line.substring(1, tagFinish));
             remaining = line.substring(tagFinish + 1);
         } else
@@ -43,8 +54,13 @@ public class NmeaMessageParser {
             if (!remaining.contains("*"))
                 throw new NmeaMessageParseException("checksum delimiter * not found");
             items = getNmeaItems(remaining);
-            // TODO validate message using checksum
             checksum = remaining.substring(remaining.indexOf('*') + 1);
+            if (validateChecksum) {
+                String calculatedChecksum = NmeaUtil.getChecksumWhenHasNoTagBlock(remaining);
+                if (!checksum.equalsIgnoreCase(calculatedChecksum)) {
+                    throw new NmeaMessageParseException("stated checksum does not match calculated");
+                }
+            }
         } else {
             items = new String[] {};
             // TODO decide what value to put here
