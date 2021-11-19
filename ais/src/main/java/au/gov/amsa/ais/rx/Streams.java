@@ -277,7 +277,7 @@ public class Streams {
 
     public static final Func1<String, Optional<NmeaMessage>> LINE_TO_NMEA_MESSAGE = line -> {
         try {
-            return Optional.of(NmeaUtil.parseNmea(line));
+            return Optional.of(NmeaUtil.parseNmea(line, true));
         } catch (RuntimeException e) {
             return Optional.empty();
         }

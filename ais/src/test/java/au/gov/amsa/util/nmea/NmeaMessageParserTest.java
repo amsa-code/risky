@@ -24,11 +24,25 @@ public class NmeaMessageParserTest {
         assertNull(n.getRelativeTimeMillis());
         assertNull(n.getText());
         assertNull(n.getUnixTimeMillis());
+        assertEquals("hh", n.getChecksum());
+        assertEquals("14", n.calculateChecksum());
         assertEquals("$ABVSI", n.getItems().get(0));
         assertEquals("r3669961", n.getItems().get(1));
         assertEquals(8, n.getItems().size());
     }
-
+    
+    @Test(expected = NmeaMessageParseException.class)
+    public void testNmeaMessageParserFailsChecksum() {
+        String line = "\\g:3-3-1234*hh\\$ABVSI,r3669961,1,013536.96326433,1386,-98,,*hh";
+        NmeaUtil.parseNmea(line, true);
+    }
+    
+    @Test
+    public void testNmeaMessageParserPassesChecksum() {
+        String line = "\\g:3-3-1234*hh\\$ABVSI,r3669961,1,013536.96326433,1386,-98,,*14";
+        NmeaUtil.parseNmea(line, true);
+    }
+    
     @Test
     public void testParsingOfTimeAndSourceInTagBlock() {
         String line = "\\g:1-2-1234,s:r3669961,c:1120959341*hh\\!ABVDM,1,1,1,B,…..,0*hh";
