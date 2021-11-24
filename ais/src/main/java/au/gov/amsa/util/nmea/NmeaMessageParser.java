@@ -54,7 +54,7 @@ public class NmeaMessageParser {
             if (!remaining.contains("*"))
                 throw new NmeaMessageParseException("checksum delimiter * not found");
             items = getNmeaItems(remaining);
-            checksum = remaining.substring(remaining.indexOf('*') + 1);
+            checksum = remaining.substring(remaining.indexOf('*') + 1).trim();
             if (validateChecksum) {
                 String calculatedChecksum = NmeaUtil.getChecksumWhenHasNoTagBlock(remaining);
                 if (!checksum.equalsIgnoreCase(calculatedChecksum)) {

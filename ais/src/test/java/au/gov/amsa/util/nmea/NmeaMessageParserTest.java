@@ -45,7 +45,7 @@ public class NmeaMessageParserTest {
     
     @Test
     public void testNmeaMessageParserPassesChecksum2() {
-        String line = "\\s:MSQ Townsville VTS,c:1619827237,seq:73548035,a:1619827238555*3E\\!ABVDM,1,1,,B,17Ot`M0000bP?wAm2Fw>45K828EF,0*2E";
+        String line = "\\s:Legendre Island,c:1637741923,seq:19087498*6D\\!ABVDM,1,1,0,B,17OddA`0008Nl3wlGN@VwPUH0<2J,0*25\n";
         NmeaUtil.parseNmea(line, true);
     }
     
