@@ -44,6 +44,13 @@ public class NmeaMessageParserTest {
     }
     
     @Test
+    public void testNmeaMessageParserPassesChecksum2() {
+        String line = "\\s:MSQ Townsville VTS,c:1619827237,seq:73548035,a:1619827238555*3E\\!ABVDM,1,1,,B,17Ot`M0000bP?wAm2Fw>45K828EF,0*2E";
+        NmeaUtil.parseNmea(line, true);
+    }
+    
+    
+    @Test
     public void testParsingOfTimeAndSourceInTagBlock() {
         String line = "\\g:1-2-1234,s:r3669961,c:1120959341*hh\\!ABVDM,1,1,1,B,…..,0*hh";
         NmeaMessage n = NmeaUtil.parseNmea(line);
