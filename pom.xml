@@ -26,7 +26,7 @@
         <rxjava.slf4j.version>0.6.12</rxjava.slf4j.version>
         <rtree.version>0.8.7</rtree.version>
         <slf4j.version>1.7.35</slf4j.version>
-        <grumpy.version>0.4.4</grumpy.version>
+        <grumpy.version>0.4.5</grumpy.version>
         <guava.version>31.0.1-jre</guava.version>
         <guava.mini.version>0.1.4</guava.mini.version>
         <geotools.version>26.2</geotools.version>
