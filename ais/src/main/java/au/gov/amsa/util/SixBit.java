@@ -41,6 +41,9 @@ public final class SixBit {
 		int strFrom = from / 6;
 		int slen = str.length() - 1;
 		int strTo = to / 6 + 1;
+		// Note extracting Math.min(strTo, slen) to a separate variable
+		// to reduce evaluations of this condition actually reduced throughput
+		// by 4% in jmh benchmarks so not doing that.
 		for (int i = strFrom; i < Math.min(strTo, slen); i++) {
 			if (!calculated[i]) {
 				char chr = str.charAt(i);
