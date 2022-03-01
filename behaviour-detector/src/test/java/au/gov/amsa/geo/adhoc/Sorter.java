@@ -17,9 +17,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.function.Function;
-
-import com.github.davidmoten.rtree.internal.util.PriorityQueue;
 
 import net.jcip.annotations.NotThreadSafe;
 
