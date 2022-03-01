@@ -64,11 +64,22 @@ public class BenchmarksAis {
 	}
 
 	@Benchmark
-	public void parseMany() throws IOException {
+	public void parseManyNmeaMessage() throws IOException {
 		// process 44K lines
-		Observable.from(nmeaLines).map(Streams.LINE_TO_NMEA_MESSAGE)
-				.compose(Streams.<NmeaMessage> valueIfPresent()).subscribe();
+		Observable //
+		    .from(nmeaLines) //
+		    .map(Streams.LINE_TO_NMEA_MESSAGE) //
+			.compose(Streams.<NmeaMessage> valueIfPresent()) //
+			.subscribe();
 	}
+	
+   @Benchmark
+    public void parseManyFixes() throws IOException {
+        // process 44K lines
+       Streams //
+          .extractFixes(Observable.from(nmeaLines)) //
+          .subscribe();
+    }
 
 	public static void main(String[] args) {
 		System.setProperty("a", "");
