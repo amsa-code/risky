@@ -145,51 +145,17 @@ public class Streams {
         try {
             if (m.message() instanceof AisPosition) {
                 AisPosition a = (AisPosition) m.message();
-                if (a.getLatitude() == null || a.getLongitude() == null || a.getLatitude() < -90
-                        || a.getLatitude() > 90 || a.getLongitude() < -180
-                        || a.getLongitude() > 180)
+                if (!positionIsValid(a)) {
                     return Observable.empty();
-                else {
-                    Optional<NavigationalStatus> nav;
-                    if (a instanceof AisPositionA) {
-                        AisPositionA p = (AisPositionA) a;
-                        nav = of(NavigationalStatus.values()[p.getNavigationalStatus().ordinal()]);
-                    } else
-                        nav = empty();
-
-                    Optional<Float> sog;
-                    if (a.getSpeedOverGroundKnots() == null)
-                        sog = empty();
-                    else
-                        sog = of((a.getSpeedOverGroundKnots().floatValue()));
-                    Optional<Float> cog;
-                    if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
-                            || a.getCourseOverGround() < 0)
-                        cog = empty();
-                    else
-                        cog = of((a.getCourseOverGround().floatValue()));
-                    Optional<Float> heading;
-                    if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
-                            || a.getTrueHeading() < 0)
-                        heading = empty();
-                    else
-                        heading = of((a.getTrueHeading().floatValue()));
-
-                    AisClass aisClass;
-                    if (a instanceof AisPositionA)
-                        aisClass = AisClass.A;
-                    else
-                        aisClass = AisClass.B;
-                    Optional<Short> src;
-                    if (a.getSource() != null) {
-                        // TODO decode
-                        src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
-                    } else
-                        src = empty();
-
+                } else {
+                    Optional<NavigationalStatus> nav = navStatus(a);
+                    Optional<Float> sog = speedKnots(a);
+                    Optional<Float> cog = cog(a);
+                    Optional<Float> heading = heading(a);
+                    AisClass aisClass = aisClass(a);
+                    Optional<Short> src = source(a);
                     // TODO latency
                     Optional<Integer> latency = empty();
-
                     Fix f = new FixImpl(a.getMmsi(), a.getLatitude().floatValue(),
                             a.getLongitude().floatValue(), m.time(), latency, src, nav, sog, cog,
                             heading, aisClass);
@@ -202,6 +168,70 @@ public class Streams {
             return Observable.empty();
         }
     };
+
+    private static Optional<Short> source(AisPosition a) {
+        Optional<Short> src;
+        if (a.getSource() != null) {
+            // TODO decode
+            src = of((short) BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN);
+        } else
+            src = empty();
+        return src;
+    }
+
+    private static AisClass aisClass(AisPosition a) {
+        AisClass aisClass;
+        if (a instanceof AisPositionA)
+            aisClass = AisClass.A;
+        else
+            aisClass = AisClass.B;
+        return aisClass;
+    }
+
+    private static Optional<Float> heading(AisPosition a) {
+        Optional<Float> heading;
+        if (a.getTrueHeading() == null || a.getTrueHeading() >= 360
+                || a.getTrueHeading() < 0)
+            heading = empty();
+        else
+            heading = of((a.getTrueHeading().floatValue()));
+        return heading;
+    }
+
+    private static Optional<Float> cog(AisPosition a) {
+        Optional<Float> cog;
+        if (a.getCourseOverGround() == null || a.getCourseOverGround() >= 360
+                || a.getCourseOverGround() < 0)
+            cog = empty();
+        else
+            cog = of((a.getCourseOverGround().floatValue()));
+        return cog;
+    }
+
+    private static Optional<Float> speedKnots(AisPosition a) {
+        Optional<Float> sog;
+        if (a.getSpeedOverGroundKnots() == null)
+            sog = empty();
+        else
+            sog = of((a.getSpeedOverGroundKnots().floatValue()));
+        return sog;
+    }
+
+    private static Optional<NavigationalStatus> navStatus(AisPosition a) {
+        Optional<NavigationalStatus> nav;
+        if (a instanceof AisPositionA) {
+            AisPositionA p = (AisPositionA) a;
+            return of(NavigationalStatus.values()[p.getNavigationalStatus().ordinal()]);
+        } else {
+            return empty();
+        }
+    }
+
+    private static boolean positionIsValid(AisPosition a) {
+        return a.getLatitude() != null && a.getLongitude() != null && a.getLatitude() >= -90
+                && a.getLatitude() <= 90 && a.getLongitude() >= -180
+                && a.getLongitude() <= 180;
+    }
 
     public static Observable<String> nmeaFrom(final File file) {
         return Observable.using(
