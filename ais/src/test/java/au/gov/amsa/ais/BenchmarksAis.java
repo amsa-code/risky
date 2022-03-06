@@ -22,6 +22,7 @@ public class BenchmarksAis {
 	private static final List<String> nmeaLines = Streams
 			.nmeaFromGzip(new File("src/test/resources/ais.txt.gz")).toList()
 			.toBlocking().single();
+	private static final List<String> nmeaLinesShorter = nmeaLines.subList(0, 1000);
 
 	@Benchmark
 	public void parseShipStaticNmeaMessage() {
@@ -48,15 +49,6 @@ public class BenchmarksAis {
 		n.getMessage();
 	}
 
-	// @Benchmark
-	// public void parseAisPositionANmeaMessageUsingDmaLibrary() throws
-	// SentenceException,
-	// AisMessageException, SixbitException {
-	// Vdm vdm = new Vdm();
-	// vdm.parse(aisPositionA);
-	// AisMessage3.getInstance(vdm);
-	// }
-
 	@Benchmark
 	public void parseAisPositionBNmeaMessage() {
 		AisNmeaMessage n = new AisNmeaMessage(aisPositionB);
@@ -74,20 +66,20 @@ public class BenchmarksAis {
 	}
 	
    @Benchmark
-    public void parseManyFixes() throws IOException {
-        // process 44K lines
+    public void parseManyFixesShorter() throws IOException {
+        // process 1K lines
        Streams //
-          .extractFixes(Observable.from(nmeaLines)) //
+          .extractFixes(Observable.from(nmeaLinesShorter)) //
           .subscribe();
     }
 
 	public static void main(String[] args) {
-		System.setProperty("a", "");
+	    int i = 0;
 		while (true) {
-			AisNmeaMessage n = new AisNmeaMessage(aisPositionA);
-			n.getMessage();
-			n = new AisNmeaMessage(shipStaticA);
-			n.getMessage();
+		    Streams //
+	          .extractFixes(Observable.from(nmeaLines)) //
+	          .subscribe();
+		    System.out.println(i++);
 		}
 	}
 

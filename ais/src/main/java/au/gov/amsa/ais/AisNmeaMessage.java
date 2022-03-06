@@ -182,12 +182,20 @@ public class AisNmeaMessage {
 			return Timestamped.create(getMessage(), getTime());
 	}
 
+    /**
+     * Returns null if there is no timestamp otherwise returns a timestamped
+     * message. Note that null is returned instead of using an Optional to reduce
+     * allocation pressures.
+     * 
+     * @return timestamped message
+     */
 	public Timestamped<AisMessage> getTimestampedMessage() {
 		Long time = getTime();
-		if (time == null)
-			throw new RuntimeException("nmea did not have timestamp");
-		else
+		if (time == null) {
+		    return null;
+		} else {
 			return Timestamped.create(getMessage(), getTime());
+		}
 	}
 
 	/**
