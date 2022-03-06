@@ -444,6 +444,9 @@ public class Streams {
             try {
                 AisNmeaMessage n = new AisNmeaMessage(nmea);
                 Timestamped<AisMessage> m = n.getTimestampedMessage();
+                if (m == null) {
+                    return Optional.empty();
+                }
                 // if (m.message() instanceof AisShipStaticA) {
                 // AisShipStaticA s = (AisShipStaticA) m.message();
                 // if (logWarnings
