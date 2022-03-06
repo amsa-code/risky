@@ -113,7 +113,8 @@ public class NmeaUtilTest {
 
     @Test
     public void testGetTalkerGivenNullString() {
-        assertNull(NmeaUtil.getTalker(null));
+        assertEquals(Talker.UNKNOWN,
+                NmeaUtil.getTalker(null));
     }
 
     @Test

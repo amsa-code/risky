@@ -10,6 +10,9 @@
     <artifactId>ais</artifactId>
     <name>${project.artifactId}</name>
     <description>Utilities for parsing AIS NMEA and XML messages and for processing AIS message streams.</description>
+    <properties>
+        <benchmarkClass></benchmarkClass>
+    </properties>
     <dependencies>
 
         <dependency>
@@ -179,6 +182,7 @@
                                         <argument>3</argument>
                                         <argument>-jvmArgs</argument>
                                         <argument>-Xmx512m</argument>
+                                        <argument>${benchmarkClass}</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -303,7 +307,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <mainClass>au.gov.amsa.ais.BenchmarksAis</mainClass>
+                            <mainClass>au.gov.amsa.ais.BenchmarksDecodeManyNmea</mainClass>
                             <classpathScope>test</classpathScope>
                         </configuration>
                     </plugin>
