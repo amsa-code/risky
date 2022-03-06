@@ -74,12 +74,10 @@ public class BenchmarksAis {
     }
 
 	public static void main(String[] args) {
-	    int i = 0;
 		while (true) {
 		    Streams //
 	          .extractFixes(Observable.from(nmeaLines)) //
 	          .subscribe();
-		    System.out.println(i++);
 		}
 	}
 
