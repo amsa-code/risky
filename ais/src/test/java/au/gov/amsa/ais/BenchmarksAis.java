@@ -19,12 +19,8 @@ public class BenchmarksAis {
 	private static final String shipStaticA = "\\s:rEV02,c:1334337326*5A\\!ABVDM,1,1,0,2,57PBtv01sb5IH`PR221LE986222222222222220l28?554000:kQEhhDm31H20DPSmD`880,2*40";
 	private static final String aisPositionA = "\\s:rEV02,c:1334337326*5A\\!AIVDM,1,1,,B,18JSad001i5gcaArTICimQTT068t,0*4A";
 	private static final String aisPositionB = "\\s:MSQ - Mt Cootha,c:1426803365*73\\!AIVDM,1,1,,A,B7P?n900Irg8IHL4RblF?wRToP06,0*1B";
-	private static final List<String> nmeaLines = Streams
-			.nmeaFromGzip(new File("src/test/resources/ais.txt.gz")).toList()
-			.toBlocking().single();
-	private static final List<String> nmeaLinesShorter = nmeaLines.subList(0, 1000);
 
-	@Benchmark
+//	@Benchmark
 	public void parseShipStaticNmeaMessage() {
 		AisNmeaMessage n = new AisNmeaMessage(shipStaticA);
 		n.getMessage();
@@ -54,31 +50,4 @@ public class BenchmarksAis {
 		AisNmeaMessage n = new AisNmeaMessage(aisPositionB);
 		n.getMessage();
 	}
-
-	@Benchmark
-	public void parseManyNmeaMessage() throws IOException {
-		// process 44K lines
-		Observable //
-		    .from(nmeaLines) //
-		    .map(Streams.LINE_TO_NMEA_MESSAGE) //
-			.compose(Streams.<NmeaMessage> valueIfPresent()) //
-			.subscribe();
-	}
-	
-   @Benchmark
-    public void parseManyFixesShorter() throws IOException {
-        // process 1K lines
-       Streams //
-          .extractFixes(Observable.from(nmeaLinesShorter)) //
-          .subscribe();
-    }
-
-	public static void main(String[] args) {
-		while (true) {
-		    Streams //
-	          .extractFixes(Observable.from(nmeaLines)) //
-	          .subscribe();
-		}
-	}
-
 }

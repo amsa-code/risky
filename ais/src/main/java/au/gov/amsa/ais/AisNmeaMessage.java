@@ -85,23 +85,13 @@ public class AisNmeaMessage {
 
 	/**
 	 * Returns the {@link Talker} corresponding to the first two characters of
-	 * the message format type (e.g. AIVDM -> AI).
+	 * the message format type (e.g. AIVDM -> AI). If not present or not recognized
+	 * then returns {@code Talker.UNKNOWN}.
 	 * 
-	 * @return
+	 * @return talker
 	 */
 	public Talker getTalker() {
 		return nmea.getTalker();
-	}
-
-	/**
-	 * Returns the checksum field at the end of the NMEA line. Does not
-	 * <i>calculate</i> the checksum.
-	 * 
-	 * @param nmea
-	 * @return
-	 */
-	private static String getChecksum(NmeaMessage nmea) {
-		return nmea.getChecksum();
 	}
 
 	/**

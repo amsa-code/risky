@@ -1,9 +1,12 @@
 package au.gov.amsa.util.nmea;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.github.davidmoten.guavamini.Sets;
 
@@ -220,15 +223,21 @@ public final class NmeaUtil {
         s.append(",a:");
         s.append(arrivalTime);
     }
-
+    
+    private static final Map<String, Talker> talkers = Arrays.asList(Talker.values()).stream()
+            .collect(Collectors.toMap(t -> t.name(), t -> t));
+    
     public static Talker getTalker(String s) {
         if (s == null)
-            return null;
+            return Talker.UNKNOWN;
         else {
-            try {
-                return Talker.valueOf(s);
-            } catch (RuntimeException e) {
+            // don't use Talker.valueOf because it throws when s not valid Talker 
+            // and throw exceptions are bad for performance due allocations
+            Talker t = talkers.get(s);
+            if (t == null) {
                 return Talker.UNKNOWN;
+            } else {
+                return t;
             }
         }
     }
