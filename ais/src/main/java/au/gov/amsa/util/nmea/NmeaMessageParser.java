@@ -57,7 +57,7 @@ public class NmeaMessageParser {
             checksum = remaining.substring(remaining.indexOf('*') + 1).trim();
             if (validateChecksum) {
                 String calculatedChecksum = NmeaUtil.getChecksumWhenHasNoTagBlock(remaining);
-                if (!checksum.equalsIgnoreCase(calculatedChecksum)) {
+                if (!checksum.equals(calculatedChecksum)) {
                     throw new NmeaMessageParseException("stated checksum does not match calculated");
                 }
             }
