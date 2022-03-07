@@ -88,20 +88,18 @@ public class NmeaMessageParser {
         }
         return items;
     }
-
+    
     private static List<String> splitBy(String s, char delimiter) {
         List<String> list = new ArrayList<>();
-        StringBuilder b = new StringBuilder();
+        int start = 0;
         for (int i = 0; i < s.length(); i++) {
             char ch = s.charAt(i);
             if (ch == delimiter) {
-                list.add(b.toString());
-                b.setLength(0);
-            } else {
-                b.append(ch);
-            }
+                list.add(s.substring(start, i));
+                start = i + 1;
+            } 
         }
-        list.add(b.toString());
+        list.add(s.substring(start, s.length()));
         return list;
     }
 
