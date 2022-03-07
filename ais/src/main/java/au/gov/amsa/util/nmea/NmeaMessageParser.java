@@ -1,9 +1,9 @@
 package au.gov.amsa.util.nmea;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
-
-import org.apache.commons.lang3.StringUtils;
+import java.util.List;
 
 /**
  * Parses NMEA messages.
@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 public class NmeaMessageParser {
 
     private static final String CHECKSUM_DELIMITER = "*";
-    private static final String PARAMETER_DELIMITER = ",";
+    private static final char PARAMETER_DELIMITER = ',';
     private static final String CODE_DELIMITER = ":";
 
     public NmeaMessage parse(String line) {
@@ -48,7 +48,7 @@ public class NmeaMessageParser {
         } else
             remaining = line;
 
-        String[] items;
+        List<String> items;
         String checksum;
         if (remaining.length() > 0) {
             if (!remaining.contains("*"))
@@ -62,12 +62,12 @@ public class NmeaMessageParser {
                 }
             }
         } else {
-            items = new String[] {};
+            items = Collections.emptyList();
             // TODO decide what value to put here
             checksum = "";
         }
 
-        return new NmeaMessage(tags, Arrays.asList(items), checksum);
+        return new NmeaMessage(tags, items, checksum);
     }
 
     /**
@@ -78,14 +78,31 @@ public class NmeaMessageParser {
      * @param line
      * @return
      */
-    private static String[] getNmeaItems(String line) {
-        String[] items = StringUtils.splitByWholeSeparatorPreserveAllTokens(line,
+    private static List<String> getNmeaItems(String line) {
+        List<String> items = splitBy(line,
                 PARAMETER_DELIMITER);
         // remove the checksum from the end
-        String last = items[items.length - 1];
-        if (last.contains("*"))
-            items[items.length - 1] = last.substring(0, last.lastIndexOf('*'));
+        String last = items.get(items.size()- 1);
+        if (last.contains("*")) {
+            items.set(items.size()- 1,  last.substring(0, last.lastIndexOf('*')));
+        }
         return items;
+    }
+
+    private static List<String> splitBy(String s, char delimiter) {
+        List<String> list = new ArrayList<>();
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char ch = s.charAt(i);
+            if (ch == delimiter) {
+                list.add(b.toString());
+                b.setLength(0);
+            } else {
+                b.append(ch);
+            }
+        }
+        list.add(b.toString());
+        return list;
     }
 
     /**
@@ -102,7 +119,7 @@ public class NmeaMessageParser {
             return map;
         }
         s = s.substring(0, c);
-        String[] items = s.split(PARAMETER_DELIMITER);
+        List<String> items = splitBy(s, PARAMETER_DELIMITER);
         for (String item : items) {
             int i = item.indexOf(CODE_DELIMITER);
             if (i == -1)
