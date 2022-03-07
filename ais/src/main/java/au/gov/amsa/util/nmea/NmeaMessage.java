@@ -6,6 +6,8 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import au.gov.amsa.util.Util;
+
 /**
  * Bean to carry NMEA fields.
  * 
@@ -62,7 +64,7 @@ public class NmeaMessage {
             return null;
         else
             try {
-                return Long.parseLong(time) * 1000;
+                return Util.parseLong(time) * 1000;
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -96,7 +98,7 @@ public class NmeaMessage {
         if (count == null)
             return null;
         else
-            return Integer.parseInt(count);
+            return Util.parseInt(count);
     }
 
     /**
@@ -110,7 +112,7 @@ public class NmeaMessage {
         if (time == null)
             return null;
         else
-            return Long.parseLong(time) * 1000;
+            return Util.parseLong(time) * 1000;
     }
 
     /**
@@ -189,8 +191,8 @@ public class NmeaMessage {
                 String[] parts = g.split("-");
                 if (parts.length < 3)
                     throw new NmeaMessageParseException("not enough parts available in g tag");
-                int number = Integer.parseInt(parts[0]);
-                int count = Integer.parseInt(parts[1]);
+                int number = Util.parseInt(parts[0]);
+                int count = Util.parseInt(parts[1]);
                 String id = parts[2];
                 return new SentenceInfo(number, count, id);
 
@@ -200,8 +202,8 @@ public class NmeaMessage {
                 for (Entry<String, String> entry : tags.entrySet()) {
                     Matcher matcher = sentenceTagPattern.matcher(entry.getKey());
                     if (matcher.matches()) {
-                        int number = Integer.parseInt(matcher.group(1));
-                        int count = Integer.parseInt(matcher.group(2));
+                        int number = Util.parseInt(matcher.group(1));
+                        int count = Util.parseInt(matcher.group(2));
                         String id = entry.getValue();
                         // found it so return the sentence info
                         return new SentenceInfo(number, count, id);
@@ -209,8 +211,8 @@ public class NmeaMessage {
                 }
                 // didn't find the grouping tag
                 if (items.size() > 2 && isEncapsulationSentence(items)) {
-                    int number = Integer.parseInt(items.get(2));
-                    int count = Integer.parseInt(items.get(1));
+                    int number = Util.parseInt(items.get(2));
+                    int count = Util.parseInt(items.get(1));
                     String id = items.get(3);
                     return new SentenceInfo(number, count, id);
                 } else
@@ -248,7 +250,7 @@ public class NmeaMessage {
             return null;
         else
             try {
-                return Long.parseLong(time);
+                return Util.parseLong(time);
             } catch (NumberFormatException e) {
                 return null;
             }
