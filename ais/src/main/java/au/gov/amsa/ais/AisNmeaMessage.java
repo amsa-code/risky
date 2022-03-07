@@ -179,14 +179,14 @@ public class AisNmeaMessage {
      * 
      * @return timestamped message
      */
-	public Timestamped<AisMessage> getTimestampedMessage() {
-		Long time = getTime();
-		if (time == null) {
+    public Timestamped<AisMessage> getTimestampedMessage() {
+        Long time = getTime();
+        if (time == null) {
             return null;
-		} else {
+        } else {
             return Timestamped.create(getMessage(), getTime());
-		}
-	}
+        }
+    }
 
 	/**
 	 * Returns the checksum (last field in the NMEA line).
