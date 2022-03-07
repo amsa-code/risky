@@ -182,9 +182,9 @@ public class AisNmeaMessage {
 	public Timestamped<AisMessage> getTimestampedMessage() {
 		Long time = getTime();
 		if (time == null) {
-		    return null;
+            return null;
 		} else {
-			return Timestamped.create(getMessage(), getTime());
+            return Timestamped.create(getMessage(), getTime());
 		}
 	}
 
