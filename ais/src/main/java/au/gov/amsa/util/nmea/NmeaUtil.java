@@ -7,12 +7,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.github.davidmoten.guavamini.Sets;
 
 import au.gov.amsa.ais.AisParseException;
 
 public final class NmeaUtil {
+
+    private static final String[] EMPTY = new String[] {};
 
     private static final char BACKSLASH = '\\';
 
@@ -106,10 +109,21 @@ public final class NmeaUtil {
             }
         }
         // Return the checksum formatted as a two-character hexadecimal
-        String s = Integer.toHexString(checksum % 256);
-        if (s.length() == 1)
-            s = "0" + s;
-        return s.toUpperCase();
+        return toUpperCaseHexString(checksum % 256);
+    }
+    
+    private static final String[] hexes = IntStream //
+            .range(0, 256) //
+            .mapToObj(x -> {
+                String s = Integer.toHexString(x).toUpperCase();
+                if (s.length() == 1) {
+                    s = "0" + s;
+                }
+                return s;
+            }).collect(Collectors.toList()).toArray(EMPTY);
+    
+    private static String toUpperCaseHexString(int n) {
+        return hexes[n];
     }
 
     private static NmeaMessageParser nmeaParser = new NmeaMessageParser();
