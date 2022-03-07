@@ -57,10 +57,9 @@ public final class NmeaUtil {
      */
     public static boolean isValid(String sentence) {
         // Compare the characters after the asterisk to the calculation
-
         try {
             return sentence.substring(sentence.lastIndexOf("*") + 1)
-                    .equalsIgnoreCase(getChecksum(sentence));
+                    .equals(getChecksum(sentence));
         } catch (AisParseException e) {
             return false;
         }
