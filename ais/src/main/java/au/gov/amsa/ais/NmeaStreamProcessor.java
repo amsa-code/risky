@@ -88,7 +88,7 @@ public class NmeaStreamProcessor {
 	 * @param line
 	 * @param arrivalTime
 	 */
-	synchronized void line(String line, long arrivalTime) {
+	void line(String line, long arrivalTime) {
 
 		if (count.incrementAndGet() % logCountFrequency == 0)
 			log.info("count=" + count.get() + ",buffer size=" + lines.size());
