@@ -44,7 +44,7 @@ public final class FixImpl implements HasFix, Fix {
             if (courseOverGroundDegrees.isPresent()) {
                 Preconditions.checkArgument(
                         courseOverGroundDegrees.get() < 360 && courseOverGroundDegrees.get() >= 0,
-                        "cog=" + courseOverGroundDegrees.get());
+                        "cog must be >=0 and <=360");
             }
             if (headingDegrees.isPresent()) {
                 Preconditions
