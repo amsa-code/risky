@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.davidmoten.guavamini.Lists;
 import com.google.common.collect.LinkedHashMultimap;
@@ -22,7 +21,6 @@ public class AisNmeaBuffer {
     private static final int COLUMN_TO_AGGREGATE = AIS_MESSAGE_COL_NO;
     private final int maxBufferSize;
     private final LinkedHashMultimap<String, NmeaMessage> buffer;
-    private final AtomicBoolean adding = new AtomicBoolean();
 
     public AisNmeaBuffer(int maxBufferSize) {
         this.maxBufferSize = maxBufferSize;
@@ -37,19 +35,6 @@ public class AisNmeaBuffer {
      * @return
      */
     public Optional<List<NmeaMessage>> add(NmeaMessage nmea) {
-        // use compare-and-swap semantics instead of synchronizing to squeak a
-        // bit more performance out of this. Contention is expected to be low so
-        // this should help.
-        while (true) {
-            if (adding.compareAndSet(false, true)) {
-                Optional<List<NmeaMessage>> result = doAdd(nmea);
-                adding.set(false);
-                return result;
-            }
-        }
-    }
-
-    private Optional<List<NmeaMessage>> doAdd(NmeaMessage nmea) {
         List<String> items = nmea.getItems();
         if (items.size() > 0 && items.size() < MIN_NUM_COLS_FOR_LINE_TO_BE_AGGREGATED)
             return Optional.of(Collections.singletonList(nmea));
