@@ -292,7 +292,7 @@
             </build>
         </profile>
         <profile>
-            <id>bench</id>
+            <id>main</id>
             <build>
                 <plugins>
                     <plugin>
