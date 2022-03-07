@@ -245,7 +245,7 @@ public final class NmeaUtil {
             return Talker.UNKNOWN;
         else {
             // don't use Talker.valueOf because it throws when s not valid Talker 
-            // and throw exceptions are bad for performance due allocations
+            // and thrown exceptions are bad for performance due allocations
             Talker t = talkers.get(s);
             if (t == null) {
                 return Talker.UNKNOWN;
