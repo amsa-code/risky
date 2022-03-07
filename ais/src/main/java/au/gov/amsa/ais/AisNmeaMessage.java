@@ -63,8 +63,8 @@ public class AisNmeaMessage {
 				throw new AisParseException("ais nmea line must have at least 7 columns:"
 				        + nmea.getItems());
 			format = getItem(0);
-			fragmentCount = au.gov.amsa.util.Util.parseInt(getItem(1));
-			fragmentNumber = au.gov.amsa.util.Util.parseInt(getItem(2));
+			fragmentCount = au.gov.amsa.ais.parse.Util.parseInt(getItem(1));
+			fragmentNumber = au.gov.amsa.ais.parse.Util.parseInt(getItem(2));
 			sequentialMessageId = getItem(3);
 			channel = getItem(4);
 			aisMessage = getItem(5);

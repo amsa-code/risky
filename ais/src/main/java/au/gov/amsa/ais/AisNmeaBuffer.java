@@ -83,8 +83,8 @@ public class AisNmeaBuffer {
                 // parse the num and count values from the NMEA colums
                 // an VSI message will fail this check
                 try {
-                    au.gov.amsa.util.Util.parseInt(t.getItems().get(1));
-                    au.gov.amsa.util.Util.parseInt(t.getItems().get(2));
+                    au.gov.amsa.ais.parse.Util.parseInt(t.getItems().get(1));
+                    au.gov.amsa.ais.parse.Util.parseInt(t.getItems().get(2));
                     s.append(t.getItems().get(COLUMN_TO_AGGREGATE));
                     foundItems = t.getItems();
                 } catch (NumberFormatException e) {

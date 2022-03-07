@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import au.gov.amsa.util.Util;
+import au.gov.amsa.ais.parse.Util;
 
 /**
  * Bean to carry NMEA fields.
