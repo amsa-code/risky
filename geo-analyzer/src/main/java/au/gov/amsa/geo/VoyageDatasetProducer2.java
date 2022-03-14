@@ -47,7 +47,7 @@ public final class VoyageDatasetProducer2 {
         output.delete();
 
         int numFiles = list.size();
-        System.out.println(numFiles + "binary fix files");
+        System.out.println("input files count = " + numFiles);
 
         Collection<Port> ports = loadPorts();
         Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
@@ -66,6 +66,7 @@ public final class VoyageDatasetProducer2 {
             // this is because the runtime is acceptable
             int[] currentMmsi = new int[1];
             currentMmsi[0] = -1;
+            long[] badItemCount = new long[1];
             Observable.from(list) //
                     .flatMap(file -> //
                     Strings.lines(file)
@@ -73,8 +74,15 @@ public final class VoyageDatasetProducer2 {
                             .skip(1) //
                             .map(x -> x.trim()) //
                             .filter(x -> !x.isEmpty()) //
-                            .doOnNext(System.out::println) //
-                            .map(line -> toFix(line)) //
+                            .map(x -> x.split(",")) //
+                            .doOnNext(items -> {
+                                if (items.length != 5) {
+                                    badItemCount[0]++;
+                                }
+                            }) //
+                            .filter(items -> items.length == 5) //
+                            .map(items -> toFix(items)) //
+//                            .filter(fix -> !eezPolygon.contains(fix.lat(), fix.lon())) //
                             .doOnNext(line -> {
                                 count[0]++;
                                 if (count[0] % 100000 == 0) {
@@ -82,10 +90,12 @@ public final class VoyageDatasetProducer2 {
                                 }
                             }) //
                             .compose(Transformers.bufferWhile(x -> {
-                                boolean b = x.mmsi() == currentMmsi[0] || currentMmsi[0] == -1;
+                                boolean b = x.mmsi() != currentMmsi[0] && currentMmsi[0] != -1;
                                 currentMmsi[0] = x.mmsi();
                                 return b;
                             })) //
+                            .doOnNext(x -> Preconditions
+                                    .checkArgument(x.stream().map(y -> y.mmsi()).distinct().count() == 1, x.toString()))
                             .flatMap(fixes -> Observable.from(fixes) //
                                     .lift(new OperatorEffectiveSpeedChecker(
                                             SegmentOptions.builder().acceptAnyFixHours(24L).maxSpeedKnots(50).build()))
@@ -95,6 +105,7 @@ public final class VoyageDatasetProducer2 {
                                     .map(check -> check.fix()) //
                                     .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                                     .filter(x -> includeLeg(x))) //
+                            .doOnNext(System.out::println) //
                             .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                             .doOnNext(x -> write(writer, x)) //
                     ).toBlocking() //
@@ -115,20 +126,21 @@ public final class VoyageDatasetProducer2 {
                     p.println(mmsi + "\t" + mmsisWithFailedChecks.get(mmsi));
                 }
             }
+            System.out.println("bad item count=" + badItemCount[0]);
+            System.out.println("voyages written to " + output);
         }
     }
 
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d/M/y' 'H:m:s")
             .withZone(ZoneId.of("UTC"));
 
-    private static Fix toFix(String s) {
+    private static Fix toFix(String[] items) {
         // converts csv record to fix
-        String[] items = s.split(",");
+        Preconditions.checkArgument(items.length == 5);
         float lon = Float.parseFloat(items[1]);
         float lat = Float.parseFloat(items[2]);
         int mmsi = Integer.parseInt(items[4]);
         ZonedDateTime z = ZonedDateTime.parse(items[3], dtf);
-        System.out.println(z);
         long time = z.toInstant().toEpochMilli();
         return new SpecialFix(mmsi, time, lat, lon);
     }
@@ -210,6 +222,11 @@ public final class VoyageDatasetProducer2 {
         @Override
         public Optional<Byte> rateOfTurn() {
             return Optional.empty();
+        }
+
+        @Override
+        public String toString() {
+            return "Fix [mmsi=" + mmsi + ", time=" + time + ", lat=" + lat + ", lon=" + lon + "]";
         }
 
     }
