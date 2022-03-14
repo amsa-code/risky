@@ -185,7 +185,7 @@ public final class VoyageDatasetProducer {
                 && !m.startsWith("9"));
     }
 
-    private static int compareByMmsiThenLegStartTime(TimedLeg x, TimedLeg y) {
+    static int compareByMmsiThenLegStartTime(TimedLeg x, TimedLeg y) {
         if (x.mmsi == y.mmsi) {
             // compare using just the start time of the leg
             return Long.compare(x.a.time, y.a.time);
@@ -194,7 +194,7 @@ public final class VoyageDatasetProducer {
         }
     }
 
-    private static void updatedCounts(AtomicLong failedCheck, AtomicLong fixCount,
+    static void updatedCounts(AtomicLong failedCheck, AtomicLong fixCount,
             Map<Integer, Integer> mmsisWithFailedChecks, EffectiveSpeedCheck check) {
         fixCount.incrementAndGet();
         if (!check.isOk()) {
@@ -204,7 +204,7 @@ public final class VoyageDatasetProducer {
         }
     }
 
-    private static void write(BufferedWriter writer, TimedLeg x) {
+    static void write(BufferedWriter writer, TimedLeg x) {
         try {
             writer.write(String.valueOf(x.mmsi));
             writer.write(COMMA);
@@ -221,7 +221,7 @@ public final class VoyageDatasetProducer {
         }
     }
 
-    private static boolean includeLeg(TimedLeg x) {
+    static boolean includeLeg(TimedLeg x) {
         // exclude EEZ -> EEZ
         return !(x.a.waypoint instanceof EezWaypoint && x.b.waypoint instanceof EezWaypoint);
     }
@@ -230,7 +230,7 @@ public final class VoyageDatasetProducer {
         return format.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(t), ZoneOffset.UTC));
     }
 
-    private static Collection<EezWaypoint> readEezWaypoints() throws IOException {
+    static Collection<EezWaypoint> readEezWaypoints() throws IOException {
         Collection<EezWaypoint> eezWaypoints;
         try (Reader reader = new InputStreamReader(
                 VoyageDatasetProducer.class.getResourceAsStream("/eez-waypoints.csv"))) {
