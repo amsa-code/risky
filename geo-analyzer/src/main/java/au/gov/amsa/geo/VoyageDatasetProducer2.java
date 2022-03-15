@@ -25,9 +25,11 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.github.davidmoten.guavamini.Preconditions;
+import com.github.davidmoten.rx.Checked;
 import com.github.davidmoten.rx.Transformers;
 
 import au.gov.amsa.geo.VoyageDatasetProducer.EezWaypoint;
+import au.gov.amsa.geo.VoyageDatasetProducer.Persister;
 import au.gov.amsa.geo.VoyageDatasetProducer.Port;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
@@ -40,7 +42,7 @@ import rx.Observable;
 
 public final class VoyageDatasetProducer2 {
 
-    public static void produce(File output, List<File> list) throws Exception {
+    public static void produce(File output, File fixesOutput, List<File> list) throws Exception {
         // reset output directories
         output.delete();
 
@@ -56,7 +58,7 @@ public final class VoyageDatasetProducer2 {
         AtomicLong failedCheck = new AtomicLong();
         AtomicLong fixCount = new AtomicLong();
         Map<Integer, Integer> mmsisWithFailedChecks = new TreeMap<>();
-
+        Persister persister = new Persister(fixesOutput);
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output)))) {
 
             long[] count = new long[1];
@@ -96,12 +98,15 @@ public final class VoyageDatasetProducer2 {
                                             check -> updatedCounts(failedCheck, fixCount, mmsisWithFailedChecks, check)) //
                                     .filter(check -> check.isOk()) //
                                     .map(check -> check.fix()) //
+                                    .doOnNext(fix -> persister.persist(fix))
                                     .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                                     .filter(x -> includeLeg(x))) //
 //                            .doOnNext(System.out::println) //
                             .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                             .doOnNext(x -> write(writer, x)) //
-                    ).toBlocking() //
+                    ) //
+                    .doOnTerminate(Checked.a0(() -> persister.close())) //
+                    .toBlocking() //
                     .subscribe();
             System.out.println((System.currentTimeMillis() - t) + "ms");
             System.out.println("total fixes=" + fixCount.get());
@@ -127,8 +132,8 @@ public final class VoyageDatasetProducer2 {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d/M/y' 'H:m:s")
             .withZone(ZoneId.of("UTC"));
 
-    private static final Fix BAD_FIX = new SpecialFix(0,0,0,0);
-    
+    private static final Fix BAD_FIX = new SpecialFix(0, 0, 0, 0);
+
     private static Fix toFix(String[] items) {
         // converts csv record to fix
         if (items.length != 5) {
@@ -141,7 +146,7 @@ public final class VoyageDatasetProducer2 {
         long time = z.toInstant().toEpochMilli();
         return new SpecialFix(mmsi, time, lat, lon);
     }
-    
+
     private static Fix toFix2(String[] items) {
         // converts csv record to fix
         if (items.length != 5) {
@@ -152,7 +157,7 @@ public final class VoyageDatasetProducer2 {
         long time = VoyageDatasetInputSorter.parseTime(items[2]);
         int id;
         if (items[3].isEmpty()) {
-            id = - Integer.parseInt(items[4]);
+            id = -Integer.parseInt(items[4]);
         } else {
             id = Integer.parseInt(items[3]);
         }
@@ -248,6 +253,6 @@ public final class VoyageDatasetProducer2 {
     public static void main(String[] args) throws Exception {
 //        List<File> list = Arrays.asList(new File("/home/dave/cts2017mmsis.csv"));
         List<File> list = Arrays.asList(new File("/home/dave/Downloads/export2.sorted.txt"));
-        VoyageDatasetProducer2.produce(new File("target/output.txt"), list);
+        VoyageDatasetProducer2.produce(new File("target/output.txt"), new File("target/output.tracks"), list);
     }
 }

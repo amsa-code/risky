@@ -94,9 +94,7 @@ public final class VoyageDatasetProducer {
                                     .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                                     .filter(x -> includeLeg(x));
                         }
-                    } //
-
-                    ) //
+                    }) //
                     .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                     .doOnNext(x -> write(writer, x)) //
                     .doOnTerminate(Checked.a0(() -> persister.close())) //
@@ -136,8 +134,7 @@ public final class VoyageDatasetProducer {
         /**
          * Writes fix to binary track file in {@code directory}.
          * 
-         * @param fix
-         *            fix to persist to file
+         * @param fix fix to persist to file
          */
         void persist(Fix fix) {
             // Note that this logic only works if this method called serially
@@ -194,8 +191,8 @@ public final class VoyageDatasetProducer {
         }
     }
 
-    static void updatedCounts(AtomicLong failedCheck, AtomicLong fixCount,
-            Map<Integer, Integer> mmsisWithFailedChecks, EffectiveSpeedCheck check) {
+    static void updatedCounts(AtomicLong failedCheck, AtomicLong fixCount, Map<Integer, Integer> mmsisWithFailedChecks,
+            EffectiveSpeedCheck check) {
         fixCount.incrementAndGet();
         if (!check.isOk()) {
             int count = mmsisWithFailedChecks.getOrDefault(check.fix().mmsi(), 0);
