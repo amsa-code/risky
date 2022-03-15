@@ -9,7 +9,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.zip.GZIPInputStream;
 
@@ -38,7 +37,7 @@ public class VoyageDatasetInputSorter {
                     }
                 }) //
                 .output(new File("target/export2.sorted.txt")) //
-                .maxItemsPerFile(10000000) //
+                .maxItemsPerFile(1000000) //
                 .initialSortInParallel() //
                 .loggerStdOut() //
                 .sort();
