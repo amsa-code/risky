@@ -43,7 +43,7 @@ public class VoyageDatasetInputSorter {
                 .sort();
     }
 
-    private static long parseTime(String s) {
+    static long parseTime(String s) {
         return ZonedDateTime.parse(s, format).toInstant().toEpochMilli();
     }
 

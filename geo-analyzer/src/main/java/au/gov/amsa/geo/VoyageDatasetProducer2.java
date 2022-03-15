@@ -1,19 +1,21 @@
 package au.gov.amsa.geo;
 
+import static au.gov.amsa.geo.VoyageDatasetProducer.compareByMmsiThenLegStartTime;
+import static au.gov.amsa.geo.VoyageDatasetProducer.includeLeg;
+import static au.gov.amsa.geo.VoyageDatasetProducer.loadPorts;
+import static au.gov.amsa.geo.VoyageDatasetProducer.readEezWaypoints;
+import static au.gov.amsa.geo.VoyageDatasetProducer.toLegs;
+import static au.gov.amsa.geo.VoyageDatasetProducer.updatedCounts;
+import static au.gov.amsa.geo.VoyageDatasetProducer.write;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.io.Reader;
-import java.time.Instant;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -22,12 +24,11 @@ import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.github.davidmoten.grumpy.core.Position;
 import com.github.davidmoten.guavamini.Preconditions;
-import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.github.davidmoten.rx.Transformers;
 
-import au.gov.amsa.geo.distance.EffectiveSpeedCheck;
+import au.gov.amsa.geo.VoyageDatasetProducer.EezWaypoint;
+import au.gov.amsa.geo.VoyageDatasetProducer.Port;
 import au.gov.amsa.geo.distance.OperatorEffectiveSpeedChecker;
 import au.gov.amsa.geo.model.SegmentOptions;
 import au.gov.amsa.gt.Shapefile;
@@ -36,7 +37,6 @@ import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import au.gov.amsa.streams.Strings;
 import rx.Observable;
-import static au.gov.amsa.geo.VoyageDatasetProducer.*;
 
 public final class VoyageDatasetProducer2 {
 
@@ -73,13 +73,8 @@ public final class VoyageDatasetProducer2 {
                             .map(x -> x.trim()) //
                             .filter(x -> !x.isEmpty()) //
                             .map(x -> x.split(",")) //
-                            .doOnNext(items -> {
-                                if (items.length != 5) {
-                                    badItemCount[0]++;
-                                }
-                            }) //
-                            .filter(items -> items.length == 5) //
-                            .map(items -> toFix(items)) //
+                            .map(items -> toFix2(items)) //
+                            .filter(fix -> fix != BAD_FIX) //
 //                            .filter(fix -> !eezPolygon.contains(fix.lat(), fix.lon())) //
                             .doOnNext(line -> {
                                 count[0]++;
@@ -103,7 +98,7 @@ public final class VoyageDatasetProducer2 {
                                     .map(check -> check.fix()) //
                                     .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                                     .filter(x -> includeLeg(x))) //
-                            .doOnNext(System.out::println) //
+//                            .doOnNext(System.out::println) //
                             .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                             .doOnNext(x -> write(writer, x)) //
                     ).toBlocking() //
@@ -132,15 +127,36 @@ public final class VoyageDatasetProducer2 {
     private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d/M/y' 'H:m:s")
             .withZone(ZoneId.of("UTC"));
 
+    private static final Fix BAD_FIX = new SpecialFix(0,0,0,0);
+    
     private static Fix toFix(String[] items) {
         // converts csv record to fix
-        Preconditions.checkArgument(items.length == 5);
+        if (items.length != 5) {
+            return BAD_FIX;
+        }
         float lon = Float.parseFloat(items[1]);
         float lat = Float.parseFloat(items[2]);
         int mmsi = Integer.parseInt(items[4]);
         ZonedDateTime z = ZonedDateTime.parse(items[3], dtf);
         long time = z.toInstant().toEpochMilli();
         return new SpecialFix(mmsi, time, lat, lon);
+    }
+    
+    private static Fix toFix2(String[] items) {
+        // converts csv record to fix
+        if (items.length != 5) {
+            return BAD_FIX;
+        }
+        float lat = Float.parseFloat(items[0]);
+        float lon = Float.parseFloat(items[1]);
+        long time = VoyageDatasetInputSorter.parseTime(items[2]);
+        int id;
+        if (items[3].isEmpty()) {
+            id = - Integer.parseInt(items[4]);
+        } else {
+            id = Integer.parseInt(items[3]);
+        }
+        return new SpecialFix(id, time, lat, lon);
     }
 
     private static final class SpecialFix implements Fix {
@@ -230,7 +246,8 @@ public final class VoyageDatasetProducer2 {
     }
 
     public static void main(String[] args) throws Exception {
-        List<File> list = Arrays.asList(new File("/home/dave/cts2017mmsis.csv"));
+//        List<File> list = Arrays.asList(new File("/home/dave/cts2017mmsis.csv"));
+        List<File> list = Arrays.asList(new File("/home/dave/Downloads/export2.sorted.txt"));
         VoyageDatasetProducer2.produce(new File("target/output.txt"), list);
     }
 }
