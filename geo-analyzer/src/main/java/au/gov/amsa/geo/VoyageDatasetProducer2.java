@@ -101,7 +101,6 @@ public final class VoyageDatasetProducer2 {
                                     .doOnNext(fix -> persister.persist(fix))
                                     .compose(o -> toLegs(eezLine, eezPolygon, ports, eezWaypoints, o)) //
                                     .filter(x -> includeLeg(x))) //
-//                            .doOnNext(System.out::println) //
                             .sorted((a, b) -> compareByMmsiThenLegStartTime(a, b)) //
                             .doOnNext(x -> write(writer, x)) //
                     ) //
