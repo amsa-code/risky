@@ -13,17 +13,22 @@ public class CsvSplitterByYear {
 
     String currentYear;
     PrintStream out;
-    
 
     public void split() throws IOException {
+        System.out.println("starting split by year");
         // expects id,yyyy-MM-dd etc
         File input = new File("/home/dave/export.txt");
         File outputDirectory = new File("target/yearly");
         outputDirectory.mkdirs();
         try {
+            long count = 0;
             Iterator<String> it = Files.lines(input.toPath()).iterator(); //
             while (it.hasNext()) {
                 String line = it.next();
+                count += 1;
+                if (count % 1000000 == 0) {
+                    System.out.println(count / 1000000.0 + "m");
+                }
                 int i = line.indexOf(',');
                 String year = line.substring(i + 1, i + 5);
                 if (year.equals("2022")) {
@@ -33,6 +38,7 @@ public class CsvSplitterByYear {
                 // delayed are ignored (some satellite reports)
                 if (currentYear == null || year.compareTo(currentYear) >= 0) {
                     if (!year.equals(currentYear)) {
+                        System.out.println("starting year " + year);
                         currentYear = year;
                         try {
                             out = new PrintStream(new GZIPOutputStream(
