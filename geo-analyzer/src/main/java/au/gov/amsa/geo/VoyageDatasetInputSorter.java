@@ -50,25 +50,16 @@ public class VoyageDatasetInputSorter {
     private static int compare(String a, String b) {
         String[] itemsA = a.split(",");
         String[] itemsB = b.split(",");
-        long timeA = parseTime(itemsA[2]);
-        long timeB = parseTime(itemsB[2]);
-        int c = Long.compare(timeA, timeB);
+        String mmsiA = itemsA[3];
+        String mmsiB = itemsB[3];
+
+        String ida = mmsiA.isEmpty() ? "-" + itemsA[4] : mmsiA;
+        String idb = mmsiB.isEmpty() ? "-" + itemsB[4] : mmsiB;
+        int c = ida.compareTo(idb);
         if (c == 0) {
-            String mmsiA = itemsA[3];
-            String mmsiB = itemsB[3];
-            if (mmsiA.isEmpty()) {
-                if (mmsiB.isEmpty()) {
-                    String imoA = itemsA[4];
-                    String imoB = itemsB[4];
-                    return imoA.compareTo(imoB);
-                } else {
-                    return -1;
-                }
-            } else if (mmsiB.isEmpty()) {
-                return -1;
-            } else {
-                return mmsiA.compareTo(mmsiB);
-            }
+            long timeA = parseTime(itemsA[2]);
+            long timeB = parseTime(itemsB[2]);
+            return Long.compare(timeA, timeB);
         } else {
             return c;
         }
