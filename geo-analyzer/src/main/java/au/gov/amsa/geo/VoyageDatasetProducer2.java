@@ -278,7 +278,7 @@ public final class VoyageDatasetProducer2 {
 
     public static void main(String[] args) throws Exception {
 //        List<File> list = Arrays.asList(new File("/home/dave/cts2017mmsis.csv"));
-        List<File> list = Arrays.asList(new File("/home/dave/Downloads/2017.sorted.txt.gz"));
-        VoyageDatasetProducer2.produce(new File("target/output.txt"), new File("target/output.tracks"), list);
+        List<File> list = Arrays.asList(new File(System.getProperty("user.home") + "/2017.sorted.txt.gz"));
+        VoyageDatasetProducer2.produce(new File("target/voyages.txt"), new File("target/tracks"), list);
     }
 }
