@@ -56,7 +56,11 @@ public final class VoyageDatasetProducer2 {
 
         int numFiles = list.size();
         System.out.println("input files count = " + numFiles);
-
+        if (fixesOutput.exists()) {
+           for (File f: fixesOutput.listFiles()) {
+               f.delete();
+           }
+        }
         Collection<Port> ports = loadPorts();
         Collection<EezWaypoint> eezWaypoints = readEezWaypoints();
         Shapefile eezLine = Eez.loadEezLine();
