@@ -335,7 +335,7 @@ public final class VoyageDatasetProducer {
                         boolean inEez = eezPolygon.contains(fix.lat(), fix.lon());
                         State current = state[0];
                         Preconditions.checkArgument(current.latestFix == null || fix.time() >= current.latestFix.time(),
-                                "fixes out of time order!");
+                                "fixes out of time order!" + fix);
                         boolean crossed = (inEez && current.fixStatus == EezStatus.OUT)
                                 || (!inEez && current.fixStatus == EezStatus.IN);
                         if (crossed) {

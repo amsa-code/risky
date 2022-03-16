@@ -19,13 +19,15 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPInputStream;
@@ -154,7 +156,14 @@ public final class VoyageDatasetProducer2 {
                 });
     }
 
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE_TIME;
+    // faster than ZonedDateTime parsing?
+    private static final SimpleDateFormat  sdf = create();
+
+    private static SimpleDateFormat create() {
+        SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+        f.setTimeZone(TimeZone.getTimeZone("UTC"));
+        return f;
+    }
 
     private static final Fix BAD_FIX = new SpecialFix(0, 0, 0, 0);
 
@@ -163,14 +172,21 @@ public final class VoyageDatasetProducer2 {
         if (items.length != 4) {
             return BAD_FIX;
         }
+        if (items[0].length() == 0) {
+            return BAD_FIX;
+        }
         int mmsi = Integer.parseInt(items[0]);
         if (mmsi == 0) {
             return BAD_FIX;
         }
-        ZonedDateTime z = ZonedDateTime.parse(items[1], dtf);
+        long time;
+        try {
+            time = sdf.parse(items[1]).getTime();
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
         float lat = Float.parseFloat(items[2]);
         float lon = Float.parseFloat(items[3]);
-        long time = z.toInstant().toEpochMilli();
         return new SpecialFix(mmsi, time, lat, lon);
     }
 
@@ -255,7 +271,7 @@ public final class VoyageDatasetProducer2 {
 
         @Override
         public String toString() {
-            return "Fix [mmsi=" + mmsi + ", time=" + time + ", lat=" + lat + ", lon=" + lon + "]";
+            return "Fix [mmsi=" + mmsi + ", time=" + new Date(time) + ", lat=" + lat + ", lon=" + lon + "]";
         }
 
     }
