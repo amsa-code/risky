@@ -10,10 +10,15 @@ import static au.gov.amsa.geo.VoyageDatasetProducer.write;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintStream;
-import java.time.ZoneId;
+import java.io.Reader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -23,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.GZIPInputStream;
 
 import com.github.davidmoten.guavamini.Preconditions;
 import com.github.davidmoten.rx.Checked;
@@ -67,15 +73,16 @@ public final class VoyageDatasetProducer2 {
             int[] currentMmsi = new int[1];
             currentMmsi[0] = -1;
             long[] badItemCount = new long[1];
+
             Observable.from(list) //
                     .flatMap(file -> //
-                    Strings.lines(file)
+                    gunzippedLines(file)
                             // skip header
                             .skip(1) //
                             .map(x -> x.trim()) //
                             .filter(x -> !x.isEmpty()) //
                             .map(x -> x.split(",")) //
-                            .map(items -> toFix2(items)) //
+                            .map(items -> toFix(items)) //
                             .filter(fix -> fix != BAD_FIX) //
 //                            .filter(fix -> !eezPolygon.contains(fix.lat(), fix.lon())) //
                             .doOnNext(line -> {
@@ -128,39 +135,43 @@ public final class VoyageDatasetProducer2 {
         }
     }
 
-    private static final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d/M/y' 'H:m:s")
-            .withZone(ZoneId.of("UTC"));
+    private static Observable<String> gunzippedLines(File file) {
+
+        return Observable.using(() -> {
+            try {
+                return (Reader) new InputStreamReader(new GZIPInputStream(new FileInputStream(file)),
+                        StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }, //
+                r -> Strings.lines(r), r -> {
+                    try {
+                        r.close();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+    }
+
+    private static final DateTimeFormatter dtf = DateTimeFormatter.ISO_DATE_TIME;
 
     private static final Fix BAD_FIX = new SpecialFix(0, 0, 0, 0);
 
     private static Fix toFix(String[] items) {
         // converts csv record to fix
-        if (items.length != 5) {
+        if (items.length != 4) {
             return BAD_FIX;
         }
-        float lon = Float.parseFloat(items[1]);
+        int mmsi = Integer.parseInt(items[0]);
+        if (mmsi == 0) {
+            return BAD_FIX;
+        }
+        ZonedDateTime z = ZonedDateTime.parse(items[1], dtf);
         float lat = Float.parseFloat(items[2]);
-        int mmsi = Integer.parseInt(items[4]);
-        ZonedDateTime z = ZonedDateTime.parse(items[3], dtf);
+        float lon = Float.parseFloat(items[3]);
         long time = z.toInstant().toEpochMilli();
         return new SpecialFix(mmsi, time, lat, lon);
-    }
-
-    private static Fix toFix2(String[] items) {
-        // converts csv record to fix
-        if (items.length != 5) {
-            return BAD_FIX;
-        }
-        float lat = Float.parseFloat(items[0]);
-        float lon = Float.parseFloat(items[1]);
-        long time = VoyageDatasetInputSorter.parseTime(items[2]);
-        int id;
-        if (items[3].isEmpty()) {
-            id = -Integer.parseInt(items[4]);
-        } else {
-            id = Integer.parseInt(items[3]);
-        }
-        return new SpecialFix(id, time, lat, lon);
     }
 
     private static final class SpecialFix implements Fix {
@@ -251,7 +262,7 @@ public final class VoyageDatasetProducer2 {
 
     public static void main(String[] args) throws Exception {
 //        List<File> list = Arrays.asList(new File("/home/dave/cts2017mmsis.csv"));
-        List<File> list = Arrays.asList(new File("/home/dave/Downloads/export2.sorted.txt"));
+        List<File> list = Arrays.asList(new File("/home/dave/Downloads/2017.sorted.txt.gz"));
         VoyageDatasetProducer2.produce(new File("target/output.txt"), new File("target/output.tracks"), list);
     }
 }
