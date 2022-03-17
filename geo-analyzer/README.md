@@ -23,11 +23,22 @@ The oracle extraction sql is this:
 
 ```
 select case mmsi when null then imo else mmsi end mmsi, time, lat, lon 
-from (select craft_type_id, lat, lon, to_char(position_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') time, mmsi, imo
-from cts.position where position_time >= to_date('2017-01-01', 'YYYY-MM-DD')) 
+from 
+(select
+  craft_type_id,  
+  lat, 
+  lon, 
+  to_char(position_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') time,
+  mmsi, 
+  imo
+from cts.position 
+where position_time >= to_date('2017-01-01', 'YYYY-MM-DD')) 
 where craft_type_id = 1 and (imo is not null or mmsi is not null);
-
 ```
+
+Note that it may seem that the construction of the sql might be more compact (just one select for instance) but
+the way it is structured does the right thing with the time index so that a full scan is not required.
+
 The file it produces can be sorted then via the command
 ```bash
 sort export.txt >export.sorted.txt
