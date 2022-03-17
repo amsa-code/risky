@@ -39,9 +39,15 @@ where craft_type_id = 1 and (imo is not null or mmsi is not null);
 Note that it may seem that the construction of the sql might be more compact (just one select for instance) but
 the way it is structured does the right thing with the time index so that a full scan is not required.
 
-The file it produces can be sorted then via the command
+The exported file can be split by year by running the CsvSplitterByYear main method (check input filename).
+
+A yearly split file or the entire exported file can be sorted then via the command:
 ```bash
 sort export.txt >export.sorted.txt
+```
+If the input is gzipped then 
+```bash
+gunzip -c 2020.txt.gz | LC_ALL=C sort | gzip >2020.sorted.txt.gz
 ```
 
 The file `export.sorted.txt` is suitable then for processing by `VoyageDatasetProducer2` (edit the main method to set the input filename).
