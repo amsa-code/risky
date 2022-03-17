@@ -22,6 +22,10 @@ The class `VoyageDatasetProducer` is run as a java main method which scans a bin
 The oracle extraction sql is this:
 
 ```
+select case mmsi when null then imo else mmsi end mmsi, time, lat, lon 
+from (select craft_type_id, lat, lon, to_char(position_time, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') time, mmsi, imo
+from cts.position where position_time >= to_date('2017-01-01', 'YYYY-MM-DD')) 
+where craft_type_id = 1 and (imo is not null or mmsi is not null);
 
 ```
 The file it produces can be sorted then via the command
