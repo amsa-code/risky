@@ -43,7 +43,7 @@ The exported file can be split by year by running the `CsvSplitterByYear` main m
 
 A yearly split file or the entire exported file can be sorted then via the command:
 ```bash
-sort export.txt >export.sorted.txt
+LC_ALL=C sort export.txt >export.sorted.txt
 ```
 If the input is gzipped then 
 ```bash
