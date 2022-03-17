@@ -39,7 +39,7 @@ where craft_type_id = 1 and (imo is not null or mmsi is not null);
 Note that it may seem that the construction of the sql might be more compact (just one select for instance) but
 the way it is structured does the right thing with the time index so that a full scan is not required.
 
-The exported file can be split by year by running the CsvSplitterByYear main method (check input filename).
+The exported file can be split by year by running the `CsvSplitterByYear` main method (check input filename).
 
 A yearly split file or the entire exported file can be sorted then via the command:
 ```bash
