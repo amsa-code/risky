@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 
@@ -18,7 +19,7 @@ import au.gov.amsa.ais.rx.Streams;
  */
 public class NmeaReaderFromSocket implements NmeaReader {
 
-	private static Logger log = Logger.getLogger(NmeaReaderFromSocket.class);
+	private static Logger log = LoggerFactory.getLogger(NmeaReaderFromSocket.class);
 	private final Socket socket;
 
 	/**
