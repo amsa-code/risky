@@ -16,12 +16,13 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rx.Observable;
 import au.gov.amsa.geo.distance.DistanceTravelledCalculator.CalculationResult;
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.Options;
+import rx.Observable;
 
 /**
  * Swing application that allows viewing of traffic density plots. Supports
@@ -32,7 +33,7 @@ public class DisplayPanel extends JPanel {
 
 	private static final long serialVersionUID = 7844558863774822599L;
 
-	private static Logger log = Logger.getLogger(DisplayPanel.class);
+	private static Logger log = LoggerFactory.getLogger(DisplayPanel.class);
 
 	private Options options;
 	private int numStandardDeviations;

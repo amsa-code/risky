@@ -13,12 +13,11 @@ import java.text.DecimalFormat;
 
 import javax.imageio.ImageIO;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
+import com.google.common.util.concurrent.AtomicDouble;
+
 import au.gov.amsa.geo.distance.DistanceTravelledCalculator.CalculationResult;
 import au.gov.amsa.geo.model.Bounds;
 import au.gov.amsa.geo.model.CellValue;
@@ -28,8 +27,10 @@ import au.gov.amsa.geo.projection.FeatureUtil;
 import au.gov.amsa.geo.projection.Projector;
 import au.gov.amsa.geo.projection.ProjectorBounds;
 import au.gov.amsa.geo.projection.ProjectorTarget;
-
-import com.google.common.util.concurrent.AtomicDouble;
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
 
 /**
  * Draws a vessel traffic density plot into a {@link Graphics2D}.
@@ -37,7 +38,7 @@ import com.google.common.util.concurrent.AtomicDouble;
  */
 public class Renderer {
 
-    private static Logger log = Logger.getLogger(Renderer.class);
+    private static Logger log = LoggerFactory.getLogger(Renderer.class);
     private final static boolean coloured = false;
     private static final String UNICODE_GREATER_THAN_OR_EQUAL = "\u2265 ";
 
@@ -233,7 +234,7 @@ public class Renderer {
         double sd = Math.sqrt(variance);
         log.info("calculated");
         Statistics stats = new Statistics(mean, sd, count);
-        log.info(stats);
+        log.info(stats.toString());
         return stats;
     }
 

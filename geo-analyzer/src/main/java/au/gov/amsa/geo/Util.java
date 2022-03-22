@@ -4,19 +4,20 @@ import java.io.File;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import rx.Observable;
-import rx.functions.Func1;
-import rx.functions.Func2;
 import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.HasPosition;
 import au.gov.amsa.util.Files;
 import au.gov.amsa.util.navigation.Position;
+import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func2;
 
 public class Util {
 
-    private static Logger log = Logger.getLogger(Util.class);
+    private static Logger log = LoggerFactory.getLogger(Util.class);
 
     public static String memoryUsage() {
         Runtime r = Runtime.getRuntime();

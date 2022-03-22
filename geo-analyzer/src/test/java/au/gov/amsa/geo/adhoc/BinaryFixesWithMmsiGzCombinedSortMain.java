@@ -17,7 +17,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.gov.amsa.risky.format.BinaryFixes;
 import au.gov.amsa.risky.format.BinaryFixesFormat;
@@ -26,7 +27,7 @@ import rx.Observable;
 
 public final class BinaryFixesWithMmsiGzCombinedSortMain {
     
-    private static final Logger log = Logger.getLogger(BinaryFixesWithMmsiGzCombinedSortMain.class);
+    private static final Logger log = LoggerFactory.getLogger(BinaryFixesWithMmsiGzCombinedSortMain.class);
 
     public static void main(String[] args) throws InterruptedException {
         log.info("starting");

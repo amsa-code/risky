@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rx.Observable.Operator;
 import rx.Observer;
@@ -17,7 +18,7 @@ import rx.observers.Subscribers;
  */
 public class OperatorToObservableSizedList<T> implements Operator<List<T>, T> {
 
-	private static Logger log = Logger
+	private static Logger log = LoggerFactory
 			.getLogger(OperatorToObservableSizedList.class);
 
 	private final int size;

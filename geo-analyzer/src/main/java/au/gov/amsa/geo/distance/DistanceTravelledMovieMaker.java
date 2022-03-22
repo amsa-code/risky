@@ -6,11 +6,11 @@ import static java.util.Optional.of;
 
 import java.io.File;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.gov.amsa.geo.Util;
 import au.gov.amsa.geo.distance.DistanceTravelledCalculator.CalculationResult;
@@ -22,7 +22,7 @@ import rx.functions.Func1;
 
 public class DistanceTravelledMovieMaker {
 
-	private static Logger log = Logger
+	private static Logger log = LoggerFactory
 			.getLogger(DistanceTravelledMovieMaker.class);
 
 	/**

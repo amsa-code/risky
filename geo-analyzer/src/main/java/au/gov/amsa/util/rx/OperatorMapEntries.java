@@ -4,7 +4,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rx.Observable.Operator;
 import rx.Observer;
@@ -15,7 +16,7 @@ import rx.observers.Subscribers;
 
 public class OperatorMapEntries<A, B, C> implements Operator<C, Map<A, B>> {
 
-	private static Logger log = Logger.getLogger(OperatorMapEntries.class);
+	private static Logger log = LoggerFactory.getLogger(OperatorMapEntries.class);
 	private final Func2<A, B, C> function;
 
 	public OperatorMapEntries(Func2<A, B, C> function) {

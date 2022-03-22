@@ -5,18 +5,19 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import au.gov.amsa.geo.model.CellValue;
+import au.gov.amsa.geo.model.Position;
 import rx.Observable.Operator;
 import rx.Observer;
 import rx.Subscriber;
 import rx.observers.Subscribers;
-import au.gov.amsa.geo.model.CellValue;
-import au.gov.amsa.geo.model.Position;
 
 public class OperatorSumCellValues implements Operator<CellValue, CellValue> {
 
-    private static Logger log = Logger.getLogger(OperatorSumCellValues.class);
+    private static Logger log = LoggerFactory.getLogger(OperatorSumCellValues.class);
 
     private static final int INITIAL_CAPACITY = 35000000;
 
