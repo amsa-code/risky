@@ -9,7 +9,8 @@ import java.util.Optional;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -19,7 +20,7 @@ import rx.Subscriber;
 
 public class OperatorIhsReader implements Operator<Map<String, String>, InputStream> {
 
-    private static final Logger log = Logger.getLogger(OperatorIhsReader.class);
+    private static final Logger log = LoggerFactory.getLogger(OperatorIhsReader.class);
     private final String parentElementName;
 
     public OperatorIhsReader(String parentElementName) {
