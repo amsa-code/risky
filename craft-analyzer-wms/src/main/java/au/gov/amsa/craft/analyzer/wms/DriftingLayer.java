@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -21,8 +23,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.zip.GZIPOutputStream;
 
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -332,11 +332,11 @@ public class DriftingLayer implements Layer {
 
     private static Func1<VesselPosition, String> byIdAndTimePattern(final String timePattern) {
         return new Func1<VesselPosition, String>() {
-            final DateTimeFormatter format = DateTimeFormat.forPattern(timePattern);
+            final DateTimeFormatter format = DateTimeFormatter.ofPattern(timePattern);
 
             @Override
             public String call(VesselPosition p) {
-                return p.id().uniqueId() + format.print(p.time());
+                return p.id().uniqueId() + format.format(Instant.ofEpochMilli(p.time()));
             }
         };
     }
