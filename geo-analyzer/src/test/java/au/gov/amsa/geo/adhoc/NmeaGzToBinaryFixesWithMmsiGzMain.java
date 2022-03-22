@@ -10,7 +10,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.risky.format.BinaryFixes;
@@ -21,7 +22,7 @@ import rx.schedulers.Schedulers;
 
 public final class NmeaGzToBinaryFixesWithMmsiGzMain {
 
-    private static final Logger log = Logger.getLogger(NmeaGzToBinaryFixesWithMmsiGzMain.class);
+    private static final Logger log = LoggerFactory.getLogger(NmeaGzToBinaryFixesWithMmsiGzMain.class);
 
     public static void main(String[] args) throws Exception {
         // input is one year of nmea lines split into daily files

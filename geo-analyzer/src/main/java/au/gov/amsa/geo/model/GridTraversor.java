@@ -1,13 +1,14 @@
 package au.gov.amsa.geo.model;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.gov.amsa.util.navigation.Position;
 import au.gov.amsa.util.navigation.Position.LongitudePair;
 
 public class GridTraversor {
 
-	private static Logger log = Logger.getLogger(GridTraversor.class);
+	private static Logger log = LoggerFactory.getLogger(GridTraversor.class);
 
 	private static final double SMALL_INCREMENT_DEGREES = 0.0000001;
 

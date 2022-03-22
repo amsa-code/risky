@@ -26,11 +26,6 @@
             <version>2.11.0</version>
         </dependency>
         <dependency>
-            <artifactId>log4j</artifactId>
-            <groupId>log4j</groupId>
-            <version>1.2.17</version>
-        </dependency>
-        <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
             <version>${rxjava.version}</version>
@@ -89,6 +84,13 @@
             <artifactId>formats</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>edu.ucar</groupId>
+            <artifactId>netcdf</artifactId>
+            <version>${netcdf.version}</version>
+            <optional>true</optional>
+        </dependency>
+
          <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>behaviour-detector</artifactId>

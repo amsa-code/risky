@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.grumpy.core.Position;
 
@@ -37,7 +38,7 @@ import rx.schedulers.Schedulers;
 public class DistanceTravelledInEezMain {
 
     private static final int MIN_DISTANCE_KM_TO_ESTIMATE_TIME = 1;
-    private static final Logger log = Logger.getLogger(DistanceTravelledInEezMain.class);
+    private static final Logger log = LoggerFactory.getLogger(DistanceTravelledInEezMain.class);
 
     private enum Location {
         IN, OUT, UNKNOWN;
@@ -94,7 +95,7 @@ public class DistanceTravelledInEezMain {
                     .filter(x -> x.getName().endsWith(".track.gz")) //
                     .filter(x -> x.getName().startsWith("2017")) //
                     .flatMap(file -> {
-                        log.info(file);
+                        log.info(file.toString());
 
                         // Note that the Shapefile objects are not thread-safe so we make new one for   
                         // each file to enable parallel processing

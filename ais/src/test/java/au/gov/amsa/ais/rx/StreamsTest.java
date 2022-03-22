@@ -1,18 +1,24 @@
 package au.gov.amsa.ais.rx;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import au.gov.amsa.ais.Timestamped;
-import au.gov.amsa.ais.message.AisMessageOther;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import au.gov.amsa.ais.AisMessage;
+import au.gov.amsa.ais.Timestamped;
+import au.gov.amsa.ais.message.AisMessageOther;
 import au.gov.amsa.ais.message.AisShipStaticA;
 import au.gov.amsa.ais.rx.Streams.TimestampedAndLine;
 import au.gov.amsa.risky.format.AisClass;
@@ -24,8 +30,6 @@ import au.gov.amsa.risky.format.Fix;
 import au.gov.amsa.risky.format.NavigationalStatus;
 import rx.Observable;
 import rx.schedulers.Schedulers;
-
-import static org.junit.Assert.*;
 
 public class StreamsTest {
 
@@ -123,7 +127,6 @@ public class StreamsTest {
         assertEquals(BinaryFixes.SOURCE_PRESENT_BUT_UNKNOWN, (int) fix.source().get());
         assertFalse(fix.navigationalStatus().isPresent());
         assertFalse(fix.latencySeconds().isPresent());
-        System.out.println(fix);
         is.close();
     }
 
@@ -141,15 +144,21 @@ public class StreamsTest {
 
     @Test
     public void testBinaryFixesWriterUsingFileMapper() throws IOException {
-        InputStream is = StreamsTest.class.getResourceAsStream(NMEA_RESOURCE);
-        Observable<Fix> fixes = Streams.extractFixes(Streams.nmeaFrom(is));
         String base = "target/binary";
-        File directory = new File(base);
-        FileUtils.deleteDirectory(directory);
-        ByMonth fileMapper = new BinaryFixesWriter.ByMonth(directory);
-        BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false, BinaryFixesFormat.WITHOUT_MMSI)
-                .subscribe();
-        is.close();
+        Observable<Fix> fixes = Observable.using(() -> StreamsTest.class.getResourceAsStream(NMEA_RESOURCE), 
+                in -> Streams.extractFixes(Streams.nmeaFrom(in)),
+                in -> {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(e);
+                    }
+                });
+            File directory = new File(base);
+            FileUtils.deleteDirectory(directory);
+            ByMonth fileMapper = new BinaryFixesWriter.ByMonth(directory);
+            BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false, BinaryFixesFormat.WITHOUT_MMSI) //
+                 .toBlocking().subscribe();
         File f = new File(base + File.separator + "2014" + File.separator + "12");
         assertTrue(f.exists());
         assertEquals(85, f.listFiles().length);

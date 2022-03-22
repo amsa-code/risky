@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import au.gov.amsa.geo.BinaryCellValuesObservable;
 import au.gov.amsa.geo.OperatorCellValuesToBytes;
@@ -33,7 +34,7 @@ import rx.Observable;
 import rx.functions.Func1;
 
 public class DistanceTravelledMain {
-    private static Logger log = Logger.getLogger(DistanceTravelledMain.class);
+    private static Logger log = LoggerFactory.getLogger(DistanceTravelledMain.class);
 
     private static void run(String directory, Options options, boolean gui, String dataSetName) {
         InputStream is;

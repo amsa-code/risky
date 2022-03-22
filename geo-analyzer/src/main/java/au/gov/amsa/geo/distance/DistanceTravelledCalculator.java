@@ -13,7 +13,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.guavamini.Preconditions;
 import com.github.davidmoten.rx.slf4j.Logging;
@@ -51,7 +52,7 @@ import ucar.nc2.Variable;
 
 public class DistanceTravelledCalculator {
 
-    private static Logger log = Logger.getLogger(DistanceTravelledCalculator.class);
+    private static Logger log = LoggerFactory.getLogger(DistanceTravelledCalculator.class);
 
     private final Options options;
     private final DistanceCalculationMetrics metrics;

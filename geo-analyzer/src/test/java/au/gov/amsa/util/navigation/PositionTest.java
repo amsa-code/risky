@@ -9,14 +9,15 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import au.gov.amsa.util.navigation.Position.LongitudePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
+
+import au.gov.amsa.util.navigation.Position.LongitudePair;
 
 /**
  * @author sxo
@@ -27,7 +28,7 @@ public class PositionTest {
 	private static final int ACCEPTABLE_DISTANCE_PRECISION = 3;
 	private static final double PRECISION = 0.00001;
 	private static final double MIN_DISTANCE_KM = 200;
-	private static Logger log = Logger.getLogger(PositionTest.class);
+	private static Logger log = LoggerFactory.getLogger(PositionTest.class);
 	List<Position> squareRegion;
 
 	@Before
@@ -393,8 +394,6 @@ public class PositionTest {
 		Position r = p.getClosestIntersectionWithSegment(
 				new Position(-20, 110), new Position(-20, 130));
 
-		log.info(r.getLon());
-		log.info(r.getLat());
 
 		assertEquals(-20.0, r.getLat(), 1);
 		assertEquals(120.0, r.getLon(), 1);
@@ -410,9 +409,6 @@ public class PositionTest {
 		Position r = p.getClosestIntersectionWithSegment(
 				new Position(-20, 100), new Position(-20, 130));
 
-		log.info(r.getLon());
-		log.info(r.getLat());
-
 		assertEquals(-20.58106, r.getLat(), PRECISION);
 		assertEquals(110.218334, r.getLon(), PRECISION);
 	}
@@ -427,9 +423,6 @@ public class PositionTest {
 		Position r = p.getClosestIntersectionWithSegment(
 				new Position(-20, 110), new Position(-20, 130));
 
-		log.info(r.getLon());
-		log.info(r.getLat());
-
 		assertEquals(-20.28353, r.getLat(), PRECISION);
 		assertEquals(119.90349, r.getLon(), PRECISION);
 	}
@@ -443,9 +436,6 @@ public class PositionTest {
 		Position p = new Position(-30, 110);
 		Position r = p.getClosestIntersectionWithSegment(
 				new Position(-20, 100), new Position(-20, 130));
-
-		// log.info(r.getLon());
-		// log.info(r.getLat());
 
 		assertEquals(-20.58106, r.getLat(), PRECISION);
 		assertEquals(110.218334, r.getLon(), PRECISION);
@@ -463,7 +453,6 @@ public class PositionTest {
 		Position sp2 = new Position(-20, 130);
 
 		double r = p.getDistanceToSegmentKm(sp1, sp2);
-		// log.info(r);
 
 		Position intersection = p.getClosestIntersectionWithSegment(sp1, sp2);
 		log.info("Position of intersection, used to manually calculate the distance via http://www.nhc.noaa.gov/gccalc.shtml : "
@@ -486,8 +475,7 @@ public class PositionTest {
 		Position sp2 = new Position(-30, 140);
 
 		Position r1 = p.getClosestIntersectionWithSegment(sp1, sp2);
-		// log.info(r1.getLat());
-		// log.info(r1.getLon());
+
 		assertEquals(sp1.getLat(), r1.getLat(), PRECISION);
 		assertEquals(sp1.getLon(), r1.getLon(), PRECISION);
 	}
@@ -505,8 +493,6 @@ public class PositionTest {
 		Position sp2 = new Position(-30, 140);
 
 		Position r = p.getClosestIntersectionWithSegment(sp1, sp2);
-		// log.info(r.getLat());
-		// log.info(r.getLon());
 		assertEquals(sp2.getLat(), r.getLat(), PRECISION);
 		assertEquals(sp2.getLon(), r.getLon(), PRECISION);
 	}
@@ -525,8 +511,6 @@ public class PositionTest {
 		Position sp2 = new Position(-20, 120);
 
 		double r = p.getDistanceToSegmentKm(sp1, sp2);
-		log.info(r);
-		// log.info(r.getLon());
 		// 3399.0 according to http://www.nhc.noaa.gov/gccalc.shtml
 		assertEquals(3399.0, r, ACCEPTABLE_DISTANCE_PRECISION);
 	}
@@ -559,12 +543,10 @@ public class PositionTest {
 		Position sp1 = new Position(-10, 120);
 		Position p = new Position(-10, 150);
 		Position sp2 = sp1.getPositionAlongPath(p, 0.5);
-		log.info(sp2);
 
 		double r = p.getDistanceToSegmentKm(sp1, sp2);
 		// 1641 according to http://www.nhc.noaa.gov/gccalc.shtml
 		assertEquals(1641.00, r, ACCEPTABLE_DISTANCE_PRECISION);
-		log.info(r);
 
 	}
 
@@ -595,7 +577,6 @@ public class PositionTest {
 		// point.
 
 		double r = p.getDistanceToPathKm(path);
-		log.info(r);
 
 		Position intersection = p.getClosestIntersectionWithSegment(sp1, sp2);
 		log.info("Position of intersection, used to manually calculate the distance via http://www.nhc.noaa.gov/gccalc.shtml : "
@@ -631,7 +612,6 @@ public class PositionTest {
 		// point.
 
 		double r = p.getDistanceToPathKm(path);
-		log.info(r);
 		// 3039 accroding to http://www.nhc.noaa.gov/gccalc.shtml
 		assertEquals(3039, r, ACCEPTABLE_DISTANCE_PRECISION);
 	}
@@ -663,7 +643,6 @@ public class PositionTest {
 		// point.
 
 		double r = p.getDistanceToPathKm(path);
-		log.info(r);
 
 		Position intersection = p.getClosestIntersectionWithSegment(sp1, sp2);
 		log.info("Position of intersection, used to manually calculate the distance via http://www.nhc.noaa.gov/gccalc.shtml : "
@@ -699,7 +678,6 @@ public class PositionTest {
 		// point.
 
 		double r = p.getDistanceToPathKm(path);
-		log.info(r);
 		// 2452 according http://www.nhc.noaa.gov/gccalc.shtml
 		assertEquals(2452, r, ACCEPTABLE_DISTANCE_PRECISION);
 	}

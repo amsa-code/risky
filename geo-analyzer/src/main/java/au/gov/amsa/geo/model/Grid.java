@@ -6,7 +6,8 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.TreeSet;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.github.davidmoten.guavamini.annotations.VisibleForTesting;
 import com.google.common.collect.BiMap;
@@ -15,7 +16,7 @@ import com.google.common.collect.HashBiMap;
 //TODO tested only in the environs of Australian SAR region (60 degrees longitude to just over the 180 boundary to the east)
 public class Grid {
 
-	private static Logger log = Logger.getLogger(Grid.class);
+	private static Logger log = LoggerFactory.getLogger(Grid.class);
 
 	private final TreeSet<Double> lats;
 
