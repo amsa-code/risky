@@ -141,15 +141,14 @@ public class StreamsTest {
 
     @Test
     public void testBinaryFixesWriterUsingFileMapper() throws IOException {
-        InputStream is = StreamsTest.class.getResourceAsStream(NMEA_RESOURCE);
-        Observable<Fix> fixes = Streams.extractFixes(Streams.nmeaFrom(is));
         String base = "target/binary";
-        File directory = new File(base);
-        FileUtils.deleteDirectory(directory);
-        ByMonth fileMapper = new BinaryFixesWriter.ByMonth(directory);
-        BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false, BinaryFixesFormat.WITHOUT_MMSI)
-                .subscribe();
-        is.close();
+        try (InputStream is = StreamsTest.class.getResourceAsStream(NMEA_RESOURCE)) {
+            Observable<Fix> fixes = Streams.extractFixes(Streams.nmeaFrom(is));
+            File directory = new File(base);
+            FileUtils.deleteDirectory(directory);
+            ByMonth fileMapper = new BinaryFixesWriter.ByMonth(directory);
+            BinaryFixesWriter.writeFixes(fileMapper, fixes, 100, false, BinaryFixesFormat.WITHOUT_MMSI).subscribe();
+        }
         File f = new File(base + File.separator + "2014" + File.separator + "12");
         assertTrue(f.exists());
         assertEquals(85, f.listFiles().length);

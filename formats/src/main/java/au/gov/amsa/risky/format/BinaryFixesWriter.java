@@ -31,7 +31,8 @@ public final class BinaryFixesWriter {
                 // buffer fixes by filename
                 .flatMap(buffer(bufferSize))
                 // write each list to a file
-                .doOnNext(writeFixList(fileMapper, zip, format));
+                .doOnNext(writeFixList(fileMapper, zip, format)) //
+                .doOnNext(System.out::println);
     }
 
     private static Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>> buffer(
@@ -129,6 +130,7 @@ public final class BinaryFixesWriter {
             s.append(File.separator);
             s.append(fix.mmsi());
             s.append(".track");
+            System.out.println(s);
             return s.toString();
         }
 
