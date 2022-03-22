@@ -89,6 +89,13 @@
             <artifactId>formats</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>edu.ucar</groupId>
+            <artifactId>netcdf</artifactId>
+            <version>${netcdf.version}</version>
+            <optional>true</optional>
+        </dependency>
+
          <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>behaviour-detector</artifactId>

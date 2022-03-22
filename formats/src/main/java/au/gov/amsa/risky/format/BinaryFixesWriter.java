@@ -6,12 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.zip.GZIPOutputStream;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 
 import com.github.davidmoten.util.Preconditions;
 import com.google.common.util.concurrent.Striped;
@@ -31,8 +32,7 @@ public final class BinaryFixesWriter {
                 // buffer fixes by filename
                 .flatMap(buffer(bufferSize))
                 // write each list to a file
-                .doOnNext(writeFixList(fileMapper, zip, format)) //
-                .doOnNext(System.out::println);
+                .doOnNext(writeFixList(fileMapper, zip, format));
     }
 
     private static Func1<GroupedObservable<String, Fix>, Observable<List<Fix>>> buffer(
@@ -108,6 +108,8 @@ public final class BinaryFixesWriter {
         }
     }
 
+    private static final ZoneId UTC = ZoneId.of("UTC");
+    
     public static class ByMonth implements Func1<Fix, String> {
 
         private final String base;
@@ -118,8 +120,8 @@ public final class BinaryFixesWriter {
 
         @Override
         public String call(Fix fix) {
-            DateTime d = new DateTime(fix.time(), DateTimeZone.UTC);
-            int month = d.getMonthOfYear();
+            ZonedDateTime d = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fix.time()), UTC);
+            int month = d.getMonthValue();
             int year = d.getYear();
             StringBuilder s = new StringBuilder();
             s.append(base);
@@ -130,7 +132,6 @@ public final class BinaryFixesWriter {
             s.append(File.separator);
             s.append(fix.mmsi());
             s.append(".track");
-            System.out.println(s);
             return s.toString();
         }
 
@@ -146,7 +147,7 @@ public final class BinaryFixesWriter {
 
         @Override
         public String call(Fix fix) {
-            DateTime d = new DateTime(fix.time(), DateTimeZone.UTC);
+            ZonedDateTime d = ZonedDateTime.ofInstant(Instant.ofEpochMilli(fix.time()), UTC);
             int year = d.getYear();
             StringBuilder s = new StringBuilder();
             s.append(base);

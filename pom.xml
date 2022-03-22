@@ -38,6 +38,7 @@
         <parquet.version>1.12.2</parquet.version>
         <hadoop.version>3.3.2</hadoop.version>
         <easymock.version>4.3</easymock.version>
+        <netcdf.version>4.3.23</netcdf.version>
 
         <nexus.staging.version>1.6.12</nexus.staging.version>
         <checkstyle.version>3.1.2</checkstyle.version>
