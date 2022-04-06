@@ -42,7 +42,7 @@
 
         <nexus.staging.version>1.6.12</nexus.staging.version>
         <checkstyle.version>3.1.2</checkstyle.version>
-        <jacoco.plugin.version>0.8.7</jacoco.plugin.version>
+        <jacoco.plugin.version>0.8.8</jacoco.plugin.version>
         <findbugs.version>3.0.5</findbugs.version>
         <javadoc.version>3.3.2</javadoc.version>
         <pmd.version>3.16.0</pmd.version>
