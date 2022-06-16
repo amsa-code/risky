@@ -11,7 +11,7 @@
 	<name>${project.artifactId}</name>
 	<description />
 	<properties>
-		<spark.version>3.2.1</spark.version>
+		<spark.version>3.3.0</spark.version>
 		<scala.version>2.12</scala.version>
 	</properties>
 	<dependencies>
