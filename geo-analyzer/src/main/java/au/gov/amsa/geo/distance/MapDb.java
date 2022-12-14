@@ -2,6 +2,7 @@ package au.gov.amsa.geo.distance;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import org.mapdb.DB;
 import org.mapdb.DBMaker;
@@ -14,7 +15,7 @@ public enum MapDb {
 
 	private MapDb() {
 		try {
-			File file = File.createTempFile("geo-analyzer", ".db");
+			File file = Files.createTempFile("geo-analyzer", ".db").toFile();
 			db = DBMaker.fileDB(file)
 					.closeOnJvmShutdown().make();
 		} catch (IOException e) {

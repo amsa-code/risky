@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 
 import rx.Observable.Operator;
 import rx.Observer;
@@ -68,8 +69,8 @@ public class OperatorWriteBytes implements Operator<String, byte[]> {
 		if (file != null || createTempFile)
 			try {
 				if (createTempFile)
-					actualFile = File.createTempFile(
-							OperatorWriteBytes.class.getName(), ".bin");
+					actualFile = Files.createTempFile(
+							OperatorWriteBytes.class.getName(), ".bin").toFile();
 				else
 					actualFile = file;
 				o = new FileOutputStream(actualFile, append);
