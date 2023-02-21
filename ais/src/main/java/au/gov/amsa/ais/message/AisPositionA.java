@@ -9,6 +9,7 @@ import au.gov.amsa.ais.AisExtractorFactory;
 import au.gov.amsa.ais.AisParseException;
 import au.gov.amsa.ais.Communications;
 import au.gov.amsa.ais.HasCommunications;
+import au.gov.amsa.ais.HasNavigationalStatus;
 import au.gov.amsa.ais.Util;
 
 /**
@@ -17,7 +18,7 @@ import au.gov.amsa.ais.Util;
  * @author dxm
  * 
  */
-public class AisPositionA implements AisPosition, HasCommunications {
+public class AisPositionA implements AisPosition, HasCommunications, HasNavigationalStatus {
 
     private static final Integer TRUE_HEADING_NOT_AVAILABLE = 511;
     private static final Integer COG_NOT_AVAILABLE = 3600;

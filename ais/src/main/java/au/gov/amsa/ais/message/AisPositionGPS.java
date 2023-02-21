@@ -3,6 +3,7 @@ package au.gov.amsa.ais.message;
 import au.gov.amsa.ais.AisExtractor;
 import au.gov.amsa.ais.AisExtractorFactory;
 import au.gov.amsa.ais.AisParseException;
+import au.gov.amsa.ais.HasNavigationalStatus;
 import au.gov.amsa.ais.Util;
 
 import static au.gov.amsa.ais.AisMessageType.POSITION_GPS;
@@ -13,7 +14,7 @@ import static au.gov.amsa.ais.AisMessageType.POSITION_GPS;
  * @author dcuenot
  *
  */
-public class AisPositionGPS implements AisPosition {
+public class AisPositionGPS implements AisPosition, HasNavigationalStatus {
 
     private static final Integer COG_NOT_AVAILABLE = 511;
     private static final Integer SOG_NOT_AVAILABLE = 63;
