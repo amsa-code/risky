@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>au.gov.amsa.risky</groupId>
 		<artifactId>parent</artifactId>
-		<version>0.6.16</version>
+		<version>0.6.17-SNAPSHOT</version>
 	</parent>
 	<artifactId>risky-util</artifactId>
 	<name>${project.artifactId}</name>
