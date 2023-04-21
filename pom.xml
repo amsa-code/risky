@@ -41,7 +41,7 @@
         <netcdf.version>4.3.23</netcdf.version>
 
         <nexus.staging.version>1.6.13</nexus.staging.version>
-        <checkstyle.version>3.2.1</checkstyle.version>
+        <checkstyle.version>3.2.2</checkstyle.version>
         <jacoco.plugin.version>0.8.9</jacoco.plugin.version>
         <findbugs.version>3.0.5</findbugs.version>
         <javadoc.version>3.5.0</javadoc.version>
