@@ -27,7 +27,7 @@
         <rtree.version>0.10</rtree.version>
         <slf4j.version>1.7.36</slf4j.version>
         <grumpy.version>0.4.8</grumpy.version>
-        <guava.version>31.1-jre</guava.version>
+        <guava.version>32.0.0-jre</guava.version>
         <guava.mini.version>0.1.6</guava.mini.version>
         <geotools.version>28.2</geotools.version>
         <joda.time.version>2.7</joda.time.version>
