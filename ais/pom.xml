@@ -106,7 +106,7 @@
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>sparse-hilbert-index</artifactId>
-            <version>0.1.10</version>
+            <version>0.1.11</version>
             <scope>test</scope>
         </dependency>
 
