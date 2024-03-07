@@ -93,6 +93,7 @@
         <module>geotools-extras</module>
         <module>ais-router</module>
         <module>ais-parquet</module>
+        <module>risky-bom</module>
     </modules>
 
     <build>
