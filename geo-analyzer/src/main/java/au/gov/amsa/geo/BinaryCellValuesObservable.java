@@ -18,7 +18,7 @@ public class BinaryCellValuesObservable {
 
 	/**
 	 * Returns a sequence one Double value being the cellSizeDegrees followed by
-	 * multiple {@link CellValueImpl}s.
+	 * multiple {@link CellValue}s.
 	 * 
 	 * @param is
 	 * @return

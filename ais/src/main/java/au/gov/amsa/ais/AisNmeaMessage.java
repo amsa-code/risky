@@ -85,7 +85,7 @@ public class AisNmeaMessage {
 
 	/**
 	 * Returns the {@link Talker} corresponding to the first two characters of
-	 * the message format type (e.g. AIVDM -> AI). If not present or not recognized
+	 * the message format type (e.g. AIVDM -&gt; AI). If not present or not recognized
 	 * then returns {@code Talker.UNKNOWN}.
 	 * 
 	 * @return talker

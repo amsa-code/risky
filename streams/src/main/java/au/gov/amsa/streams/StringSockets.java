@@ -36,7 +36,12 @@ public final class StringSockets {
      * closed by the server (the end of the input stream is reached) then a
      * reconnect is attempted after <code>reconnectDelayMs</code>.
      * 
-     * @param hostPort
+     * @param host
+     * @param port
+     * @param quietTimeoutMs
+     * @param reconnectDelayMs
+     * @param charset
+     * @param scheduler
      * @return Observable sequence of strings (not lines).
      */
     public static Observable<String> from(final String host, final int port, long quietTimeoutMs,

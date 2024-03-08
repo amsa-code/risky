@@ -22,8 +22,8 @@ public final class Util {
 	/**
 	 * Get a value for specified bits from the binary string.
 	 * 
-	 * @param fromBit
-	 * @param toBit
+	 * @param binaryString
+	 * @param signed
 	 * @return
 	 * @throws AisParseException
 	 */

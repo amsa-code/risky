@@ -21,8 +21,7 @@ public class NmeaMessageParser {
     
     /**
      * Return an {@link NmeaMessage} from the given NMEA line. If validate checksum
-     * is true and the line fails the checksum check then an
-     * {@link NmeaMessageParseException) is thrown.
+     * is true and the line fails the checksum check then an {@link NmeaMessageParseException} is thrown.
      * 
      * @param line NMEA line (without EOL terminator)
      * @param validateChecksum if true then throws NmeaMessageParseException on invalid checksum
@@ -50,7 +49,7 @@ public class NmeaMessageParser {
 
         List<String> items;
         String checksum;
-        if (remaining.length() > 0) {
+        if (!remaining.isEmpty()) {
             if (!remaining.contains("*"))
                 throw new NmeaMessageParseException("checksum delimiter * not found");
             items = getNmeaItems(remaining);

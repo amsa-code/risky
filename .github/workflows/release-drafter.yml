@@ -1,0 +1,8 @@
+name: Release Drafter
+on:
+  push:
+    branches:
+      - master
+jobs:
+  update_release_draft:
+    uses: amsa-code/.github/.github/workflows/release-drafter.yml@master
