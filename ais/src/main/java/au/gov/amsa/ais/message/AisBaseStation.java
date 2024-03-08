@@ -49,8 +49,8 @@ public class AisBaseStation implements AisMessage, HasMmsi {
      * 
      * @param factory
      * @param message
-     * @param time
      * @param source
+     * @param padBits
      */
     public AisBaseStation(AisExtractorFactory factory, String message, String source, int padBits) {
         this.source = source;

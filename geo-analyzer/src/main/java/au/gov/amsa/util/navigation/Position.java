@@ -217,8 +217,7 @@ public class Position {
 
 	/**
 	 * Return an array of Positions representing the earths limb (aka: horizon)
-	 * as viewed from this Position in space. This position must have altitude >
-	 * 0
+	 * as viewed from this Position in space. This position must have altitude &gt;0
 	 * 
 	 * The array returned will have the specified number of elements (radials).
 	 * 
@@ -546,7 +545,7 @@ public class Position {
 
 	/**
 	 * Returns the difference between two longitude values. The returned value
-	 * is always >=0.
+	 * is always &gt;=0.
 	 * 
 	 * @param a
 	 * @param b
@@ -562,7 +561,8 @@ public class Position {
 	}
 
 	/**
-	 * Converts an angle in degrees to range -180< x <= 180.
+
+	 * Converts an angle in degrees to range -180&lt; x &lt;= 180.
 	 * 
 	 * @param d
 	 * @return
