@@ -2,8 +2,13 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <!-- <parent> <groupId>com.github.davidmoten</groupId> <artifactId>sonatype-parent</artifactId> 
-        <version>0.1</version> </parent> -->
+
+    <parent>
+        <groupId>au.gov.amsa</groupId>
+        <artifactId>amsa-parent</artifactId>
+        <version>1</version>
+    </parent>
+
     <groupId>au.gov.amsa.risky</groupId>
     <artifactId>parent</artifactId>
     <version>0.6.18-SNAPSHOT</version>
@@ -14,11 +19,9 @@
     <url>http://github.com/amsa-code/risky</url>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <spotless.check.skip>true</spotless.check.skip>
+        <jdk.version.minimum>8</jdk.version.minimum>
         <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
-        <compiler.source>1.8</compiler.source>
-        <compiler.target>1.8</compiler.target>
         <rxjava.version>1.3.8</rxjava.version>
         <rxjava.string.version>1.1.1</rxjava.string.version>
         <rxjava.math.version>1.0.0</rxjava.math.version>
@@ -32,50 +35,40 @@
         <geotools.version>28.4</geotools.version>
         <joda.time.version>2.7</joda.time.version>
         <junit.version>4.13.2</junit.version>
-        <exec.version>3.2.0</exec.version>
         <mockito.version>4.11.0</mockito.version>
         <jmh.version>1.37</jmh.version>
         <parquet.version>1.13.1</parquet.version>
         <hadoop.version>3.3.6</hadoop.version>
         <easymock.version>5.2.0</easymock.version>
         <netcdf.version>4.3.23</netcdf.version>
+        <pmd.failOnViolation>false</pmd.failOnViolation>
+        <cpd.failOnViolation>false</cpd.failOnViolation>
+        <!-- FIXME code coverage is very low -->
+        <jacoco.haltOnFailure>false</jacoco.haltOnFailure>
+        <maven.jacoco.plugin.branch.coverage>0.1</maven.jacoco.plugin.branch.coverage>
+        <maven.jacoco.plugin.line.coverage>0.1</maven.jacoco.plugin.line.coverage>
 
-        <nexus.staging.version>1.6.13</nexus.staging.version>
-        <checkstyle.version>3.3.1</checkstyle.version>
-        <jacoco.plugin.version>0.8.11</jacoco.plugin.version>
-        <findbugs.version>3.0.5</findbugs.version>
-        <javadoc.version>3.6.3</javadoc.version>
-        <pmd.version>3.21.2</pmd.version>
-        <jdepend.version>2.0</jdepend.version>
-        <javancss.version>2.1</javancss.version>
-        <project.info.version>3.5.0</project.info.version>
-        <jxr.version>3.3.2</jxr.version>
-        <taglist.version>3.0.0</taglist.version>
-        <m3.site.version>3.12.1</m3.site.version>
     </properties>
-
-    <licenses>
-        <license>
-            <name>The Apache License, Version 2.0</name>
-            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-        </license>
-    </licenses>
-
-    <developers>
-        <developer>
-            <name>Dave Moten</name>
-            <email>david.moten@amsa.gov.au</email>
-            <organization>AMSA</organization>
-            <organizationUrl>http://www.amsa.gov.au</organizationUrl>
-        </developer>
-    </developers>
 
     <scm>
         <connection>${scm.url}</connection>
         <developerConnection>${scm.url}</developerConnection>
-        <url>${scm.url}</url>
-        <tag>HEAD</tag>
+        <url>https://github.com/amsa-code/risky.git</url>
     </scm>
+
+    <repositories>
+        <repository>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
+        </repository>
+        <repository>
+            <id>osgeo-insecure</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>http://download.osgeo.org/webdav/geotools/</url>
+        </repository>
+    </repositories>
+
 
     <modules>
         <module>streams</module>
@@ -99,6 +92,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.github.davidmoten</groupId>
+                <artifactId>guava-mini</artifactId>
+                <version>${guava.mini.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
                 <version>${slf4j.version}</version>
@@ -108,250 +106,63 @@
                 <artifactId>slf4j-jdk14</artifactId>
                 <version>${slf4j.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.google.code.findbugs</groupId>
+                <artifactId>jsr305</artifactId>
+                <version>3.0.2</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.15.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.scala-lang</groupId>
+                <artifactId>scala-library</artifactId>
+                <version>2.12.18</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.yetus</groupId>
+                <artifactId>audience-annotations</artifactId>
+                <version>0.13.0</version>
+            </dependency>
+            <dependency>
+                <groupId>io.airlift</groupId>
+                <artifactId>aircompressor</artifactId>
+                <version>0.25</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jetbrains</groupId>
+                <artifactId>annotations</artifactId>
+                <version>17.0.0</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jaxb</groupId>
+                <artifactId>jaxb-runtime</artifactId>
+                <version>2.4.0-b180830.0438</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>2.15.1</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.activation</groupId>
+                <artifactId>jakarta.activation-api</artifactId>
+                <version>1.2.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-math3</artifactId>
+                <version>3.6.1</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-logging</groupId>
+                <artifactId>commons-logging</artifactId>
+                <version>1.2</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
-
-    <build>
-        <plugins>
-            <plugin>
-                <inherited>true</inherited>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.12.1</version>
-                <configuration>
-                    <verbose>true</verbose>
-                    <fork>true</fork>
-                    <source>${compiler.source}</source>
-                    <target>${compiler.target}</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>${jacoco.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                    <!-- <execution> <id>report</id> <phase>test</phase> 
-                        <goals> <goal>report</goal> </goals> <configuration> </configuration> </execution> -->
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
-                <configuration>
-                    <!-- required to get jacoco to work locally -->
-                    <argLine>@{argLine}</argLine>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-site-plugin</artifactId>
-                <version>${m3.site.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-descriptor</id>
-                        <goals>
-                            <goal>attach-descriptor</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${javadoc.version}</version>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                        <configuration>
-                            <doclint>none</doclint>
-                            <source>8</source>
-                            <detectJavaApiLink>false</detectJavaApiLink>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
-    <reporting>
-        <excludeDefaults>true</excludeDefaults>
-        <outputDirectory>${project.build.directory}/site</outputDirectory>
-        <plugins>
-            <!-- this one should go first so that it is available to other 
-                plugins when they run -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jxr-plugin</artifactId>
-                <version>${jxr.version}</version>
-                <configuration>
-                    <aggregate>true</aggregate>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>${checkstyle.version}</version>
-                <configuration>
-                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>${pmd.version}</version>
-                <configuration>
-                    <targetJdk>${maven.compiler.target}</targetJdk>
-                    <aggregate>true</aggregate>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>findbugs-maven-plugin</artifactId>
-                <version>${findbugs.version}</version>
-                <configuration>
-                    <xmlOutput>true</xmlOutput>
-                    <effort>Max</effort>
-                    <!--<excludeFilterFile>findbugs-exclude-filter-amsa.xml</excludeFilterFile> -->
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jdepend-maven-plugin</artifactId>
-                <version>${jdepend.version}</version>
-            </plugin>
-            <!-- javancss failing on OperatorSubscriptionInterval.java so 
-                disabling -->
-            <!-- <plugin> <groupId>org.codehaus.mojo</groupId> <artifactId>javancss-maven-plugin</artifactId> 
-                <version>${javancss.version}</version> </plugin> -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-project-info-reports-plugin</artifactId>
-                <version>${project.info.version}</version>
-                <configuration>
-                    <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>taglist-maven-plugin</artifactId>
-                <version>${taglist.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>${javadoc.version}</version>
-                <configuration>
-                    <aggregate>true</aggregate>
-                    <additionalparam>-Xdoclint:none</additionalparam>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
-
-    <repositories>
-        <repository>
-            <id>osgeo</id>
-            <name>Open Source Geospatial Foundation Repository</name>
-            <url>https://repo.osgeo.org/repository/release/</url>
-        </repository>
-        <repository>
-            <id>osgeo-insecure</id>
-            <name>Open Source Geospatial Foundation Repository</name>
-            <url>http://download.osgeo.org/webdav/geotools/</url>
-        </repository>
-    </repositories>
-
-    <distributionManagement>
-        <repository>
-            <id>${risky.repo}</id>
-            <url>${risky.repo.url}</url>
-        </repository>
-        <site>
-            <id>site</id>
-            <url>${site.url}</url>
-        </site>
-    </distributionManagement>
-    
-    <profiles>
-        <profile>
-            <id>release</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                        <version>3.1.0</version>
-                        <configuration>
-                            <gpgArguments>
-                                <arg>--pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>sign-artifacts</id>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>sign</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>                    
-                    <plugin>
-                        <groupId>org.sonatype.plugins</groupId>
-                        <artifactId>nexus-staging-maven-plugin</artifactId>
-                        <version>${nexus.staging.version}</version>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>ossrh</id>
-                    <name>Maven Central</name>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                </snapshotRepository>
-                <repository>
-                    <id>ossrh</id>
-                    <name>Maven Central</name>
-                    <url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
-                </repository>
-            </distributionManagement>
-        </profile>
-    </profiles>
-
 </project>
