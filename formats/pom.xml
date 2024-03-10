@@ -63,7 +63,7 @@
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>risky-util</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -87,7 +87,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -128,7 +127,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -165,7 +163,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -202,7 +199,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -231,7 +227,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>

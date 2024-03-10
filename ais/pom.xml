@@ -26,80 +26,59 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.14.0</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-            <version>${rxjava.version}</version>
         </dependency>
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava-string</artifactId>
-            <version>${rxjava.string.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-extras</artifactId>
-            <version>${rxjava.extras.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-slf4j</artifactId>
-            <version>${rxjava.slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>${project.parent.groupId}</groupId>
+            <groupId>au.gov.amsa.risky</groupId>
             <artifactId>streams</artifactId>
-            <version>${project.parent.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>${project.parent.groupId}</groupId>
+            <groupId>au.gov.amsa.risky</groupId>
             <artifactId>formats</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
 
         <!-- test/benchmark deps -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-            <version>${easymock.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.openjdk.jmh</groupId>
             <artifactId>jmh-core</artifactId>
-            <version>${jmh.version}</version>
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>au.gov.amsa.risky</groupId>
-            <artifactId>formats</artifactId>
-            <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.guava</groupId>
-                    <artifactId>guava</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <dependency>
             <groupId>com.github.davidmoten</groupId>
@@ -125,7 +104,6 @@
                 <dependency>
                     <groupId>org.openjdk.jmh</groupId>
                     <artifactId>jmh-generator-annprocess</artifactId>
-                    <version>${jmh.version}</version>
                     <scope>test</scope>
                 </dependency>
             </dependencies>
@@ -134,7 +112,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <id>run-benchmarks</id>
@@ -174,7 +151,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -211,7 +187,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -251,7 +226,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>
@@ -274,7 +248,6 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>exec-maven-plugin</artifactId>
-                        <version>${exec.version}</version>
                         <executions>
                             <execution>
                                 <goals>

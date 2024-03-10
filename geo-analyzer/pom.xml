@@ -81,7 +81,7 @@
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>formats</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>edu.ucar</groupId>
@@ -93,7 +93,7 @@
          <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>behaviour-detector</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.davidmoten</groupId>
@@ -141,7 +141,6 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <goals>
