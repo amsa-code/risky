@@ -8,15 +8,12 @@
 	<artifactId>animator</artifactId>
 	<name>${project.artifactId}</name>
 	<description>Visualizer for AIS movements</description>
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
+
 	<dependencies>
 
 		<dependency>
 			<groupId>io.reactivex</groupId>
 			<artifactId>rxjava</artifactId>
-			<version>${rxjava.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -29,30 +26,24 @@
 		</dependency>
 		
 		<dependency>
-			<groupId>${project.parent.groupId}</groupId>
+			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>ais</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>formats</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>streams</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>geo-analyzer</artifactId>
-			<version>${project.parent.version}</version>
 		</dependency>
-
-
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-shapefile</artifactId>
@@ -87,14 +78,12 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.openjdk.jmh</groupId>
 			<artifactId>jmh-core</artifactId>
-			<version>${jmh.version}</version>
 			<scope>test</scope>
 		</dependency>
 

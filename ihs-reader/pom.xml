@@ -13,7 +13,7 @@
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>streams</artifactId>
-			<version>${project.parent.version}</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

@@ -13,7 +13,6 @@
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava</artifactId>
-            <version>${rxjava.version}</version>
         </dependency>
 
         <dependency>
@@ -25,13 +24,11 @@
         <dependency>
             <groupId>io.reactivex</groupId>
             <artifactId>rxjava-string</artifactId>
-            <version>${rxjava.string.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
 
         <dependency>
@@ -55,9 +52,11 @@
         <dependency>
             <groupId>com.github.davidmoten</groupId>
             <artifactId>rxjava-slf4j</artifactId>
-            <version>${rxjava.slf4j.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
@@ -67,25 +66,26 @@
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>ais</artifactId>
-            <version>${project.parent.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>au.gov.amsa.risky</groupId>
+            <artifactId>formats</artifactId>
         </dependency>
 
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>streams</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>risky-util</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>geotools-extras</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
@@ -111,14 +111,12 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -139,7 +137,6 @@
         <dependency>
             <groupId>au.gov.amsa.risky</groupId>
             <artifactId>ihs-reader</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
     </dependencies>
