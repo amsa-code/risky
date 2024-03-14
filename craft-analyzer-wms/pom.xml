@@ -16,7 +16,6 @@
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>behaviour-detector</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
@@ -25,7 +24,12 @@
 		<dependency>
 			<groupId>au.gov.amsa.risky</groupId>
 			<artifactId>spark</artifactId>
-			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish.hk2.external</groupId>
+					<artifactId>jakarta.inject</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
@@ -42,8 +46,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

@@ -67,6 +67,70 @@
                 </plugin>
             </plugins>
         </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.basepom.maven</groupId>
+                <artifactId>duplicate-finder-maven-plugin</artifactId>
+                <!-- last java 8 version -->
+                <version>1.5.1</version>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <phase>verify</phase>
+                        <configuration>
+                            <!--                  <failBuildInCaseOfConflict>true</failBuildInCaseOfConflict>-->
+                            <failBuildInCaseOfDifferentContentConflict>true</failBuildInCaseOfDifferentContentConflict>
+                            <ignoredResourcePatterns>
+                                <ignoredResourcePattern>about.html</ignoredResourcePattern>
+                                <ignoredResourcePattern>about.properties</ignoredResourcePattern>
+                                <ignoredResourcePattern>plugin.properties</ignoredResourcePattern>
+                                <ignoredResourcePattern>plugin.xml</ignoredResourcePattern>
+                                <ignoredResourcePattern>arrow-git.properties</ignoredResourcePattern>
+                                <ignoredResourcePattern>google/protobuf/.*.proto</ignoredResourcePattern>
+                            </ignoredResourcePatterns>
+                            <ignoredClassPatterns>
+                                <!-- geo-analyzer via gt-render dependency on both it.geosolutions.jaiext.scale2:jt-scale2:1.1.24, it.geosolutions.jaiext.scale:jt-scale:1.1.24 -->
+                                <ignoredClassPattern>it.geosolutions.jaiext.scale.JaiI18N*</ignoredClassPattern>
+                            </ignoredClassPatterns>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>banned-dependencies</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <phase>validate</phase>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <excludes>
+                                        <exclude>javax.activation:activation</exclude>
+                                        <exclude>javax.servlet:servlet-api</exclude>
+                                        <exclude>net.jpountz.lz4:lz4</exclude>
+                                        <exclude>javax.xml.bind:jaxb-api</exclude>
+                                        <exclude>com.github.stephenc.jcip:jcip-annotations</exclude>
+                                    </excludes>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.jetty</groupId>
+                <artifactId>jetty-maven-plugin</artifactId>
+                <version>9.4.49.v20220914</version>
+            </plugin>
+        </plugins>
     </build>
 
     <repositories>
@@ -75,10 +139,20 @@
             <name>Open Source Geospatial Foundation Repository</name>
             <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
+<!--        <repository>-->
+<!--            <id>osgeo-insecure</id>-->
+<!--            <name>Open Source Geospatial Foundation Repository</name>-->
+<!--            <url>http://download.osgeo.org/webdav/geotools/</url>-->
+<!--        </repository>-->
         <repository>
-            <id>osgeo-insecure</id>
-            <name>Open Source Geospatial Foundation Repository</name>
-            <url>http://download.osgeo.org/webdav/geotools/</url>
+            <id>ucar</id>
+            <url>https://artifacts.unidata.ucar.edu/content/repositories/unidata-releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
 
@@ -95,7 +169,7 @@
         <!-- <module>renjin</module> -->
         <module>h2spatial</module>
         <module>spark</module>
-        <module>animator</module>
+<!--        <module>animator</module>-->
         <module>geotools-extras</module>
         <module>ais-router</module>
         <module>ais-parquet</module>
@@ -239,7 +313,7 @@
             <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
-                <version>4.11.0</version>
+                <version>${mockito.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.openjdk.jmh</groupId>
@@ -272,9 +346,44 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>javax.servlet</groupId>
-                <artifactId>servlet-api</artifactId>
-                <version>2.5</version>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <version>4.0.3</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-shapefile</artifactId>
+                <version>${geotools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.geotools</groupId>
+                <artifactId>gt-epsg-hsql</artifactId>
+                <version>${geotools.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.reactivex</groupId>
+                <artifactId>rxjava-math</artifactId>
+                <version>${rxjava.math.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.davidmoten</groupId>
+                <artifactId>grumpy-core</artifactId>
+                <version>${grumpy.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>au.gov.amsa.risky</groupId>
+                <artifactId>spark</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>edu.ucar</groupId>
+                <artifactId>netcdf</artifactId>
+                <version>${netcdf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>jakarta.xml.bind</groupId>
+                <artifactId>jakarta.xml.bind-api</artifactId>
+                <version>2.3.3</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
