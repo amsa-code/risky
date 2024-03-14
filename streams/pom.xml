@@ -19,8 +19,8 @@
 			<artifactId>guava-mini</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
+			<groupId>jakarta.servlet</groupId>
+			<artifactId>jakarta.servlet-api</artifactId>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
@@ -35,33 +35,27 @@
 		<dependency>
 			<groupId>io.reactivex</groupId>
 			<artifactId>rxjava</artifactId>
-			<version>${rxjava.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>io.reactivex</groupId>
 			<artifactId>rxjava-string</artifactId>
-			<version>${rxjava.string.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>rxjava-extras</artifactId>
-			<version>${rxjava.extras.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
 			<artifactId>rxjava-slf4j</artifactId>
-			<version>${rxjava.slf4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
-			<version>${mockito.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
@@ -70,7 +64,6 @@
 			<plugin>
 				<groupId>org.mortbay.jetty</groupId>
 				<artifactId>jetty-maven-plugin</artifactId>
-				<version>${jetty.plugin.version}</version>
 				<configuration>
 					<scanIntervalSeconds>10</scanIntervalSeconds>
 					<stopKey>foo</stopKey>
