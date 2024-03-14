@@ -15,7 +15,7 @@
   <name>${project.artifactId}</name>
   <description>Parent pom for risky project modules</description>
 
-  <url>http://github.com/amsa-code/risky</url>
+  <url>https://github.com/amsa-code/risky</url>
 
   <modules>
     <module>streams</module>
