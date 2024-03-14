@@ -49,7 +49,7 @@
     <geotools.version>28.4</geotools.version>
     <grumpy.version>0.4.8</grumpy.version>
     <guava.mini.version>0.1.7</guava.mini.version>
-    <guava.version>32.1.3-jre</guava.version>
+    <guava.version>33.1.0-jre</guava.version>
     <hadoop.version>3.3.6</hadoop.version>
     <!-- FIXME code coverage is very low -->
     <jacoco.haltOnFailure>false</jacoco.haltOnFailure>
