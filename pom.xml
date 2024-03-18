@@ -10,7 +10,7 @@
 
   <groupId>au.gov.amsa.risky</groupId>
   <artifactId>parent</artifactId>
-  <version>0.6.18</version>
+  <version>0.6.19-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>${project.artifactId}</name>
   <description>Parent pom for risky project modules</description>
@@ -39,7 +39,7 @@
   <scm>
     <connection>${scm.url}</connection>
     <developerConnection>${scm.url}</developerConnection>
-    <tag>parent-0.6.18</tag>
+    <tag>HEAD</tag>
     <url>https://github.com/amsa-code/risky.git</url>
   </scm>
 
