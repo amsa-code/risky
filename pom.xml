@@ -39,6 +39,7 @@
   <scm>
     <connection>${scm.url}</connection>
     <developerConnection>${scm.url}</developerConnection>
+    <tag>HEAD</tag>
     <url>https://github.com/amsa-code/risky.git</url>
   </scm>
 
