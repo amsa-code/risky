@@ -7,6 +7,8 @@
     <version>0.6.18-SNAPSHOT</version>
   </parent>
   <artifactId>risky-bom</artifactId>
+  <name>${project.artifactId}</name>
+  <description>Risky BOM</description>
   <dependencyManagement>
     <dependencies>
       <dependency>
