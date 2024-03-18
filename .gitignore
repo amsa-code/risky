@@ -11,3 +11,4 @@ release.properties
 **/*.iml
 
 .flattened-pom.xml
+pom.xml.versionsBackup
