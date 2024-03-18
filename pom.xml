@@ -73,7 +73,7 @@
     <rxjava.version>1.3.8</rxjava.version>
     <scm.url>scm:git:https://github.com/amsa-code/risky.git</scm.url>
     <slf4j.version>2.0.9</slf4j.version>
-
+    <tagNameFormat>@{project.version}</tagNameFormat>
   </properties>
 
   <dependencyManagement>
