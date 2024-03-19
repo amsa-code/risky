@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 
-import com.github.davidmoten.util.MapWithIndex;
+import com.github.davidmoten.rx.util.MapWithIndex;
 
 import au.gov.amsa.ais.rx.Streams;
 import au.gov.amsa.geo.distance.EffectiveSpeedChecker;
