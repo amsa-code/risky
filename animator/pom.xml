@@ -1,90 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>au.gov.amsa.risky</groupId>
-		<artifactId>parent</artifactId>
-		<version>0.6.18-SNAPSHOT</version>
-	</parent>
-	<artifactId>animator</artifactId>
-	<name>${project.artifactId}</name>
-	<description>Visualizer for AIS movements</description>
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>au.gov.amsa.risky</groupId>
+    <artifactId>parent</artifactId>
+    <version>0.6.19-SNAPSHOT</version>
+  </parent>
+  <artifactId>animator</artifactId>
+  <name>${project.artifactId}</name>
+  <description>Visualizer for AIS movements</description>
 
-	<dependencies>
+  <dependencies>
 
-		<dependency>
-			<groupId>io.reactivex</groupId>
-			<artifactId>rxjava</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-jdk14</artifactId>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
-			<groupId>au.gov.amsa.risky</groupId>
-			<artifactId>ais</artifactId>
-		</dependency>
+    <dependency>
+      <groupId>au.gov.amsa.risky</groupId>
+      <artifactId>ais</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>au.gov.amsa.risky</groupId>
-			<artifactId>formats</artifactId>
-		</dependency>
+    <dependency>
+      <groupId>au.gov.amsa.risky</groupId>
+      <artifactId>formats</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>au.gov.amsa.risky</groupId>
-			<artifactId>streams</artifactId>
-		</dependency>
+    <dependency>
+      <groupId>au.gov.amsa.risky</groupId>
+      <artifactId>geo-analyzer</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>au.gov.amsa.risky</groupId>
-			<artifactId>geo-analyzer</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-shapefile</artifactId>
-		</dependency>
+    <dependency>
+      <groupId>au.gov.amsa.risky</groupId>
+      <artifactId>streams</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-swing</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
+    <dependency>
+      <groupId>io.reactivex</groupId>
+      <artifactId>rxjava</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-wms</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
+    <dependency>
+      <groupId>io.reactivex</groupId>
+      <artifactId>rxswing</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-epsg-hsql</artifactId>
-		</dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-epsg-hsql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-shapefile</artifactId>
+    </dependency>
 
-<!--		<dependency>-->
-<!--			<groupId>com.netflix.rxjava</groupId>-->
-<!--			<artifactId>rxjava-swing</artifactId>-->
-<!--			<version>0.20.7</version>-->
-<!--		</dependency>-->
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-swing</artifactId>
+      <version>${geotools.version}</version>
+    </dependency>
 
-		<!-- test/benchmark deps -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
+    <dependency>
+      <groupId>org.geotools</groupId>
+      <artifactId>gt-wms</artifactId>
+      <version>${geotools.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
 
-		<dependency>
-			<groupId>org.openjdk.jmh</groupId>
-			<artifactId>jmh-core</artifactId>
-			<scope>test</scope>
-		</dependency>
+    <!-- test/benchmark deps -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>test</scope>
+    </dependency>
 
+    <dependency>
+      <groupId>org.openjdk.jmh</groupId>
+      <artifactId>jmh-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <scope>test</scope>
+    </dependency>
 
-	</dependencies>
+  </dependencies>
 </project>

@@ -30,7 +30,7 @@
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>animator</artifactId>
-        <version>0.6.18-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
