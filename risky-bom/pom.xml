@@ -4,7 +4,7 @@
   <parent>
     <groupId>au.gov.amsa.risky</groupId>
     <artifactId>parent</artifactId>
-    <version>0.6.20-SNAPSHOT</version>
+    <version>0.6.19-SNAPSHOT</version>
   </parent>
   <artifactId>risky-bom</artifactId>
   <packaging>pom</packaging>
@@ -15,72 +15,72 @@
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>ais</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>ais-parquet</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>ais-router</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>animator</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>behaviour-detector</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>craft-analyzer-wms</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>formats</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>geo-analyzer</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>geotools-extras</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>h2spatial</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>ihs-reader</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>risky-util</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>spark</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>au.gov.amsa.risky</groupId>
         <artifactId>streams</artifactId>
-        <version>0.6.20-SNAPSHOT</version>
+        <version>0.6.19-SNAPSHOT</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
